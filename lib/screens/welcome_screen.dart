@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -7,19 +8,25 @@ class WelcomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Center(
             child: Icon(
                 Icons.fastfood,
                 color: Colors.black,
-                size: 150,
+                size: 100,
             ),
           ),
-          Text(
-            """Willkommen zum
-            meal planner""",
-            style: GoogleFonts.cuteFont(fontSize: 30),
-            textAlign: TextAlign.center,
+          Center(
+            child: Text(
+              "Willkommen zum\nmeal planner",
+              style: GoogleFonts.cuteFont(fontSize: 60),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          Image(
+            image: AssetImage('assets/images/avocado.png'),
+            height: 200,
           )
         ],
       ),
