@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:async';
+import 'package:meal_planner/screens/login_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
   // This widget is the root of your application.
@@ -33,3 +35,4 @@ class WelcomeScreen extends StatelessWidget {
     );
   }
 }
+
