@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:meal_planner/services/auth.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -12,6 +13,8 @@ class _LoginScreen extends State<LoginScreen>{
 
   String email = "";
   String password = "";
+
+  Auth auth = new Auth();
 
   // This widget is the root of your application.
   @override
@@ -76,36 +79,39 @@ class _LoginScreen extends State<LoginScreen>{
               height: 20,
             ),
             ElevatedButton(
-                onPressed: (){},
+                onPressed: (){
+                  auth.signInWithEmail(email, password);
+                },
                 child: Text(
-                  "login"
+                  "sign in"
                 ),
             ),
             SizedBox(
-              height: 20,
+              height: 40,
             ),
-            RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: "no account yet?  ",
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                    Text(
+                      "no account yet?",
                       style: TextStyle(
                           color: Colors.black
                       ),
                     ),
-                    TextSpan(
-                      text: "register",
-                      style: TextStyle(
-                        color: Colors.blue,
-                        decoration: TextDecoration.underline
+                    TextButton(
+                      child: Text(
+                        "sign up",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline
+                        ),
                       ),
-                      recognizer: TapGestureRecognizer()
-                        /*..onTap = () {launch(); //TODO: Link zu RegistrationScreen einfügen.
-                       },*/
+                      onPressed: (){
+                        Navigator.pushNamed(context, '/registration');//TODO: Link zu RegistrationScreen einfügen.
+                       },
                     ),
                   ],
                 ),
-            ),
           ],
         ),
       ),

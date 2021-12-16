@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:meal_planner/screens/welcome_screen.dart';
@@ -5,9 +6,13 @@ import 'package:meal_planner/screens/login_screen.dart';
 import 'package:meal_planner/screens/registration_screen.dart';
 
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(MyApp());
 }
+
+//TODO: Fixate device orientation!
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -18,7 +23,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
-              primary: Colors.green[300]),
+              primary: Colors.green[700]),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
@@ -46,7 +51,11 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: RegistrationScreen(),
+      home: WelcomeScreen(),
+      routes: {
+        '/registration': (context) => RegistrationScreen(),
+        '/login': (context) => LoginScreen(),
+      }
     );
   }
 }

@@ -2,16 +2,21 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:meal_planner/services/auth.dart';
 
 class RegistrationScreen extends StatefulWidget {
   @override
   State<RegistrationScreen> createState() => _RegistrationScreen();
 }
 
-class _RegistrationScreen extends State<RegistrationScreen>{
+class _RegistrationScreen extends State<RegistrationScreen> {
 
+  String name = "";
   String email = "";
   String password = "";
+  String password_check = "";
+
+  Auth auth = new Auth();
 
   // This widget is the root of your application.
   @override
@@ -40,12 +45,12 @@ class _RegistrationScreen extends State<RegistrationScreen>{
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(),
-                  hintText: 'email',
+                  hintText: 'name',
                 ),
-                keyboardType: TextInputType.emailAddress,
+                keyboardType: TextInputType.text,
                 onChanged: (value) {
                   setState(() {
-                    email = value;
+                    name = value;
                   });
                 },
               ),
@@ -61,7 +66,7 @@ class _RegistrationScreen extends State<RegistrationScreen>{
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(),
-                  hintText: 'repeat email',
+                  hintText: 'email',
                 ),
                 keyboardType: TextInputType.emailAddress,
                 onChanged: (value) {
@@ -110,7 +115,7 @@ class _RegistrationScreen extends State<RegistrationScreen>{
                 obscureText: true,
                 onChanged: (value) {
                   setState(() {
-                    password = value;
+                    password_check = value;
                   });
                 },
               ),
@@ -119,35 +124,36 @@ class _RegistrationScreen extends State<RegistrationScreen>{
               height: 20,
             ),
             ElevatedButton(
-              onPressed: (){},
-              child: Text(
-                  "register"
-              ),
+              onPressed: () {
+                auth.registerWithEmail(name, email, password, password_check);
+              },
+              child: Text("sign up"),
             ),
             SizedBox(
-              height: 20,
+              height: 40,
             ),
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: "already got an account?  ",
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "already got an account?",
+                  style: TextStyle(
+                      color: Colors.black
+                  ),
+                ),
+                TextButton(
+                  child: Text(
+                    "sign in",
                     style: TextStyle(
-                        color: Colors.black
+                        fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.underline
                     ),
                   ),
-                  TextSpan(
-                      text: "login",
-                      style: TextStyle(
-                          color: Colors.blue,
-                          decoration: TextDecoration.underline
-                      ),
-                      recognizer: TapGestureRecognizer()
-                    //          ..onTap = () {launch(); // TODO: Link zu LoginScreen einfügen
-                    //          },
-                  ),
-                ],
-              ),
+                  onPressed: (){
+                    Navigator.pushNamed(context, '/login');//TODO: Link zu RegistrationScreen einfügen.
+                  },
+                ),
+              ],
             ),
           ],
         ),
@@ -155,4 +161,3 @@ class _RegistrationScreen extends State<RegistrationScreen>{
     );
   }
 }
-
