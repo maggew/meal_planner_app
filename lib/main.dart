@@ -1,10 +1,24 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:meal_planner/appstyle/app_theme.dart';
+import 'package:meal_planner/screens/add_recipe_keyboard_screen.dart';
+import 'package:meal_planner/screens/cookbook_screen.dart';
+import 'package:meal_planner/screens/create_group_screen.dart';
+import 'package:meal_planner/screens/detailed_weekplan_screen.dart';
+import 'package:meal_planner/screens/group_created_screen.dart';
+import 'package:meal_planner/screens/join_group_screen.dart';
+import 'package:meal_planner/screens/refrigerator_screen.dart';
+import 'package:meal_planner/screens/show_recipe.dart';
+import 'package:meal_planner/screens/show_singleGroup_screen.dart';
+import 'package:meal_planner/screens/show_userGroups_screen.dart';
 import 'dart:async';
 import 'package:meal_planner/screens/welcome_screen.dart';
 import 'package:meal_planner/screens/login_screen.dart';
 import 'package:meal_planner/screens/registration_screen.dart';
-
+import 'package:meal_planner/screens/group_screen.dart';
+import 'package:meal_planner/screens/zoom_pic_screen.dart';
+import 'package:meal_planner/widgets/DismissKeyboard.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,50 +26,35 @@ void main() async {
   runApp(MyApp());
 }
 
-//TODO: Fixate device orientation!
-
 class MyApp extends StatelessWidget {
+  String groupName;
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        textButtonTheme: TextButtonThemeData(
-          style: TextButton.styleFrom(
-              primary: Colors.green[700]),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            primary: Colors.green[400]
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-                color: Colors.green[800],
-                width: 2.5,
-            ),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: Colors.blueGrey,
-              width: 1.5,
-            ),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: Colors.red,
-              width: 1.5
-            ),
-          ),
-        ),
-      ),
-      home: WelcomeScreen(),
-      routes: {
-        '/registration': (context) => RegistrationScreen(),
-        '/login': (context) => LoginScreen(),
-      }
+    return DismissKeyboard(
+      child: MaterialApp(
+          title: 'Flutter Demo',
+          theme: AppTheme().getAppTheme(),
+          home: WelcomeScreen(), //Todo Welcome screen hier einsetzen
+          routes: {
+            '/registration': (context) => RegistrationScreen(),
+            '/login': (context) => LoginScreen(),
+            '/groups': (context) => GroupScreen(),
+            '/create_group': (context) => CreateGroupScreen(),
+            '/group_created': (context) => GroupCreatedScreen(
+                  groupName: groupName,
+                ),
+            '/join_group': (context) => JoinGroupScreen(),
+            '/detailed_week': (context) => DetailedWeekScreen(),
+            '/cookbook': (context) => CookbookScreen(),
+            RecipeScreen.route: (context) => RecipeScreen(),
+            '/add_recipe_keyboard': (context) => AddRecipeKeyboardScreen(),
+            '/show_userGroups': (context) => ShowUserGroupsScreen(),
+            ShowSingleGroupScreen.route: (context) => ShowSingleGroupScreen(),
+            ZoomPicScreen.route: (context) => ZoomPicScreen(),
+            RefrigeratorScreen.route: (context) => RefrigeratorScreen(),
+          }),
     );
   }
 }

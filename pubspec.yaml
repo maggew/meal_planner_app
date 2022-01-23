@@ -24,6 +24,10 @@ dependencies:
   flutter:
     sdk: flutter
   google_fonts: ^2.1.0
+  email_validator: ^2.0.1
+  font_awesome_flutter: ^9.2.0
+  fluttertoast: ^8.0.8
+  flutter_number_picker: ^1.0.4
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -31,6 +35,26 @@ dependencies:
   cupertino_icons: ^1.0.2
   firebase_core: ^1.10.6
   firebase_auth: ^3.3.3
+  image_picker: ^0.8.4+4
+  cloud_firestore: ^3.1.5
+  vertical_tabs: ^0.2.0
+  cool_dropdown: ^1.4.1
+  editable: ^2.0.0
+  camera: ^0.9.4+5
+  path_provider: ^2.0.8
+  path: ^1.8.0
+  firebase_storage: ^10.2.4
+  file_picker: ^4.3.0
+  cached_network_image: ^3.2.0
+  flutter_colorful_tab: ^0.1.0
+  multi_split_view: ^1.10.0+1
+  counter_button: ^1.0.1
+  bi_counter_field: ^1.0.4
+  http: ^0.13.4
+  async: ^2.8.2
+  flutter_mobile_vision: ^0.1.4+1
+  flutter_tesseract_ocr: ^0.4.19
+  simple_ocr_plugin: ^0.1.1
 
 dev_dependencies:
   flutter_test:
@@ -48,7 +72,32 @@ flutter:
   uses-material-design: true
 
   assets:
-      - assets/images/
+      - assets/images/avocado.png
+      - assets/images/group.png
+      - assets/images/team.png
+      - assets/images/standard_group_icon.jpg
+      - assets/images/avocado_dark.png
+      - assets/images/avocado_light.png
+      - assets/images/caticorn.png
+      - assets/images/cat_avatar.png
+      - assets/images/background.png
+      - assets/images/group_pic.jpg
+      - assets/images/default_pic.jpg
+      - assets/images/default_pic_2.jpg
+      - assets/images/default_pic_3.jpg
+      - assets/images/ice_cube.jpg
+      - assets/images/berries.jpg
+      - assets/images/peas.jpg
+      - assets/images/potatoes.jpg
+      - assets/images/shrimps.jpg
+      - assets/images/pizza_1.jpg
+      - assets/images/pizza_2.jpg
+      - assets/tessdata/tessdata_config.json
+
+  fonts:
+    - family: AppIcons
+      fonts:
+        - asset: assets/fonts/AppIcons.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

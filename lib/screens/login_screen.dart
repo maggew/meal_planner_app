@@ -1,121 +1,192 @@
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:meal_planner/services/auth.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
   State<LoginScreen> createState() => _LoginScreen();
 }
 
-class _LoginScreen extends State<LoginScreen>{
-
+class _LoginScreen extends State<LoginScreen> {
   String email = "";
   String password = "";
 
   Auth auth = new Auth();
 
+  GlobalKey<FormState> _formCheck = new GlobalKey();
+
+  //Screen is locked to portraitUp mode
+  @override
+  void initState() {
+    super.initState();
+  }
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.green[100],
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "Login",
-              style: GoogleFonts.oswald(
-                fontWeight: FontWeight.w300,
-                fontSize: 50,
-              ),
-            ),
-            SizedBox(
-              height: 20,
-            ),
-            SizedBox(
-              width: 300,
-              height: 60,
-              child: TextFormField(
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(),
-                    hintText: 'email',
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  onChanged: (value) {
-                    setState(() {
-                      email = value;
-                    });
-                  },
-              ),
-            ),
-            SizedBox(
-              height: 20,
-            ),
-            SizedBox(
-              width: 300,
-              height: 60,
-              child: TextFormField(
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(),
-                  hintText: 'password',
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
+    return Stack(
+      children: [
+        Container(
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
+          color: Colors.white,
+          child: Opacity(
+            opacity: 0.7,
+            child: RotatedBox(
+              quarterTurns: 3,
+              child: FittedBox(
+                fit: BoxFit.fill,
+                child: Image(
+                  image: AssetImage('assets/images/background.png'),
                 ),
-                keyboardType: TextInputType.text,
-                obscureText: true,
-                onChanged: (value) {
-                  setState(() {
-                    password = value;
-                  });
-                },
               ),
             ),
-            SizedBox(
-              height: 20,
-            ),
-            ElevatedButton(
-                onPressed: (){
-                  auth.signInWithEmail(email, password);
-                },
-                child: Text(
-                  "sign in"
-                ),
-            ),
-            SizedBox(
-              height: 40,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+          ),
+        ),
+        Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Center(
+            child: SingleChildScrollView(
+              child: Form(
+                key: _formCheck,
+                autovalidateMode: AutovalidateMode.disabled,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
                     Text(
-                      "no account yet?",
-                      style: TextStyle(
-                          color: Colors.black
+                      "Login",
+                      style: Theme.of(context).textTheme.headline1,
+                    ),
+                    SizedBox(
+                      height: 35,
+                    ),
+                    SizedBox(
+                      width: 300,
+                      height: 100,
+                      child: TextFormField(
+                        validator: _validateEmail,
+                        decoration: InputDecoration(
+                          labelText: "E-Mail",
+                          filled: true,
+                          fillColor: Colors.white,
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.blueGrey,
+                              width: 1.5,
+                            ),
+                          ),
+                          hintText: 'E-Mail',
+                          errorStyle: Theme.of(context).textTheme.bodyText1,
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                        onChanged: (value) {
+                          setState(() {
+                            email = value;
+                          });
+                        },
                       ),
+                    ),
+                    SizedBox(
+                      width: 300,
+                      height: 100,
+                      child: TextFormField(
+                        validator: _validatePassword,
+                        decoration: InputDecoration(
+                          labelText: "Passwort",
+                          filled: true,
+                          fillColor: Colors.white,
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.blueGrey,
+                              width: 1.5,
+                            ),
+                          ),
+                          hintText: 'Passwort',
+                          errorStyle: Theme.of(context).textTheme.bodyText1,
+                        ),
+                        keyboardType: TextInputType.text,
+                        obscureText: true,
+                        onChanged: (value) {
+                          setState(() {
+                            password = value;
+                          });
+                        },
+                      ),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        fixedSize: Size(90, 40),
+                      ),
+                      onPressed: () async {
+                        var message =
+                            await auth.signInWithEmail(email, password);
+                        if (_formCheck.currentState.validate() &&
+                            message == "success") {
+                          Navigator.pushReplacementNamed(context, '/cookbook');
+                        } else if (message != null) {
+                          SnackBar(
+                            content: Text(message),
+                            backgroundColor: Colors.red,
+                            duration: Duration(seconds: 3),
+                          );
+                        } else {
+                          return null;
+                        }
+                      },
+                      child: Text(
+                        "Login",
+                      ),
+                    ),
+                    SizedBox(
+                      height: 60,
+                    ),
+                    Text(
+                      "Du hast noch keinen Account?",
                     ),
                     TextButton(
                       child: Text(
-                        "sign up",
+                        "Registrieren",
                         style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          decoration: TextDecoration.underline
-                        ),
+                            color: Colors.green[100],
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.underline),
                       ),
-                      onPressed: (){
-                        Navigator.pushNamed(context, '/registration');//TODO: Link zu RegistrationScreen einfügen.
-                       },
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/registration');
+                      },
                     ),
                   ],
                 ),
-          ],
+              ),
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
-}
 
+  String _validateEmail(String email) {
+    if (email.isEmpty) {
+      return "Bitte E-Mail Adresse eingeben.";
+    } else if (!EmailValidator.validate(email)) {
+      return "Bitte richtige E-Mail Adresse eingeben.";
+    } else {
+      return null;
+    }
+  }
+
+  String _validatePassword(String password) {
+    if (password.isEmpty) {
+      return "Bitte Passwort eingeben.";
+    } else
+      return null;
+  }
+}
