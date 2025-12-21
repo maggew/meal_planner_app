@@ -1,17 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:meal_planner/appstyle/app_icons.dart';
-import 'package:meal_planner/screens/refrigerator_screen.dart';
+import 'package:meal_planner/presentation/refrigerator_screen.dart';
 import 'package:meal_planner/services/auth.dart';
 import 'package:meal_planner/services/database.dart';
 
 class BurgerMenu extends StatefulWidget {
   const BurgerMenu({
-    Key key,
-    this.width,
+    Key? key,
+    required this.width,
   }) : super(key: key);
 
   final double width;
@@ -46,7 +43,8 @@ class _BurgerMenu extends State<BurgerMenu> {
       future: Database().getCurrentGroup(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator(
+          return Center(
+              child: CircularProgressIndicator(
             color: Colors.green,
           ));
         } else {
@@ -54,18 +52,18 @@ class _BurgerMenu extends State<BurgerMenu> {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else {
             imagePath = snapshot.data['icon'];
-            if(imagePath == "" || imagePath.isEmpty){
-              groupImage = Image.asset('assets/images/group_pic.jpg',
-              height: 200,
-              width: widget.width * MediaQuery.of(context).size.width,
-              fit: BoxFit.cover,
+            if (imagePath == "" || imagePath.isEmpty) {
+              groupImage = Image.asset(
+                'assets/images/group_pic.jpg',
+                height: 200,
+                width: widget.width * MediaQuery.of(context).size.width,
+                fit: BoxFit.cover,
               );
-            }
-            else {
+            } else {
               groupImage = CachedNetworkImage(
                 height: 200,
-                  width: widget.width * MediaQuery.of(context).size.width,
-                  imageUrl: imagePath,
+                width: widget.width * MediaQuery.of(context).size.width,
+                imageUrl: imagePath,
                 fit: BoxFit.cover,
               );
             }
@@ -211,7 +209,8 @@ class _BurgerMenu extends State<BurgerMenu> {
                             ],
                           ),
                           onPressed: () {
-                            Navigator.pushNamed(context, RefrigeratorScreen.route);
+                            Navigator.pushNamed(
+                                context, RefrigeratorScreen.route);
                           },
                         ),
                       ),

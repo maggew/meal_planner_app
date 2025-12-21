@@ -1,9 +1,14 @@
-class Product{
-
+class Product {
   String title;
   String category;
   double number;
   String unit;
 
-  Product({this.title, this.category, this.number, this.unit});
+  Product({
+    required this.title,
+    required this.category,
+    required this.number,
+    required this.unit,
+  });
 }
+

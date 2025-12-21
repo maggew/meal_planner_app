@@ -1,13 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'dart:async';
 
-import 'MealRowBreakfast_widget.dart';
 import 'MealRowDinner_widget.dart';
-import 'MealRowLunch_widget.dart';
 
 class OneMeal extends StatefulWidget {
   @override

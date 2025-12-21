@@ -1,9 +1,14 @@
-class FridgeProduct{
-
+class FridgeProduct {
   String title;
   String category;
   double number;
   String unit;
 
-  FridgeProduct({this.title, this.category, this.number, this.unit});
+  FridgeProduct({
+    required this.title,
+    required this.category,
+    required this.number,
+    required this.unit,
+  });
 }
+

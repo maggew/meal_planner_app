@@ -2,59 +2,60 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  ThemeData getAppTheme(){
+  ThemeData getAppTheme() {
     return ThemeData(
+      scaffoldBackgroundColor: Colors.transparent,
       checkboxTheme: CheckboxThemeData(
-        checkColor: MaterialStateProperty.all(Colors.white),
-        fillColor: MaterialStateProperty.all(Colors.green[400]),
+        checkColor: WidgetStateProperty.all(Colors.white),
+        fillColor: WidgetStateProperty.all(Colors.green[400]),
       ),
       textTheme: TextTheme(
         //used to indicate big missing information
-        headline6: TextStyle(
+        titleLarge: TextStyle(
           fontFamily: GoogleFonts.oswald().fontFamily,
           fontSize: 40,
           color: Colors.red,
         ),
         // used for normal Headlines
-        headline2: TextStyle(
+        displayMedium: TextStyle(
           fontFamily: GoogleFonts.aBeeZee().fontFamily,
           fontSize: 30,
           color: Colors.black,
         ),
         //used for small headlines
-        headline3: TextStyle(
+        displaySmall: TextStyle(
           fontFamily: GoogleFonts.aBeeZee().fontFamily,
           fontSize: 25,
           fontWeight: FontWeight.w600,
           color: Colors.black,
         ),
         // only used for WelcomeScreen
-        caption: TextStyle(
+        bodySmall: TextStyle(
           fontFamily: GoogleFonts.aBeeZee().fontFamily,
           fontSize: 70,
           color: Colors.black,
         ),
         // used for bigger headlines (login / registration)
-        headline1: TextStyle(
+        displayLarge: TextStyle(
           fontFamily: GoogleFonts.aBeeZee().fontFamily,
           fontSize: 50,
           color: Colors.black,
         ),
         // used for error messages in Textformfields
-        bodyText1: TextStyle(
+        bodyLarge: TextStyle(
           fontFamily: GoogleFonts.quicksand().fontFamily,
           color: Colors.red[600],
           fontSize: 15,
           fontWeight: FontWeight.w600,
         ),
-        subtitle2: TextStyle(
+        titleSmall: TextStyle(
           fontFamily: GoogleFonts.quicksand(
             fontWeight: FontWeight.w400,
           ).fontFamily,
           fontSize: 15,
         ),
         // used for common texts
-        bodyText2: TextStyle(
+        bodyMedium: TextStyle(
           fontFamily: GoogleFonts.quicksand(
             fontWeight: FontWeight.w500,
           ).fontFamily,
@@ -63,7 +64,7 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          primary: Colors.black,
+          foregroundColor: Colors.black,
           textStyle: TextStyle(
             fontFamily: GoogleFonts.quicksand(
               fontWeight: FontWeight.w500,
@@ -74,7 +75,7 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          primary: Colors.green[400],
+          backgroundColor: Colors.green[400],
           textStyle: TextStyle(
             fontFamily: GoogleFonts.quicksand(
               fontWeight: FontWeight.w500,
@@ -101,7 +102,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(
-            color: Colors.green[800],
+            color: Colors.green[800]!,
             width: 2.5,
           ),
         ),
@@ -116,11 +117,11 @@ class AppTheme {
         ),
       ),
       scrollbarTheme: ScrollbarThemeData(
-        isAlwaysShown: true,
+        thumbVisibility: WidgetStateProperty.all(true),
         interactive: true,
-        thickness: MaterialStateProperty.all(10),
+        thickness: WidgetStateProperty.all(10),
         radius: Radius.circular(10),
-        thumbColor: MaterialStateProperty.all(Colors.teal[200]),
+        thumbColor: WidgetStateProperty.all(Colors.teal[200]),
       ),
     );
   }
