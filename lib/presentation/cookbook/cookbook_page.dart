@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:meal_planner/presentation/app_background/app_background.dart';
+import 'package:meal_planner/appstyle/app_icons.dart';
+import 'package:meal_planner/presentation/common/app_background.dart';
+import 'package:meal_planner/presentation/cookbook/widgets/cookbook_add_recipe.dart';
 import 'package:meal_planner/presentation/cookbook/widgets/cookbook_body.dart';
+import 'package:meal_planner/widgets/BurgerMenu_widget.dart';
 
 class CookbookScreen extends StatelessWidget {
   const CookbookScreen({super.key});
@@ -13,7 +16,42 @@ class CookbookScreen extends StatelessWidget {
     ]);
 
     return AppBackground(
-      child: CookbookBody(),
+      scaffoldDrawer: BurgerMenu(width: 0.7),
+      scaffoldAppBar: AppBar(
+        toolbarHeight: 80,
+        leading: IconButton(
+          icon: Icon(Icons.menu), //FaIcon(FontAwesomeIcons.bars),
+          onPressed: () {
+            //scaffoldKey.currentState.openDrawer();
+          },
+        ),
+        foregroundColor: Colors.black,
+        elevation: 0,
+        title: Text(
+          "Kochbuch",
+          style: Theme.of(context).textTheme.displayMedium,
+        ),
+        centerTitle: true,
+        actions: [
+          Container(
+            height: 40,
+            width: 40,
+            child: FloatingActionButton(
+              onPressed: () => showDialog(
+                  context: context,
+                  builder: (BuildContext context) => CookbookAddRecipe()),
+              backgroundColor: Colors.lightGreen[100],
+              child: Icon(
+                AppIcons.plus_1,
+                size: 35,
+                color: Colors.black,
+              ),
+            ),
+          ),
+          //SizedBox(width: 15),
+        ],
+      ),
+      scaffoldBody: CookbookBody(),
     );
   }
 }
@@ -189,139 +227,139 @@ class CookbookScreen extends StatelessWidget {
 //         });
 //   }
 //
-//   List<Tab> getCategoryTabs() {
-//     return [
-//       Tab(
-//         child: Center(
-//           child: Column(
-//             children: [
-//               SizedBox(height: 8),
-//               Icon(
-//                 AppIcons.soup,
-//                 size: 30,
-//               ),
-//               Text("Suppen"),
-//               SizedBox(height: 8),
-//             ],
-//           ),
-//         ),
-//       ),
-//       Tab(
-//         child: Center(
-//           child: Column(
-//             children: [
-//               SizedBox(height: 8),
-//               Icon(
-//                 AppIcons.salad,
-//                 size: 30,
-//               ),
-//               Text("Salate"),
-//               SizedBox(height: 8),
-//             ],
-//           ),
-//         ),
-//       ),
-//       Tab(
-//         child: Center(
-//           child: Column(
-//             children: [
-//               SizedBox(height: 8),
-//               Icon(
-//                 AppIcons.soup,
-//                 size: 30,
-//               ),
-//               SizedBox(height: 5),
-//               Text(
-//                 "Saucen,\nDips",
-//                 textAlign: TextAlign.center,
-//                 style: TextStyle(height: 0.9),
-//               ),
-//               SizedBox(height: 8),
-//             ],
-//           ),
-//         ),
-//       ),
-//       Tab(
-//         child: Center(
-//           child: Column(
-//             children: [
-//               SizedBox(height: 8),
-//               Icon(
-//                 AppIcons.pizza,
-//                 size: 30,
-//               ),
-//               SizedBox(height: 5),
-//               Text(
-//                 "Haupt-\ngerichte",
-//                 textAlign: TextAlign.center,
-//                 style: TextStyle(height: 0.9),
-//               ),
-//               SizedBox(height: 8),
-//             ],
-//           ),
-//         ),
-//       ),
-//       Tab(
-//         child: Center(
-//           child: Column(
-//             children: [
-//               SizedBox(height: 8),
-//               Icon(
-//                 AppIcons.ice_cream_cone,
-//                 size: 30,
-//               ),
-//               Text("Desserts"),
-//               SizedBox(height: 8),
-//             ],
-//           ),
-//         ),
-//       ),
-//       Tab(
-//         child: Center(
-//           child: Column(
-//             children: [
-//               SizedBox(height: 8),
-//               Icon(
-//                 AppIcons.wedding_cake,
-//                 size: 30,
-//               ),
-//               Text("Gebäck"),
-//               SizedBox(height: 8),
-//             ],
-//           ),
-//         ),
-//       ),
-//       Tab(
-//         child: Center(
-//           child: Column(
-//             children: [
-//               SizedBox(height: 8),
-//               Icon(
-//                 AppIcons.dish,
-//                 size: 30,
-//               ),
-//               Text("Sonstiges"),
-//               SizedBox(height: 8),
-//             ],
-//           ),
-//         ),
-//       ),
-//       Tab(
-//         child: Center(
-//           child: Column(
-//             children: [
-//               SizedBox(height: 8),
-//               Image(
-//                 image: AssetImage("assets/images/caticorn.png"),
-//                 height: 40,
-//               ),
-//               SizedBox(height: 8),
-//             ],
-//           ),
-//         ),
-//       ),
-//     ];
-//   }
+  // List<Tab> getCategoryTabs() {
+  //   return [
+  //     Tab(
+  //       child: Center(
+  //         child: Column(
+  //           children: [
+  //             SizedBox(height: 8),
+  //             Icon(
+  //               AppIcons.soup,
+  //               size: 30,
+  //             ),
+  //             Text("Suppen"),
+  //             SizedBox(height: 8),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //     Tab(
+  //       child: Center(
+  //         child: Column(
+  //           children: [
+  //             SizedBox(height: 8),
+  //             Icon(
+  //               AppIcons.salad,
+  //               size: 30,
+  //             ),
+  //             Text("Salate"),
+  //             SizedBox(height: 8),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //     Tab(
+  //       child: Center(
+  //         child: Column(
+  //           children: [
+  //             SizedBox(height: 8),
+  //             Icon(
+  //               AppIcons.soup,
+  //               size: 30,
+  //             ),
+  //             SizedBox(height: 5),
+  //             Text(
+  //               "Saucen,\nDips",
+  //               textAlign: TextAlign.center,
+  //               style: TextStyle(height: 0.9),
+  //             ),
+  //             SizedBox(height: 8),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //     Tab(
+  //       child: Center(
+  //         child: Column(
+  //           children: [
+  //             SizedBox(height: 8),
+  //             Icon(
+  //               AppIcons.pizza,
+  //               size: 30,
+  //             ),
+  //             SizedBox(height: 5),
+  //             Text(
+  //               "Haupt-\ngerichte",
+  //               textAlign: TextAlign.center,
+  //               style: TextStyle(height: 0.9),
+  //             ),
+  //             SizedBox(height: 8),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //     Tab(
+  //       child: Center(
+  //         child: Column(
+  //           children: [
+  //             SizedBox(height: 8),
+  //             Icon(
+  //               AppIcons.ice_cream_cone,
+  //               size: 30,
+  //             ),
+  //             Text("Desserts"),
+  //             SizedBox(height: 8),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //     Tab(
+  //       child: Center(
+  //         child: Column(
+  //           children: [
+  //             SizedBox(height: 8),
+  //             Icon(
+  //               AppIcons.wedding_cake,
+  //               size: 30,
+  //             ),
+  //             Text("Gebäck"),
+  //             SizedBox(height: 8),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //     Tab(
+  //       child: Center(
+  //         child: Column(
+  //           children: [
+  //             SizedBox(height: 8),
+  //             Icon(
+  //               AppIcons.dish,
+  //               size: 30,
+  //             ),
+  //             Text("Sonstiges"),
+  //             SizedBox(height: 8),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //     Tab(
+  //       child: Center(
+  //         child: Column(
+  //           children: [
+  //             SizedBox(height: 8),
+  //             Image(
+  //               image: AssetImage("assets/images/caticorn.png"),
+  //               height: 40,
+  //             ),
+  //             SizedBox(height: 8),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   ];
+  // }
 //
 // /* Widget tabsContent(String caption, [ String description = '' ] ) {
 //     return Container(

@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 
 class AppBackground extends StatelessWidget {
-  const AppBackground({super.key, this.child});
-
-  final Widget? child;
+  final PreferredSizeWidget? scaffoldAppBar;
+  final Widget? scaffoldBody;
+  final Widget? scaffoldDrawer;
+  const AppBackground({
+    super.key,
+    this.scaffoldDrawer,
+    this.scaffoldAppBar,
+    this.scaffoldBody,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +33,12 @@ class AppBackground extends StatelessWidget {
             ),
           ),
         ),
-        if (child != null) child!,
+        Scaffold(
+          appBar: (scaffoldAppBar != null) ? scaffoldAppBar : null,
+          body: (scaffoldBody != null) ? scaffoldBody : null,
+          drawer: (scaffoldDrawer != null) ? scaffoldDrawer : null,
+          extendBodyBehindAppBar: false,
+        )
       ],
     );
   }

@@ -55,6 +55,7 @@ dependencies:
   async: ^2.8.2
   flutter_riverpod: ^3.0.3
   riverpod_annotation: ^3.0.3
+  gap: ^3.0.1
   #flutter_mobile_vision: ^0.1.4+1
   #flutter_tesseract_ocr: ^0.4.19
 
