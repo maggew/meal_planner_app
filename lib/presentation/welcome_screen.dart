@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:async';
 
-import 'package:meal_planner/presentation/auth_screen.dart';
+import 'package:meal_planner/presentation/authentification/auth_page.dart';
 
 class WelcomeScreen extends StatefulWidget {
   @override

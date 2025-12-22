@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/appstyle/app_theme.dart';
 import 'package:meal_planner/presentation/cookbook/cookbook_page.dart';
 import 'package:meal_planner/presentation/create_group_screen.dart';
@@ -7,7 +8,7 @@ import 'package:meal_planner/presentation/detailed_weekplan_screen.dart';
 import 'package:meal_planner/presentation/group_created_screen.dart';
 import 'package:meal_planner/presentation/group_screen.dart';
 import 'package:meal_planner/presentation/join_group_screen.dart';
-import 'package:meal_planner/presentation/login_screen.dart';
+import 'package:meal_planner/presentation/login/login_page.dart';
 import 'package:meal_planner/presentation/refrigerator_screen.dart';
 import 'package:meal_planner/presentation/registration_screen.dart';
 import 'package:meal_planner/presentation/show_recipe.dart';
@@ -16,7 +17,6 @@ import 'package:meal_planner/presentation/show_userGroups_screen.dart';
 import 'package:meal_planner/presentation/welcome_screen.dart';
 import 'package:meal_planner/presentation/zoom_pic_screen.dart';
 import 'package:meal_planner/widgets/DismissKeyboard.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,7 +43,7 @@ class MyApp extends StatelessWidget {
           home: WelcomeScreen(), //Todo Welcome screen hier einsetzen
           routes: {
             '/registration': (context) => RegistrationScreen(),
-            '/login': (context) => LoginScreen(),
+            '/login': (context) => LoginPage(),
             '/groups': (context) => GroupScreen(),
             '/create_group': (context) => CreateGroupScreen(),
             '/group_created': (context) => GroupCreatedScreen(
@@ -51,7 +51,7 @@ class MyApp extends StatelessWidget {
                 ),
             '/join_group': (context) => JoinGroupScreen(),
             '/detailed_week': (context) => DetailedWeekScreen(),
-            '/cookbook': (context) => CookbookScreen(),
+            '/cookbook': (context) => CookbookPage(),
             RecipeScreen.route: (context) => RecipeScreen(),
             //'/add_recipe_keyboard': (context) => AddRecipeKeyboardScreen(),
             '/show_userGroups': (context) => ShowUserGroupsScreen(),

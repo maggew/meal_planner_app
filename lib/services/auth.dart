@@ -41,27 +41,14 @@ class Auth {
     return _auth.currentUser?.uid ?? '';
   }
 
-  Future<String> signInWithEmail(String email, String password) async {
-    String error = "";
-    try {
-      // UserCredential user = await _auth.signInWithEmailAndPassword(
-      //     email: email, password: password);
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
-      return "success";
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        error = 'Passwort und Email-Adresse stimmen nicht überein.';
-      } else if (e.code == 'wrong-password') {
-        error = 'Passwort und Email-Adresse stimmen nicht überein.';
-      } else {
-        error = 'Ein Fehler ist aufgetreten: ${e.message}';
-      }
-      return error;
-    }
+  Future<void> signInWithEmail(String email, String password) async {
+    await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
   }
 
   Future signOut() async {
     _auth.signOut();
   }
 }
-

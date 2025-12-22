@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:meal_planner/presentation/cookbook/cookbook_page.dart';
-import 'package:meal_planner/presentation/login_screen.dart';
+import 'package:meal_planner/presentation/login/login_page.dart';
 import 'package:meal_planner/services/auth.dart';
 import 'package:meal_planner/services/database.dart';
-
-import 'group_screen.dart';
+import 'package:meal_planner/presentation/group_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   @override
@@ -50,7 +49,7 @@ class _AuthScreen extends State<AuthScreen> {
                 if (snapshot.data == '' || snapshot.data == null) {
                   return GroupScreen();
                 } else {
-                  return CookbookScreen();
+                  return CookbookPage();
                 }
               } else {
                 return GroupScreen();
@@ -58,7 +57,7 @@ class _AuthScreen extends State<AuthScreen> {
             }
           });
     } else {
-      return LoginScreen();
+      return LoginPage();
     }
   }
 }
