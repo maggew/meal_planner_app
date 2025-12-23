@@ -1,10 +1,13 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:meal_planner/model/FridgeProduct.dart';
 import 'package:meal_planner/model/Product.dart';
+import 'package:meal_planner/model/Recipe.dart';
 import 'package:path/path.dart';
-import 'dart:io';
+
 import 'auth.dart';
 
 class Database {
@@ -161,14 +164,27 @@ class Database {
   }
 
   // get recipes from given category
-  Future getRecipesFromCategory(String category) async {
-    var allData;
-    await getCurrentGroupID().then((groupID) async {
-      QuerySnapshot querySnapshot =
-          await recipeCollection.doc(groupID).collection(category).get();
-      allData = querySnapshot.docs.map((doc) => doc.data()).toList();
-    });
-    return allData;
+
+  Future<List<Recipe>> getRecipesFromCategory(String category) async {
+    final groupID = await getCurrentGroupID();
+
+    final querySnapshot =
+        await recipeCollection.doc(groupID).collection(category).get();
+
+    final List<Map<String, dynamic>> docs =
+        querySnapshot.docs.map((doc) => doc.data()).toList();
+
+    final List<Recipe> recipeList = [];
+
+    for (final data in docs) {
+      if (data["recipe_pic"] == null || data["recipe_pic"] == "") {
+        data["recipe_pic"] = 'assets/images/default_pic_2.jpg';
+      }
+
+      recipeList.add(Recipe.fromJson(data));
+    }
+
+    return recipeList;
   }
 
   // create new user document; groups need to be created later on

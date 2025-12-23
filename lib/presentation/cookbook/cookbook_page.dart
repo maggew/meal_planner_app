@@ -1,20 +1,17 @@
+import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:meal_planner/appstyle/app_icons.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
 import 'package:meal_planner/presentation/common/burger_menu.dart';
 import 'package:meal_planner/presentation/cookbook/widgets/cookbook_add_recipe.dart';
 import 'package:meal_planner/presentation/cookbook/widgets/cookbook_body.dart';
 
+@RoutePage()
 class CookbookPage extends StatelessWidget {
   const CookbookPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
-
     return AppBackground(
       scaffoldDrawer: BurgerMenu(width: 0.7),
       scaffoldAppBar: AppBar(

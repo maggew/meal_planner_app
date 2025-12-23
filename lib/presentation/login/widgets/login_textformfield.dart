@@ -5,12 +5,15 @@ class LoginTextFormField extends StatelessWidget {
   final FormFieldValidator<String?> validator;
   final String text;
   final TextInputType textInputType;
-  const LoginTextFormField(
-      {super.key,
-      required this.controller,
-      required this.validator,
-      required this.text,
-      required this.textInputType});
+  final bool? textObscured;
+  const LoginTextFormField({
+    super.key,
+    required this.controller,
+    required this.validator,
+    required this.text,
+    required this.textInputType,
+    this.textObscured,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +23,7 @@ class LoginTextFormField extends StatelessWidget {
       child: TextFormField(
         controller: controller,
         validator: validator,
+        obscureText: (textObscured != null) ? textObscured! : false,
         decoration: InputDecoration(
           labelText: text,
           filled: true,

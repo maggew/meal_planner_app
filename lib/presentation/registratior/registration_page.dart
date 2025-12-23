@@ -1,14 +1,16 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/auth.dart';
 
-class RegistrationScreen extends StatefulWidget {
+@RoutePage()
+class RegistrationPage extends StatefulWidget {
   @override
-  State<RegistrationScreen> createState() => _RegistrationScreen();
+  State<RegistrationPage> createState() => _RegistrationPage();
 }
 
-class _RegistrationScreen extends State<RegistrationScreen> {
+class _RegistrationPage extends State<RegistrationPage> {
   String name = "";
   String email = "";
   String password = "";
@@ -27,9 +29,6 @@ class _RegistrationScreen extends State<RegistrationScreen> {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
     return Stack(
       children: [
         Container(
@@ -182,7 +181,7 @@ class _RegistrationScreen extends State<RegistrationScreen> {
                         if (_formCheck.currentState?.validate() == true) {
                           auth.registerWithEmail(
                               name, email, password, passwordCheck);
-                          Navigator.pushReplacementNamed(context, '/groups');
+                          AutoRouter.of(context).push(const GroupsRoute());
                         }
                         ;
                       },
@@ -207,7 +206,7 @@ class _RegistrationScreen extends State<RegistrationScreen> {
                                 decoration: TextDecoration.underline),
                           ),
                           onPressed: () {
-                            Navigator.pushNamed(context, '/login');
+                            AutoRouter.of(context).push(const LoginRoute());
                           },
                         ),
                       ],

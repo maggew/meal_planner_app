@@ -1,9 +1,9 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:meal_planner/model/RecipeInfo.dart';
 import 'package:meal_planner/presentation/common/vertical_tabbar.dart';
+import 'package:meal_planner/presentation/cookbook/widgets/cookbook_recipe_list.dart';
 import 'package:meal_planner/presentation/cookbook/widgets/default_category_tabs.dart';
-import 'package:meal_planner/presentation/show_recipe.dart';
-import 'package:meal_planner/services/database.dart';
+import 'package:meal_planner/presentation/router/router.gr.dart';
 
 class CookbookTabbar extends StatelessWidget {
   const CookbookTabbar({super.key});
@@ -20,13 +20,13 @@ class CookbookTabbar extends StatelessWidget {
         tabsWidth: 100,
         tabs: DefaultCategoryTabs,
         contents: [
-          buildRecipeOverview(Database().getRecipesFromCategory('soups')),
-          buildRecipeOverview(Database().getRecipesFromCategory('salads')),
-          buildRecipeOverview(Database().getRecipesFromCategory('sauces_dips')),
-          buildRecipeOverview(Database().getRecipesFromCategory('mainDishes')),
-          buildRecipeOverview(Database().getRecipesFromCategory('desserts')),
-          buildRecipeOverview(Database().getRecipesFromCategory('bakery')),
-          buildRecipeOverview(Database().getRecipesFromCategory('others')),
+          CookbookRecipeList(category: 'soups'),
+          CookbookRecipeList(category: 'salads'),
+          CookbookRecipeList(category: 'sauces_dips'),
+          CookbookRecipeList(category: 'mainDishes'),
+          CookbookRecipeList(category: 'desserts'),
+          CookbookRecipeList(category: 'bakery'),
+          CookbookRecipeList(category: 'others'),
           Container(
             child: Center(
               child: Text("Hier kommt noch was"),
@@ -111,13 +111,14 @@ Widget _showRecipe(BuildContext context, String recipeTitle, String imagePath,
 
   return GestureDetector(
     onTap: () {
-      Navigator.pushNamed(context, RecipeScreen.route,
-          arguments: Recipe(
-              title: recipeTitle,
-              imagePath: imagePath,
-              ingredients: ingredients,
-              portions: portions,
-              instructions: instructions));
+      AutoRouter.of(context).push(ShowRecipeRoute());
+      // Navigator.pushNamed(context, RecipeScreen.route,
+      //     arguments: Recipe(
+      //         title: recipeTitle,
+      //         imagePath: imagePath,
+      //         ingredients: ingredients,
+      //         portions: portions,
+      //         instructions: instructions));
     },
     child: Row(
       mainAxisAlignment: MainAxisAlignment.start,

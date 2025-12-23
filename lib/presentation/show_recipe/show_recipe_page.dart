@@ -1,18 +1,21 @@
 import 'dart:async';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 //import 'package:flutter_colorful_tab/flutter_colorful_tab.dart';
 import 'package:meal_planner/appstyle/app_icons.dart';
-import 'package:meal_planner/model/RecipeInfo.dart';
 import 'dart:ui' as ui;
 
-class RecipeScreen extends StatefulWidget {
+import 'package:meal_planner/model/Recipe.dart';
+
+@RoutePage()
+class ShowRecipePage extends StatefulWidget {
   static const route = '/recipe';
 
   @override
-  State<RecipeScreen> createState() => _RecipeScreen();
+  State<ShowRecipePage> createState() => _ShowRecipePage();
 }
 
-class _RecipeScreen extends State<RecipeScreen>
+class _ShowRecipePage extends State<ShowRecipePage>
     with SingleTickerProviderStateMixin {
   late TabController controller;
 
@@ -82,7 +85,7 @@ class _RecipeScreen extends State<RecipeScreen>
                   color: Colors.black,
                 ),
                 onPressed: () {
-                  Navigator.pop(context);
+                  AutoRouter.of(context).pop();
                 }),
             centerTitle: true,
             title: FittedBox(

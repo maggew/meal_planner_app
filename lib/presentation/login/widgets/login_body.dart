@@ -1,8 +1,10 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/login/widgets/login_textformfield.dart';
+import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/auth_controller_provider.dart';
 
 class LoginBody extends ConsumerStatefulWidget {
@@ -40,7 +42,7 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
     ref.listen<AsyncValue<void>>(authControllerProvider, (prev, next) {
       next.whenOrNull(
         data: (_) {
-          Navigator.pushReplacementNamed(context, '/cookbook');
+          AutoRouter.of(context).replace(const CookbookRoute());
         },
         error: (e, _) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -75,7 +77,8 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
                 controller: passwordController,
                 validator: _validatePassword,
                 text: "Passwort",
-                textInputType: TextInputType.text,
+                textInputType: TextInputType.visiblePassword,
+                textObscured: true,
               ),
               ElevatedButton(
                 onPressed: isLoading
@@ -114,7 +117,7 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
                       decoration: TextDecoration.underline),
                 ),
                 onPressed: () {
-                  Navigator.pushNamed(context, '/registration');
+                  AutoRouter.of(context).push(const RegistrationRoute());
                 },
               ),
             ],

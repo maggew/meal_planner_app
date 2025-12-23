@@ -1,8 +1,9 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/appstyle/app_icons.dart';
-import 'package:meal_planner/presentation/refrigerator_screen.dart';
+import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/auth.dart';
 import 'package:meal_planner/services/providers/current_group_provider.dart';
 
@@ -75,7 +76,7 @@ class BurgerMenu extends ConsumerWidget {
             right: 0,
             child: IconButton(
               icon: const Icon(Icons.keyboard_arrow_left),
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => AutoRouter.of(context).pop(),
             ),
           ),
         ],
@@ -91,13 +92,17 @@ class BurgerMenu extends ConsumerWidget {
         ),
       ),
       const SizedBox(height: 30),
-      _menuItem(context,
-          icon: AppIcons.calendar_1, label: 'Essensplan', onTap: () {}),
+      _menuItem(
+        context,
+        icon: AppIcons.calendar_1,
+        label: 'Essensplan',
+        onTap: () => AutoRouter.of(context).push(const DetailedWeekplanRoute()),
+      ),
       _menuItem(
         context,
         icon: AppIcons.recipe_book,
         label: 'Kochbuch',
-        onTap: () => Navigator.pushReplacementNamed(context, '/cookbook'),
+        onTap: () => AutoRouter.of(context).push(const CookbookRoute()),
       ),
       _menuItem(context,
           icon: AppIcons.shopping_list, label: "Einkaufsliste", onTap: () {}),
@@ -105,13 +110,14 @@ class BurgerMenu extends ConsumerWidget {
         context,
         icon: AppIcons.snowflake,
         label: 'Gefriertruhe',
-        onTap: () => Navigator.pushNamed(context, RefrigeratorScreen.route),
+        onTap: () => AutoRouter.of(context).push(const RefrigeratorRoute()),
       ),
-      _menuItem(context,
-          icon: AppIcons.unity,
-          label: "Meine Gruppen",
-          onTap: () =>
-              Navigator.pushReplacementNamed(context, 'show_userGroups')),
+      _menuItem(
+        context,
+        icon: AppIcons.unity,
+        label: "Meine Gruppen",
+        onTap: () => AutoRouter.of(context).push(const ShowUserGroupsRoute()),
+      ),
       _menuItem(context,
           icon: AppIcons.cat_1, label: "Mein Profil", onTap: () {}),
       _menuItem(
@@ -120,11 +126,7 @@ class BurgerMenu extends ConsumerWidget {
         label: 'Logout',
         onTap: () async {
           await auth.signOut();
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            '/login',
-            (r) => false,
-          );
+          AutoRouter.of(context).pushAll([const LoginRoute()]);
         },
       ),
     ];

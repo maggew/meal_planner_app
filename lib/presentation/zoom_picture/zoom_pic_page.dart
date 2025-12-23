@@ -1,20 +1,21 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:meal_planner/appstyle/app_icons.dart';
 import 'package:meal_planner/model/GroupInfo.dart';
+import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'dart:io';
 
 import 'package:meal_planner/services/database.dart';
 
-class ZoomPicScreen extends StatefulWidget {
-  static const route = '/zoom_pic';
-
+@RoutePage()
+class ZoomPicturePage extends StatefulWidget {
   @override
-  State<ZoomPicScreen> createState() => _ZoomPicScreen();
+  State<ZoomPicturePage> createState() => _ZoomPicturePage();
 }
 
-class _ZoomPicScreen extends State<ZoomPicScreen> {
+class _ZoomPicturePage extends State<ZoomPicturePage> {
   bool isLoading = false;
   File? _imageFile;
   String? _imagePath;
@@ -43,7 +44,7 @@ class _ZoomPicScreen extends State<ZoomPicScreen> {
         leading: IconButton(
             icon: Icon(Icons.keyboard_arrow_left),
             onPressed: () {
-              Navigator.pop(context);
+              AutoRouter.of(context).pop();
             }),
         actions: [
           IconButton(
@@ -69,7 +70,7 @@ class _ZoomPicScreen extends State<ZoomPicScreen> {
                     });
                   });
                 }
-                Navigator.of(context).pushReplacementNamed('/show_userGroups');
+                AutoRouter.of(context).push(const ShowUserGroupsRoute());
               });
             },
             icon: Icon(Icons.edit_outlined),
@@ -83,8 +84,7 @@ class _ZoomPicScreen extends State<ZoomPicScreen> {
                 await Database()
                     .updateGroupPic(groupInfo.groupID, "")
                     .then((value) {
-                  Navigator.of(context)
-                      .pushReplacementNamed('/show_userGroups');
+                  AutoRouter.of(context).push(const ShowUserGroupsRoute());
                 });
               });
             },

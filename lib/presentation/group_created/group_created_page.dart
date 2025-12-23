@@ -1,18 +1,21 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 //import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/services.dart';
+import 'package:meal_planner/presentation/router/router.gr.dart';
 
-class GroupCreatedScreen extends StatefulWidget {
+@RoutePage()
+class GroupCreatedPage extends StatefulWidget {
   final String groupName;
 
-  GroupCreatedScreen({required this.groupName});
+  GroupCreatedPage({required this.groupName});
 
   @override
-  State<GroupCreatedScreen> createState() => _GroupCreatedScreen();
+  State<GroupCreatedPage> createState() => _GroupCreatedPage();
 }
 
-class _GroupCreatedScreen extends State<GroupCreatedScreen> {
+class _GroupCreatedPage extends State<GroupCreatedPage> {
   double getScreenWidth(BuildContext context) {
     return MediaQuery.of(context).size.width;
   }
@@ -42,9 +45,6 @@ class _GroupCreatedScreen extends State<GroupCreatedScreen> {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
     return Scaffold(
       backgroundColor: Colors.green[100],
       appBar: AppBar(
@@ -58,7 +58,7 @@ class _GroupCreatedScreen extends State<GroupCreatedScreen> {
             ),
           ),
           onPressed: () {
-            Navigator.pop(context);
+            AutoRouter.of(context).pop();
           },
         ),
         leadingWidth: 85,
@@ -166,17 +166,7 @@ class _GroupCreatedScreen extends State<GroupCreatedScreen> {
                     fixedSize: Size(130, 40),
                   ),
                   onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/detailed_week');
-                    @override
-                    dispose() {
-                      SystemChrome.setPreferredOrientations([
-                        DeviceOrientation.landscapeRight,
-                        DeviceOrientation.landscapeLeft,
-                        DeviceOrientation.portraitUp,
-                        DeviceOrientation.portraitDown,
-                      ]);
-                      super.dispose();
-                    }
+                    AutoRouter.of(context).push(const DetailedWeekplanRoute());
                   },
                   child: Text(
                     "weiter",

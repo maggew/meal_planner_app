@@ -1,19 +1,21 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:meal_planner/appstyle/app_icons.dart';
 import 'package:meal_planner/model/GroupInfo.dart';
-import 'package:flutter/services.dart';
-import 'package:meal_planner/presentation/zoom_pic_screen.dart';
+import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/database.dart';
 
-class ShowSingleGroupScreen extends StatefulWidget {
+@RoutePage()
+class ShowSingleGroupPage extends StatefulWidget {
   static const route = '/show_singleGroup';
 
   @override
-  State<ShowSingleGroupScreen> createState() => _ShowSingleGroupScreen();
+  State<ShowSingleGroupPage> createState() => _ShowSingleGroupPage();
 }
 
-class _ShowSingleGroupScreen extends State<ShowSingleGroupScreen> {
+class _ShowSingleGroupPage extends State<ShowSingleGroupPage> {
   double getScreenWidth(BuildContext context) {
     return MediaQuery.of(context).size.width;
   }
@@ -53,10 +55,6 @@ class _ShowSingleGroupScreen extends State<ShowSingleGroupScreen> {
 
     groupMembers = groupInfo.groupMembers;
     int numberMembers;
-
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
 
     if (groupInfo.groupPic == "" ||
         groupInfo.groupPic == 'assets/images/group_pic.jpg') {
@@ -100,7 +98,7 @@ class _ShowSingleGroupScreen extends State<ShowSingleGroupScreen> {
                 ),
               ),
               onPressed: () {
-                Navigator.pop(context);
+                AutoRouter.of(context).pop();
               },
             ),
             leadingWidth: 85,
@@ -130,12 +128,9 @@ class _ShowSingleGroupScreen extends State<ShowSingleGroupScreen> {
                               child: Hero(tag: 'zoom', child: grImage),
                             ),
                             onTap: () {
-                              Navigator.pushNamed(context, ZoomPicScreen.route,
-                                  arguments: GroupInfo(
-                                      groupInfo.groupName,
-                                      groupInfo.groupID,
-                                      groupInfo.groupPic,
-                                      groupInfo.groupMembers));
+                              AutoRouter.of(context).push(ZoomPictureRoute());
+                              // GroupInfo(groupInfo.groupName, groupInfo.groupID,
+                              //     groupInfo.groupPic, groupInfo.groupMembers);
                             },
                           ),
                           SizedBox(height: 20),
@@ -316,7 +311,7 @@ class _ShowSingleGroupScreen extends State<ShowSingleGroupScreen> {
       actions: [
         MaterialButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            AutoRouter.of(context).pop();
           },
           child: Text(
             "Nein",
@@ -330,11 +325,9 @@ class _ShowSingleGroupScreen extends State<ShowSingleGroupScreen> {
           onPressed: () async {
             await Database().leaveGroup(groupID).then((value) {
               if (value == 'no_group') {
-                Navigator.pushNamedAndRemoveUntil(
-                    context, '/groups', (route) => false);
+                AutoRouter.of(context).push(const GroupsRoute());
               } else {
-                Navigator.pushNamedAndRemoveUntil(
-                    context, '/show_userGroups', (route) => false);
+                AutoRouter.of(context).push(const ShowUserGroupsRoute());
               }
             });
           },
@@ -366,7 +359,7 @@ class _ShowSingleGroupScreen extends State<ShowSingleGroupScreen> {
       actions: [
         MaterialButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            AutoRouter.of(context).pop();
           },
           child: Text(
             "Nein",
@@ -379,8 +372,7 @@ class _ShowSingleGroupScreen extends State<ShowSingleGroupScreen> {
         MaterialButton(
           onPressed: () {
             Database().updateActiveGroup(groupID).then((value) {
-              Navigator.pushNamedAndRemoveUntil(
-                  context, '/show_userGroups', (route) => false);
+              AutoRouter.of(context).push(const ShowUserGroupsRoute());
             });
           },
           child: Text(

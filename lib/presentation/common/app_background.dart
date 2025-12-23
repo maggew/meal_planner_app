@@ -4,11 +4,15 @@ class AppBackground extends StatelessWidget {
   final PreferredSizeWidget? scaffoldAppBar;
   final Widget? scaffoldBody;
   final Widget? scaffoldDrawer;
+  final FloatingActionButton? scaffoldFloatingActionButton;
+  final FloatingActionButtonLocation? scaffoldFloatingActionButtonLocation;
   const AppBackground({
     super.key,
     this.scaffoldDrawer,
     this.scaffoldAppBar,
     this.scaffoldBody,
+    this.scaffoldFloatingActionButton,
+    this.scaffoldFloatingActionButtonLocation,
   });
 
   @override
@@ -37,6 +41,13 @@ class AppBackground extends StatelessWidget {
           appBar: (scaffoldAppBar != null) ? scaffoldAppBar : null,
           body: (scaffoldBody != null) ? scaffoldBody : null,
           drawer: (scaffoldDrawer != null) ? scaffoldDrawer : null,
+          floatingActionButton: (scaffoldFloatingActionButton != null)
+              ? scaffoldFloatingActionButton
+              : null,
+          floatingActionButtonLocation:
+              (scaffoldFloatingActionButtonLocation != null)
+                  ? scaffoldFloatingActionButtonLocation
+                  : null,
           extendBodyBehindAppBar: false,
         )
       ],

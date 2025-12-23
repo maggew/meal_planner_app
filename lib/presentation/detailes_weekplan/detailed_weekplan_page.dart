@@ -1,18 +1,21 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:meal_planner/presentation/common/burger_menu.dart';
+import 'package:meal_planner/presentation/router/router.gr.dart';
 //import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:meal_planner/widgets/OneMeal_widget.dart';
 
 import 'package:meal_planner/widgets/ThreeMeals_widget.dart';
 import 'package:meal_planner/widgets/TwoMeals_widget.dart';
 
-class DetailedWeekScreen extends StatefulWidget {
+@RoutePage()
+class DetailedWeekplanPage extends StatefulWidget {
   @override
-  State<DetailedWeekScreen> createState() => _DetailedWeekScreen();
+  State<DetailedWeekplanPage> createState() => _DetailedWeekplanPage();
 }
 
-class _DetailedWeekScreen extends State<DetailedWeekScreen>
+class _DetailedWeekplanPage extends State<DetailedWeekplanPage>
     with SingleTickerProviderStateMixin {
   TabController? _tabBarController;
 
@@ -58,10 +61,6 @@ class _DetailedWeekScreen extends State<DetailedWeekScreen>
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
     return Scaffold(
       key: scaffoldKey,
       backgroundColor: Colors.green[100],
@@ -102,7 +101,7 @@ class _DetailedWeekScreen extends State<DetailedWeekScreen>
           IconButton(
             icon: Icon(Icons.wallet), //FaIcon(FontAwesomeIcons.clipboardList),
             onPressed: () {
-              Navigator.pushNamed(context, 'cookbook');
+              AutoRouter.of(context).push(const CookbookRoute());
             },
           ),
           SizedBox(

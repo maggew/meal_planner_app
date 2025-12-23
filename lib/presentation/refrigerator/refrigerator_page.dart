@@ -1,20 +1,16 @@
 import 'package:async/async.dart';
-//import 'package:bi_counter_field/bi_counter_field.dart';
-import 'package:cool_dropdown/cool_dropdown.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:meal_planner/appstyle/app_icons.dart';
 import 'package:meal_planner/model/FridgeProduct.dart';
 import 'package:meal_planner/model/Product.dart';
-import 'package:flutter/services.dart';
 import 'package:meal_planner/services/database.dart';
 import 'package:meal_planner/widgets/DoubleCounter_widget.dart';
 import 'package:multi_split_view/multi_split_view.dart';
 
+@RoutePage()
 class RefrigeratorScreen extends StatefulWidget {
-  static const route = '/refrigerator';
-
   @override
   State<RefrigeratorScreen> createState() => _RefrigeratorScreen();
 }
@@ -108,10 +104,6 @@ class _RefrigeratorScreen extends State<RefrigeratorScreen> {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
-
     return Stack(
       children: [
         Container(
@@ -142,7 +134,7 @@ class _RefrigeratorScreen extends State<RefrigeratorScreen> {
                   color: Colors.black,
                 ),
                 onPressed: () {
-                  Navigator.pop(context);
+                  AutoRouter.of(context).pop();
                 }),
             centerTitle: true,
             /*title: FittedBox(
@@ -593,7 +585,7 @@ class _RefrigeratorScreen extends State<RefrigeratorScreen> {
                       size: 25,
                     ),
                     onPressed: () {
-                      Navigator.pop(context);
+                      AutoRouter.of(context).pop();
                     },
                   ),
                 )
@@ -791,7 +783,7 @@ class _RefrigeratorScreen extends State<RefrigeratorScreen> {
                               allProducts.add(newProduct);
                               allProducts
                                   .sort((a, b) => a.title.compareTo(b.title));
-                              Navigator.pop(context);
+                              AutoRouter.of(context).pop();
                             }
                           });
                         }
@@ -1065,7 +1057,7 @@ class _RefrigeratorScreen extends State<RefrigeratorScreen> {
                     child: Text("Nein"),
                   ),
                   onPressed: () {
-                    Navigator.pop(context);
+                    AutoRouter.of(context).pop();
                   },
                 ),
                 TextButton(
@@ -1077,7 +1069,7 @@ class _RefrigeratorScreen extends State<RefrigeratorScreen> {
                     Database().removeProductFromList(product);
                     allProducts.remove(product);
                     setState(() {});
-                    Navigator.pop(context);
+                    AutoRouter.of(context).pop();
                   },
                 ),
               ],
@@ -1187,7 +1179,7 @@ class _RefrigeratorScreen extends State<RefrigeratorScreen> {
                   setState(() {
                     changeProductFromFridge(fridgeProduct, number, unit);
                   });
-                  Navigator.pop(context);
+                  AutoRouter.of(context).pop();
                 },
                 icon: Icon(Icons.check))
           ],

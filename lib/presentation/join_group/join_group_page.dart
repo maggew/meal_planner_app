@@ -1,14 +1,17 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/services.dart';
+import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/database.dart';
 
-class JoinGroupScreen extends StatefulWidget {
+@RoutePage()
+class JoinGroupPage extends StatefulWidget {
   @override
-  State<JoinGroupScreen> createState() => _JoinGroupScreen();
+  State<JoinGroupPage> createState() => _JoinGroupPage();
 }
 
-class _JoinGroupScreen extends State<JoinGroupScreen> {
+class _JoinGroupPage extends State<JoinGroupPage> {
   double getScreenWidth(BuildContext context) {
     return MediaQuery.of(context).size.width;
   }
@@ -40,9 +43,6 @@ class _JoinGroupScreen extends State<JoinGroupScreen> {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
     return Stack(
       children: [
         Container(
@@ -75,7 +75,7 @@ class _JoinGroupScreen extends State<JoinGroupScreen> {
                 ),
               ),
               onPressed: () {
-                Navigator.pop(context);
+                AutoRouter.of(context).pop();
               },
             ),
             leadingWidth: 85,
@@ -124,7 +124,7 @@ class _JoinGroupScreen extends State<JoinGroupScreen> {
                   onPressed: () async {
                     await Database().checkGroupID(groupID).then((ds) {
                       if (ds == true) {
-                        Navigator.pushReplacementNamed(context, '/cookbook');
+                        AutoRouter.of(context).push(const CookbookRoute());
                       } else {
                         //TODO: show user incorrect input
                       }
