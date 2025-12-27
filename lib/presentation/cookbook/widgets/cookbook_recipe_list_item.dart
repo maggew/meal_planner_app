@@ -11,12 +11,12 @@ class CookbookRecipeListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final recipeImage = (recipe.imagePath.isEmpty ||
             recipe.imagePath == 'assets/images/default_pic_2.jpg')
-        ? Image.asset('assets/images/default_pic_2.jpg', fit: BoxFit.cover)
+        ? Image.asset('assets/images/caticorn.png', fit: BoxFit.cover)
         : Image.network(recipe.imagePath, fit: BoxFit.cover);
     return GestureDetector(
       onTap: () {
-        AutoRouter.of(context).push(ShowRecipeRoute());
-        // TODO:mit provider richtiges rezept übergeben?
+        AutoRouter.of(context)
+            .push(ShowRecipeRoute(recipe: recipe, image: recipeImage));
       },
       child: Container(
         height: 100,
@@ -27,7 +27,7 @@ class CookbookRecipeListItem extends StatelessWidget {
           children: [
             SizedBox(width: 10),
             Hero(
-              tag: recipe.title,
+              tag: recipe.name,
               child: Image(
                 width: 100,
                 height: 80,
@@ -38,7 +38,7 @@ class CookbookRecipeListItem extends StatelessWidget {
             SizedBox(width: 10),
             Expanded(
               child: Text(
-                recipe.title,
+                recipe.name,
                 maxLines: 4,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),

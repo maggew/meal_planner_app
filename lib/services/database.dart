@@ -151,16 +151,12 @@ class Database {
     }
   }
 
-  Future saveNewRecipe(String recipe_name, String category, int portions,
-      List ingredients, String instruction, String recipe_pic) async {
+  Future saveNewRecipe(String category, Recipe recipe) async {
     String groupID = await getCurrentGroupID();
-    return await recipeCollection.doc(groupID).collection(category).add({
-      'name': recipe_name,
-      'portions': portions,
-      'instruction': instruction,
-      'recipe_pic': recipe_pic,
-      'ingredients': ingredients,
-    });
+    return await recipeCollection
+        .doc(groupID)
+        .collection(category)
+        .add(recipe.toJson());
   }
 
   // get recipes from given category

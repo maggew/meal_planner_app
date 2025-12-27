@@ -46,7 +46,7 @@ dependencies:
   firebase_storage: ^13.0.5
   file_picker: ^10.2.4
   cached_network_image: ^3.2.0
-  #flutter_colorful_tab: ^0.1.0
+  flutter_colorful_tab: ^0.1.1
   multi_split_view: ^3.6.1
   counter_button: ^1.0.1
   #bi_counter_field: ^1.0.4
@@ -58,6 +58,7 @@ dependencies:
   #flutter_mobile_vision: ^0.1.4+1
   #flutter_tesseract_ocr: ^0.4.19
   auto_route: ^11.1.0
+  wakelock_plus: ^1.4.0
 
 dev_dependencies:
   build_runner: ^2.10.4

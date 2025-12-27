@@ -6,6 +6,7 @@ class AppBackground extends StatelessWidget {
   final Widget? scaffoldDrawer;
   final FloatingActionButton? scaffoldFloatingActionButton;
   final FloatingActionButtonLocation? scaffoldFloatingActionButtonLocation;
+  final Widget? scaffoldBottomNavigationBar;
   const AppBackground({
     super.key,
     this.scaffoldDrawer,
@@ -13,6 +14,7 @@ class AppBackground extends StatelessWidget {
     this.scaffoldBody,
     this.scaffoldFloatingActionButton,
     this.scaffoldFloatingActionButtonLocation,
+    this.scaffoldBottomNavigationBar,
   });
 
   @override
@@ -49,6 +51,9 @@ class AppBackground extends StatelessWidget {
                   ? scaffoldFloatingActionButtonLocation
                   : null,
           extendBodyBehindAppBar: false,
+          bottomNavigationBar: (scaffoldBottomNavigationBar != null)
+              ? scaffoldBottomNavigationBar
+              : null,
         )
       ],
     );

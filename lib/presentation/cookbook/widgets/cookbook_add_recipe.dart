@@ -27,46 +27,20 @@ class CookbookAddRecipe extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            SizedBox(
-              width: 100,
-              height: 60,
-              child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    elevation: 5,
-                    backgroundColor: Colors.lightGreen[300],
-                  ),
-                  onPressed: () {
-                    ref.read(imagePathProvider.notifier).pickFromGallery();
-                    //TextScan(imageFile).getText();
-                  },
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(AppIcons.file),
-                      Text("Datei"),
-                    ],
-                  )),
+            _addRecipeButton(
+              text: "Datei",
+              icon: Icon(AppIcons.file),
+              callback: () {
+                ref.read(imagePathProvider.notifier).pickFromGallery();
+              },
             ),
-            SizedBox(
-              width: 100,
-              height: 60,
-              child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    elevation: 5,
-                    backgroundColor: Colors.lightGreen[300],
-                  ),
-                  onPressed: () {
-                    ref.read(imagePathProvider.notifier).pickFromCamera();
-                    //TextScan(imageFile);
-                  },
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.camera_alt_outlined),
-                      //TODO: search better camera icon
-                      Text("Foto"),
-                    ],
-                  )),
+            _addRecipeButton(
+              text: "Foto",
+              //TODO: search better camera icon
+              icon: Icon(Icons.camera_alt_outlined),
+              callback: () {
+                ref.read(imagePathProvider.notifier).pickFromCamera();
+              },
             ),
           ],
         ),
@@ -74,51 +48,50 @@ class CookbookAddRecipe extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            SizedBox(
-                width: 100,
-                height: 60,
-                child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      elevation: 5,
-                      backgroundColor: Colors.lightGreen[300],
-                    ),
-                    onPressed: () {
-                      AutoRouter.of(context)
-                          .push(const AddRecipeFromKeyboardRoute());
-                    },
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.keyboard_alt_outlined),
-                        //TODO: search better keyboard icon
-                        Text("Eingabe"),
-                      ],
-                    ))),
-            SizedBox(
-                height: 60,
-                width: 100,
-                child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      elevation: 5,
-                      backgroundColor: Colors.lightGreen[300],
-                    ),
-                    onPressed: () async {
-                      //var data = await WebData().fetchData("https://www.chefkoch.de/rezepte/884541194027076/Schlemmertopf-mit-Hackfleisch.html").then((value) => print(value));
-                    },
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // FaIcon(
-                        //   FontAwesomeIcons.link,
-                        // ),
-                        //TODO: search better link icon
-                        Text("URL"),
-                      ],
-                    ))),
+            _addRecipeButton(
+              text: "Eingabe",
+              icon: Icon(Icons.keyboard_alt_outlined),
+              callback: () {
+                AutoRouter.of(context).push(const AddRecipeFromKeyboardRoute());
+              },
+            ),
+            _addRecipeButton(
+              text: "URL",
+              icon: Icon(Icons.satellite),
+              //TODO: search better link icon
+              callback: () async {
+                print("muss noch implementiert werden");
+                //TODO: must be implemented
+              },
+            ),
           ],
         ),
-        SizedBox(height: 15)
+        //SizedBox(height: 15)
       ],
     );
+  }
+
+  Widget _addRecipeButton({
+    required String text,
+    required Icon icon,
+    required void Function() callback,
+  }) {
+    return ElevatedButton(
+        onPressed: callback,
+        style: ElevatedButton.styleFrom(
+          elevation: 5,
+          backgroundColor: Colors.lightGreen[300],
+        ),
+        child: SizedBox(
+          height: 60,
+          width: 80,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              icon,
+              Text(text),
+            ],
+          ),
+        ));
   }
 }

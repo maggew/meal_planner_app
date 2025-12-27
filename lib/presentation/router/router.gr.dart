@@ -10,6 +10,8 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:auto_route/auto_route.dart' as _i17;
+import 'package:flutter/material.dart' as _i18;
+import 'package:meal_planner/model/Recipe.dart' as _i19;
 import 'package:meal_planner/presentation/add_recipe_from_keyboard/add_recipe_keyboard_page.dart'
     as _i1;
 import 'package:meal_planner/presentation/authentification/auth_page.dart'
@@ -245,18 +247,60 @@ class RegistrationRoute extends _i17.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i12.ShowRecipePage]
-class ShowRecipeRoute extends _i17.PageRouteInfo<void> {
-  const ShowRecipeRoute({List<_i17.PageRouteInfo>? children})
-      : super(ShowRecipeRoute.name, initialChildren: children);
+class ShowRecipeRoute extends _i17.PageRouteInfo<ShowRecipeRouteArgs> {
+  ShowRecipeRoute({
+    _i18.Key? key,
+    required _i19.Recipe recipe,
+    required _i18.Image image,
+    List<_i17.PageRouteInfo>? children,
+  }) : super(
+          ShowRecipeRoute.name,
+          args: ShowRecipeRouteArgs(key: key, recipe: recipe, image: image),
+          initialChildren: children,
+        );
 
   static const String name = 'ShowRecipeRoute';
 
   static _i17.PageInfo page = _i17.PageInfo(
     name,
     builder: (data) {
-      return _i12.ShowRecipePage();
+      final args = data.argsAs<ShowRecipeRouteArgs>();
+      return _i12.ShowRecipePage(
+        key: args.key,
+        recipe: args.recipe,
+        image: args.image,
+      );
     },
   );
+}
+
+class ShowRecipeRouteArgs {
+  const ShowRecipeRouteArgs({
+    this.key,
+    required this.recipe,
+    required this.image,
+  });
+
+  final _i18.Key? key;
+
+  final _i19.Recipe recipe;
+
+  final _i18.Image image;
+
+  @override
+  String toString() {
+    return 'ShowRecipeRouteArgs{key: $key, recipe: $recipe, image: $image}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ShowRecipeRouteArgs) return false;
+    return key == other.key && recipe == other.recipe && image == other.image;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ recipe.hashCode ^ image.hashCode;
 }
 
 /// generated route for
