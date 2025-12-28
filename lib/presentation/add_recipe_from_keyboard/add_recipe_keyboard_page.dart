@@ -2,30 +2,14 @@ import 'dart:core';
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:cool_dropdown/cool_dropdown.dart';
-import 'package:cool_dropdown/models/cool_dropdown_item.dart';
+import 'package:cool_dropdown/controllers/dropdown_controller.dart';
 import 'package:editable/editable.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:meal_planner/appstyle/app_icons.dart';
 import 'package:meal_planner/presentation/add_recipe_from_keyboard/widgets/add_recipe_appbar.dart';
 import 'package:meal_planner/presentation/add_recipe_from_keyboard/widgets/add_recipe_body.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
-
-// row data
-List rows = [
-  {'ingredient': ' ', 'number': ' ', 'unit': ' '},
-];
-
-//Headers or Columns
-List headers = [
-  {'title': 'Zutat', 'index': 1, 'key': 'ingredient'},
-  {'title': 'Anzahl', 'index': 2, 'key': 'number'},
-  {'title': 'Einheit', 'index': 3, 'key': 'unit'},
-];
 
 @RoutePage()
 class AddRecipeFromKeyboardPage extends ConsumerStatefulWidget {
@@ -38,29 +22,18 @@ class _AddRecipeFromKeyboardPage
     extends ConsumerState<AddRecipeFromKeyboardPage> {
   // final _editableKey = GlobalKey<EditableState>();
   final _ingredientTable = GlobalKey<EditableState>();
-
-  File? imageFile = null;
-
-  late final ScrollController _scrollController;
+  final DropdownController _categoryDropdownController = DropdownController();
+  final DropdownController _portionDropdownController = DropdownController();
+  final DropdownController _unitDropdownController = DropdownController();
 
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController(); // OHNE Listener!
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
     super.dispose();
-  }
-
-  void _scrollToTop() {
-    _scrollController.animateTo(
-      0,
-      duration: Duration(seconds: 1),
-      curve: Curves.fastOutSlowIn,
-    );
   }
 
 /*  List _units = [
@@ -213,23 +186,30 @@ class _AddRecipeFromKeyboardPage
     });
   }*/
 
-  String recipeName = "";
-  String category = "Suppen";
+  // String recipeName = "";
+  // String category = "Suppen";
+  //
+  // int portions = 4;
+  //
+  // String instruction = "";
+  // String _iconPath = "";
 
-  int portions = 4;
-
-  String instruction = "";
-  String _iconPath = "";
-
-  GlobalKey<FormState> _formCheck = new GlobalKey();
+  final TextEditingController _recipeNameController = TextEditingController();
+  final TextEditingController _recipeInstructionsController =
+      TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return AppBackground(
       scaffoldAppBar: AddRecipeAppbar(),
       scaffoldBody: AddRecipeBody(
-        scrollController: _scrollController,
-        formCheck: _formCheck,
+        categoryDropdownController: _categoryDropdownController,
+        recipeNameController: _recipeNameController,
+        recipeInstructionsController: _recipeInstructionsController,
+        portionDropdownController: _portionDropdownController,
+        unitDropdownController: _unitDropdownController,
+        ref: ref,
+        ingredientTable: _ingredientTable,
       ),
     );
   }
@@ -260,26 +240,5 @@ class _AddRecipeFromKeyboardPage
       return "others";
     else
       return "error";
-  }
-
-
-  String _printPath(String path) {
-    // Todo ??????
-    if (path == "") {
-      return "noch kein Bild ausgewählt";
-    } else
-      setState(() {});
-    return "..." + _iconPath.substring(_iconPath.length - 22);
-  }
-
-  Future imageSelector(BuildContext context) async {
-    // CAMERA CAPTURE CODE
-    imageFile = (await ImagePicker()
-        .pickImage(source: ImageSource.camera, imageQuality: 90)) as File;
-
-    //_iconPath = imageFile.path;
-    setState(() {
-      debugPrint("SELECTED IMAGE PICK   $imageFile");
-    });
   }
 }
