@@ -2,9 +2,10 @@ import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/appstyle/app_icons.dart';
+import 'package:meal_planner/core/constants/app_icons.dart';
+import 'package:meal_planner/domain/repositories/auth_repository.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
-import 'package:meal_planner/services/auth.dart';
+import 'package:meal_planner/services/providers/auth_providers.dart';
 import 'package:meal_planner/services/providers/current_group_provider.dart';
 
 class BurgerMenu extends ConsumerWidget {
@@ -17,7 +18,7 @@ class BurgerMenu extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final groupAsync = ref.watch(currentGroupProvider);
-    final auth = Auth();
+    final authRepository = ref.watch(authRepositoryProvider);
 
     return groupAsync.when(
       loading: () => const Center(
@@ -25,8 +26,8 @@ class BurgerMenu extends ConsumerWidget {
       ),
       error: (e, _) => Center(child: Text('Error: $e')),
       data: (group) {
-        final imagePath = group['icon'] as String? ?? '';
-        final groupImage = imagePath.isEmpty
+        final imageUrl = group?.imageUrl;
+        final image = (imageUrl == null)
             ? Image.asset(
                 'assets/images/group_pic.jpg',
                 height: 200,
@@ -36,7 +37,7 @@ class BurgerMenu extends ConsumerWidget {
             : CachedNetworkImage(
                 height: 200,
                 width: width * MediaQuery.of(context).size.width,
-                imageUrl: imagePath,
+                imageUrl: imageUrl,
                 fit: BoxFit.cover,
               );
 
@@ -50,8 +51,8 @@ class BurgerMenu extends ConsumerWidget {
                 children: getBurgerMenuItems(
                   context: context,
                   group: group,
-                  groupImage: groupImage,
-                  auth: auth,
+                  groupImage: image,
+                  authRepository: authRepository,
                 ),
               ),
             ),
@@ -65,7 +66,7 @@ class BurgerMenu extends ConsumerWidget {
     required context,
     required dynamic group,
     required dynamic groupImage,
-    required Auth auth,
+    required AuthRepository authRepository,
   }) {
     return [
       SizedBox(height: MediaQuery.of(context).padding.top),
@@ -125,7 +126,8 @@ class BurgerMenu extends ConsumerWidget {
         icon: AppIcons.logout,
         label: 'Logout',
         onTap: () async {
-          await auth.signOut();
+          //TODO: hier noch ein popup, ob man sich sicher ist!
+          await authRepository.signOut();
           AutoRouter.of(context).pushAll([const LoginRoute()]);
         },
       ),

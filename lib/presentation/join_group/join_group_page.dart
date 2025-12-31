@@ -1,9 +1,5 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:flutter/services.dart';
-import 'package:meal_planner/presentation/router/router.gr.dart';
-import 'package:meal_planner/services/database.dart';
 
 @RoutePage()
 class JoinGroupPage extends StatefulWidget {
@@ -26,11 +22,11 @@ class _JoinGroupPage extends State<JoinGroupPage> {
     return height - padding.top - padding.bottom;
   }
 
-  double getHeightOfDropDownMenu(BuildContext context) {
-    final double height = MediaQuery.of(context).size.height;
-    final EdgeInsets padding = MediaQuery.of(context).padding;
-    return padding.top;
-  }
+  // double getHeightOfDropDownMenu(BuildContext context) {
+  //   final double height = MediaQuery.of(context).size.height;
+  //   final EdgeInsets padding = MediaQuery.of(context).padding;
+  //   return padding.top;
+  // }
 
   //Screen is locked to landscape mode
   @override
@@ -122,15 +118,14 @@ class _JoinGroupPage extends State<JoinGroupPage> {
                   ),
                   child: Text("beitreten"),
                   onPressed: () async {
-                    await Database().checkGroupID(groupID).then((ds) {
-                      if (ds == true) {
-                        AutoRouter.of(context).push(const CookbookRoute());
-                      } else {
-                        //TODO: show user incorrect input
-                      }
-                    });
-
-                    //Navigator.pushReplacementNamed(context, '/cookbook');
+                    //TODO: nicht über database lösen sondern repos
+                    // await Database().checkGroupID(groupID).then((ds) {
+                    //   if (ds == true) {
+                    //     AutoRouter.of(context).push(const CookbookRoute());
+                    //   } else {
+                    //     //TODO: show user incorrect input
+                    //   }
+                    // });
                   },
                 ),
               ],
@@ -141,27 +136,27 @@ class _JoinGroupPage extends State<JoinGroupPage> {
     );
   }
 
-  String _generatedGroupID(String name) {
-    return "ss";
-  }
+  // String _generatedGroupID(String name) {
+  //   return "ss";
+  // }
+  //
+  // String? _validateGroupID(String name) {
+  //   if (name.isEmpty) {
+  //     return "Bitte Name eingeben.";
+  //   } else if (name.length < 3) {
+  //     return "Der Name ist zu kurz.";
+  //   } else {
+  //     return null;
+  //   }
+  // }
 
-  String? _validateGroupID(String name) {
-    if (name.isEmpty) {
-      return "Bitte Name eingeben.";
-    } else if (name.length < 3) {
-      return "Der Name ist zu kurz.";
-    } else {
-      return null;
-    }
-  }
-
-  Future<String> _getFromGallery() async {
-    // XFile pickedFile =
-    //     await ImagePicker().pickImage(source: ImageSource.gallery);
-    // String path;
-    //
-    // String path = pickedFile.path;
-    // return path;
-    return "empty function";
-  }
+  // Future<String> _getFromGallery() async {
+  //   // XFile pickedFile =
+  //   //     await ImagePicker().pickImage(source: ImageSource.gallery);
+  //   // String path;
+  //   //
+  //   // String path = pickedFile.path;
+  //   // return path;
+  //   return "empty function";
+  // }
 }

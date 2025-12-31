@@ -2,7 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:meal_planner/appstyle/app_icons.dart';
+import 'package:meal_planner/core/constants/app_icons.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/image_path_provider.dart';
 

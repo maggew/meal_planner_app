@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:meal_planner/model/Recipe.dart';
+import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class ShowRecipeCookingMode extends StatefulWidget {

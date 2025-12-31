@@ -1,8 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:meal_planner/appstyle/app_icons.dart';
-import 'package:meal_planner/model/GroupInfo.dart';
-import 'package:flutter/services.dart';
+import 'package:meal_planner/core/constants/app_icons.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/database.dart';
@@ -40,10 +38,12 @@ class _ShowUserGroupsPage extends State<ShowUserGroupsPage> {
   @override
   void initState() {
     super.initState();
-    Database().getCurrentGroupID().then((id) {
-      group_id = id;
-    });
-    groupData = Database().getAllGroupInfo();
+    //TODO: über repo lösen, nicht über database
+
+    // Database().getCurrentGroupID().then((id) {
+    //   group_id = id;
+    // });
+    // groupData = Database().getAllGroupInfo();
   }
 
   String group_id = "";
@@ -81,7 +81,8 @@ class _ShowUserGroupsPage extends State<ShowUserGroupsPage> {
       scaffoldFloatingActionButtonLocation:
           FloatingActionButtonLocation.centerFloat,
       scaffoldBody: FutureBuilder(
-          future: Future.wait([Database().getAllGroupInfo()]),
+          //TODO: hier wieder die group infos laden
+          future: Future.wait([]), //[Database().getAllGroupInfo()]),
           builder: (context, snapshot) {
             while (snapshot.connectionState == ConnectionState.waiting) {
               return Center(
@@ -101,56 +102,60 @@ class _ShowUserGroupsPage extends State<ShowUserGroupsPage> {
               List groupMembers;
 
               if (snapshot.hasData) {
-                numberGroups = snapshot.data?[0].length;
+                //TODO: wieder einkommentieren und lösen
+
+                //numberGroups = snapshot.data?[0].length;
+                numberGroups = 0;
               } else {
                 numberGroups = 0;
               }
               for (int i = 0; i < numberGroups; i++) {
-                if (snapshot.data?[0][i]["icon"] == "" ||
-                    snapshot.data?[0][i]["icon"] == null) {
-                  groupPic = Image.asset(
-                    'assets/images/group_pic.jpg',
-                  );
-                  transferGroupPic = 'assets/images/group_pic.jpg';
-                } else {
-                  groupPic = Image.network(
-                    snapshot.data?[0][i]['icon'],
-                    fit: BoxFit.fill,
-                  );
-                  transferGroupPic = snapshot.data?[0][i]['icon'];
-                }
-                groupID = snapshot.data?[0][i]['groupID'];
-                groupName = snapshot.data?[0][i]['name'];
-                groupMembers = snapshot.data?[0][i]['members'];
-
-                groups.add(new Container(
-                  key: ValueKey(groupID),
-                  padding: EdgeInsets.only(top: 10),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      buildGroupAvatar(
-                          groupName, transferGroupPic, groupID, groupMembers),
-                      Column(
-                        children: [
-                          SelectableText(
-                            groupID,
-                            style: TextStyle(
-                              fontSize: 15,
-                            ),
-                            toolbarOptions: ToolbarOptions(copy: true),
-                          ),
-                          FittedBox(
-                            child: Text(
-                              groupName,
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                ));
+                //TODO: rows below...
+                // if (snapshot.data?[0]![i]!["icon"] == null ||
+                //     snapshot.data?[0]?[i]["icon"] == '') {
+                //   groupPic = Image.asset(
+                //     'assets/images/group_pic.jpg',
+                //   );
+                //   transferGroupPic = 'assets/images/group_pic.jpg';
+                // } else {
+                //   groupPic = Image.network(
+                //     snapshot.data?[0][i]['icon'],
+                //     fit: BoxFit.fill,
+                //   );
+                //   transferGroupPic = snapshot.data?[0][i]['icon'];
+                // }
+                // groupID = snapshot.data?[0][i]['groupID'];
+                // groupName = snapshot.data?[0][i]['name'];
+                // groupMembers = snapshot.data?[0][i]['members'];
+                //
+                // groups.add(new Container(
+                //   key: ValueKey(groupID),
+                //   padding: EdgeInsets.only(top: 10),
+                //   child: Column(
+                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //     children: [
+                //       buildGroupAvatar(
+                //           groupName, transferGroupPic, groupID, groupMembers),
+                //       Column(
+                //         children: [
+                //           SelectableText(
+                //             groupID,
+                //             style: TextStyle(
+                //               fontSize: 15,
+                //             ),
+                //             toolbarOptions: ToolbarOptions(copy: true),
+                //           ),
+                //           FittedBox(
+                //             child: Text(
+                //               groupName,
+                //               textAlign: TextAlign.center,
+                //             ),
+                //           ),
+                //         ],
+                //       )
+                //     ],
+                //   ),
+                // ));
               }
               return Center(
                 child: Column(

@@ -2,8 +2,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:meal_planner/appstyle/app_icons.dart';
-import 'package:meal_planner/model/GroupInfo.dart';
+import 'package:meal_planner/core/constants/app_icons.dart';
+import 'package:meal_planner/data/model/GroupInfo.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'dart:io';
 
@@ -54,21 +54,22 @@ class _ZoomPicturePage extends State<ZoomPicturePage> {
                   isLoading = true;
                 });
                 if (_imagePath!.isNotEmpty || _imagePath != "") {
-                  await Database()
-                      .deleteImageFromFirebase(groupInfo.groupPic)
-                      .then((value) async {
-                    await Database()
-                        .uploadGroupImageToFirebase(context, _imageFile!)
-                        .then((url) {
-                      Database()
-                          .updateGroupPic(groupInfo.groupID, url)
-                          .then((value) {
-                        setState(() {
-                          isLoading = false;
-                        });
-                      });
-                    });
-                  });
+                  //TODO: rows below...
+                  // await Database()
+                  //     .deleteImageFromFirebase(groupInfo.groupPic)
+                  //     .then((value) async {
+                  //   await Database()
+                  //       .uploadGroupImageToFirebase(context, _imageFile!)
+                  //       .then((url) {
+                  //     Database()
+                  //         .updateGroupPic(groupInfo.groupID, url)
+                  //         .then((value) {
+                  //       setState(() {
+                  //         isLoading = false;
+                  //       });
+                  //     });
+                  //   });
+                  // });
                 }
                 AutoRouter.of(context).push(const ShowUserGroupsRoute());
               });
@@ -78,15 +79,16 @@ class _ZoomPicturePage extends State<ZoomPicturePage> {
           IconButton(
             onPressed: () async {
               // TODO: delete image in firestore first
-              await Database()
-                  .deleteImageFromFirebase(groupInfo.groupPic)
-                  .then((value) async {
-                await Database()
-                    .updateGroupPic(groupInfo.groupID, "")
-                    .then((value) {
-                  AutoRouter.of(context).push(const ShowUserGroupsRoute());
-                });
-              });
+              //TODO: rows below...
+              // await Database()
+              //     .deleteImageFromFirebase(groupInfo.groupPic)
+              //     .then((value) async {
+              //   await Database()
+              //       .updateGroupPic(groupInfo.groupID, "")
+              //       .then((value) {
+              //     AutoRouter.of(context).push(const ShowUserGroupsRoute());
+              //   });
+              // });
             },
             icon: Icon(AppIcons.trash_bin),
           ),

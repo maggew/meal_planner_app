@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:meal_planner/appstyle/app_icons.dart';
+import 'package:meal_planner/core/constants/app_icons.dart';
 
 class ShowRecipeBottomNavigationBar extends StatelessWidget {
   final TabController tabController;

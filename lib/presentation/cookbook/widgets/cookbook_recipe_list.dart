@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:meal_planner/model/Recipe.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/cookbook/widgets/cookbook_recipe_list_item.dart';
-import 'package:meal_planner/services/database.dart';
+import 'package:meal_planner/services/providers/repository_providers.dart';
 
-class CookbookRecipeList extends StatelessWidget {
+class CookbookRecipeList extends ConsumerWidget {
   final String category;
   const CookbookRecipeList({
     required this.category,
@@ -11,9 +12,10 @@ class CookbookRecipeList extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final recipeRepository = ref.watch(recipeRepositoryProvider);
     return FutureBuilder<List<Recipe>>(
-      future: Database().getRecipesFromCategory(category),
+      future: recipeRepository.getRecipesByCategory(category),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(

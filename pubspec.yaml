@@ -60,6 +60,7 @@ dependencies:
   auto_route: ^11.1.0
   wakelock_plus: ^1.4.0
   data_table_2: ^2.7.2
+  mime: ^2.0.0
 
 dev_dependencies:
   build_runner: ^2.10.4

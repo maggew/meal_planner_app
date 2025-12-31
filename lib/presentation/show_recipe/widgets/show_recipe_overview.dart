@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:meal_planner/model/Recipe.dart';
+import 'package:meal_planner/domain/entities/recipe.dart';
 
 class ShowRecipeOverview extends StatelessWidget {
   final Recipe recipe;
@@ -89,7 +89,7 @@ class ShowRecipeOverview extends StatelessWidget {
             child: Container(
               margin: EdgeInsets.all(10),
               child: Text(
-                recipe.instruction,
+                recipe.instructions,
                 style: TextStyle(
                   fontSize: 20,
                   color: Colors.black,

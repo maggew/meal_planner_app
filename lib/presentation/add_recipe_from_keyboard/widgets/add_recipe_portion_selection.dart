@@ -6,15 +6,21 @@ import 'package:meal_planner/services/providers/add_recipe_provider.dart';
 
 const int MAX_PORTION_NUMBER = 8;
 
-class AddRecipePortionSelection extends StatelessWidget {
+class AddRecipePortionSelection extends ConsumerStatefulWidget {
   final DropdownController portionDropdownController;
-  final WidgetRef ref;
+
   const AddRecipePortionSelection({
     super.key,
     required this.portionDropdownController,
-    required this.ref,
   });
 
+  @override
+  ConsumerState<AddRecipePortionSelection> createState() =>
+      _AddRecipePortionSelection();
+}
+
+class _AddRecipePortionSelection
+    extends ConsumerState<AddRecipePortionSelection> {
   @override
   Widget build(BuildContext context) {
     List<CoolDropdownItem<dynamic>> portionDropdownItems =
@@ -33,11 +39,11 @@ class AddRecipePortionSelection extends StatelessWidget {
           child: CoolDropdown(
             onChange: (v) {
               ref.read(selectedPortionsProvider.notifier).state = v;
-              portionDropdownController.close();
+              widget.portionDropdownController.close();
             },
             dropdownList: portionDropdownItems,
             defaultItem: portionDropdownItems[3],
-            controller: portionDropdownController,
+            controller: widget.portionDropdownController,
           ),
         ),
       ],

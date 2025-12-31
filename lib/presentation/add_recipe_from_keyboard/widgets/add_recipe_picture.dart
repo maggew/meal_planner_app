@@ -1,12 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:meal_planner/appstyle/app_icons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/core/constants/app_icons.dart';
+import 'package:meal_planner/services/providers/image_path_provider.dart';
 
-class AddRecipePicture extends StatelessWidget {
-  const AddRecipePicture({super.key});
+class AddRecipePicture extends ConsumerStatefulWidget {
+  const AddRecipePicture({Key? key}) : super(key: key);
+
+  @override
+  ConsumerState<AddRecipePicture> createState() => _AddRecipePictureState();
+}
+
+class _AddRecipePictureState extends ConsumerState<AddRecipePicture> {
+  final TextEditingController _pictureNameController = TextEditingController();
+
+  @override
+  void dispose() {
+    _pictureNameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final imagePathAsync = ref.watch(imagePathProvider);
+    imagePathAsync.whenData((path) {
+      if (path != null) {
+        _pictureNameController.text = path.split('/').last;
+      } else {
+        _pictureNameController.text = '';
+      }
+    });
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "Rezeptfoto",
@@ -28,12 +52,14 @@ class AddRecipePicture extends StatelessWidget {
                         width: 270,
                         height: 50,
                         child: TextFormField(
+                          controller: _pictureNameController,
                           textAlign: TextAlign.start,
                           textAlignVertical: TextAlignVertical.center,
                           onTap: () async {
-                            //TODO: hier den provider aufrufen
+                            ref
+                                .read(imagePathProvider.notifier)
+                                .pickFromGallery();
                           },
-                          autovalidateMode: AutovalidateMode.always,
                           readOnly: true,
                           enabled: true,
                           decoration: InputDecoration(
@@ -68,7 +94,7 @@ class AddRecipePicture extends StatelessWidget {
                       SizedBox(width: 20),
                       IconButton(
                         onPressed: () {
-                          //imageSelector(context);
+                          ref.read(imagePathProvider.notifier).pickFromCamera();
                         },
                         icon: Icon(
                             Icons.camera_alt_outlined), //todo besseres Icon
@@ -76,16 +102,11 @@ class AddRecipePicture extends StatelessWidget {
                     ],
                   ),
                   Positioned(
-                    bottom: 3,
-                    left: 215,
-                    child: IconButton(
-                      onPressed: () async {
-                        //TODO: hier provider aufrufen?
-                      },
-                      icon: Icon(
-                        AppIcons.upload,
-                        size: 25,
-                      ),
+                    bottom: 12.5,
+                    left: 225,
+                    child: Icon(
+                      AppIcons.upload,
+                      size: 25,
                     ),
                   ),
                 ],

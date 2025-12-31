@@ -11,7 +11,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:auto_route/auto_route.dart' as _i17;
 import 'package:flutter/material.dart' as _i18;
-import 'package:meal_planner/model/Recipe.dart' as _i19;
+import 'package:meal_planner/domain/entities/recipe.dart' as _i19;
 import 'package:meal_planner/presentation/add_recipe_from_keyboard/add_recipe_keyboard_page.dart'
     as _i1;
 import 'package:meal_planner/presentation/authentification/auth_page.dart'
@@ -29,7 +29,7 @@ import 'package:meal_planner/presentation/join_group/join_group_page.dart'
 import 'package:meal_planner/presentation/login/login_page.dart' as _i9;
 import 'package:meal_planner/presentation/refrigerator/refrigerator_page.dart'
     as _i10;
-import 'package:meal_planner/presentation/registratior/registration_page.dart'
+import 'package:meal_planner/presentation/registration/registration_page.dart'
     as _i11;
 import 'package:meal_planner/presentation/show_recipe/show_recipe_page.dart'
     as _i12;

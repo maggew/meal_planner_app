@@ -3,24 +3,47 @@ import 'package:cool_dropdown/models/cool_dropdown_item.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/model/enums/unit.dart';
+import 'package:meal_planner/domain/entities/ingredient.dart';
+import 'package:meal_planner/domain/enums/unit.dart';
 import 'package:meal_planner/services/providers/add_recipe_provider.dart';
 
-class AddRecipeIngredients extends StatelessWidget {
-  final DropdownController unitDropdownController;
-  final WidgetRef ref;
-  //final GlobalKey<EditableState> ingredientTable;
+class AddRecipeIngredients extends ConsumerStatefulWidget {
   const AddRecipeIngredients({
     super.key,
-    //required this.ingredientTable,
-    required this.unitDropdownController,
-    required this.ref,
   });
+  @override
+  ConsumerState<AddRecipeIngredients> createState() => _AddRecipeIngredients();
+}
+
+class _AddRecipeIngredients extends ConsumerState<AddRecipeIngredients> {
+  final Map<int, DropdownController<Unit>> dropdownControllers = {};
+
+  DropdownController<Unit> _getOrCreateController(int index) {
+    if (!dropdownControllers.containsKey(index)) {
+      dropdownControllers[index] = DropdownController();
+    }
+    return dropdownControllers[index]!;
+  }
+
+  @override
+  void dispose() {
+    dropdownControllers.values.forEach((controller) => controller.dispose());
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    List<CoolDropdownItem<Unit>> _unitDropdownItems = getUnitDropdownItems();
+    final ingredients = ref.watch(ingredientsProvider);
+
+    if (ingredients.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(ingredientsProvider.notifier).addIngredient();
+      });
+    }
+    final List<CoolDropdownItem<Unit>> unitDropdownItems =
+        getUnitDropdownItems();
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Row(
         //   children: [
@@ -64,41 +87,150 @@ class AddRecipeIngredients extends StatelessWidget {
           ),
           width: MediaQuery.of(context).size.width,
           height: 300,
-          child: DataTable2(
-            horizontalMargin: 10,
-            columns: [
-              DataColumn2(
-                label: Text('Zutat'),
-                size: ColumnSize.L,
-              ),
-              DataColumn2(
-                label: Text('Menge'),
-                size: ColumnSize.L,
-              ),
-              DataColumn2(
-                label: Text('Einheit'),
-                size: ColumnSize.M,
-              ),
-            ],
-            rows: [
-              DataRow2(
-                cells: [
-                  DataCell(TextField(
-                      decoration: InputDecoration(hintText: 'Zutat'))),
-                  DataCell(
-                      TextField(decoration: InputDecoration(hintText: '0'))),
-                  DataCell(
-                    CoolDropdown(
-                      defaultItem: _unitDropdownItems[2],
-                      dropdownList: _unitDropdownItems,
-                      controller: unitDropdownController,
-                      onChange: (v) {
-                        ref.read(selectedUnitProvider.notifier).state = v;
-                        unitDropdownController.close();
-                      },
+          child: Column(
+            children: [
+              Expanded(
+                child: DataTable2(
+                  horizontalMargin: 10,
+                  dividerThickness: 2,
+                  columnSpacing: 12,
+                  isVerticalScrollBarVisible: true,
+                  columns: [
+                    DataColumn2(
+                      label: Text('Zutat'),
+                      size: ColumnSize.L,
                     ),
+                    DataColumn2(
+                      label: Text('Menge'),
+                      size: ColumnSize.L,
+                    ),
+                    DataColumn2(
+                      label: Text('Einheit'),
+                      size: ColumnSize.M,
+                    ),
+                    DataColumn2(
+                      label: Text(''),
+                      size: ColumnSize.S,
+                    ),
+                  ],
+                  rows: ingredients.asMap().entries.map((entry) {
+                    int index = entry.key;
+                    Ingredient ingredient = entry.value;
+
+                    return DataRow2(
+                      cells: [
+                        // Zutat Name
+                        DataCell(
+                          TextField(
+                            controller:
+                                TextEditingController(text: ingredient.name)
+                                  ..selection = TextSelection.collapsed(
+                                    offset: ingredient.name.length,
+                                  ),
+                            onChanged: (value) {
+                              ref
+                                  .read(ingredientsProvider.notifier)
+                                  .updateIngredient(
+                                    index,
+                                    name: value,
+                                  );
+                            },
+                            decoration: InputDecoration(
+                              border: InputBorder.none,
+                              hintText: 'Zutat eingeben...',
+                            ),
+                          ),
+                        ),
+
+                        // Menge
+                        DataCell(
+                          TextField(
+                            controller: TextEditingController(
+                              text: ingredient.amount == 0
+                                  ? ''
+                                  : ingredient.amount.toString(),
+                            )..selection = TextSelection.collapsed(
+                                offset: ingredient.amount == 0
+                                    ? 0
+                                    : ingredient.amount.toString().length,
+                              ),
+                            onChanged: (value) {
+                              final amount = int.tryParse(value) ?? 0;
+                              ref
+                                  .read(ingredientsProvider.notifier)
+                                  .updateIngredient(
+                                    index,
+                                    amount: amount,
+                                  );
+                            },
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              border: InputBorder.none,
+                              hintText: '0',
+                            ),
+                          ),
+                        ),
+
+                        // Einheit (Dropdown)
+                        DataCell(
+                          CoolDropdown<Unit>(
+                            controller: _getOrCreateController(index),
+                            dropdownList: unitDropdownItems,
+                            defaultItem: unitDropdownItems.firstWhere(
+                              (item) => item.value == ingredient.unit,
+                              orElse: () => unitDropdownItems[0],
+                            ),
+                            onChange: (selectedItem) {
+                              ref
+                                  .read(ingredientsProvider.notifier)
+                                  .updateIngredient(
+                                    index,
+                                    unit: selectedItem,
+                                  );
+                              _getOrCreateController(index).close();
+                            },
+                            resultOptions: ResultOptions(
+                              width: 80,
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                            ),
+                            dropdownOptions: DropdownOptions(
+                              width: 120,
+                            ),
+                          ),
+                        ),
+
+                        // Löschen-Button
+                        DataCell(
+                          IconButton(
+                            icon:
+                                Icon(Icons.delete, color: Colors.red, size: 20),
+                            onPressed: () {
+                              dropdownControllers[index]?.dispose();
+                              dropdownControllers.remove(index);
+                              ref
+                                  .read(ingredientsProvider.notifier)
+                                  .deleteIngredient(index);
+                            },
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(10),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      ref.read(ingredientsProvider.notifier).addIngredient();
+                    },
+                    icon: Icon(Icons.add),
+                    label: Text('Zutat hinzufügen'),
                   ),
-                ],
+                ),
               ),
             ],
           ),

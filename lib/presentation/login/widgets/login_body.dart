@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/login/widgets/login_textformfield.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
-import 'package:meal_planner/services/providers/auth_controller_provider.dart';
+import 'package:meal_planner/services/providers/auth_providers.dart';
 
 class LoginBody extends ConsumerStatefulWidget {
   const LoginBody({super.key});

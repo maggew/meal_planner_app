@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:meal_planner/appstyle/app_icons.dart';
+import 'package:meal_planner/core/constants/app_icons.dart';
 
 List<String> categoryNames = [
   "Suppen",
@@ -10,6 +10,27 @@ List<String> categoryNames = [
   "Gebäck",
   "Sonstiges",
 ];
+
+String getCategoryNameEnglish(String categoryName) {
+  switch (categoryName) {
+    case "Suppen":
+      return "soups";
+    case "Salate":
+      return "salads";
+    case "Saucen, Dips":
+      return "sauces_dips";
+    case "Hauptgerichte":
+      return "mainDishes";
+    case "Desserts":
+      return "desserts";
+    case "Gebäck":
+      return "bakery";
+    case "Sonstiges":
+      return "others";
+    default:
+      return "error";
+  }
+}
 
 IconData getCategoryIconData(String categoryName) {
   switch (categoryName) {

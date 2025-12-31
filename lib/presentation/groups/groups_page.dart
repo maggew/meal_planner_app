@@ -2,7 +2,7 @@ import 'package:auto_route/annotations.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:meal_planner/appstyle/app_icons.dart';
+import 'package:meal_planner/core/constants/app_icons.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 

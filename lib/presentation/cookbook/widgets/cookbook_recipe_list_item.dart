@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:meal_planner/model/Recipe.dart';
+import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 
 class CookbookRecipeListItem extends StatelessWidget {
@@ -9,10 +9,11 @@ class CookbookRecipeListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final recipeImage = (recipe.imagePath.isEmpty ||
-            recipe.imagePath == 'assets/images/default_pic_2.jpg')
+    final recipeImage = (recipe.imageUrl == null ||
+            recipe.imageUrl!.isEmpty ||
+            recipe.imageUrl == 'assets/images/default_pic_2.jpg')
         ? Image.asset('assets/images/caticorn.png', fit: BoxFit.cover)
-        : Image.network(recipe.imagePath, fit: BoxFit.cover);
+        : Image.network(recipe.imageUrl!, fit: BoxFit.cover);
     return GestureDetector(
       onTap: () {
         AutoRouter.of(context)

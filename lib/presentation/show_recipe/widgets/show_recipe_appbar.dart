@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:meal_planner/appstyle/app_icons.dart';
+import 'package:meal_planner/core/constants/app_icons.dart';
 
 class ShowRecipeAppbar extends StatelessWidget implements PreferredSizeWidget {
   final String recipeName;

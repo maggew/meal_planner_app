@@ -1,22 +1,24 @@
+import 'dart:io';
+import 'dart:math';
 import 'package:auto_route/auto_route.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:meal_planner/appstyle/app_icons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/core/constants/app_icons.dart';
+import 'package:meal_planner/data/repositories/firebase_group_repository.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/database.dart';
-import 'package:meal_planner/services/auth.dart';
-import 'dart:math';
-import 'dart:io';
+import 'package:meal_planner/services/providers/auth_providers.dart';
+import 'package:meal_planner/services/providers/repository_providers.dart';
 
 @RoutePage()
-class CreateGroupPage extends StatefulWidget {
+class CreateGroupPage extends ConsumerStatefulWidget {
   @override
-  State<CreateGroupPage> createState() => _CreateGroupPage();
+  ConsumerState<CreateGroupPage> createState() => _CreateGroupPageState();
 }
 
-class _CreateGroupPage extends State<CreateGroupPage> {
+class _CreateGroupPageState extends ConsumerState<CreateGroupPage> {
   double getScreenWidth(BuildContext context) {
     return MediaQuery.of(context).size.width;
   }
@@ -46,18 +48,14 @@ class _CreateGroupPage extends State<CreateGroupPage> {
   String _iconPath = "";
   File? _iconFile;
 
-  Auth auth = Auth();
-
   GlobalKey<FormState> _formCheck = new GlobalKey();
   GlobalKey<FormState> _text = new GlobalKey();
 
-  //Screen is locked to landscape mode
   @override
   void initState() {
     super.initState();
   }
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return AppBackground(
@@ -99,7 +97,7 @@ class _CreateGroupPage extends State<CreateGroupPage> {
                       width: 270,
                       height: 100,
                       child: TextFormField(
-                        //validator: _validateName,
+                        validator: _validateName,
                         autovalidateMode: AutovalidateMode.disabled,
                         decoration: InputDecoration(
                           errorStyle: Theme.of(context).textTheme.bodyLarge,
@@ -271,23 +269,49 @@ class _CreateGroupPage extends State<CreateGroupPage> {
                     fixedSize: Size(120, 40),
                   ),
                   onPressed: () async {
+                    final groupRepository = ref.watch(groupRepositoryProvider);
                     if (_formCheck.currentState?.validate() == true) {
-                      String userID = auth.getCurrentUser();
-                      String groupID = createRandomGroupID();
-                      if (_iconPath.isNotEmpty || _iconPath != "") {
-                        await Database()
-                            .uploadGroupImageToFirebase(context, _iconFile!)
-                            .then((url) {
-                          Database().createGroup(groupID, groupName, url);
-                        });
-                      } else {
-                        Database().createGroup(groupID, groupName, "");
+                      final authRepo = ref.read(authRepositoryProvider);
+                      final userID = authRepo.getCurrentUserId();
+
+                      if (userID == null || userID.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Nicht eingeloggt')),
+                        );
+                        return;
                       }
-                      Database().updateGroupUsers(groupID, userID);
-                      Database().updateUserGroups(groupID, userID);
-                      Database().updateActiveGroup(groupID).then((value) {
-                        AutoRouter.of(context).push(const CookbookRoute());
-                      });
+
+                      final groupID = createRandomGroupID();
+
+                      try {
+                        String url = '';
+                        if (_iconPath.isNotEmpty && _iconFile != null) {
+                          url = await groupRepository
+                              .uploadGroupImage(_iconFile!);
+                        }
+                        await groupRepository.createGroup(
+                          groupID,
+                          groupName,
+                          url,
+                          userID,
+                        );
+
+                        // GroupId im State setzen
+                        ref.read(currentGroupIdStateProvider.notifier).state =
+                            groupID;
+
+                        if (mounted) {
+                          AutoRouter.of(context).push(const CookbookRoute());
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content:
+                                Text('Fehler beim Erstellen der Gruppe: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     }
                   },
                   child: Text(
@@ -302,14 +326,13 @@ class _CreateGroupPage extends State<CreateGroupPage> {
     );
   }
 
-  String? _validateName(String name) {
-    if (name.isEmpty) {
+  String? _validateName(String? name) {
+    if (name == null || name.isEmpty) {
       return "Bitte Name eingeben.";
     } else if (name.length < 3) {
       return "Der Name ist zu kurz.";
-    } else {
-      return null;
     }
+    return null;
   }
 
   Future _getFromGallery() async {
@@ -318,8 +341,8 @@ class _CreateGroupPage extends State<CreateGroupPage> {
     if (result != null) {
       final path = result.files.single.path;
       setState(() {
-        // _iconFile = File(path);
-        // _iconPath = path;
+        _iconFile = File(path!);
+        _iconPath = path;
       });
     }
   }
@@ -327,8 +350,7 @@ class _CreateGroupPage extends State<CreateGroupPage> {
   String _printPath(String path) {
     if (path == "") {
       return "noch kein Bild ausgewählt";
-    } else
-      setState(() {});
+    }
     return "..." + _iconPath.substring(_iconPath.length - 22);
   }
 

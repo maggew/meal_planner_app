@@ -1,21 +1,25 @@
 import 'package:async/async.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:meal_planner/model/FridgeProduct.dart';
-import 'package:meal_planner/model/Product.dart';
+import 'package:meal_planner/data/model/FridgeProduct.dart';
+import 'package:meal_planner/data/model/Product.dart';
+import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/services/database.dart';
+import 'package:meal_planner/services/providers/current_group_provider.dart';
+import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:meal_planner/widgets/DoubleCounter_widget.dart';
 import 'package:multi_split_view/multi_split_view.dart';
 
 @RoutePage()
-class RefrigeratorScreen extends StatefulWidget {
+class RefrigeratorScreen extends ConsumerStatefulWidget {
   @override
-  State<RefrigeratorScreen> createState() => _RefrigeratorScreen();
+  ConsumerState<RefrigeratorScreen> createState() => _RefrigeratorScreen();
 }
 
-class _RefrigeratorScreen extends State<RefrigeratorScreen> {
+class _RefrigeratorScreen extends ConsumerState<RefrigeratorScreen> {
   late AsyncMemoizer _memoizer;
 
   double getScreenWidth(BuildContext context) {
@@ -40,14 +44,22 @@ class _RefrigeratorScreen extends State<RefrigeratorScreen> {
 
   _fetchData() async {
     return this._memoizer.runOnce(() async {
+      final fridgeRepository = ref.read(fridgeRepositoryProvider);
+      final Group currentGroup = ref.read(currentGroupProvider).value!;
       // This below code will call only ones. This will return the same data directly without performing any Future task.
-      allProducts = await Database().getProductList();
-      iceProducts = await Database().getGoodiesPerCategory("ice");
-      berryProducts = await Database().getGoodiesPerCategory("berry");
-      vegetableProducts = await Database().getGoodiesPerCategory("vegetable");
-      potatoProducts = await Database().getGoodiesPerCategory("potato");
-      animalProducts = await Database().getGoodiesPerCategory("animal");
-      otherProducts = await Database().getGoodiesPerCategory("others");
+      allProducts = await fridgeRepository.getProductList(currentGroup.id);
+      iceProducts =
+          await fridgeRepository.getGoodiesPerCategory(currentGroup.id, "ice");
+      berryProducts = await fridgeRepository.getGoodiesPerCategory(
+          currentGroup.id, "berry");
+      vegetableProducts = await fridgeRepository.getGoodiesPerCategory(
+          currentGroup.id, "vegetable");
+      potatoProducts = await fridgeRepository.getGoodiesPerCategory(
+          currentGroup.id, "potato");
+      animalProducts = await fridgeRepository.getGoodiesPerCategory(
+          currentGroup.id, "animal");
+      otherProducts = await fridgeRepository.getGoodiesPerCategory(
+          currentGroup.id, "others");
     });
   }
 
@@ -773,19 +785,20 @@ class _RefrigeratorScreen extends State<RefrigeratorScreen> {
                               category: pCategory,
                               number: pNumber,
                               unit: pUnit);
-                          Database().addProductToList(newProduct).then((value) {
-                            if (!value) {
-                              Fluttertoast.showToast(
-                                msg: newProduct.title + " existiert schon.",
-                                timeInSecForIosWeb: 5,
-                              );
-                            } else {
-                              allProducts.add(newProduct);
-                              allProducts
-                                  .sort((a, b) => a.title.compareTo(b.title));
-                              AutoRouter.of(context).pop();
-                            }
-                          });
+                          //TODO: wieder einkommentieren, aber ohne database
+                          // Database().addProductToList(newProduct).then((value) {
+                          //   if (!value) {
+                          //     Fluttertoast.showToast(
+                          //       msg: newProduct.title + " existiert schon.",
+                          //       timeInSecForIosWeb: 5,
+                          //     );
+                          //   } else {
+                          //     allProducts.add(newProduct);
+                          //     allProducts
+                          //         .sort((a, b) => a.title.compareTo(b.title));
+                          //     AutoRouter.of(context).pop();
+                          //   }
+                          // });
                         }
                       },
                       child: Text("Speichern")),
@@ -808,7 +821,8 @@ class _RefrigeratorScreen extends State<RefrigeratorScreen> {
     if (fridgeProduct.category == 'ice') {
       if (!iceProducts.any((item) => item.title == fridgeProduct.title)) {
         iceProducts.add(fridgeProduct);
-        Database().updateGoodiesPerCategoryList("ice", iceProducts);
+        //TODO: wieder einkommentieren ohne database
+        //Database().updateGoodiesPerCategoryList("ice", iceProducts);
       } else {
         Fluttertoast.showToast(
           timeInSecForIosWeb: 5,
@@ -818,7 +832,8 @@ class _RefrigeratorScreen extends State<RefrigeratorScreen> {
     } else if (fridgeProduct.category == 'berry') {
       if (!berryProducts.any((item) => item.title == fridgeProduct.title)) {
         berryProducts.add(fridgeProduct);
-        Database().updateGoodiesPerCategoryList("berry", berryProducts);
+        //TODO: wieder einkommentieren ohne database
+        //Database().updateGoodiesPerCategoryList("berry", berryProducts);
       } else {
         Fluttertoast.showToast(
           timeInSecForIosWeb: 5,
@@ -828,7 +843,8 @@ class _RefrigeratorScreen extends State<RefrigeratorScreen> {
     } else if (fridgeProduct.category == 'vegetable') {
       if (!vegetableProducts.any((item) => item.title == fridgeProduct.title)) {
         vegetableProducts.add(fridgeProduct);
-        Database().updateGoodiesPerCategoryList("vegetable", vegetableProducts);
+        //TODO: wieder einkommentieren ohne database
+        //Database().updateGoodiesPerCategoryList("vegetable", vegetableProducts);
       } else {
         Fluttertoast.showToast(
           timeInSecForIosWeb: 5,
@@ -838,7 +854,8 @@ class _RefrigeratorScreen extends State<RefrigeratorScreen> {
     } else if (fridgeProduct.category == 'potato') {
       if (!potatoProducts.any((item) => item.title == fridgeProduct.title)) {
         potatoProducts.add(fridgeProduct);
-        Database().updateGoodiesPerCategoryList("potato", potatoProducts);
+        //TODO: wieder einkommentieren ohne database
+        //Database().updateGoodiesPerCategoryList("potato", potatoProducts);
       } else {
         Fluttertoast.showToast(
           timeInSecForIosWeb: 5,
@@ -848,7 +865,8 @@ class _RefrigeratorScreen extends State<RefrigeratorScreen> {
     } else if (fridgeProduct.category == 'animal') {
       if (!animalProducts.any((item) => item.title == fridgeProduct.title)) {
         animalProducts.add(fridgeProduct);
-        Database().updateGoodiesPerCategoryList("animal", animalProducts);
+        //TODO: wieder einkommentieren ohne database
+        //Database().updateGoodiesPerCategoryList("animal", animalProducts);
       } else {
         Fluttertoast.showToast(
           timeInSecForIosWeb: 5,
@@ -858,7 +876,8 @@ class _RefrigeratorScreen extends State<RefrigeratorScreen> {
     } else {
       if (!otherProducts.any((item) => item.title == fridgeProduct.title)) {
         otherProducts.add(fridgeProduct);
-        Database().updateGoodiesPerCategoryList("others", otherProducts);
+        //TODO: wieder einkommentieren ohne database
+        //Database().updateGoodiesPerCategoryList("others", otherProducts);
       } else {
         Fluttertoast.showToast(
           timeInSecForIosWeb: 5,
@@ -901,22 +920,28 @@ class _RefrigeratorScreen extends State<RefrigeratorScreen> {
   void removeProductFromFridge(FridgeProduct fridgeProduct) {
     if (fridgeProduct.category == 'ice') {
       iceProducts.remove(fridgeProduct);
-      Database().updateGoodiesPerCategoryList("ice", iceProducts);
+      //TODO: wieder einkommentieren ohne database
+      //Database().updateGoodiesPerCategoryList("ice", iceProducts);
     } else if (fridgeProduct.category == 'berry') {
       berryProducts.remove(fridgeProduct);
-      Database().updateGoodiesPerCategoryList("berry", berryProducts);
+      //TODO: wieder einkommentieren ohne database
+      //Database().updateGoodiesPerCategoryList("berry", berryProducts);
     } else if (fridgeProduct.category == 'vegetable') {
       vegetableProducts.remove(fridgeProduct);
-      Database().updateGoodiesPerCategoryList("vegetable", vegetableProducts);
+      //TODO: wieder einkommentieren ohne database
+      //Database().updateGoodiesPerCategoryList("vegetable", vegetableProducts);
     } else if (fridgeProduct.category == 'potato') {
       potatoProducts.remove(fridgeProduct);
-      Database().updateGoodiesPerCategoryList("potato", potatoProducts);
+      //TODO: wieder einkommentieren ohne database
+      //Database().updateGoodiesPerCategoryList("potato", potatoProducts);
     } else if (fridgeProduct.category == 'animal') {
       animalProducts.remove(fridgeProduct);
-      Database().updateGoodiesPerCategoryList("animal", animalProducts);
+      //TODO: wieder einkommentieren ohne database
+      //Database().updateGoodiesPerCategoryList("animal", animalProducts);
     } else {
       otherProducts.remove(fridgeProduct);
-      Database().updateGoodiesPerCategoryList("others", otherProducts);
+      //TODO: wieder einkommentieren ohne database
+      //Database().updateGoodiesPerCategoryList("others", otherProducts);
     }
   }
 
@@ -1066,7 +1091,8 @@ class _RefrigeratorScreen extends State<RefrigeratorScreen> {
                     child: Text("Ja"),
                   ),
                   onPressed: () {
-                    Database().removeProductFromList(product);
+                    //TODO: wieder einkommentieren ohne database
+                    //Database().removeProductFromList(product);
                     allProducts.remove(product);
                     setState(() {});
                     AutoRouter.of(context).pop();
@@ -1174,8 +1200,9 @@ class _RefrigeratorScreen extends State<RefrigeratorScreen> {
           actions: [
             IconButton(
                 onPressed: () {
-                  Database().updateGoodiesPerCategoryList(
-                      fridgeProduct.category, currentGoodies);
+                  //TODO: wieder einkommentieren ohne database
+                  //Database().updateGoodiesPerCategoryList(
+                  //   fridgeProduct.category, currentGoodies);
                   setState(() {
                     changeProductFromFridge(fridgeProduct, number, unit);
                   });

@@ -5,15 +5,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/common/categories.dart';
 import 'package:meal_planner/services/providers/add_recipe_provider.dart';
 
-class AddRecipeCategorySelection extends StatelessWidget {
+class AddRecipeCategorySelection extends ConsumerStatefulWidget {
   final DropdownController categoryDropdownController;
-  final WidgetRef ref;
+
   const AddRecipeCategorySelection({
     super.key,
     required this.categoryDropdownController,
-    required this.ref,
   });
 
+  @override
+  ConsumerState<AddRecipeCategorySelection> createState() =>
+      _AddRecipeCategorySelection();
+}
+
+class _AddRecipeCategorySelection
+    extends ConsumerState<AddRecipeCategorySelection> {
   @override
   Widget build(BuildContext context) {
     List<CoolDropdownItem<dynamic>> categoryDropdownItems =
@@ -32,9 +38,9 @@ class AddRecipeCategorySelection extends StatelessWidget {
           dropdownOptions: DropdownOptions(height: 290),
           onChange: (v) {
             ref.read(selectedCategoryProvider.notifier).state = v;
-            categoryDropdownController.close();
+            widget.categoryDropdownController.close();
           },
-          controller: categoryDropdownController,
+          controller: widget.categoryDropdownController,
           isMarquee: true,
         ),
       ],

@@ -1,24 +1,25 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/data/repositories/firebase_auth_repository.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
-import 'package:meal_planner/services/auth.dart';
+import 'package:meal_planner/services/providers/auth_providers.dart';
 
 @RoutePage()
-class RegistrationPage extends StatefulWidget {
+class RegistrationPage extends ConsumerStatefulWidget {
   @override
-  State<RegistrationPage> createState() => _RegistrationPage();
+  ConsumerState<RegistrationPage> createState() => _RegistrationPageState();
 }
 
-class _RegistrationPage extends State<RegistrationPage> {
+class _RegistrationPageState extends ConsumerState<RegistrationPage> {
   String name = "";
   String email = "";
   String password = "";
   String passwordCheck = "";
+  bool _isLoading = false;
 
   GlobalKey<FormState> _formCheck = new GlobalKey();
-
-  Auth auth = new Auth();
 
   //Screen is locked to landscape mode
   @override
@@ -90,7 +91,7 @@ class _RegistrationPage extends State<RegistrationPage> {
                             name = value;
                           });
                         },
-                        //validator: _validateName,
+                        validator: (value) => _validateName(value ?? ""),
                       ),
                     ),
                     SizedBox(
@@ -116,7 +117,7 @@ class _RegistrationPage extends State<RegistrationPage> {
                             email = value;
                           });
                         },
-                        //validator: _validateEmail
+                        validator: (value) => _validateEmail(value ?? ""),
                       ),
                     ),
                     SizedBox(
@@ -143,7 +144,7 @@ class _RegistrationPage extends State<RegistrationPage> {
                             password = value;
                           });
                         },
-                        //validator: _validatePassword,
+                        validator: (value) => _validatePassword(value ?? ""),
                       ),
                     ),
                     SizedBox(
@@ -170,7 +171,8 @@ class _RegistrationPage extends State<RegistrationPage> {
                             passwordCheck = value;
                           });
                         },
-                        //validator: _validatePasswordCheck,
+                        validator: (value) =>
+                            _validatePasswordCheck(value ?? ""),
                       ),
                     ),
                     ElevatedButton(
@@ -178,14 +180,18 @@ class _RegistrationPage extends State<RegistrationPage> {
                         fixedSize: Size(150, 40),
                       ),
                       onPressed: () {
-                        if (_formCheck.currentState?.validate() == true) {
-                          auth.registerWithEmail(
-                              name, email, password, passwordCheck);
-                          AutoRouter.of(context).push(const GroupsRoute());
-                        }
-                        ;
+                        _isLoading ? null : _register;
                       },
-                      child: Text("Registrieren"),
+                      child: _isLoading
+                          ? SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text("Registrieren"),
                     ),
                     SizedBox(
                       height: 40,
@@ -218,6 +224,48 @@ class _RegistrationPage extends State<RegistrationPage> {
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> _register() async {
+    if (_formCheck.currentState?.validate() != true) {
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final authRepo = ref.read(authRepositoryProvider);
+
+      final uid = await authRepo.registerWithEmail(
+        name: name.trim(),
+        email: email.trim(),
+        password: password,
+      );
+
+      print('✅ Registrierung erfolgreich: $uid');
+
+      if (mounted) {
+        AutoRouter.of(context).push(const GroupsRoute());
+      }
+    } on AuthException catch (e) {
+      _showError(e.message);
+    } catch (e) {
+      _showError('Registrierung fehlgeschlagen: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 4),
+      ),
     );
   }
 

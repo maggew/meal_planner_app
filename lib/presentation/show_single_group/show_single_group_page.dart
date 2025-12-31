@@ -1,21 +1,26 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:meal_planner/appstyle/app_icons.dart';
-import 'package:meal_planner/model/GroupInfo.dart';
+import 'package:meal_planner/core/constants/app_icons.dart';
+import 'package:meal_planner/data/model/GroupInfo.dart';
+import 'package:meal_planner/domain/entities/group.dart';
+import 'package:meal_planner/domain/repositories/group_repository.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/database.dart';
+import 'package:meal_planner/services/providers/current_group_provider.dart';
+import 'package:meal_planner/services/providers/repository_providers.dart';
 
 @RoutePage()
-class ShowSingleGroupPage extends StatefulWidget {
+class ShowSingleGroupPage extends ConsumerStatefulWidget {
   static const route = '/show_singleGroup';
 
   @override
-  State<ShowSingleGroupPage> createState() => _ShowSingleGroupPage();
+  ConsumerState<ShowSingleGroupPage> createState() => _ShowSingleGroupPage();
 }
 
-class _ShowSingleGroupPage extends State<ShowSingleGroupPage> {
+class _ShowSingleGroupPage extends ConsumerState<ShowSingleGroupPage> {
   double getScreenWidth(BuildContext context) {
     return MediaQuery.of(context).size.width;
   }
@@ -49,12 +54,13 @@ class _ShowSingleGroupPage extends State<ShowSingleGroupPage> {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final groupRepository = ref.read(groupRepositoryProvider);
     GroupInfo groupInfo =
         ModalRoute.of(context)?.settings.arguments as GroupInfo;
     Image grImage;
 
     groupMembers = groupInfo.groupMembers;
-    int numberMembers;
+    int numberMembers = 1;
 
     if (groupInfo.groupPic == "" ||
         groupInfo.groupPic == 'assets/images/group_pic.jpg') {
@@ -170,7 +176,8 @@ class _ShowSingleGroupPage extends State<ShowSingleGroupPage> {
                           ),
                           SizedBox(height: 10),
                           FutureBuilder(
-                            future: Database().getAllMemberNames(groupMembers),
+                            future: groupRepository.getCurrentGroup(""),
+                            //future: Database().getAllMemberNames(groupMembers),
                             builder: (context, snapshot) {
                               while (snapshot.connectionState ==
                                   ConnectionState.waiting) {
@@ -185,13 +192,15 @@ class _ShowSingleGroupPage extends State<ShowSingleGroupPage> {
                                     child: Text('Error: ${snapshot.error}'));
                               } else {
                                 if (snapshot.hasData) {
-                                  numberMembers = snapshot.data.length;
+                                  //TODO: row below...
+                                  //               numberMembers = snapshot.data.length;
                                 } else {
                                   numberMembers = 0;
                                 }
 
                                 for (int i = 0; i < numberMembers; i++) {
-                                  allMembers.add(Text(snapshot.data[i]));
+                                  //TODO: row below...
+                                  //allMembers.add(Text(snapshot.data?[i]));
                                 }
                               }
                               return Column(
@@ -323,13 +332,14 @@ class _ShowSingleGroupPage extends State<ShowSingleGroupPage> {
         ),
         MaterialButton(
           onPressed: () async {
-            await Database().leaveGroup(groupID).then((value) {
-              if (value == 'no_group') {
-                AutoRouter.of(context).push(const GroupsRoute());
-              } else {
-                AutoRouter.of(context).push(const ShowUserGroupsRoute());
-              }
-            });
+            //TODO: rows below...
+            // await Database().leaveGroup(groupID).then((value) {
+            //   if (value == 'no_group') {
+            //     AutoRouter.of(context).push(const GroupsRoute());
+            //   } else {
+            //     AutoRouter.of(context).push(const ShowUserGroupsRoute());
+            //   }
+            // });
           },
           child: Text(
             "Ja",
@@ -371,9 +381,10 @@ class _ShowSingleGroupPage extends State<ShowSingleGroupPage> {
         ),
         MaterialButton(
           onPressed: () {
-            Database().updateActiveGroup(groupID).then((value) {
-              AutoRouter.of(context).push(const ShowUserGroupsRoute());
-            });
+            //TODO: rows below...
+            //   Database().updateActiveGroup(groupID).then((value) {
+            //     AutoRouter.of(context).push(const ShowUserGroupsRoute());
+            //   });
           },
           child: Text(
             "Ja",
