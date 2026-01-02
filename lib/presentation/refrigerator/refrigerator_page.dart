@@ -8,8 +8,8 @@ import 'package:meal_planner/data/model/FridgeProduct.dart';
 import 'package:meal_planner/data/model/Product.dart';
 import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/services/database.dart';
-import 'package:meal_planner/services/providers/current_group_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
+import 'package:meal_planner/services/providers/session_provider.dart';
 import 'package:meal_planner/widgets/DoubleCounter_widget.dart';
 import 'package:multi_split_view/multi_split_view.dart';
 
@@ -45,7 +45,7 @@ class _RefrigeratorScreen extends ConsumerState<RefrigeratorScreen> {
   _fetchData() async {
     return this._memoizer.runOnce(() async {
       final fridgeRepository = ref.read(fridgeRepositoryProvider);
-      final Group currentGroup = ref.read(currentGroupProvider).value!;
+      final Group currentGroup = ref.read(sessionProvider).group!;
       // This below code will call only ones. This will return the same data directly without performing any Future task.
       allProducts = await fridgeRepository.getProductList(currentGroup.id);
       iceProducts =
@@ -146,7 +146,7 @@ class _RefrigeratorScreen extends ConsumerState<RefrigeratorScreen> {
                   color: Colors.black,
                 ),
                 onPressed: () {
-                  AutoRouter.of(context).pop();
+                  context.router.pop();
                 }),
             centerTitle: true,
             /*title: FittedBox(
@@ -597,7 +597,7 @@ class _RefrigeratorScreen extends ConsumerState<RefrigeratorScreen> {
                       size: 25,
                     ),
                     onPressed: () {
-                      AutoRouter.of(context).pop();
+                      context.router.pop();
                     },
                   ),
                 )
@@ -796,7 +796,7 @@ class _RefrigeratorScreen extends ConsumerState<RefrigeratorScreen> {
                           //     allProducts.add(newProduct);
                           //     allProducts
                           //         .sort((a, b) => a.title.compareTo(b.title));
-                          //     AutoRouter.of(context).pop();
+                          //     context.router.pop();
                           //   }
                           // });
                         }
@@ -1082,7 +1082,7 @@ class _RefrigeratorScreen extends ConsumerState<RefrigeratorScreen> {
                     child: Text("Nein"),
                   ),
                   onPressed: () {
-                    AutoRouter.of(context).pop();
+                    context.router.pop();
                   },
                 ),
                 TextButton(
@@ -1095,7 +1095,7 @@ class _RefrigeratorScreen extends ConsumerState<RefrigeratorScreen> {
                     //Database().removeProductFromList(product);
                     allProducts.remove(product);
                     setState(() {});
-                    AutoRouter.of(context).pop();
+                    context.router.pop();
                   },
                 ),
               ],
@@ -1206,7 +1206,7 @@ class _RefrigeratorScreen extends ConsumerState<RefrigeratorScreen> {
                   setState(() {
                     changeProductFromFridge(fridgeProduct, number, unit);
                   });
-                  AutoRouter.of(context).pop();
+                  context.router.pop();
                 },
                 icon: Icon(Icons.check))
           ],

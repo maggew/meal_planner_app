@@ -16,7 +16,7 @@ class ShowRecipeAppbar extends StatelessWidget implements PreferredSizeWidget {
             color: Colors.black,
           ),
           onPressed: () {
-            AutoRouter.of(context).pop();
+            context.router.pop();
           }),
       centerTitle: true,
       title: FittedBox(

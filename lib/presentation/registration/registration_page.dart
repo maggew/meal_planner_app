@@ -212,7 +212,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
                                 decoration: TextDecoration.underline),
                           ),
                           onPressed: () {
-                            AutoRouter.of(context).push(const LoginRoute());
+                            context.router.push(const LoginRoute());
                           },
                         ),
                       ],
@@ -246,7 +246,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
       print('✅ Registrierung erfolgreich: $uid');
 
       if (mounted) {
-        AutoRouter.of(context).push(const GroupsRoute());
+        context.router.push(const GroupsRoute());
       }
     } on AuthException catch (e) {
       _showError(e.message);

@@ -7,7 +7,6 @@ import 'package:meal_planner/data/model/GroupInfo.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'dart:io';
 
-import 'package:meal_planner/services/database.dart';
 
 @RoutePage()
 class ZoomPicturePage extends StatefulWidget {
@@ -44,7 +43,7 @@ class _ZoomPicturePage extends State<ZoomPicturePage> {
         leading: IconButton(
             icon: Icon(Icons.keyboard_arrow_left),
             onPressed: () {
-              AutoRouter.of(context).pop();
+              context.router.pop();
             }),
         actions: [
           IconButton(
@@ -71,7 +70,7 @@ class _ZoomPicturePage extends State<ZoomPicturePage> {
                   //   });
                   // });
                 }
-                AutoRouter.of(context).push(const ShowUserGroupsRoute());
+                context.router.push(const ShowUserGroupsRoute());
               });
             },
             icon: Icon(Icons.edit_outlined),
@@ -86,7 +85,7 @@ class _ZoomPicturePage extends State<ZoomPicturePage> {
               //   await Database()
               //       .updateGroupPic(groupInfo.groupID, "")
               //       .then((value) {
-              //     AutoRouter.of(context).push(const ShowUserGroupsRoute());
+              //     context.router.push(const ShowUserGroupsRoute());
               //   });
               // });
             },

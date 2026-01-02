@@ -137,4 +137,23 @@ class FirebaseUserRepository implements UserRepository {
       throw Exception('Fehler beim Laden der GroupId: $e');
     }
   }
+
+  @override
+  Future<List<String>> getGroupIds(String uid) async {
+    try {
+      final snapshot = await firestore
+          .collection(FirebaseConstants.usersCollection)
+          .doc(uid)
+          .get();
+
+      if (!snapshot.exists) {
+        return [];
+      }
+
+      return List<String>.from(
+          snapshot.data()?[FirebaseConstants.userGroupIds] ?? []);
+    } catch (e) {
+      throw Exception('Fehler beim Laden der GroupIds: $e');
+    }
+  }
 }

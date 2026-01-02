@@ -1,11 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:meal_planner/presentation/common/burger_menu.dart';
+import 'package:meal_planner/presentation/common/burger_menu/burger_menu.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 //import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:meal_planner/widgets/OneMeal_widget.dart';
-
 import 'package:meal_planner/widgets/ThreeMeals_widget.dart';
 import 'package:meal_planner/widgets/TwoMeals_widget.dart';
 
@@ -101,7 +99,7 @@ class _DetailedWeekplanPage extends State<DetailedWeekplanPage>
           IconButton(
             icon: Icon(Icons.wallet), //FaIcon(FontAwesomeIcons.clipboardList),
             onPressed: () {
-              AutoRouter.of(context).push(const CookbookRoute());
+              context.router.push(const CookbookRoute());
             },
           ),
           SizedBox(
@@ -140,7 +138,7 @@ class _DetailedWeekplanPage extends State<DetailedWeekplanPage>
           ],
         ),
       ),
-      drawer: BurgerMenu(width: 0.3),
+      drawer: BurgerMenu(),
       body: SafeArea(
         child: TabBarView(
           controller: _tabBarController,

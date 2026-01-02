@@ -71,7 +71,7 @@ class _JoinGroupPage extends State<JoinGroupPage> {
                 ),
               ),
               onPressed: () {
-                AutoRouter.of(context).pop();
+                context.router.pop();
               },
             ),
             leadingWidth: 85,
@@ -121,7 +121,7 @@ class _JoinGroupPage extends State<JoinGroupPage> {
                     //TODO: nicht über database lösen sondern repos
                     // await Database().checkGroupID(groupID).then((ds) {
                     //   if (ds == true) {
-                    //     AutoRouter.of(context).push(const CookbookRoute());
+                    //     context.router.push(const CookbookRoute());
                     //   } else {
                     //     //TODO: show user incorrect input
                     //   }

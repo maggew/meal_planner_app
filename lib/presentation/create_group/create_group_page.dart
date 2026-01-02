@@ -70,7 +70,7 @@ class _CreateGroupPageState extends ConsumerState<CreateGroupPage> {
             ),
           ),
           onPressed: () {
-            AutoRouter.of(context).pop();
+            context.router.pop();
           },
         ),
         leadingWidth: 85,
@@ -296,12 +296,13 @@ class _CreateGroupPageState extends ConsumerState<CreateGroupPage> {
                           userID,
                         );
 
+                        //TODO: hier mit sessionprovider arbeiten
                         // GroupId im State setzen
-                        ref.read(currentGroupIdStateProvider.notifier).state =
-                            groupID;
+                        // ref.read(currentGroupIdStateProvider.notifier).state =
+                        //     groupID;
 
                         if (mounted) {
-                          AutoRouter.of(context).push(const CookbookRoute());
+                          context.router.push(const CookbookRoute());
                         }
                       } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(

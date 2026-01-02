@@ -7,7 +7,7 @@ import 'package:meal_planner/domain/repositories/fridge_repository.dart';
 import 'package:meal_planner/domain/repositories/group_repository.dart';
 import 'package:meal_planner/domain/repositories/recipe_repository.dart';
 import 'package:meal_planner/data/repositories/firebase_recipe_repository.dart';
-import 'package:meal_planner/services/providers/auth_providers.dart';
+import 'package:meal_planner/services/providers/session_provider.dart';
 
 // Firebase Instances
 final firestoreProvider = Provider<FirebaseFirestore>((ref) {
@@ -20,31 +20,25 @@ final storageProvider = Provider<FirebaseStorage>((ref) {
 
 // Recipe Repository - nutzt die GroupId aus dem State
 final recipeRepositoryProvider = Provider<RecipeRepository>((ref) {
-  final groupId = ref.watch(currentGroupIdStateProvider);
-
   return FirebaseRecipeRepository(
     firestore: ref.watch(firestoreProvider),
     storage: ref.watch(storageProvider),
-    getCurrentGroupId: () => groupId,
+    getCurrentGroupId: () => ref.read(sessionProvider).groupId ?? '',
   );
 });
 
 final groupRepositoryProvider = Provider<GroupRepository>((ref) {
-  final groupId = ref.watch(currentGroupIdStateProvider);
-
   return FirebaseGroupRepository(
     firestore: ref.watch(firestoreProvider),
     storage: ref.watch(storageProvider),
-    getCurrentGroupId: () => groupId,
+    getCurrentGroupId: () => ref.read(sessionProvider).groupId ?? '',
   );
 });
 
 final fridgeRepositoryProvider = Provider<FridgeRepository>((ref) {
-  final groupId = ref.watch(currentGroupIdStateProvider);
-
   return FirebaseFridgeRepository(
     firestore: ref.watch(firestoreProvider),
     storage: ref.watch(storageProvider),
-    getCurrentGroupId: () => groupId,
+    getCurrentGroupId: () => ref.read(sessionProvider).groupId ?? '',
   );
 });

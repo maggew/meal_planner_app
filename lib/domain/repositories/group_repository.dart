@@ -10,6 +10,8 @@ abstract class GroupRepository {
 
   Future<Group> getCurrentGroup(String groupID);
 
+  Future<List<Group>> getGroupsByIds(List<String> groupIds);
+
   Future<Map<String, dynamic>?> getSingleGroupInfo(String groupID);
 
   Future<void> updateGroupUsers(String groupID, String userID);

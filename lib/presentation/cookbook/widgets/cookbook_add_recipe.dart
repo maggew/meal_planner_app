@@ -52,7 +52,7 @@ class CookbookAddRecipe extends ConsumerWidget {
               text: "Eingabe",
               icon: Icon(Icons.keyboard_alt_outlined),
               callback: () {
-                AutoRouter.of(context).push(const AddRecipeFromKeyboardRoute());
+                context.router.push(const AddRecipeFromKeyboardRoute());
               },
             ),
             _addRecipeButton(

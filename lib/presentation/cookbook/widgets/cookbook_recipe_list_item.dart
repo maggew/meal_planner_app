@@ -16,7 +16,7 @@ class CookbookRecipeListItem extends StatelessWidget {
         : Image.network(recipe.imageUrl!, fit: BoxFit.cover);
     return GestureDetector(
       onTap: () {
-        AutoRouter.of(context)
+        context.router
             .push(ShowRecipeRoute(recipe: recipe, image: recipeImage));
       },
       child: Container(

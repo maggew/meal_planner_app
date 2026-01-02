@@ -61,7 +61,7 @@ class _GroupsPage extends State<GroupsPage> {
                   elevation: 10,
                 ),
                 onPressed: () {
-                  AutoRouter.of(context).push(const CreateGroupRoute());
+                  context.router.push(const CreateGroupRoute());
                 },
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -105,7 +105,7 @@ class _GroupsPage extends State<GroupsPage> {
                   elevation: 10,
                 ),
                 onPressed: () {
-                  AutoRouter.of(context).push(const JoinGroupRoute());
+                  context.router.push(const JoinGroupRoute());
                 },
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,

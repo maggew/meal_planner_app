@@ -1,25 +1,44 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
+import 'package:meal_planner/services/auth_guard.dart';
 
 @AutoRouterConfig()
 class AppRouter extends RootStackRouter {
+  AppRouter(this.authGuard);
+
+  final AuthGuard authGuard;
+
   @override
   List<AutoRoute> get routes => [
+        /// Welcome / Splash (nur UI)
+        AutoRoute(
+          page: WelcomeRoute.page,
+          initial: true,
+        ),
+
+        /// Geschützter Einstieg
+        AutoRoute(
+          path: '/',
+          page: CookbookRoute.page,
+          guards: [authGuard],
+        ),
+
+        /// Öffentlich
         AutoRoute(page: LoginRoute.page),
-        AutoRoute(page: CookbookRoute.page),
-        AutoRoute(page: WelcomeRoute.page, initial: true),
-        AutoRoute(page: AuthRoute.page),
-        AutoRoute(page: ShowUserGroupsRoute.page),
-        AutoRoute(page: RefrigeratorRoute.page),
         AutoRoute(page: RegistrationRoute.page),
-        AutoRoute(page: DetailedWeekplanRoute.page),
-        AutoRoute(page: AddRecipeFromKeyboardRoute.page),
-        AutoRoute(page: CreateGroupRoute.page),
-        AutoRoute(page: GroupCreatedRoute.page),
+
+        /// Gruppen
         AutoRoute(page: GroupsRoute.page),
+        AutoRoute(page: CreateGroupRoute.page),
         AutoRoute(page: JoinGroupRoute.page),
+        AutoRoute(page: GroupCreatedRoute.page),
+        AutoRoute(page: ShowUserGroupsRoute.page),
+
+        /// App
+        AutoRoute(page: RefrigeratorRoute.page),
+        AutoRoute(page: DetailedWeekplanRoute.page),
         AutoRoute(page: ShowRecipeRoute.page),
-        AutoRoute(page: ShowSingleGroupRoute.page),
+        AutoRoute(page: AddRecipeFromKeyboardRoute.page),
         AutoRoute(page: ZoomPictureRoute.page),
       ];
 }

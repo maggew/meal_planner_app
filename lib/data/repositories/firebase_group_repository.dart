@@ -120,4 +120,27 @@ class FirebaseGroupRepository implements GroupRepository {
       throw Exception('Fehler beim Löschen des Bildes: $e');
     }
   }
+
+  @override
+  Future<List<Group>> getGroupsByIds(List<String> groupIds) async {
+    try {
+      if (groupIds.isEmpty) {
+        return [];
+      }
+
+      final groupDocs = await Future.wait(
+        groupIds.map((id) => firestore
+            .collection(FirebaseConstants.groupsCollection)
+            .doc(id)
+            .get()),
+      );
+
+      return groupDocs
+          .where((doc) => doc.exists)
+          .map((doc) => GroupModel.fromFirestore(doc.data()!))
+          .toList();
+    } catch (e) {
+      throw Exception('Fehler beim Laden der Gruppeninformationen: $e');
+    }
+  }
 }

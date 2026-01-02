@@ -6,6 +6,7 @@ import 'package:meal_planner/domain/repositories/auth_repository.dart';
 import 'package:meal_planner/domain/repositories/user_repository.dart';
 import 'package:meal_planner/data/repositories/firebase_auth_repository.dart';
 import 'package:meal_planner/data/repositories/firebase_user_repository.dart';
+import 'package:meal_planner/services/providers/session_provider.dart';
 
 final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
   return FirebaseAuth.instance;
@@ -34,26 +35,6 @@ final isSignedInProvider = Provider<bool>((ref) {
   return authRepo.isSignedIn;
 });
 
-final currentGroupIdStateProvider = StateProvider<String>((ref) => '');
-
-final loadGroupIdProvider = FutureProvider<String>((ref) async {
-  final authRepo = ref.watch(authRepositoryProvider);
-  final userId = authRepo.getCurrentUserId();
-
-  if (userId == null || userId.isEmpty) {
-    return '';
-  }
-
-  final userRepo = ref.watch(userRepositoryProvider);
-  final groupId = await userRepo.getCurrentGroupId(userId);
-
-  if (groupId != null && groupId.isNotEmpty) {
-    ref.read(currentGroupIdStateProvider.notifier).state = groupId;
-  }
-
-  return groupId ?? '';
-});
-
 final authControllerProvider =
     StateNotifierProvider<AuthController, AsyncValue<void>>(
   (ref) => AuthController(ref),
@@ -74,12 +55,7 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
         password: password,
       );
 
-      final userRepo = _ref.read(userRepositoryProvider);
-      final groupId = await userRepo.getCurrentGroupId(uid);
-
-      if (groupId != null && groupId.isNotEmpty) {
-        _ref.read(currentGroupIdStateProvider.notifier).state = groupId;
-      } else {}
+      await _ref.read(sessionProvider.notifier).loadSession(uid);
 
       state = const AsyncValue.data(null);
     } on AuthException catch (e, st) {
@@ -98,8 +74,7 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
       final authRepo = _ref.read(authRepositoryProvider);
       await authRepo.signOut();
 
-      // GroupId löschen
-      _ref.read(currentGroupIdStateProvider.notifier).state = '';
+      _ref.read(sessionProvider.notifier).clearSession();
 
       state = const AsyncValue.data(null);
     } catch (e, st) {

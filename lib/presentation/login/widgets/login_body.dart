@@ -42,7 +42,7 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
     ref.listen<AsyncValue<void>>(authControllerProvider, (prev, next) {
       next.whenOrNull(
         data: (_) {
-          AutoRouter.of(context).replace(const CookbookRoute());
+          context.router.replace(const CookbookRoute());
         },
         error: (e, _) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -117,7 +117,7 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
                       decoration: TextDecoration.underline),
                 ),
                 onPressed: () {
-                  AutoRouter.of(context).push(const RegistrationRoute());
+                  context.router.push(const RegistrationRoute());
                 },
               ),
             ],

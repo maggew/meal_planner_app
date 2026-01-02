@@ -1,5 +1,5 @@
+import 'package:meal_planner/core/constants/firebase_constants.dart';
 import 'package:meal_planner/domain/entities/group.dart';
-import 'package:meal_planner/domain/entities/user.dart';
 
 class GroupModel extends Group {
   GroupModel({
@@ -11,19 +11,20 @@ class GroupModel extends Group {
 
   factory GroupModel.fromFirestore(Map<String, dynamic> data) {
     return GroupModel(
-      name: data['name'] as String? ?? '',
-      id: data['id'] as String? ?? '',
-      imageUrl: data['imageUrl'] as String? ?? '',
-      memberIDs: List<String>.from(data['members'] as List? ?? []),
+      name: data[FirebaseConstants.groupName] as String? ?? '',
+      id: data[FirebaseConstants.groupId] as String? ?? '',
+      imageUrl: data[FirebaseConstants.groupImageUrl] as String? ?? '',
+      memberIDs: List<String>.from(
+          data[FirebaseConstants.groupMembers] as List? ?? []),
     );
   }
 
   Map<String, dynamic> toFirestore() {
     return {
-      'name': name,
-      'id': id,
-      'imageUrl': imageUrl,
-      'memberIDs': memberIDs,
+      FirebaseConstants.groupName: name,
+      FirebaseConstants.groupId: id,
+      FirebaseConstants.groupImageUrl: imageUrl,
+      FirebaseConstants.groupMembers: memberIDs,
     };
   }
 

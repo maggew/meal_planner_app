@@ -14,7 +14,7 @@ class AddRecipeAppbar extends StatelessWidget implements PreferredSizeWidget {
             color: Colors.black,
           ),
           onPressed: () {
-            AutoRouter.of(context).pop();
+            context.router.pop();
           }),
       title: FittedBox(
           child: Text(

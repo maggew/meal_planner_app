@@ -5,11 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:meal_planner/core/constants/app_icons.dart';
 import 'package:meal_planner/data/model/GroupInfo.dart';
-import 'package:meal_planner/domain/entities/group.dart';
-import 'package:meal_planner/domain/repositories/group_repository.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
-import 'package:meal_planner/services/database.dart';
-import 'package:meal_planner/services/providers/current_group_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 
 @RoutePage()
@@ -104,7 +100,7 @@ class _ShowSingleGroupPage extends ConsumerState<ShowSingleGroupPage> {
                 ),
               ),
               onPressed: () {
-                AutoRouter.of(context).pop();
+                context.router.pop();
               },
             ),
             leadingWidth: 85,
@@ -134,7 +130,7 @@ class _ShowSingleGroupPage extends ConsumerState<ShowSingleGroupPage> {
                               child: Hero(tag: 'zoom', child: grImage),
                             ),
                             onTap: () {
-                              AutoRouter.of(context).push(ZoomPictureRoute());
+                              context.router.push(ZoomPictureRoute());
                               // GroupInfo(groupInfo.groupName, groupInfo.groupID,
                               //     groupInfo.groupPic, groupInfo.groupMembers);
                             },
@@ -320,7 +316,7 @@ class _ShowSingleGroupPage extends ConsumerState<ShowSingleGroupPage> {
       actions: [
         MaterialButton(
           onPressed: () {
-            AutoRouter.of(context).pop();
+            context.router.pop();
           },
           child: Text(
             "Nein",
@@ -335,9 +331,9 @@ class _ShowSingleGroupPage extends ConsumerState<ShowSingleGroupPage> {
             //TODO: rows below...
             // await Database().leaveGroup(groupID).then((value) {
             //   if (value == 'no_group') {
-            //     AutoRouter.of(context).push(const GroupsRoute());
+            //     context.router.push(const GroupsRoute());
             //   } else {
-            //     AutoRouter.of(context).push(const ShowUserGroupsRoute());
+            //     context.router.push(const ShowUserGroupsRoute());
             //   }
             // });
           },
@@ -369,7 +365,7 @@ class _ShowSingleGroupPage extends ConsumerState<ShowSingleGroupPage> {
       actions: [
         MaterialButton(
           onPressed: () {
-            AutoRouter.of(context).pop();
+            context.router.pop();
           },
           child: Text(
             "Nein",
@@ -383,7 +379,7 @@ class _ShowSingleGroupPage extends ConsumerState<ShowSingleGroupPage> {
           onPressed: () {
             //TODO: rows below...
             //   Database().updateActiveGroup(groupID).then((value) {
-            //     AutoRouter.of(context).push(const ShowUserGroupsRoute());
+            //     context.router.push(const ShowUserGroupsRoute());
             //   });
           },
           child: Text(

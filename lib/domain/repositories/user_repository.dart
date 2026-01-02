@@ -18,5 +18,6 @@ abstract class UserRepository {
   Future<void> setActiveGroup(String uid, String groupId);
 
   Future<String?> getCurrentGroupId(String uid);
-}
 
+  Future<List<String>> getGroupIds(String uid);
+}

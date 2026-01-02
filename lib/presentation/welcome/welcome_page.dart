@@ -16,10 +16,12 @@ class _WelcomePage extends State<WelcomePage> {
   @override
   void initState() {
     super.initState();
-    new Future.delayed(
-      const Duration(milliseconds: 1500),
-      () => AutoRouter.of(context).replace(const AuthRoute()),
-    );
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (!mounted) {
+        return;
+      }
+      context.router.replace(const CookbookRoute());
+    });
   }
 
 // This widget is the root of your application.

@@ -58,7 +58,7 @@ class _GroupCreatedPage extends State<GroupCreatedPage> {
             ),
           ),
           onPressed: () {
-            AutoRouter.of(context).pop();
+            context.router.pop();
           },
         ),
         leadingWidth: 85,
@@ -166,7 +166,7 @@ class _GroupCreatedPage extends State<GroupCreatedPage> {
                     fixedSize: Size(130, 40),
                   ),
                   onPressed: () {
-                    AutoRouter.of(context).push(const DetailedWeekplanRoute());
+                    context.router.push(const DetailedWeekplanRoute());
                   },
                   child: Text(
                     "weiter",
