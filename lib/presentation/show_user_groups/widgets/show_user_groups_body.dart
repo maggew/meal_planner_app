@@ -13,11 +13,6 @@ class ShowUserGroupsBody extends ConsumerWidget {
     final groupsAsync = ref.watch(userGroupsProvider);
     return Column(
       children: [
-        SizedBox(height: 20),
-        Text(
-          "Meine Guppen",
-          style: Theme.of(context).textTheme.displayMedium,
-        ),
         groupsAsync.when(
           loading: () => const Center(
               child: CircularProgressIndicator(color: Colors.green)),

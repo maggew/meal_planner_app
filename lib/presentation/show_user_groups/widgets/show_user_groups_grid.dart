@@ -13,8 +13,10 @@ class ShowUserGroupsGrid extends ConsumerWidget {
     final String? currentGroupId = ref.watch(sessionProvider).groupId;
     return GridView.builder(
       shrinkWrap: true,
-      gridDelegate:
-          SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.9,
+      ),
       padding: EdgeInsets.only(top: 50),
       itemCount: groups.length,
       itemBuilder: (context, index) {

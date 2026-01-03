@@ -16,6 +16,8 @@ class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
       toolbarHeight: 80,
       leading: Builder(
         builder: (context) {

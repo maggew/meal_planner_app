@@ -8,8 +8,8 @@ class FirebaseConstants {
   static const String fridgeCollection = 'refrigerator';
 
   // Storage paths
-  static const String recipeImagesPath = 'images/recipes';
-  static const String groupImagesPath = 'images/groups';
+  static const String imagePathRecipe = 'images/recipes';
+  static const String imagePathGroups = 'images/groups';
 
   // User
   static const String userCurrentGroup = 'current_group';
@@ -21,4 +21,7 @@ class FirebaseConstants {
   static const String groupImageUrl = 'imageUrl';
   static const String groupMembers = 'members';
   static const String groupName = 'name';
+
+  // Recipe
+  static const String recipesInGroups = 'recipes';
 }

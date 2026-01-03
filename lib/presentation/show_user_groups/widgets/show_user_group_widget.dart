@@ -13,32 +13,39 @@ class ShowUserGroupWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      key: ValueKey(group.id),
-      padding: EdgeInsets.only(top: 10),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          ShowUserGroupAvatar(group: group, isCurrentGroup: isCurrentGroup),
-          Column(
-            children: [
-              SelectableText(
-                group.id,
-                style: TextStyle(
-                  fontSize: 15,
-                ),
-                toolbarOptions: ToolbarOptions(copy: true),
+    return Column(
+      children: [
+        ShowUserGroupAvatar(group: group, isCurrentGroup: isCurrentGroup),
+        Column(
+          children: [
+            FittedBox(
+              child: Text(
+                group.name,
+                textAlign: TextAlign.center,
               ),
-              FittedBox(
-                child: Text(
-                  group.name,
-                  textAlign: TextAlign.center,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Gruppen ID: ",
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
-              ),
-            ],
-          )
-        ],
-      ),
+                SelectableText(
+                  group.id,
+                  style: Theme.of(context).textTheme.bodySmall,
+                  onTap: () {
+                    print("test, group.id: ${group.id} pressed");
+                  },
+                ),
+              ],
+            ),
+            SizedBox(
+              height: 30,
+            ),
+          ],
+        )
+      ],
     );
   }
 }

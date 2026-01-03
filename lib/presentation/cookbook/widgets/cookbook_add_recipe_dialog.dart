@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:meal_planner/core/constants/app_icons.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
-import 'package:meal_planner/services/providers/image_path_provider.dart';
+import 'package:meal_planner/services/providers/image_provider.dart';
 
-class CookbookAddRecipe extends ConsumerWidget {
-  const CookbookAddRecipe({super.key});
+class CookbookAddRecipeDialog extends ConsumerWidget {
+  const CookbookAddRecipeDialog({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,18 +28,20 @@ class CookbookAddRecipe extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _addRecipeButton(
+              context: context,
               text: "Datei",
               icon: Icon(AppIcons.file),
               callback: () {
-                ref.read(imagePathProvider.notifier).pickFromGallery();
+                ref.read(imageProvider.notifier).pickFromGallery();
               },
             ),
             _addRecipeButton(
+              context: context,
               text: "Foto",
               //TODO: search better camera icon
               icon: Icon(Icons.camera_alt_outlined),
               callback: () {
-                ref.read(imagePathProvider.notifier).pickFromCamera();
+                ref.read(imageProvider.notifier).pickFromCamera();
               },
             ),
           ],
@@ -49,6 +51,7 @@ class CookbookAddRecipe extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _addRecipeButton(
+              context: context,
               text: "Eingabe",
               icon: Icon(Icons.keyboard_alt_outlined),
               callback: () {
@@ -56,6 +59,7 @@ class CookbookAddRecipe extends ConsumerWidget {
               },
             ),
             _addRecipeButton(
+              context: context,
               text: "URL",
               icon: Icon(Icons.satellite),
               //TODO: search better link icon
@@ -72,12 +76,16 @@ class CookbookAddRecipe extends ConsumerWidget {
   }
 
   Widget _addRecipeButton({
+    required BuildContext context,
     required String text,
     required Icon icon,
     required void Function() callback,
   }) {
     return ElevatedButton(
-        onPressed: callback,
+        onPressed: () {
+          Navigator.of(context).pop();
+          callback();
+        },
         style: ElevatedButton.styleFrom(
           elevation: 5,
           backgroundColor: Colors.lightGreen[300],

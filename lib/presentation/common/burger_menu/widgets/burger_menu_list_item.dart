@@ -19,7 +19,10 @@ class BurgerMenuListItem extends ConsumerWidget {
         ListTile(
           title: Text(label),
           leading: Icon(icon),
-          onTap: onTap,
+          onTap: () {
+            Navigator.of(context).pop();
+            onTap();
+          },
         ),
         const Divider(height: 1, thickness: 0.5),
       ],

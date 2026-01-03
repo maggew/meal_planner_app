@@ -6,6 +6,7 @@ import 'package:meal_planner/presentation/common/common_appbar.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/presentation/show_user_groups/widgets/show_user_groups_body.dart';
 
+@RoutePage()
 class ShowUserGroupsPage extends StatelessWidget {
   const ShowUserGroupsPage({super.key});
 

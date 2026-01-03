@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
-import 'package:meal_planner/services/providers/add_recipe_provider.dart';
+import 'package:meal_planner/presentation/add_recipe_from_keyboard/widgets/add_recipe_ingredient_row.dart';
+import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
 
 class AddRecipeIngredients extends ConsumerStatefulWidget {
   const AddRecipeIngredients({
@@ -51,33 +52,6 @@ class _AddRecipeIngredients extends ConsumerState<AddRecipeIngredients> {
           "Zutaten",
           style: Theme.of(context).textTheme.displayMedium,
         ),
-        //     SizedBox(width: 3),
-        //     Tooltip(
-        //       padding: EdgeInsets.all(8),
-        //       margin: EdgeInsets.only(left: 20, right: 20),
-        //       textStyle: TextStyle(
-        //         fontSize: 15,
-        //         fontFamily: GoogleFonts.aBeeZee().fontFamily,
-        //       ),
-        //       decoration: BoxDecoration(
-        //         color: Colors.pink[100],
-        //         borderRadius: BorderRadius.all(Radius.circular(10)),
-        //       ),
-        //       preferBelow: false,
-        //       triggerMode: TooltipTriggerMode.tap,
-        //       showDuration: Duration(seconds: 5),
-        //       message: Text(
-        //         "Bitte verwende ausschließlich gängige "
-        //         "Bezeichnungen für die Einheit deiner Zutaten:"
-        //         "\n\ng, kg, l, ml, TL, EL, Stück, Prise, Msp, Bund",
-        //         maxLines: 3,
-        //       ).data,
-        //       child: Padding(
-        //           padding: EdgeInsets.only(top: 2.5),
-        //           child: Icon(Icons.info_outline)),
-        //     ),
-        //   ],
-        // ),
         SizedBox(height: 10),
         Container(
           decoration: BoxDecoration(
@@ -116,105 +90,13 @@ class _AddRecipeIngredients extends ConsumerState<AddRecipeIngredients> {
                   rows: ingredients.asMap().entries.map((entry) {
                     int index = entry.key;
                     Ingredient ingredient = entry.value;
-
-                    return DataRow2(
-                      cells: [
-                        // Zutat Name
-                        DataCell(
-                          TextField(
-                            controller:
-                                TextEditingController(text: ingredient.name)
-                                  ..selection = TextSelection.collapsed(
-                                    offset: ingredient.name.length,
-                                  ),
-                            onChanged: (value) {
-                              ref
-                                  .read(ingredientsProvider.notifier)
-                                  .updateIngredient(
-                                    index,
-                                    name: value,
-                                  );
-                            },
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: 'Zutat eingeben...',
-                            ),
-                          ),
-                        ),
-
-                        // Menge
-                        DataCell(
-                          TextField(
-                            controller: TextEditingController(
-                              text: ingredient.amount == 0
-                                  ? ''
-                                  : ingredient.amount.toString(),
-                            )..selection = TextSelection.collapsed(
-                                offset: ingredient.amount == 0
-                                    ? 0
-                                    : ingredient.amount.toString().length,
-                              ),
-                            onChanged: (value) {
-                              final amount = int.tryParse(value) ?? 0;
-                              ref
-                                  .read(ingredientsProvider.notifier)
-                                  .updateIngredient(
-                                    index,
-                                    amount: amount,
-                                  );
-                            },
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: '0',
-                            ),
-                          ),
-                        ),
-
-                        // Einheit (Dropdown)
-                        DataCell(
-                          CoolDropdown<Unit>(
-                            controller: _getOrCreateController(index),
-                            dropdownList: unitDropdownItems,
-                            defaultItem: unitDropdownItems.firstWhere(
-                              (item) => item.value == ingredient.unit,
-                              orElse: () => unitDropdownItems[0],
-                            ),
-                            onChange: (selectedItem) {
-                              ref
-                                  .read(ingredientsProvider.notifier)
-                                  .updateIngredient(
-                                    index,
-                                    unit: selectedItem,
-                                  );
-                              _getOrCreateController(index).close();
-                            },
-                            resultOptions: ResultOptions(
-                              width: 80,
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                            ),
-                            dropdownOptions: DropdownOptions(
-                              width: 120,
-                            ),
-                          ),
-                        ),
-
-                        // Löschen-Button
-                        DataCell(
-                          IconButton(
-                            icon:
-                                Icon(Icons.delete, color: Colors.red, size: 20),
-                            onPressed: () {
-                              dropdownControllers[index]?.dispose();
-                              dropdownControllers.remove(index);
-                              ref
-                                  .read(ingredientsProvider.notifier)
-                                  .deleteIngredient(index);
-                            },
-                          ),
-                        ),
-                      ],
+                    return buildIngredientRow(
+                      index: index,
+                      ingredient: ingredient,
+                      unitDropdownItems: unitDropdownItems,
+                      ref: ref,
+                      unitDropdownController: _getOrCreateController(index),
+                      dropdownControllerMap: dropdownControllers,
                     );
                   }).toList(),
                 ),

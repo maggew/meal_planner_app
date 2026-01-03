@@ -19,20 +19,33 @@ class FirebaseRecipeRepository implements RecipeRepository {
   });
 
   @override
-  Future<String> saveRecipe(Recipe recipe) async {
+  Future<String> saveRecipe(Recipe recipe, File? image) async {
     try {
       final groupId = getCurrentGroupId();
       if (groupId.isEmpty) {
         throw Exception('Keine aktive Gruppe');
       }
 
+      String imageUrl = '';
+
+      if (image != null) {
+        imageUrl = await uploadRecipeImage(image);
+        recipe = recipe.copyWith(imageUrl: imageUrl);
+      }
+
       // Entity → Model → JSON
       final model = RecipeModel.fromEntity(recipe);
 
+      // final docRef = await firestore
+      //     .collection(FirebaseConstants.recipesCollection)
+      //     .doc(groupId)
+      //     .collection(recipe.category)
+      //     .add(model.toFirestore());
+
       final docRef = await firestore
-          .collection(FirebaseConstants.recipesCollection)
+          .collection(FirebaseConstants.groupsCollection)
           .doc(groupId)
-          .collection(recipe.category)
+          .collection(FirebaseConstants.recipesInGroups)
           .add(model.toFirestore());
 
       return docRef.id;
@@ -49,7 +62,7 @@ class FirebaseRecipeRepository implements RecipeRepository {
       final fileName = 'recipe_$timestamp.$extension';
 
       final mimeType = lookupMimeType(imageFile.path) ?? 'image/jpeg';
-      final destination = '${FirebaseConstants.recipeImagesPath}/$fileName';
+      final destination = '${FirebaseConstants.imagePathRecipe}/$fileName';
 
       final ref = storage.ref().child(destination);
       final metadata = SettableMetadata(

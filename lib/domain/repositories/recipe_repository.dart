@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:meal_planner/domain/entities/recipe.dart';
 
 abstract class RecipeRepository {
-  Future<String> saveRecipe(Recipe recipe);
+  Future<String> saveRecipe(Recipe recipe, File? image);
 
   Future<String> uploadRecipeImage(File imageFile);
 

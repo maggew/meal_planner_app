@@ -7,7 +7,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:meal_planner/data/model/FridgeProduct.dart';
 import 'package:meal_planner/data/model/Product.dart';
 import 'package:meal_planner/domain/entities/group.dart';
-import 'package:meal_planner/services/database.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
 import 'package:meal_planner/widgets/DoubleCounter_widget.dart';

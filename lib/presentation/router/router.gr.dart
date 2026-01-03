@@ -312,7 +312,7 @@ class ShowUserGroupsRoute extends _i16.PageRouteInfo<void> {
   static _i16.PageInfo page = _i16.PageInfo(
     name,
     builder: (data) {
-      return _i13.ShowUserGroupsPage();
+      return const _i13.ShowUserGroupsPage();
     },
   );
 }

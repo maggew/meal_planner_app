@@ -1,12 +1,14 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
-class ImagePathNotifier extends AsyncNotifier<String?> {
+class ImageProvider extends AsyncNotifier<File?> {
   final _imagePicker = ImagePicker();
 
   @override
-  Future<String?> build() async {
+  Future<File?> build() async {
     return null;
   }
 
@@ -20,7 +22,7 @@ class ImagePathNotifier extends AsyncNotifier<String?> {
         return;
       }
 
-      state = AsyncData(result.files.single.path);
+      state = AsyncData(File(result.files.single.path!));
     } catch (e, st) {
       state = AsyncError(e, st);
     }
@@ -39,7 +41,7 @@ class ImagePathNotifier extends AsyncNotifier<String?> {
         return;
       }
 
-      state = AsyncData(image.path);
+      state = AsyncData(File(image.path));
     } catch (e, st) {
       state = AsyncError(e, st);
     }
@@ -50,6 +52,6 @@ class ImagePathNotifier extends AsyncNotifier<String?> {
   }
 }
 
-final imagePathProvider = AsyncNotifierProvider<ImagePathNotifier, String?>(
-  ImagePathNotifier.new,
+final imageProvider = AsyncNotifierProvider<ImageProvider, File?>(
+  ImageProvider.new,
 );

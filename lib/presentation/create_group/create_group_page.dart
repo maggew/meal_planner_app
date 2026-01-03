@@ -8,7 +8,6 @@ import 'package:meal_planner/core/constants/app_icons.dart';
 import 'package:meal_planner/data/repositories/firebase_group_repository.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
-import 'package:meal_planner/services/database.dart';
 import 'package:meal_planner/services/providers/auth_providers.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 

@@ -31,9 +31,10 @@ class AppTheme {
         ),
         // only used for WelcomeScreen
         bodySmall: TextStyle(
-          fontFamily: GoogleFonts.aBeeZee().fontFamily,
-          fontSize: 70,
-          color: Colors.black,
+          fontFamily: GoogleFonts.quicksand(
+            fontWeight: FontWeight.w500,
+          ).fontFamily,
+          fontSize: 12.5,
         ),
         // used for bigger headlines (login / registration)
         displayLarge: TextStyle(

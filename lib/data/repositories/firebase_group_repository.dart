@@ -91,7 +91,7 @@ class FirebaseGroupRepository implements GroupRepository {
       final fileName = 'recipe_$timestamp.$extension';
 
       final mimeType = lookupMimeType(imageFile.path) ?? 'image/jpeg';
-      final destination = '${FirebaseConstants.groupImagesPath}/$fileName';
+      final destination = '${FirebaseConstants.imagePathGroups}/$fileName';
 
       final ref = storage.ref().child(destination);
       final metadata = SettableMetadata(

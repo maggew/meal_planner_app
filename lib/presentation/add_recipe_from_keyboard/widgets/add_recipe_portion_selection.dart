@@ -2,7 +2,7 @@ import 'package:cool_dropdown/cool_dropdown.dart';
 import 'package:cool_dropdown/models/cool_dropdown_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/services/providers/add_recipe_provider.dart';
+import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
 
 const int MAX_PORTION_NUMBER = 8;
 

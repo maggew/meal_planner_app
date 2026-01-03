@@ -27,7 +27,7 @@ class RecipeModel extends Recipe {
               .toList() ??
           [],
       instructions: data['instructions'] as String? ?? '',
-      imageUrl: data['imageUrl'] as String?,
+      imageUrl: data['imageUrl'] as String? ?? '',
       createdAt: data['createdAt'] != null
           ? DateTime.tryParse(data['createdAt'] as String)
           : null,
