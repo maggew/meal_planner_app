@@ -4,13 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:meal_planner/core/constants/app_icons.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
-import 'package:meal_planner/services/providers/image_provider.dart';
+import 'package:meal_planner/services/providers/image_manager_provider.dart';
 
 class CookbookAddRecipeDialog extends ConsumerWidget {
   const CookbookAddRecipeDialog({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final bool isAnalysisImage = true;
     return AlertDialog(
       elevation: 10,
       backgroundColor: Colors.lightGreen[100],
@@ -32,7 +33,9 @@ class CookbookAddRecipeDialog extends ConsumerWidget {
               text: "Datei",
               icon: Icon(AppIcons.file),
               callback: () {
-                ref.read(imageProvider.notifier).pickFromGallery();
+                ref
+                    .read(imageManagerProvider.notifier)
+                    .pickImageFromGallery(isAnalysisImage: isAnalysisImage);
               },
             ),
             _addRecipeButton(
@@ -40,8 +43,14 @@ class CookbookAddRecipeDialog extends ConsumerWidget {
               text: "Foto",
               //TODO: search better camera icon
               icon: Icon(Icons.camera_alt_outlined),
-              callback: () {
-                ref.read(imageProvider.notifier).pickFromCamera();
+              callback: () async {
+                final router = context.router;
+
+                await ref
+                    .read(imageManagerProvider.notifier)
+                    .pickImageFromCamera(isAnalysisImage: isAnalysisImage);
+
+                router.push(const AddRecipeRoute());
               },
             ),
           ],
@@ -55,7 +64,7 @@ class CookbookAddRecipeDialog extends ConsumerWidget {
               text: "Eingabe",
               icon: Icon(Icons.keyboard_alt_outlined),
               callback: () {
-                context.router.push(const AddRecipeFromKeyboardRoute());
+                context.router.push(const AddRecipeRoute());
               },
             ),
             _addRecipeButton(

@@ -7,7 +7,6 @@ import 'package:meal_planner/data/model/GroupInfo.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'dart:io';
 
-
 @RoutePage()
 class ZoomPicturePage extends StatefulWidget {
   @override

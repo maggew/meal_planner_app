@@ -12,7 +12,7 @@
 import 'package:auto_route/auto_route.dart' as _i16;
 import 'package:flutter/material.dart' as _i17;
 import 'package:meal_planner/domain/entities/recipe.dart' as _i18;
-import 'package:meal_planner/presentation/add_recipe_from_keyboard/add_recipe_keyboard_page.dart'
+import 'package:meal_planner/presentation/add_recipe/add_recipe_page.dart'
     as _i1;
 import 'package:meal_planner/presentation/cookbook/cookbook_page.dart' as _i2;
 import 'package:meal_planner/presentation/create_group/create_group_page.dart'
@@ -40,17 +40,17 @@ import 'package:meal_planner/presentation/zoom_picture/zoom_pic_page.dart'
     as _i15;
 
 /// generated route for
-/// [_i1.AddRecipeFromKeyboardPage]
-class AddRecipeFromKeyboardRoute extends _i16.PageRouteInfo<void> {
-  const AddRecipeFromKeyboardRoute({List<_i16.PageRouteInfo>? children})
-      : super(AddRecipeFromKeyboardRoute.name, initialChildren: children);
+/// [_i1.AddRecipePage]
+class AddRecipeRoute extends _i16.PageRouteInfo<void> {
+  const AddRecipeRoute({List<_i16.PageRouteInfo>? children})
+      : super(AddRecipeRoute.name, initialChildren: children);
 
-  static const String name = 'AddRecipeFromKeyboardRoute';
+  static const String name = 'AddRecipeRoute';
 
   static _i16.PageInfo page = _i16.PageInfo(
     name,
     builder: (data) {
-      return _i1.AddRecipeFromKeyboardPage();
+      return const _i1.AddRecipePage();
     },
   );
 }

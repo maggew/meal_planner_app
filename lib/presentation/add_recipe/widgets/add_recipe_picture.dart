@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_icons.dart';
-import 'package:meal_planner/services/providers/image_provider.dart';
+import 'package:meal_planner/services/providers/image_manager_provider.dart';
 
 class AddRecipePicture extends ConsumerStatefulWidget {
   const AddRecipePicture({Key? key}) : super(key: key);
@@ -21,14 +21,14 @@ class _AddRecipePictureState extends ConsumerState<AddRecipePicture> {
 
   @override
   Widget build(BuildContext context) {
-    final imageAsync = ref.watch(imageProvider);
-    imageAsync.whenData((image) {
-      if (image != null && image.path.isNotEmpty) {
-        _pictureNameController.text = image.path.split('/').last;
-      } else {
-        _pictureNameController.text = '';
-      }
-    });
+    final bool isAnalysisImage = false;
+    final images = ref.watch(imageManagerProvider);
+
+    if (images.recipePhoto != null && images.recipePhoto!.path.isNotEmpty) {
+      _pictureNameController.text = images.recipePhoto!.path.split('/').last;
+    } else {
+      _pictureNameController.text = '';
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -56,7 +56,10 @@ class _AddRecipePictureState extends ConsumerState<AddRecipePicture> {
                           textAlign: TextAlign.start,
                           textAlignVertical: TextAlignVertical.center,
                           onTap: () async {
-                            ref.read(imageProvider.notifier).pickFromGallery();
+                            ref
+                                .read(imageManagerProvider.notifier)
+                                .pickImageFromGallery(
+                                    isAnalysisImage: isAnalysisImage);
                           },
                           readOnly: true,
                           enabled: true,
@@ -92,7 +95,10 @@ class _AddRecipePictureState extends ConsumerState<AddRecipePicture> {
                       SizedBox(width: 20),
                       IconButton(
                         onPressed: () {
-                          ref.read(imageProvider.notifier).pickFromCamera();
+                          ref
+                              .read(imageManagerProvider.notifier)
+                              .pickImageFromCamera(
+                                  isAnalysisImage: isAnalysisImage);
                         },
                         icon: Icon(
                             Icons.camera_alt_outlined), //todo besseres Icon

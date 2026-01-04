@@ -1,6 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:meal_planner/core/constants/firebase_constants.dart';
 import 'package:meal_planner/data/model/ingredient_model.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
+import 'package:meal_planner/presentation/common/categories.dart';
 
 class RecipeModel extends Recipe {
   RecipeModel({
@@ -17,34 +20,39 @@ class RecipeModel extends Recipe {
   factory RecipeModel.fromFirestore(Map<String, dynamic> data, String docId) {
     return RecipeModel(
       id: docId,
-      name: data['name'] as String? ?? '',
-      category: data['category'] as String? ?? '',
-      portions: data['portions'] as int? ?? 4,
-      ingredients: (data['ingredients'] as List<dynamic>?)
+      name: data[FirebaseConstants.recipeName] as String? ?? '',
+      category: mapEnglishCategoryToGermanCategory[
+              data[FirebaseConstants.recipeCategory]] ??
+          '',
+      portions: data[FirebaseConstants.recipePortions] as int? ?? 4,
+      ingredients: (data[FirebaseConstants.recipeIngredients] as List<dynamic>?)
               ?.map((i) =>
                   IngredientModel.fromFirestore(i as Map<String, dynamic>))
               .cast<Ingredient>()
               .toList() ??
           [],
-      instructions: data['instructions'] as String? ?? '',
-      imageUrl: data['imageUrl'] as String? ?? '',
-      createdAt: data['createdAt'] != null
-          ? DateTime.tryParse(data['createdAt'] as String)
+      instructions:
+          (data[FirebaseConstants.recipeInstructions] as String? ?? '')
+              .replaceAll('\\n', '\n'),
+      imageUrl: data[FirebaseConstants.recipeImage] as String? ?? '',
+      createdAt: data[FirebaseConstants.recipeCreatedAt] != null
+          ? (data[FirebaseConstants.recipeCreatedAt] as Timestamp).toDate()
           : null,
     );
   }
 
   Map<String, dynamic> toFirestore() {
     return {
-      'name': name,
-      'category': category,
-      'portions': portions,
-      'ingredients': ingredients
+      FirebaseConstants.recipeName: name,
+      FirebaseConstants.recipeCategory:
+          mapGermanCategoryToEnglishCategory[category],
+      FirebaseConstants.recipePortions: portions,
+      FirebaseConstants.recipeIngredients: ingredients
           .map((i) => IngredientModel.fromEntity(i).toFirestore())
           .toList(),
-      'instructions': instructions,
-      'recipe_pic': imageUrl,
-      'createdAt': createdAt,
+      FirebaseConstants.recipeInstructions: instructions,
+      FirebaseConstants.recipeImage: imageUrl,
+      FirebaseConstants.recipeCreatedAt: Timestamp.fromDate(createdAt),
     };
   }
 

@@ -88,9 +88,10 @@ class FirebaseRecipeRepository implements RecipeRepository {
       final groupId = getCurrentGroupId();
 
       final querySnapshot = await firestore
-          .collection(FirebaseConstants.recipesCollection)
+          .collection(FirebaseConstants.groupsCollection)
           .doc(groupId)
-          .collection(category)
+          .collection(FirebaseConstants.recipesInGroups)
+          .where(FirebaseConstants.recipeCategory, isEqualTo: category)
           .get();
 
       if (groupId.isEmpty) {
@@ -101,8 +102,10 @@ class FirebaseRecipeRepository implements RecipeRepository {
         final data = doc.data();
 
         // Standard-Bild wenn keins vorhanden
-        if (data['recipe_pic'] == null || data['recipe_pic'] == '') {
-          data['recipe_pic'] = 'assets/images/default_pic_2.jpg';
+        if (data[FirebaseConstants.recipeImage] == null ||
+            data[FirebaseConstants.recipeImage] == '') {
+          data[FirebaseConstants.recipeImage] =
+              'assets/images/default_pic_2.jpg';
         }
 
         // Firebase → Model → Entity
@@ -131,8 +134,9 @@ class FirebaseRecipeRepository implements RecipeRepository {
       if (!doc.exists) return null;
 
       final data = doc.data()!;
-      if (data['recipe_pic'] == null || data['recipe_pic'] == '') {
-        data['recipe_pic'] = 'assets/images/default_pic_2.jpg';
+      if (data[FirebaseConstants.recipeImage] == null ||
+          data[FirebaseConstants.recipeImage] == '') {
+        data[FirebaseConstants.recipeImage] = 'assets/images/default_pic_2.jpg';
       }
 
       return RecipeModel.fromFirestore(data, doc.id).toEntity();

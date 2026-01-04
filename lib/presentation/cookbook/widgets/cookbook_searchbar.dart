@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 
 class CookbookSearchbar extends StatelessWidget {
-  const CookbookSearchbar({super.key});
+  final TextEditingController searchbarController;
+  const CookbookSearchbar({
+    super.key,
+    required this.searchbarController,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 270,
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 20),
       height: 40,
       child: Stack(
         children: [
           TextFormField(
+            controller: searchbarController,
             textAlign: TextAlign.start,
             textAlignVertical: TextAlignVertical.bottom,
             autovalidateMode: AutovalidateMode.always,

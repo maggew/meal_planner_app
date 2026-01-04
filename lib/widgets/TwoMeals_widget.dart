@@ -25,15 +25,10 @@ class _TwoMeals extends State<TwoMeals> {
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [       //todo wechselbare meals machen
-            Expanded(
-                flex: 1,
-                child: MealRowLunch()
-            ),
-            Expanded(
-                flex: 1,
-                child: MealRowDinner()
-            ),
+          children: [
+            //todo wechselbare meals machen
+            Expanded(flex: 1, child: MealRowLunch()),
+            Expanded(flex: 1, child: MealRowDinner()),
           ],
         ),
       ),

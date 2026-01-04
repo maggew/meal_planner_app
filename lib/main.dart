@@ -18,7 +18,7 @@ void main() async {
   );
 }
 
-//TODO: dart run build_runner build
+//TODO: dart run build_runner watch --delete-conflicting-outputs
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});

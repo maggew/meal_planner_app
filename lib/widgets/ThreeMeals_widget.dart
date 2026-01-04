@@ -27,18 +27,9 @@ class _ThreeMeals extends State<ThreeMeals> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-                flex: 1,
-                child: MealRowBreakfast()
-            ),
-            Expanded(
-                flex: 1,
-                child: MealRowLunch()
-            ),
-            Expanded(
-                flex: 1,
-                child: MealRowDinner()
-            ),
+            Expanded(flex: 1, child: MealRowBreakfast()),
+            Expanded(flex: 1, child: MealRowLunch()),
+            Expanded(flex: 1, child: MealRowDinner()),
           ],
         ),
       ),

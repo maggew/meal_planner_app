@@ -14,4 +14,3 @@ class Post {
         script: json['script'], title: json['title'], body: json['body']);
   }
 }
-

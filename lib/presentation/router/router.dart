@@ -38,7 +38,7 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: RefrigeratorRoute.page),
         AutoRoute(page: DetailedWeekplanRoute.page),
         AutoRoute(page: ShowRecipeRoute.page),
-        AutoRoute(page: AddRecipeFromKeyboardRoute.page),
+        AutoRoute(page: AddRecipeRoute.page),
         AutoRoute(page: ZoomPictureRoute.page),
       ];
 }

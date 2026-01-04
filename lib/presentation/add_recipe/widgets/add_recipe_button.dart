@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
-import 'package:meal_planner/services/providers/image_provider.dart';
+import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_upload_provider.dart';
-import 'package:meal_planner/services/providers/repository_providers.dart';
 
 class AddRecipeButton extends ConsumerWidget {
   final TextEditingController recipeNameController;
@@ -57,7 +56,7 @@ class AddRecipeButton extends ConsumerWidget {
     final selectedCategory = ref.read(selectedCategoryProvider);
     final selectedPortions = ref.read(selectedPortionsProvider);
     final ingredients = ref.read(ingredientsProvider);
-    final image = ref.read(imageProvider).value;
+    final image = ref.read(imageManagerProvider).recipePhoto;
 
     final validation = ref.validateRecipe(
       name: recipeNameController.text,
@@ -101,7 +100,7 @@ class AddRecipeButton extends ConsumerWidget {
     ref.read(ingredientsProvider.notifier).clear();
     ref.read(selectedCategoryProvider.notifier).state = DEFAULT_CATEGORY;
     ref.read(selectedPortionsProvider.notifier).state = DEFAULT_PORTIONS;
-    ref.read(imageProvider.notifier).clear();
+    ref.read(imageManagerProvider.notifier).clearRecipePhoto();
     recipeNameController.clear();
     recipeInstructionsController.clear();
   }

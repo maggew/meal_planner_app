@@ -182,4 +182,3 @@ class _DoubleCounterState extends State<DoubleCounter> {
     );
   }
 }
-

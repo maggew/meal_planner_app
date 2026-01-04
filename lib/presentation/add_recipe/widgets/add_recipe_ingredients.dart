@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
-import 'package:meal_planner/presentation/add_recipe_from_keyboard/widgets/add_recipe_ingredient_row.dart';
+import 'package:meal_planner/presentation/add_recipe/widgets/add_recipe_ingredient_row.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
 
 class AddRecipeIngredients extends ConsumerStatefulWidget {

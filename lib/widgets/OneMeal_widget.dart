@@ -24,11 +24,9 @@ class _OneMeal extends State<OneMeal> {
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [       //todo wechselbare meals machen
-            Expanded(
-                flex: 1,
-                child: MealRowDinner()
-            ),
+          children: [
+            //todo wechselbare meals machen
+            Expanded(flex: 1, child: MealRowDinner()),
           ],
         ),
       ),

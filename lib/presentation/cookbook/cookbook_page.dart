@@ -15,7 +15,7 @@ class CookbookPage extends StatelessWidget {
       scaffoldAppBar: CommonAppbar(
           title: "Kochbuch",
           hasActionButton: true,
-          onActionPressed: () {
+          onActionPressed: () async {
             showDialog(
                 context: context,
                 builder: (BuildContext context) => CookbookAddRecipeDialog());

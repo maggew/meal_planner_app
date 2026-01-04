@@ -11,4 +11,3 @@ class FridgeProduct {
     required this.unit,
   });
 }
-

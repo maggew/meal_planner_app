@@ -11,4 +11,3 @@ class Product {
     required this.unit,
   });
 }
-

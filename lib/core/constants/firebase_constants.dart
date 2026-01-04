@@ -24,4 +24,11 @@ class FirebaseConstants {
 
   // Recipe
   static const String recipesInGroups = 'recipes';
+  static const String recipeCategory = 'category';
+  static const String recipeName = 'name';
+  static const String recipePortions = 'portions';
+  static const String recipeIngredients = 'ingredients';
+  static const String recipeInstructions = 'instructions';
+  static const String recipeImage = 'imageUrl';
+  static const String recipeCreatedAt = 'createdAt';
 }

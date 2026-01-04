@@ -19,4 +19,3 @@ class TextScan {
     return _resultString = "ocr currently removed";
   }
 }
-

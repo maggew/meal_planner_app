@@ -11,6 +11,21 @@ List<String> categoryNames = [
   "Sonstiges",
 ];
 
+final Map<String, String> mapGermanCategoryToEnglishCategory = {
+  "Suppen": "soups",
+  "Salate": "salads",
+  "Saucen, Dips": "sauces_dips",
+  "Hauptgerichte": "mainDishes",
+  "Desserts": "desserts",
+  "Gebäck": "bakery",
+  "Sonstiges": "others",
+};
+
+final Map<String, String> mapEnglishCategoryToGermanCategory = {
+  for (final entry in mapGermanCategoryToEnglishCategory.entries)
+    entry.value: entry.key
+};
+
 String getCategoryNameEnglish(String categoryName) {
   switch (categoryName) {
     case "Suppen":

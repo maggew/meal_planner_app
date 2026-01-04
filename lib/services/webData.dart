@@ -3,19 +3,17 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 
-
-class WebData{
-
+class WebData {
   List data = [];
 
-
   Future fetchData(String url) async {
-
-    new HttpClient().getUrl(Uri.parse(url))
+    new HttpClient()
+        .getUrl(Uri.parse(url))
         .then((HttpClientRequest request) => request.close())
-        .then((HttpClientResponse response) => response.transform(new Utf8Decoder()).listen(print));
+        .then((HttpClientResponse response) =>
+            response.transform(new Utf8Decoder()).listen(print));
 
-   /* final response = await http.get(Uri.parse(url));
+    /* final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
       return Post.fromJson(json.decode(response.body));
@@ -48,3 +46,4 @@ class WebData{
   }*/
   }
 }
+
