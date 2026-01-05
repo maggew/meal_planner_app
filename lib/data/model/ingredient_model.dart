@@ -15,7 +15,7 @@ class IngredientModel extends Ingredient {
     return IngredientModel(
       name: data['name'] as String? ?? '',
       unit: _parseUnit(data['unit']),
-      amount: data['amount'] as int? ?? 0,
+      amount: data['amount'] as double? ?? 0,
     );
   }
 

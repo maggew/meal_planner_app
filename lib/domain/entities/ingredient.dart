@@ -3,7 +3,7 @@ import 'package:meal_planner/domain/enums/unit.dart';
 class Ingredient {
   final String name;
   final Unit unit;
-  final int amount;
+  final double amount;
 
   Ingredient({
     required this.name,
@@ -21,14 +21,14 @@ class Ingredient {
     return Ingredient(
       name: name,
       unit: unit,
-      amount: (amount * factor).round(),
+      amount: amount * factor,
     );
   }
 
   Ingredient copyWith({
     String? name,
     Unit? unit,
-    int? amount,
+    double? amount,
   }) {
     return Ingredient(
       name: name ?? this.name,

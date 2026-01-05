@@ -3,6 +3,7 @@ import 'package:cool_dropdown/models/cool_dropdown_item.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/core/utils/double_formatting.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
@@ -42,14 +43,16 @@ DataRow2 buildIngredientRow({
       DataCell(
         TextField(
           controller: TextEditingController(
-            text: ingredient.amount == 0 ? '' : ingredient.amount.toString(),
+            text: ingredient.amount == 0
+                ? ''
+                : ingredient.amount.toDisplayString(),
           )..selection = TextSelection.collapsed(
               offset: ingredient.amount == 0
                   ? 0
-                  : ingredient.amount.toString().length,
+                  : ingredient.amount.toDisplayString().length,
             ),
           onChanged: (value) {
-            final amount = int.tryParse(value) ?? 0;
+            final amount = double.tryParse(value) ?? 0;
             ref.read(ingredientsProvider.notifier).updateIngredient(
                   index,
                   amount: amount,

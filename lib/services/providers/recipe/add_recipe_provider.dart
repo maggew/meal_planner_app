@@ -22,7 +22,7 @@ class IngredientsNotifier extends StateNotifier<List<Ingredient>> {
     state = [...state, Ingredient(name: '', unit: DEFAULT_UNIT, amount: 0)];
   }
 
-  void updateIngredient(int index, {String? name, Unit? unit, int? amount}) {
+  void updateIngredient(int index, {String? name, Unit? unit, double? amount}) {
     final newState = [...state];
     newState[index] = newState[index].copyWith(
       name: name,

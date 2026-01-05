@@ -49,19 +49,16 @@ dependencies:
   flutter_colorful_tab: ^0.1.1
   multi_split_view: ^3.6.1
   counter_button: ^1.0.1
-  #bi_counter_field: ^1.0.4
   http: ^1.6.0
   async: ^2.8.2
   flutter_riverpod: ^3.0.3
   riverpod_annotation: ^3.0.3
   gap: ^3.0.1
-  #flutter_mobile_vision: ^0.1.4+1
-  #flutter_tesseract_ocr: ^0.4.19
   auto_route: ^11.1.0
   wakelock_plus: ^1.4.0
   data_table_2: ^2.7.2
   mime: ^2.0.0
-  blinkid_flutter: ^7.6.1
+  google_mlkit_text_recognition: ^0.15.0
 
 
 dev_dependencies:
@@ -104,7 +101,6 @@ flutter:
       - assets/images/shrimps.jpg
       - assets/images/pizza_1.jpg
       - assets/images/pizza_2.jpg
-      - assets/tessdata/tessdata_config.json
 
   fonts:
     - family: AppIcons
