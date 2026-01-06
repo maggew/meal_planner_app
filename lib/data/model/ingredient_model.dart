@@ -12,10 +12,13 @@ class IngredientModel extends Ingredient {
 
   /// Firestore → Model
   factory IngredientModel.fromFirestore(Map<String, dynamic> data) {
+    print("==============================================");
+    print("amount type: ${data['amount'].runtimeType}");
+    print("==============================================");
     return IngredientModel(
       name: data['name'] as String? ?? '',
       unit: _parseUnit(data['unit']),
-      amount: data['amount'] as double? ?? 0,
+      amount: (data['amount'] as num?)?.toDouble() ?? 0,
     );
   }
 

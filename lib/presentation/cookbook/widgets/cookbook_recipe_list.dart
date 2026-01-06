@@ -42,6 +42,7 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
   Widget build(BuildContext context) {
     final paginationState =
         ref.watch(recipesPaginationProvider(widget.category));
+    print("übergebene category: ${widget.category}");
 
     return Container(
       color: Colors.lightGreen[100],
@@ -62,15 +63,11 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
   Widget _buildContent({required RecipesPaginationState state}) {
     if (state.recipes.isEmpty && state.isLoading) {
       return const CircularProgressIndicator();
-    }
-
-    if (state.recipes.isEmpty && !state.isLoading) {
+    } else if (state.recipes.isEmpty && !state.isLoading) {
       return const Center(
         child: Text("Keine Rezepte in dieser Kategorie!"),
       );
-    }
-
-    if (state.error != null && state.recipes.isEmpty) {
+    } else if (state.error != null && state.recipes.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
