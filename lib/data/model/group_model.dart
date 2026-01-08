@@ -1,4 +1,4 @@
-import 'package:meal_planner/core/constants/firebase_constants.dart';
+import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/domain/entities/group.dart';
 
 class GroupModel extends Group {
@@ -6,25 +6,21 @@ class GroupModel extends Group {
     required super.name,
     required super.id,
     required super.imageUrl,
-    required super.memberIDs,
   });
 
-  factory GroupModel.fromFirestore(Map<String, dynamic> data) {
+  factory GroupModel.fromSupabase(Map<String, dynamic> data) {
     return GroupModel(
-      name: data[FirebaseConstants.groupName] as String? ?? '',
-      id: data[FirebaseConstants.groupId] as String? ?? '',
-      imageUrl: data[FirebaseConstants.groupImageUrl] as String? ?? '',
-      memberIDs: List<String>.from(
-          data[FirebaseConstants.groupMembers] as List? ?? []),
+      id: data[SupabaseConstants.groupId] as String,
+      name: data[SupabaseConstants.groupName] as String? ?? '',
+      imageUrl: data[SupabaseConstants.groupImageUrl] as String? ?? '',
     );
   }
 
-  Map<String, dynamic> toFirestore() {
+  Map<String, dynamic> toSupabase() {
     return {
-      FirebaseConstants.groupName: name,
-      FirebaseConstants.groupId: id,
-      FirebaseConstants.groupImageUrl: imageUrl,
-      FirebaseConstants.groupMembers: memberIDs,
+      SupabaseConstants.groupId: id,
+      SupabaseConstants.groupName: name,
+      SupabaseConstants.groupImageUrl: imageUrl,
     };
   }
 
@@ -33,7 +29,6 @@ class GroupModel extends Group {
       name: group.name,
       id: group.id,
       imageUrl: group.imageUrl,
-      memberIDs: group.memberIDs,
     );
   }
 
@@ -42,7 +37,21 @@ class GroupModel extends Group {
       name: name,
       id: id,
       imageUrl: imageUrl,
-      memberIDs: memberIDs,
     );
   }
+  // factory GroupModel.fromFirestore(Map<String, dynamic> data) {
+  //   return GroupModel(
+  //     name: data[FirebaseConstants.groupName] as String? ?? '',
+  //     id: data[FirebaseConstants.groupId] as String? ?? '',
+  //     imageUrl: data[FirebaseConstants.groupImageUrl] as String? ?? '',
+  //   );
+  // }
+  //
+  // Map<String, dynamic> toFirestore() {
+  //   return {
+  //     FirebaseConstants.groupName: name,
+  //     FirebaseConstants.groupId: id,
+  //     FirebaseConstants.groupImageUrl: imageUrl,
+  //   };
+  // }
 }

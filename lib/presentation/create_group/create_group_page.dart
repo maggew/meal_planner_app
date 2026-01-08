@@ -285,8 +285,8 @@ class _CreateGroupPageState extends ConsumerState<CreateGroupPage> {
                       try {
                         String url = '';
                         if (_iconPath.isNotEmpty && _iconFile != null) {
-                          url = await groupRepository
-                              .uploadGroupImage(_iconFile!);
+                          // url = await groupRepository
+                          //     .uploadGroupImage(_iconFile!);
                         }
                         await groupRepository.createGroup(
                           groupID,

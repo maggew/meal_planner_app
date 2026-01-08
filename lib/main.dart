@@ -4,10 +4,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/theme/app_theme.dart';
 import 'package:meal_planner/services/providers/router_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await Supabase.initialize(
+    url: 'https://esreihfibhoueesrlmxj.supabase.co',
+    anonKey: 'sb_publishable_N7QneJzj41mlq-N3gvzlbQ_gDEvS2Mt',
+  );
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
