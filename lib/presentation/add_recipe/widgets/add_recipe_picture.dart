@@ -21,7 +21,6 @@ class _AddRecipePictureState extends ConsumerState<AddRecipePicture> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isAnalysisImage = false;
     final images = ref.watch(imageManagerProvider);
 
     if (images.recipePhoto != null && images.recipePhoto!.path.isNotEmpty) {
@@ -59,7 +58,7 @@ class _AddRecipePictureState extends ConsumerState<AddRecipePicture> {
                             ref
                                 .read(imageManagerProvider.notifier)
                                 .pickImageFromGallery(
-                                    isAnalysisImage: isAnalysisImage);
+                                    imageType: AnalysisImageType.photo);
                           },
                           readOnly: true,
                           enabled: true,
@@ -98,7 +97,7 @@ class _AddRecipePictureState extends ConsumerState<AddRecipePicture> {
                           ref
                               .read(imageManagerProvider.notifier)
                               .pickImageFromCamera(
-                                  isAnalysisImage: isAnalysisImage);
+                                  imageType: AnalysisImageType.photo);
                         },
                         icon: Icon(
                             Icons.camera_alt_outlined), //todo besseres Icon

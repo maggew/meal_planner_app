@@ -73,7 +73,7 @@ class AddRecipeButton extends ConsumerWidget {
     } else {
       Recipe recipe = Recipe(
         name: recipeNameController.text,
-        category: selectedCategory,
+        categories: [selectedCategory],
         portions: selectedPortions,
         ingredients: ingredients,
         instructions: recipeInstructionsController.text,

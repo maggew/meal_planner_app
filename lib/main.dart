@@ -38,3 +38,5 @@ class MyApp extends ConsumerWidget {
     );
   }
 }
+
+// TODO: supabase policies definieren für production!

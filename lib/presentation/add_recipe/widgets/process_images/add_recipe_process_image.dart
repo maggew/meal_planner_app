@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_analysis_provider.dart';
 
 class AddRecipeProcessImage extends ConsumerWidget {
@@ -69,7 +68,8 @@ class AddRecipeProcessImage extends ConsumerWidget {
                   backgroundColor: Colors.black54,
                 ),
                 onPressed: () {
-                  ref.read(imageManagerProvider.notifier).clearAnalysisImage();
+                  //ref.read(imageManagerProvider.notifier).clearAnalysisImage();
+                  print("button not implemented!");
                 },
               ),
             ),

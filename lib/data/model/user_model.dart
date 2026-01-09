@@ -1,30 +1,26 @@
+import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/domain/entities/user.dart';
 
 class UserModel extends User {
   UserModel({
     required super.uid,
     required super.name,
-    required super.email,
-    required super.groups,
     super.currentGroup,
   });
 
-  factory UserModel.fromFirestore(Map<String, dynamic> data, String uid) {
+  factory UserModel.fromSupabase(Map<String, dynamic> data) {
     return UserModel(
-      uid: uid,
-      name: data['name'] as String? ?? '',
-      email: data['email'] as String? ?? '',
-      groups: List<String>.from(data['groups'] as List? ?? []),
-      currentGroup: data['current_group'] as String?,
+      uid: data[SupabaseConstants.userId] as String,
+      name: data[SupabaseConstants.userName] as String? ?? '',
+      currentGroup: data[SupabaseConstants.userCurrentGroup] as String?,
     );
   }
 
-  Map<String, dynamic> toFirestore() {
+  Map<String, dynamic> toSupabase() {
     return {
-      'name': name,
-      'email': email,
-      'groups': groups,
-      'current_group': currentGroup ?? '',
+      SupabaseConstants.userId: uid,
+      SupabaseConstants.userName: name,
+      SupabaseConstants.userCurrentGroup: currentGroup,
     };
   }
 
@@ -32,8 +28,6 @@ class UserModel extends User {
     return UserModel(
       uid: user.uid,
       name: user.name,
-      email: user.email,
-      groups: user.groups,
       currentGroup: user.currentGroup,
     );
   }
@@ -42,9 +36,26 @@ class UserModel extends User {
     return User(
       uid: uid,
       name: name,
-      email: email,
-      groups: groups,
       currentGroup: currentGroup,
     );
   }
+
+  // factory UserModel.fromFirestore(Map<String, dynamic> data, String uid) {
+  //   return UserModel(
+  //     uid: uid,
+  //     name: data['name'] as String? ?? '',
+  //     email: data['email'] as String? ?? '',
+  //     groups: List<String>.from(data['groups'] as List? ?? []),
+  //     currentGroup: data['current_group'] as String?,
+  //   );
+  // }
+  //
+  // Map<String, dynamic> toFirestore() {
+  //   return {
+  //     'name': name,
+  //     'email': email,
+  //     'groups': groups,
+  //     'current_group': currentGroup ?? '',
+  //   };
+  // }
 }

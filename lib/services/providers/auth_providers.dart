@@ -1,39 +1,23 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:meal_planner/domain/repositories/auth_repository.dart';
-import 'package:meal_planner/domain/repositories/user_repository.dart';
-import 'package:meal_planner/data/repositories/firebase_auth_repository.dart';
-import 'package:meal_planner/data/repositories/firebase_user_repository.dart';
+import 'package:meal_planner/domain/exceptions/auth_exceptions.dart';
+import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
 
 final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
   return FirebaseAuth.instance;
 });
 
-final userRepositoryProvider = Provider<UserRepository>((ref) {
-  return FirebaseUserRepository(
-    firestore: FirebaseFirestore.instance,
-  );
-});
-
-final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return FirebaseAuthRepository(
-    auth: ref.watch(firebaseAuthProvider),
-    userRepository: ref.watch(userRepositoryProvider),
-  );
-});
-
-final currentUserIdProvider = StreamProvider<String?>((ref) {
-  final authRepo = ref.watch(authRepositoryProvider);
-  return authRepo.authStateChanges();
-});
-
-final isSignedInProvider = Provider<bool>((ref) {
-  final authRepo = ref.watch(authRepositoryProvider);
-  return authRepo.isSignedIn;
-});
+// final currentUserIdProvider = StreamProvider<String?>((ref) {
+//   final authRepo = ref.watch(authRepositoryProvider);
+//   return authRepo.authStateChanges();
+// });
+//
+// final isSignedInProvider = Provider<bool>((ref) {
+//   final authRepo = ref.watch(authRepositoryProvider);
+//   return authRepo.isSignedIn;
+// });
 
 final authControllerProvider =
     StateNotifierProvider<AuthController, AsyncValue<void>>(
@@ -55,6 +39,12 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
         password: password,
       );
 
+      final firebaseUser = FirebaseAuth.instance.currentUser!;
+      await _ref.read(userRepositoryProvider).ensureUserExists(
+            uid,
+            firebaseUser.displayName ?? '',
+          );
+
       await _ref.read(sessionProvider.notifier).loadSession(uid);
 
       state = const AsyncValue.data(null);
@@ -62,6 +52,26 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
       state = AsyncValue.error(e, st);
     } on FirebaseAuthException catch (e, st) {
       state = AsyncValue.error(e, st);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> register(String email, String password, String name) async {
+    state = const AsyncValue.loading();
+    try {
+      final authRepo = _ref.read(authRepositoryProvider);
+      final uid = await authRepo.registerWithEmail(
+        email: email,
+        password: password,
+        name: name,
+      );
+
+      // User in Supabase anlegen
+      await _ref.read(userRepositoryProvider).ensureUserExists(uid, name);
+
+      await _ref.read(sessionProvider.notifier).loadSession(uid);
+      state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }

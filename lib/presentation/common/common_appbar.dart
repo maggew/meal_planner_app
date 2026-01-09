@@ -22,6 +22,7 @@ class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
       leading: Builder(
         builder: (context) {
           return IconButton(
+            style: IconButton.styleFrom(backgroundColor: Colors.transparent),
             icon: Icon(Icons.menu), //FaIcon(FontAwesomeIcons.bars),
             onPressed: () {
               Scaffold.of(context).openDrawer();
@@ -38,17 +39,11 @@ class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: true,
       actions: hasActionButton
           ? [
-              Container(
-                height: 40,
-                width: 40,
-                child: FloatingActionButton(
-                  onPressed: onActionPressed!,
-                  backgroundColor: Colors.lightGreen[100],
-                  child: Icon(
-                    AppIcons.plus_1,
-                    size: 35,
-                    color: Colors.black,
-                  ),
+              IconButton(
+                onPressed: onActionPressed!,
+                icon: Icon(
+                  AppIcons.plus_1,
+                  size: 35,
                 ),
               ),
             ]

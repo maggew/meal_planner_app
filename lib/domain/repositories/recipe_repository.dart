@@ -6,9 +6,13 @@ abstract class RecipeRepository {
 
   Future<List<Recipe>> getRecipesByCategory(String category);
 
-  Future<Recipe?> getRecipeById(String recipeId, String category);
+  Future<List<Recipe>> getRecipesByCategories(List<String> categories);
 
-  Future<void> updateRecipe(String recipeId, String category, Recipe recipe);
+  Future<Recipe?> getRecipeById(String recipeId);
 
-  Future<void> deleteRecipe(String recipeId, String category);
+  Future<void> updateRecipe(String recipeId, Recipe recipe);
+
+  Future<void> deleteRecipe(String recipeId);
+
+  Future<List<String>> getAllCategories();
 }

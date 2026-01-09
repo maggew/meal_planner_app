@@ -42,7 +42,7 @@ void main() {
       // Arrange
       final recipe = Recipe(
         name: 'Test Recipe',
-        category: 'Test',
+        categories: ['Test'],
         portions: 4,
         ingredients: [
           Ingredient(name: 'Zutat', amount: 100, unit: Unit.GRAMM),
@@ -80,7 +80,7 @@ void main() {
       // Arrange
       final recipe = Recipe(
         name: 'Test Recipe',
-        category: 'Test',
+        categories: ['Test'],
         portions: 4,
         ingredients: [],
         instructions: 'Test',
@@ -102,7 +102,7 @@ void main() {
       // Arrange
       final recipe = Recipe(
         name: 'Test Recipe',
-        category: 'Test',
+        categories: ['Test'],
         portions: 4,
         ingredients: [],
         instructions: 'Test',

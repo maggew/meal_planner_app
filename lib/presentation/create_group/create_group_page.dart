@@ -1,15 +1,16 @@
 import 'dart:io';
 import 'dart:math';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_icons.dart';
-import 'package:meal_planner/data/repositories/firebase_group_repository.dart';
+import 'package:meal_planner/core/utils/uuid_generator.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
-import 'package:meal_planner/services/providers/auth_providers.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
+import 'package:meal_planner/services/providers/session_provider.dart';
 
 @RoutePage()
 class CreateGroupPage extends ConsumerStatefulWidget {
@@ -30,12 +31,6 @@ class _CreateGroupPageState extends ConsumerState<CreateGroupPage> {
     final double height = MediaQuery.of(context).size.height;
     final EdgeInsets padding = MediaQuery.of(context).padding;
     return height - padding.top - padding.bottom;
-  }
-
-  double getHeightOfDropDownMenu(BuildContext context) {
-    final double height = MediaQuery.of(context).size.height;
-    final EdgeInsets padding = MediaQuery.of(context).padding;
-    return padding.top;
   }
 
   String groupName = "";
@@ -271,16 +266,16 @@ class _CreateGroupPageState extends ConsumerState<CreateGroupPage> {
                     final groupRepository = ref.watch(groupRepositoryProvider);
                     if (_formCheck.currentState?.validate() == true) {
                       final authRepo = ref.read(authRepositoryProvider);
-                      final userID = authRepo.getCurrentUserId();
+                      final userId = authRepo.getCurrentUserId();
 
-                      if (userID == null || userID.isEmpty) {
+                      if (userId == null || userId.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Nicht eingeloggt')),
                         );
                         return;
                       }
 
-                      final groupID = createRandomGroupID();
+                      final groupId = generateUuid();
 
                       try {
                         String url = '';
@@ -289,21 +284,22 @@ class _CreateGroupPageState extends ConsumerState<CreateGroupPage> {
                           //     .uploadGroupImage(_iconFile!);
                         }
                         await groupRepository.createGroup(
-                          groupID,
+                          groupId,
                           groupName,
                           url,
-                          userID,
+                          userId,
                         );
 
-                        //TODO: hier mit sessionprovider arbeiten
-                        // GroupId im State setzen
-                        // ref.read(currentGroupIdStateProvider.notifier).state =
-                        //     groupID;
+                        await ref
+                            .read(sessionProvider.notifier)
+                            .setActiveGroup(groupId);
 
                         if (mounted) {
                           context.router.push(const CookbookRoute());
                         }
                       } catch (e) {
+                        print("=============================================");
+                        print(e);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content:

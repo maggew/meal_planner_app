@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:meal_planner/domain/entities/group.dart';
-import 'package:meal_planner/services/providers/auth_providers.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 
 /// Synchroner State für die aktuelle Session
@@ -53,7 +52,7 @@ class SessionController extends StateNotifier<SessionState> {
       }
 
       final groupRepo = ref.read(groupRepositoryProvider);
-      final group = await groupRepo.getCurrentGroup(groupId);
+      final group = await groupRepo.getGroup(groupId);
 
       state = SessionState(
         userId: userId,
@@ -65,6 +64,19 @@ class SessionController extends StateNotifier<SessionState> {
       state = SessionState(userId: userId, isLoading: false);
       rethrow;
     }
+  }
+
+  Future<void> setActiveGroup(String groupId) async {
+    final userId = state.userId;
+    if (userId == null) return;
+
+    final userRepository = ref.read(userRepositoryProvider);
+    final groupRepository = ref.read(groupRepositoryProvider);
+
+    await userRepository.setActiveGroup(userId, groupId);
+    final group = await groupRepository.getGroup(groupId);
+
+    state = state.copyWith(groupId: groupId, group: group);
   }
 
   /// Session zurücksetzen (Logout)

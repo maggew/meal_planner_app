@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
-import 'package:meal_planner/services/providers/auth_providers.dart';
+import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
 
 class AuthGuard extends AutoRouteGuard {

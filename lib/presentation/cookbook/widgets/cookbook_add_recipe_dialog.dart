@@ -4,14 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:meal_planner/core/constants/app_icons.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
-import 'package:meal_planner/services/providers/image_manager_provider.dart';
 
 class CookbookAddRecipeDialog extends ConsumerWidget {
   const CookbookAddRecipeDialog({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bool isAnalysisImage = true;
     return AlertDialog(
       elevation: 10,
       backgroundColor: Colors.lightGreen[100],
@@ -33,9 +31,10 @@ class CookbookAddRecipeDialog extends ConsumerWidget {
               text: "Datei",
               icon: Icon(AppIcons.file),
               callback: () {
-                ref
-                    .read(imageManagerProvider.notifier)
-                    .pickImageFromGallery(isAnalysisImage: isAnalysisImage);
+                // ref
+                //     .read(imageManagerProvider.notifier)
+                //     .pickImageFromGallery(isAnalysisImage: isAnalysisImage);
+                print("button not implemented!");
               },
             ),
             _addRecipeButton(
@@ -44,13 +43,14 @@ class CookbookAddRecipeDialog extends ConsumerWidget {
               //TODO: search better camera icon
               icon: Icon(Icons.camera_alt_outlined),
               callback: () async {
-                final router = context.router;
+                //final router = context.router;
 
-                await ref
-                    .read(imageManagerProvider.notifier)
-                    .pickImageFromCamera(isAnalysisImage: isAnalysisImage);
+                // await ref
+                //     .read(imageManagerProvider.notifier)
+                //     .pickImageFromCamera(isAnalysisImage: isAnalysisImage);
 
-                router.push(const AddRecipeRoute());
+                //router.push(const AddRecipeRoute());
+                print("button not implemented!");
               },
             ),
           ],

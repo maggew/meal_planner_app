@@ -31,12 +31,6 @@ class _ShowSingleGroupPage extends ConsumerState<ShowSingleGroupPage> {
     return height - padding.top - padding.bottom;
   }
 
-  double getHeightOfDropDownMenu(BuildContext context) {
-    final double height = MediaQuery.of(context).size.height;
-    final EdgeInsets padding = MediaQuery.of(context).padding;
-    return padding.top;
-  }
-
   //Screen is locked to landscape mode
   @override
   void initState() {
@@ -172,7 +166,7 @@ class _ShowSingleGroupPage extends ConsumerState<ShowSingleGroupPage> {
                           ),
                           SizedBox(height: 10),
                           FutureBuilder(
-                            future: groupRepository.getCurrentGroup(""),
+                            future: groupRepository.getGroup(""),
                             //future: Database().getAllMemberNames(groupMembers),
                             builder: (context, snapshot) {
                               while (snapshot.connectionState ==

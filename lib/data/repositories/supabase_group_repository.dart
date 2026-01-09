@@ -8,21 +8,21 @@ import 'package:meal_planner/domain/repositories/group_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseGroupRepository implements GroupRepository {
-  final SupabaseClient _supabaseClient;
+  final SupabaseClient _supabase;
 
-  SupabaseGroupRepository({required SupabaseClient supabaseClient})
-      : _supabaseClient = supabaseClient;
+  SupabaseGroupRepository({required SupabaseClient supabase})
+      : _supabase = supabase;
   @override
   Future<void> createGroup(String groupId, String name, String imageUrl,
       String creatorUserId) async {
     try {
-      await _supabaseClient.from(SupabaseConstants.groupsTable).insert({
+      await _supabase.from(SupabaseConstants.groupsTable).insert({
         SupabaseConstants.groupId: groupId,
         SupabaseConstants.groupName: name,
         SupabaseConstants.groupImageUrl: imageUrl
       });
 
-      await _supabaseClient.from(SupabaseConstants.groupMembersTable).insert({
+      await _supabase.from(SupabaseConstants.groupMembersTable).insert({
         SupabaseConstants.memberGroupId: groupId,
         SupabaseConstants.memberUserId: creatorUserId,
         SupabaseConstants.memberRole: SupabaseConstants.roleAdmin,
@@ -39,13 +39,13 @@ class SupabaseGroupRepository implements GroupRepository {
   @override
   Future<Group> getGroup(String groupId) async {
     try {
-      final response = await _supabaseClient
+      final response = await _supabase
           .from(SupabaseConstants.groupsTable)
           .select()
           .eq(SupabaseConstants.groupId, groupId)
           .single();
 
-      return GroupModel.fromSupabase(response) as Group;
+      return GroupModel.fromSupabase(response);
     } on PostgrestException catch (e) {
       throw GroupNotFoundException("Datenbankfehler: $e");
     } on SocketException {
@@ -60,13 +60,13 @@ class SupabaseGroupRepository implements GroupRepository {
     if (groupIds.isEmpty) return [];
 
     try {
-      final response = await _supabaseClient
+      final response = await _supabase
           .from(SupabaseConstants.groupsTable)
           .select()
           .inFilter(SupabaseConstants.groupId, groupIds);
 
       return (response as List)
-          .map((data) => GroupModel.fromSupabase(data) as Group)
+          .map((data) => GroupModel.fromSupabase(data))
           .toList();
     } on PostgrestException catch (e) {
       throw GroupNotFoundException("Datenbankfehler: $e");
@@ -80,7 +80,7 @@ class SupabaseGroupRepository implements GroupRepository {
   @override
   Future<void> updateGroupPic(String groupId, String url) async {
     try {
-      await _supabaseClient
+      await _supabase
           .from(SupabaseConstants.groupsTable)
           .update({SupabaseConstants.groupImageUrl: url}).eq(
               SupabaseConstants.groupId, groupId);
@@ -97,13 +97,13 @@ class SupabaseGroupRepository implements GroupRepository {
   Future<void> deleteGroup(String groupId) async {
     try {
       // Erst Members löschen (Foreign Key Constraint)
-      await _supabaseClient
+      await _supabase
           .from(SupabaseConstants.groupMembersTable)
           .delete()
           .eq(SupabaseConstants.memberGroupId, groupId);
 
       // Dann Gruppe löschen
-      await _supabaseClient
+      await _supabase
           .from(SupabaseConstants.groupsTable)
           .delete()
           .eq(SupabaseConstants.groupId, groupId);
@@ -120,7 +120,7 @@ class SupabaseGroupRepository implements GroupRepository {
   Future<void> addMember(String groupId, String userId,
       {String role = 'member'}) async {
     try {
-      await _supabaseClient.from(SupabaseConstants.groupMembersTable).insert({
+      await _supabase.from(SupabaseConstants.groupMembersTable).insert({
         SupabaseConstants.memberGroupId: groupId,
         SupabaseConstants.memberUserId: userId,
         SupabaseConstants.memberRole: role,
@@ -137,7 +137,7 @@ class SupabaseGroupRepository implements GroupRepository {
   @override
   Future<void> removeMember(String groupId, String userId) async {
     try {
-      await _supabaseClient
+      await _supabase
           .from(SupabaseConstants.groupMembersTable)
           .delete()
           .eq(SupabaseConstants.memberGroupId, groupId)
@@ -154,7 +154,7 @@ class SupabaseGroupRepository implements GroupRepository {
   @override
   Future<List<String>> getMemberIds(String groupId) async {
     try {
-      final response = await _supabaseClient
+      final response = await _supabase
           .from(SupabaseConstants.groupMembersTable)
           .select(SupabaseConstants.memberUserId)
           .eq(SupabaseConstants.memberGroupId, groupId);
@@ -175,7 +175,7 @@ class SupabaseGroupRepository implements GroupRepository {
   Future<void> updateMemberRole(
       String groupId, String userId, String newRole) async {
     try {
-      await _supabaseClient
+      await _supabase
           .from(SupabaseConstants.groupMembersTable)
           .update({SupabaseConstants.memberRole: newRole})
           .eq(SupabaseConstants.memberGroupId, groupId)

@@ -3,30 +3,17 @@ import 'package:meal_planner/domain/entities/ingredient.dart';
 class Recipe {
   final String? id;
   final String name;
-  final String category;
+  final List<String> categories;
   final int portions;
   final List<Ingredient> ingredients;
   final String instructions;
   final String? imageUrl;
   final DateTime createdAt;
 
-  // Business-Logik
-  bool get hasImage => imageUrl != null && imageUrl!.isNotEmpty;
-
-  bool get hasDefaultImage => imageUrl?.startsWith('assets/') ?? false;
-
-  bool get isComplete =>
-      name.isNotEmpty &&
-      category.isNotEmpty &&
-      ingredients.isNotEmpty &&
-      instructions.isNotEmpty;
-
-  int get totalIngredients => ingredients.length;
-
   Recipe({
     this.id,
     required this.name,
-    required this.category,
+    required this.categories,
     required this.portions,
     required this.ingredients,
     required this.instructions,
@@ -37,7 +24,7 @@ class Recipe {
   Recipe copyWith({
     String? id,
     String? name,
-    String? category,
+    List<String>? categories,
     int? portions,
     List<Ingredient>? ingredients,
     String? instructions,
@@ -47,7 +34,7 @@ class Recipe {
     return Recipe(
       id: id ?? this.id,
       name: name ?? this.name,
-      category: category ?? this.category,
+      categories: categories ?? this.categories,
       portions: portions ?? this.portions,
       ingredients: ingredients ?? this.ingredients,
       instructions: instructions ?? this.instructions,

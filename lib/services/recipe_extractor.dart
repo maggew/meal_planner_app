@@ -2,80 +2,42 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
 
+class ExtractionResult {
+  final List<Ingredient>? ingredients;
+  final String? instructions;
+
+  ExtractionResult({this.ingredients, this.instructions});
+}
+
 class RecipeExtractor {
-  static Map<String, dynamic> extractRecipeData(RecognizedText recognizedText) {
+  RecipeExtractor._();
+
+  static ExtractionResult extractRecipeIngredients(
+      RecognizedText recognizedText) {
     // Text spaltenweise sortiert
-    String completeText = _getCompleteTextColumnWise(recognizedText);
+    List<String> lines = _prepareRecognizedText(recognizedText);
 
     // Zeilen aufteilen
-    List<String> lines = completeText
-        .split('\n')
-        .where((line) => line.trim().isNotEmpty)
-        .toList();
 
     if (lines.isEmpty) {
-      return {
-        'name': null,
-        'ingredients': [],
-        'instructions': null,
-        'fullText': completeText,
-      };
+      return ExtractionResult();
     }
 
-    // Erster Block als Name (bis zur ersten leeren Zeile oder Mengenangabe)
-    String? name;
-    int nameEndIndex = 0;
+    return ExtractionResult(ingredients: _getIngredients(lines));
+  }
 
-    for (int i = 0; i < lines.length; i++) {
-      String line = lines[i].trim();
+  static ExtractionResult extractRecipeInstructions(
+      RecognizedText recognizedText) {
+    // Text spaltenweise sortiert
+    List<String> lines = _prepareRecognizedText(recognizedText);
 
-      // Stoppe bei erster Mengenangabe
-      if (line
-          .contains(RegExp(r'\d+\s*(g|ml|kg|l|EL|TL)', caseSensitive: false))) {
-        nameEndIndex = i;
-        break;
-      }
-
-      // Stoppe bei Schritt-Nummer
-      if (line.startsWith(RegExp(r'^\d+\.'))) {
-        nameEndIndex = i;
-        break;
-      }
-
-      // Sammle Zeilen für den Namen (maximal 3 Zeilen)
-      if (i < 3) {
-        if (name == null) {
-          name = line;
-        } else {
-          name += ' ' + line;
-        }
-      }
+    if (lines.isEmpty) {
+      return ExtractionResult();
     }
-
-    // Zutaten sammeln (von nameEndIndex bis "1.")
-    List<String> ingredients = [];
-    int instructionsStartIndex = lines.length;
-
-    for (int i = nameEndIndex; i < lines.length; i++) {
-      String line = lines[i].trim();
-
-      // Sobald "1." kommt, beginnen die Anweisungen
-      if (line.startsWith(RegExp(r'^\d+\.'))) {
-        instructionsStartIndex = i;
-        break;
-      }
-
-      // Zeile zu Zutaten hinzufügen
-      if (line.isNotEmpty) {
-        ingredients.add(line);
-      }
-    }
-
-    // Anweisungen sammeln (ab "1.")
     List<String> steps = [];
     StringBuffer currentStep = StringBuffer();
 
-    for (int i = instructionsStartIndex; i < lines.length; i++) {
+    for (int i = 0; i < lines.length; i++) {
       String line = lines[i].trim();
 
       // Neue Schritt-Nummer gefunden
@@ -100,12 +62,7 @@ class RecipeExtractor {
       steps.add(currentStep.toString().trim());
     }
 
-    return {
-      'name': name,
-      'ingredients': _getIngredients(ingredients),
-      'instructions': steps.toString(),
-      'fullText': completeText,
-    };
+    return ExtractionResult(instructions: steps.join("\n\n"));
   }
 
   static String _normalizeIngredientText(String text) {
@@ -132,75 +89,104 @@ class RecipeExtractor {
     return text;
   }
 
-  static List<Ingredient> _getIngredients(List<String> ingredients) {
-    List<Ingredient> out = [];
+  static const _stopWords = ['alternativ', 'oder', 'evtl'];
+  static const _minNameLength = 2;
 
-    String text = _normalizeIngredientText(ingredients.join(' '));
-
-    List<String> tokens = text.split(' ');
+  static List<Ingredient> _getIngredients(List<String> lines) {
+    final text = _normalizeIngredientText(lines.join(' '));
+    final tokens = text.split(' ');
+    final ingredients = <Ingredient>[];
 
     int i = 0;
     while (i < tokens.length) {
-      String token = tokens[i];
+      final parsed = _tryParseIngredient(tokens, i);
 
-      double? amount = double.tryParse(token.replaceAll(',', '.'));
-
-      if (amount != null && i + 1 < tokens.length) {
-        i++;
-
-        Unit? unit = UnitParser.parse(tokens[i]); // ← Diese Zeile ändern
-
-        if (unit != null) {
-          i++; // Überspringe Einheit
-        }
-
-        // Sammle den Namen
-        StringBuffer name = StringBuffer();
-
-        while (i < tokens.length) {
-          String word = tokens[i];
-
-          if (double.tryParse(word.replaceAll(',', '.')) != null) {
-            break;
-          }
-
-          if (word.toLowerCase().contains('alternativ')) {
-            break;
-          }
-
-          name.write(word);
-          name.write(' ');
-          i++;
-        }
-
-        String ingredientName = name.toString().trim();
-
-        ingredientName =
-            ingredientName.replaceAll(RegExp(r'[,\.\(\)]+$'), '').trim();
-
-        if (ingredientName.isNotEmpty && ingredientName.length >= 2) {
-          out.add(Ingredient(
-            amount: amount,
-            unit: unit ?? Unit.GRAMM,
-            name: ingredientName,
-          ));
-        }
+      if (parsed != null) {
+        ingredients.add(parsed.ingredient);
+        i = parsed.nextIndex;
       } else {
         i++;
       }
     }
 
-    return out;
+    return ingredients;
   }
 
-  static String _getCompleteTextColumnWise(RecognizedText recognizedText) {
+  static _ParseResult? _tryParseIngredient(
+      List<String> tokens, int startIndex) {
+    int i = startIndex;
+
+    // 1. Amount parsen
+    final amount = _parseAmount(tokens[i]);
+    if (amount == null || i + 1 >= tokens.length) return null;
+    i++;
+
+    // 2. Unit parsen (optional)
+    final unit = UnitParser.parse(tokens[i]);
+    if (unit != null) i++;
+
+    // 3. Name sammeln
+    final name = _collectName(tokens, i);
+    if (name.value.length < _minNameLength) return null;
+
+    return _ParseResult(
+      ingredient: Ingredient(
+        amount: amount,
+        unit: unit ?? Unit.GRAMM,
+        name: name.value,
+      ),
+      nextIndex: name.endIndex,
+    );
+  }
+
+  static double? _parseAmount(String token) {
+    // Normale Zahlen
+    final normal = double.tryParse(token.replaceAll(',', '.'));
+    if (normal != null) return normal;
+
+    // Brüche: 1/2, 1/4
+    final fractionMatch = RegExp(r'^(\d+)/(\d+)$').firstMatch(token);
+    if (fractionMatch != null) {
+      final num = int.parse(fractionMatch.group(1)!);
+      final den = int.parse(fractionMatch.group(2)!);
+      return num / den;
+    }
+
+    return null;
+  }
+
+  static ({String value, int endIndex}) _collectName(
+      List<String> tokens, int startIndex) {
+    final buffer = StringBuffer();
+    int i = startIndex;
+
+    while (i < tokens.length) {
+      final word = tokens[i];
+
+      // Stop bei nächster Zahl
+      if (_parseAmount(word) != null) break;
+
+      // Stop bei Stop-Wörtern
+      if (_stopWords.any((sw) => word.toLowerCase().contains(sw))) break;
+
+      buffer.write(word);
+      buffer.write(' ');
+      i++;
+    }
+
+    final name =
+        buffer.toString().trim().replaceAll(RegExp(r'[,\.\(\)]+$'), '');
+    return (value: name, endIndex: i);
+  }
+
+  static List<String> _prepareRecognizedText(RecognizedText recognizedText) {
     List<TextLine> allLines = [];
 
     for (var block in recognizedText.blocks) {
       allLines.addAll(block.lines);
     }
 
-    if (allLines.isEmpty) return '';
+    if (allLines.isEmpty) return [];
 
     // Finde Bildmitte
     double maxRight = 0;
@@ -244,6 +230,17 @@ class RecipeExtractor {
       result.writeln(line.text);
     }
 
-    return result.toString();
+    return result
+        .toString()
+        .split('\n')
+        .where((line) => line.trim().isNotEmpty)
+        .toList();
   }
+}
+
+class _ParseResult {
+  final Ingredient ingredient;
+  final int nextIndex;
+
+  _ParseResult({required this.ingredient, required this.nextIndex});
 }

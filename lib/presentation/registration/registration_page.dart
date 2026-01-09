@@ -2,9 +2,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/data/repositories/firebase_auth_repository.dart';
+import 'package:meal_planner/domain/exceptions/auth_exceptions.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
-import 'package:meal_planner/services/providers/auth_providers.dart';
+import 'package:meal_planner/services/providers/repository_providers.dart';
 
 @RoutePage()
 class RegistrationPage extends ConsumerStatefulWidget {

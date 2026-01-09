@@ -60,22 +60,6 @@ class MockRecipeRepository extends _i1.Mock implements _i2.RecipeRepository {
       ) as _i3.Future<String>);
 
   @override
-  _i3.Future<String> uploadRecipeImage(_i5.File? imageFile) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #uploadRecipeImage,
-          [imageFile],
-        ),
-        returnValue: _i3.Future<String>.value(_i6.dummyValue<String>(
-          this,
-          Invocation.method(
-            #uploadRecipeImage,
-            [imageFile],
-          ),
-        )),
-      ) as _i3.Future<String>);
-
-  @override
   _i3.Future<List<_i4.Recipe>> getRecipesByCategory(String? category) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -86,17 +70,22 @@ class MockRecipeRepository extends _i1.Mock implements _i2.RecipeRepository {
       ) as _i3.Future<List<_i4.Recipe>>);
 
   @override
-  _i3.Future<_i4.Recipe?> getRecipeById(
-    String? recipeId,
-    String? category,
-  ) =>
+  _i3.Future<List<_i4.Recipe>> getRecipesByCategories(
+          List<String>? categories) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getRecipesByCategories,
+          [categories],
+        ),
+        returnValue: _i3.Future<List<_i4.Recipe>>.value(<_i4.Recipe>[]),
+      ) as _i3.Future<List<_i4.Recipe>>);
+
+  @override
+  _i3.Future<_i4.Recipe?> getRecipeById(String? recipeId) =>
       (super.noSuchMethod(
         Invocation.method(
           #getRecipeById,
-          [
-            recipeId,
-            category,
-          ],
+          [recipeId],
         ),
         returnValue: _i3.Future<_i4.Recipe?>.value(),
       ) as _i3.Future<_i4.Recipe?>);
@@ -104,7 +93,6 @@ class MockRecipeRepository extends _i1.Mock implements _i2.RecipeRepository {
   @override
   _i3.Future<void> updateRecipe(
     String? recipeId,
-    String? category,
     _i4.Recipe? recipe,
   ) =>
       (super.noSuchMethod(
@@ -112,7 +100,6 @@ class MockRecipeRepository extends _i1.Mock implements _i2.RecipeRepository {
           #updateRecipe,
           [
             recipeId,
-            category,
             recipe,
           ],
         ),
@@ -121,29 +108,21 @@ class MockRecipeRepository extends _i1.Mock implements _i2.RecipeRepository {
       ) as _i3.Future<void>);
 
   @override
-  _i3.Future<void> deleteRecipe(
-    String? recipeId,
-    String? category,
-  ) =>
-      (super.noSuchMethod(
+  _i3.Future<void> deleteRecipe(String? recipeId) => (super.noSuchMethod(
         Invocation.method(
           #deleteRecipe,
-          [
-            recipeId,
-            category,
-          ],
+          [recipeId],
         ),
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
       ) as _i3.Future<void>);
 
   @override
-  _i3.Future<void> deleteRecipeImage(String? imageUrl) => (super.noSuchMethod(
+  _i3.Future<List<String>> getAllCategories() => (super.noSuchMethod(
         Invocation.method(
-          #deleteRecipeImage,
-          [imageUrl],
+          #getAllCategories,
+          [],
         ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
+        returnValue: _i3.Future<List<String>>.value(<String>[]),
+      ) as _i3.Future<List<String>>);
 }

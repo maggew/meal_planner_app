@@ -6,9 +6,11 @@ import 'package:meal_planner/services/providers/recipe/recipe_analysis_provider.
 
 class AddRecipeProcessImageErrormessage extends ConsumerWidget {
   final File image;
+  final bool isIngredientImage;
   const AddRecipeProcessImageErrormessage({
     super.key,
     required this.image,
+    required this.isIngredientImage,
   });
 
   @override
@@ -33,7 +35,8 @@ class AddRecipeProcessImageErrormessage extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () {
-              ref.read(recipeAnalysisProvider.notifier).analyzeImage(image);
+              ref.read(recipeAnalysisProvider.notifier).analyzeImage(
+                  image: image, isIngredientImage: isIngredientImage);
             },
             child: Text('Erneut'),
           ),

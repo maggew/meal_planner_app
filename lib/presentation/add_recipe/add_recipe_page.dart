@@ -15,6 +15,7 @@ class AddRecipePage extends ConsumerWidget {
     return AppBackground(
       scaffoldAppBar: AppBar(
         leading: IconButton(
+            style: IconButton.styleFrom(backgroundColor: Colors.transparent),
             icon: Icon(
               Icons.keyboard_arrow_left,
               color: Colors.black,

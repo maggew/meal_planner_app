@@ -1,55 +1,116 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gap/gap.dart';
+import 'package:meal_planner/presentation/common/loading_overlay.dart';
+import 'package:meal_planner/services/providers/image_manager_provider.dart';
+import 'package:meal_planner/services/providers/recipe/recipe_analysis_provider.dart';
 
-class AddRecipeInstructions extends StatelessWidget {
+class AddRecipeInstructions extends ConsumerStatefulWidget {
   final TextEditingController recipeInstructionsController;
   const AddRecipeInstructions({
     super.key,
     required this.recipeInstructionsController,
   });
+  @override
+  ConsumerState<AddRecipeInstructions> createState() =>
+      _AddRecipeInstructions();
+}
 
+class _AddRecipeInstructions extends ConsumerState<AddRecipeInstructions> {
   @override
   Widget build(BuildContext context) {
+    ref.listen(recipeAnalysisProvider, (previous, next) {
+      next.whenData((data) {
+        if (data != null && data.instructions != null) {
+          widget.recipeInstructionsController.text += data.instructions!;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('✓ Anleitung erfolgreich analysiert!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      });
+    });
+
+    ref.listen(imageManagerProvider, (previous, next) {
+      final image = next.instructionsImage;
+      if (image != null && image != previous?.instructionsImage) {
+        ref.read(recipeAnalysisProvider.notifier).analyzeImage(
+              image: image,
+              isIngredientImage: false,
+            );
+      }
+    });
+
+    final isAnalyzing = ref.watch(recipeAnalysisProvider).isLoading &&
+        ref.read(recipeAnalysisProvider.notifier).isLoadingInstructions;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Anleitung",
-          style: Theme.of(context).textTheme.displayMedium,
+        Row(
+          children: [
+            Text(
+              "Anleitung",
+              style: Theme.of(context).textTheme.displayMedium,
+            ),
+            Gap(10),
+            IconButton(
+              onPressed: () {
+                ref.read(imageManagerProvider.notifier).pickImageFromCamera(
+                    imageType: AnalysisImageType.instructions);
+              },
+              icon: Icon(Icons.camera_alt_outlined),
+            ),
+            Gap(10),
+            IconButton(
+              onPressed: () {
+                ref.read(imageManagerProvider.notifier).pickImageFromGallery(
+                    imageType: AnalysisImageType.instructions);
+              },
+              icon: Icon(Icons.folder_outlined),
+            ),
+          ],
         ),
         SizedBox(height: 10),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.blueGrey, width: 1.5),
-            color: Colors.white,
-            borderRadius: BorderRadius.all(Radius.circular(3)),
-          ),
-          width: MediaQuery.of(context).size.width,
+        LoadingOverlay(
+          isLoading: isAnalyzing,
           height: 300,
-          child: TextFormField(
-            controller: recipeInstructionsController,
-            decoration: InputDecoration(
-              errorStyle: Theme.of(context).textTheme.bodyLarge,
-              filled: true,
-              fillColor: Colors.white,
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: Colors.transparent,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: Colors.transparent,
-                ),
-              ),
-              border: OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: Colors.transparent,
-                ),
-              ),
-              hintText: 'Hier ist Platz für die Kochanweisungen...',
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.blueGrey, width: 1.5),
+              color: Colors.white,
+              borderRadius: BorderRadius.all(Radius.circular(3)),
             ),
-            keyboardType: TextInputType.multiline,
-            maxLines: null,
+            width: MediaQuery.of(context).size.width,
+            height: 300,
+            child: TextFormField(
+              controller: widget.recipeInstructionsController,
+              decoration: InputDecoration(
+                errorStyle: Theme.of(context).textTheme.bodyLarge,
+                filled: true,
+                fillColor: Colors.white,
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Colors.transparent,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Colors.transparent,
+                  ),
+                ),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Colors.transparent,
+                  ),
+                ),
+                hintText: 'Hier ist Platz für die Kochanweisungen...',
+              ),
+              keyboardType: TextInputType.multiline,
+              maxLines: null,
+            ),
           ),
         ),
       ],

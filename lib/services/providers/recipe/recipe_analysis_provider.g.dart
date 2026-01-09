@@ -42,7 +42,7 @@ final class RecipeAnalysisProvider
   }
 }
 
-String _$recipeAnalysisHash() => r'a9538892ccaff9e562f8103cfc8db80e7c7b2656';
+String _$recipeAnalysisHash() => r'e55321374042f5c2581c03b1fa5d2d3fe0f949fe';
 
 abstract class _$RecipeAnalysis
     extends $Notifier<AsyncValue<AnalyzedRecipeData?>> {

@@ -1,5 +1,6 @@
 // lib/data/repositories/firebase_auth_repository.dart
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:meal_planner/domain/exceptions/auth_exceptions.dart';
 import 'package:meal_planner/domain/repositories/auth_repository.dart';
 import 'package:meal_planner/domain/repositories/user_repository.dart';
 
@@ -26,7 +27,7 @@ class FirebaseAuthRepository implements AuthRepository {
 
       final uid = userCredential.user!.uid;
 
-      await userRepository.createUser(uid: uid, name: name, email: email);
+      await userRepository.createUser(uid: uid, name: name);
 
       return uid;
     } on FirebaseAuthException catch (e) {
@@ -97,12 +98,4 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   bool get isSignedIn => auth.currentUser != null;
-}
-
-class AuthException implements Exception {
-  final String message;
-  AuthException(this.message);
-
-  @override
-  String toString() => message;
 }
