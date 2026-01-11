@@ -20,7 +20,7 @@ final class RecipesPaginationProvider
       : super(
           retry: null,
           name: r'recipesPaginationProvider',
-          isAutoDispose: true,
+          isAutoDispose: false,
           dependencies: null,
           $allTransitiveDependencies: null,
         );
@@ -58,7 +58,7 @@ final class RecipesPaginationProvider
   }
 }
 
-String _$recipesPaginationHash() => r'20830d1233c16abb0a8aae7151b89d76a73ca312';
+String _$recipesPaginationHash() => r'40fa9828345a9ac81f5f6aa76286f90bc05b07b2';
 
 final class RecipesPaginationFamily extends $Family
     with
@@ -70,7 +70,7 @@ final class RecipesPaginationFamily extends $Family
           name: r'recipesPaginationProvider',
           dependencies: null,
           $allTransitiveDependencies: null,
-          isAutoDispose: true,
+          isAutoDispose: false,
         );
 
   RecipesPaginationProvider call(

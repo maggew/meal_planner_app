@@ -34,7 +34,7 @@ class RecipesPaginationState {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class RecipesPagination extends _$RecipesPagination {
   String? _currentCategory;
 

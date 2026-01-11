@@ -62,33 +62,41 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
 
   Widget _buildContent({required RecipesPaginationState state}) {
     if (state.recipes.isEmpty && state.isLoading) {
-      return const CircularProgressIndicator();
+      return _alwaysScrollableListView(children: [
+        SizedBox(height: 100),
+        Center(child: CircularProgressIndicator()),
+      ]);
     } else if (state.recipes.isEmpty && !state.isLoading) {
-      return const Center(
-        child: Text("Keine Rezepte in dieser Kategorie!"),
-      );
+      return _alwaysScrollableListView(children: [
+        SizedBox(height: 100),
+        Center(child: Text("Keine Rezepte in dieser Kategorie!")),
+      ]);
     } else if (state.error != null && state.recipes.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Error: ${state.error}'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                ref
-                    .read(recipesPaginationProvider(widget.category).notifier)
-                    .refresh();
-              },
-              child: const Text('Erneut versuchen'),
-            ),
-          ],
+      return _alwaysScrollableListView(children: [
+        const SizedBox(height: 100),
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Error: ${state.error}'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  ref
+                      .read(recipesPaginationProvider(widget.category).notifier)
+                      .refresh();
+                },
+                child: const Text('Erneut versuchen'),
+              ),
+            ],
+          ),
         ),
-      );
+      ]);
     }
 
     return ListView.builder(
       controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
       itemCount: state.recipes.length + (state.hasMore ? 1 : 0),
       itemBuilder: (context, index) {
         // Loading Indicator am Ende der Liste
@@ -105,4 +113,11 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
       },
     );
   }
+}
+
+ListView _alwaysScrollableListView({required List<Widget> children}) {
+  return ListView(
+    physics: const AlwaysScrollableScrollPhysics(),
+    children: children,
+  );
 }

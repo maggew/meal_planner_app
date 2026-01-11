@@ -5,6 +5,7 @@ import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
+import 'package:meal_planner/services/providers/recipe/recipe_pagination_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_upload_provider.dart';
 
 class AddRecipeButton extends ConsumerWidget {
@@ -73,15 +74,20 @@ class AddRecipeButton extends ConsumerWidget {
     } else {
       Recipe recipe = Recipe(
         name: recipeNameController.text,
+        //TODO: muss angepasst werden, wenn mehrere kategorien unterstützt werden
+        // categories: selectedCategories --> ist eine List<String>
         categories: [selectedCategory],
         portions: selectedPortions,
         ingredients: ingredients,
         instructions: recipeInstructionsController.text,
-        //TODO: add recipeID
       );
 
       await ref.read(recipeUploadProvider.notifier).uploadRecipe(recipe, image);
 
+      for (final category in recipe.categories) {
+        print("now invalidating... for category: $category");
+        ref.invalidate(recipesPaginationProvider(category.toLowerCase()));
+      }
       _resetForm(
         recipeNameController: recipeNameController,
         recipeInstructionsController: recipeInstructionsController,

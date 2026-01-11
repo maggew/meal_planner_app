@@ -22,16 +22,36 @@ class AddRecipeIngredients extends ConsumerStatefulWidget {
 
 class _AddRecipeIngredients extends ConsumerState<AddRecipeIngredients> {
   final Map<int, DropdownController<Unit>> dropdownControllers = {};
+  final Map<int, TextEditingController> amountControllers = {};
+  final Map<int, TextEditingController> ingredientNameControllers = {};
 
-  DropdownController<Unit> _getOrCreateController(int index) {
+  DropdownController<Unit> _getOrCreateDropdownController(int index) {
     if (!dropdownControllers.containsKey(index)) {
       dropdownControllers[index] = DropdownController();
     }
     return dropdownControllers[index]!;
   }
 
+  TextEditingController _getAmountController(int index) {
+    if (!amountControllers.containsKey(index)) {
+      amountControllers[index] = TextEditingController(
+        text: '',
+      );
+    }
+    return amountControllers[index]!;
+  }
+
+  TextEditingController _getIngredientNameController(int index) {
+    if (!ingredientNameControllers.containsKey(index)) {
+      ingredientNameControllers[index] = TextEditingController(text: null);
+    }
+    return ingredientNameControllers[index]!;
+  }
+
   @override
   void dispose() {
+    amountControllers.values.forEach((c) => c.dispose());
+    ingredientNameControllers.values.forEach((c) => c.dispose());
     dropdownControllers.values.forEach((controller) => controller.dispose());
     super.dispose();
   }
@@ -151,8 +171,14 @@ class _AddRecipeIngredients extends ConsumerState<AddRecipeIngredients> {
                         ingredient: ingredient,
                         unitDropdownItems: unitDropdownItems,
                         ref: ref,
-                        unitDropdownController: _getOrCreateController(index),
+                        unitDropdownController:
+                            _getOrCreateDropdownController(index),
                         dropdownControllerMap: dropdownControllers,
+                        amountController: _getAmountController(index),
+                        amountControllerMap: amountControllers,
+                        ingredientNameController:
+                            _getIngredientNameController(index),
+                        ingredientNameControllerMap: ingredientNameControllers,
                       );
                     }).toList(),
                   ),

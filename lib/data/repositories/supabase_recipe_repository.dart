@@ -1,6 +1,7 @@
 // data/repositories/supabase_recipe_repository.dart
 
 import 'dart:io';
+import 'package:meal_planner/core/constants/firebase_constants.dart';
 import 'package:meal_planner/data/model/recipe_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:meal_planner/core/constants/supabase_constants.dart';
@@ -39,8 +40,11 @@ class SupabaseRecipeRepository implements RecipeRepository {
       // 1. Bild hochladen
       String? imageUrl;
       if (image != null) {
-        imageUrl = await _storage.uploadImage(image, 'recipe_images');
+        imageUrl = await _storage.uploadImage(
+            image, FirebaseConstants.imagePathRecipe);
       }
+
+      print("before recipe insert");
 
       // 2. Recipe einfügen
       await _supabase.from(SupabaseConstants.recipesTable).insert(
@@ -51,6 +55,7 @@ class SupabaseRecipeRepository implements RecipeRepository {
               imageUrl: imageUrl,
             ),
           );
+      print("after recipe insert");
 
       // 3. Categories speichern
       await _saveCategories(recipeId, recipe.categories);
@@ -60,6 +65,8 @@ class SupabaseRecipeRepository implements RecipeRepository {
 
       return recipeId;
     } catch (e) {
+      print("============ in catch of saveRecipe ============");
+      print("Error: $e");
       throw RecipeCreationException(e.toString());
     }
   }
@@ -151,21 +158,29 @@ class SupabaseRecipeRepository implements RecipeRepository {
   @override
   Future<List<Recipe>> getRecipesByCategory(String category) async {
     try {
+      print("=== getRecipesByCategory ===");
+      print("1. category input: $category");
+      print("2. groupId: $_groupId");
       final categoryId = await _getCategoryId(category);
+      print("3. categoryId: $categoryId");
       if (categoryId == null) return [];
 
       final recipeIds = await _getRecipeIdsByCategory(categoryId);
+      print("5. recipeIds: $recipeIds");
       if (recipeIds.isEmpty) return [];
-
+      print("7. fetching recipes...");
       final response = await _supabase
           .from(SupabaseConstants.recipesTable)
           .select()
           .eq(SupabaseConstants.recipeGroupId, _groupId)
           .inFilter(SupabaseConstants.recipeId, recipeIds)
           .order(SupabaseConstants.recipeCreatedAt, ascending: false);
-
+      print("8. response: $response");
       return await _mapToRecipes(response as List);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print("=== ERROR in getRecipesByCategory ===");
+      print("error: $e");
+      print("stackTrace: $stackTrace");
       throw RecipeNotFoundException('Kategorie: $category');
     }
   }
@@ -335,7 +350,7 @@ class SupabaseRecipeRepository implements RecipeRepository {
         name: data[SupabaseConstants.ingredientsTable]
             [SupabaseConstants.ingredientName] as String,
         amount: double.tryParse(
-                data[SupabaseConstants.recipeIngredientAmount] ?? '0') ??
+                data[SupabaseConstants.recipeIngredientAmount].toString()) ??
             0,
         unit: UnitParser.parse(data[SupabaseConstants.recipeIngredientUnit]) ??
             Unit.GRAMM,
@@ -377,4 +392,3 @@ class SupabaseRecipeRepository implements RecipeRepository {
         .eq(SupabaseConstants.recipeIngredientRecipeId, recipeId);
   }
 }
-

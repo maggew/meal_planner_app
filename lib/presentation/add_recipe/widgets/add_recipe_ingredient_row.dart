@@ -3,7 +3,6 @@ import 'package:cool_dropdown/models/cool_dropdown_item.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/core/utils/double_formatting.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
@@ -15,6 +14,10 @@ DataRow2 buildIngredientRow({
   required WidgetRef ref,
   required DropdownController<Unit> unitDropdownController,
   required Map<int, DropdownController<Unit>> dropdownControllerMap,
+  required TextEditingController amountController,
+  required Map<int, TextEditingController> amountControllerMap,
+  required TextEditingController ingredientNameController,
+  required Map<int, TextEditingController> ingredientNameControllerMap,
 }) {
   return DataRow2(
     specificRowHeight: 60,
@@ -22,10 +25,7 @@ DataRow2 buildIngredientRow({
       // Zutat Name
       DataCell(
         TextField(
-          controller: TextEditingController(text: ingredient.name)
-            ..selection = TextSelection.collapsed(
-              offset: ingredient.name.length,
-            ),
+          controller: ingredientNameController,
           onChanged: (value) {
             ref.read(ingredientsProvider.notifier).updateIngredient(
                   index,
@@ -42,23 +42,18 @@ DataRow2 buildIngredientRow({
       // Menge
       DataCell(
         TextField(
-          controller: TextEditingController(
-            text: ingredient.amount == 0
-                ? ''
-                : ingredient.amount.toDisplayString(),
-          )..selection = TextSelection.collapsed(
-              offset: ingredient.amount == 0
-                  ? 0
-                  : ingredient.amount.toDisplayString().length,
-            ),
+          controller: amountController,
           onChanged: (value) {
-            final amount = double.tryParse(value) ?? 0;
+            // Komma durch Punkt ersetzen für Parsing
+            final normalized = value.replaceAll(',', '.');
+            final amount = double.tryParse(normalized) ?? 0;
             ref.read(ingredientsProvider.notifier).updateIngredient(
                   index,
                   amount: amount,
                 );
           },
-          keyboardType: TextInputType.number,
+          keyboardType:
+              TextInputType.numberWithOptions(decimal: true), // Wichtig!
           decoration: InputDecoration(
             border: InputBorder.none,
             hintText: '0',
@@ -99,6 +94,8 @@ DataRow2 buildIngredientRow({
           onPressed: () {
             unitDropdownController.dispose();
             dropdownControllerMap.remove(index);
+            amountControllerMap.remove(index);
+            ingredientNameControllerMap.remove(index);
             ref.read(ingredientsProvider.notifier).deleteIngredient(index);
           },
         ),

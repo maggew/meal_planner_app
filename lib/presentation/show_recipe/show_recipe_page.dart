@@ -36,7 +36,7 @@ class _ShowRecipePageState extends State<ShowRecipePage>
   @override
   Widget build(BuildContext context) {
     return AppBackground(
-        scaffoldAppBar: ShowRecipeAppbar(recipeName: widget.recipe.name),
+        scaffoldAppBar: ShowRecipeAppbar(recipe: widget.recipe),
         scaffoldBottomNavigationBar: ShowRecipeBottomNavigationBar(
           tabController: _tabController,
         ),
