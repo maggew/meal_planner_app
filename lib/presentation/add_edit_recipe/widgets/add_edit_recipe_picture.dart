@@ -4,7 +4,12 @@ import 'package:meal_planner/core/constants/app_icons.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 
 class AddEditRecipePicture extends ConsumerStatefulWidget {
-  const AddEditRecipePicture({Key? key}) : super(key: key);
+  final String? existingImageUrl; // ← Neu
+
+  const AddEditRecipePicture({
+    super.key,
+    this.existingImageUrl,
+  });
 
   @override
   ConsumerState<AddEditRecipePicture> createState() => _AddRecipePictureState();
@@ -22,12 +27,16 @@ class _AddRecipePictureState extends ConsumerState<AddEditRecipePicture> {
   @override
   Widget build(BuildContext context) {
     final images = ref.watch(imageManagerProvider);
+    final newImage = images.recipePhoto;
 
-    if (images.recipePhoto != null && images.recipePhoto!.path.isNotEmpty) {
-      _pictureNameController.text = images.recipePhoto!.path.split('/').last;
+    if (newImage != null && newImage.path.isNotEmpty) {
+      _pictureNameController.text = newImage.path.split('/').last;
+    } else if (widget.existingImageUrl != null) {
+      _pictureNameController.text = 'Aktuelles Bild';
     } else {
       _pictureNameController.text = '';
     }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -43,72 +52,96 @@ class _AddRecipePictureState extends ConsumerState<AddEditRecipePicture> {
         FittedBox(
           child: Row(
             children: [
-              Row(
-                children: [
-                  SizedBox(
-                    width: 270,
-                    height: 50,
-                    child: TextFormField(
-                      controller: _pictureNameController,
-                      textAlign: TextAlign.start,
-                      textAlignVertical: TextAlignVertical.center,
-                      onTap: () async {
-                        ref
-                            .read(imageManagerProvider.notifier)
-                            .pickImageFromGallery(
-                                imageType: AnalysisImageType.photo);
-                      },
-                      readOnly: true,
-                      enabled: true,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white30,
-                        hintMaxLines: 2,
-                        //hintText: "\n" + _printPath(_iconPath),
-                        hintStyle: TextStyle(
-                          color: Colors.black,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.blueGrey,
-                            width: 1.5,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.blueGrey,
-                            width: 1.5,
-                          ),
-                        ),
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.blueGrey,
-                            width: 1.5,
-                          ),
-                        ),
-                        suffixIcon: Icon(
-                          AppIcons.upload,
-                          size: 25,
-                        ),
-                      ),
+              SizedBox(
+                width: 270,
+                height: 50,
+                child: TextFormField(
+                  controller: _pictureNameController,
+                  textAlign: TextAlign.start,
+                  textAlignVertical: TextAlignVertical.center,
+                  onTap: () async {
+                    ref
+                        .read(imageManagerProvider.notifier)
+                        .pickImageFromGallery(
+                            imageType: AnalysisImageType.photo);
+                  },
+                  readOnly: true,
+                  enabled: true,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white30,
+                    hintMaxLines: 2,
+                    hintStyle: TextStyle(color: Colors.black),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Colors.blueGrey, width: 1.5),
                     ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Colors.blueGrey, width: 1.5),
+                    ),
+                    border: OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Colors.blueGrey, width: 1.5),
+                    ),
+                    suffixIcon: Icon(AppIcons.upload, size: 25),
                   ),
-                  SizedBox(width: 20),
-                  IconButton(
-                    onPressed: () {
-                      ref
-                          .read(imageManagerProvider.notifier)
-                          .pickImageFromCamera(
-                              imageType: AnalysisImageType.photo);
-                    },
-                    icon: Icon(Icons.camera_alt_outlined), //todo besseres Icon
-                  ),
-                ],
+                ),
+              ),
+              SizedBox(width: 20),
+              IconButton(
+                onPressed: () {
+                  ref
+                      .read(imageManagerProvider.notifier)
+                      .pickImageFromCamera(imageType: AnalysisImageType.photo);
+                },
+                icon: Icon(Icons.camera_alt_outlined),
               ),
             ],
           ),
         ),
+        SizedBox(height: 15),
+        // Bild-Preview
+        _buildImagePreview(newImage),
       ],
     );
   }
+
+  Widget _buildImagePreview(file) {
+    final newImage = file;
+    final existingUrl = widget.existingImageUrl;
+
+    if (newImage != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.file(
+          newImage,
+          height: 150,
+          width: 150,
+          fit: BoxFit.cover,
+        ),
+      );
+    } else if (existingUrl != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          existingUrl,
+          height: 150,
+          width: 150,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return SizedBox(
+              height: 150,
+              width: 150,
+              child: Center(child: CircularProgressIndicator()),
+            );
+          },
+        ),
+      );
+    }
+
+    return SizedBox.shrink();
+  }
 }
+

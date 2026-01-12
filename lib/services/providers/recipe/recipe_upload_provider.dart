@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:meal_planner/domain/exceptions/recipe_exceptions.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';

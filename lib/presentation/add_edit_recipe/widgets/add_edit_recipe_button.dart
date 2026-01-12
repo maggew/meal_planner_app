@@ -85,6 +85,7 @@ class AddEditRecipeButton extends ConsumerWidget {
         portions: selectedPortions,
         ingredients: ingredients,
         instructions: recipeInstructionsController.text,
+        imageUrl: existingRecipe?.imageUrl,
       );
 
       final recipeRepo = ref.read(recipeUploadProvider.notifier);

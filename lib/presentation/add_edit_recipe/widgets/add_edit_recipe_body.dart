@@ -91,7 +91,9 @@ class _AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
             recipeInstructionsController: _recipeInstructionsController,
           ),
           SizedBox(height: 30),
-          AddEditRecipePicture(),
+          AddEditRecipePicture(
+            existingImageUrl: widget.existingRecipe?.imageUrl,
+          ),
           SizedBox(height: 50),
           AddEditRecipeButton(
             recipeNameController: _recipeNameController,

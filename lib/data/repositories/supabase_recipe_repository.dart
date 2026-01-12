@@ -222,12 +222,16 @@ class SupabaseRecipeRepository implements RecipeRepository {
       }
 
       String? imageUrl = recipe.imageUrl;
+
       if (newImage != null) {
+        if (recipe.imageUrl != null) {
+          await _storage.deleteImage(recipe.imageUrl!);
+        }
         imageUrl = await _storage.uploadImage(
             newImage, FirebaseConstants.imagePathRecipe);
       }
-      final updatedRecipe = recipe.copyWith(imageUrl: imageUrl);
 
+      final updatedRecipe = recipe.copyWith(imageUrl: imageUrl);
       final model = RecipeModel.fromEntity(updatedRecipe);
       await _supabase
           .from(SupabaseConstants.recipesTable)

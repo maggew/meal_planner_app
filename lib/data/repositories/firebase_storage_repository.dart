@@ -25,6 +25,7 @@ class FirebaseStorageRepository implements StorageRepository {
       final ref = storage.refFromURL(imageUrl);
       await ref.delete();
     } catch (e) {
+      print("error in storage...");
       // Image existiert nicht mehr
     }
   }
