@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_analysis_provider.dart';
 
-class AddRecipeProcessImageErrormessage extends ConsumerWidget {
+class AddEditRecipeProcessImageErrormessage extends ConsumerWidget {
   final File image;
   final bool isIngredientImage;
-  const AddRecipeProcessImageErrormessage({
+  const AddEditRecipeProcessImageErrormessage({
     super.key,
     required this.image,
     required this.isIngredientImage,

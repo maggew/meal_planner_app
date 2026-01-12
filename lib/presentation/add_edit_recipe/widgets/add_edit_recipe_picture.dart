@@ -3,14 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_icons.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 
-class AddRecipePicture extends ConsumerStatefulWidget {
-  const AddRecipePicture({Key? key}) : super(key: key);
+class AddEditRecipePicture extends ConsumerStatefulWidget {
+  const AddEditRecipePicture({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<AddRecipePicture> createState() => _AddRecipePictureState();
+  ConsumerState<AddEditRecipePicture> createState() => _AddRecipePictureState();
 }
 
-class _AddRecipePictureState extends ConsumerState<AddRecipePicture> {
+class _AddRecipePictureState extends ConsumerState<AddEditRecipePicture> {
   final TextEditingController _pictureNameController = TextEditingController();
 
   @override

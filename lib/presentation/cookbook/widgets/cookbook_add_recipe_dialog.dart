@@ -64,7 +64,7 @@ class CookbookAddRecipeDialog extends ConsumerWidget {
               text: "Eingabe",
               icon: Icon(Icons.keyboard_alt_outlined),
               callback: () {
-                context.router.push(const AddRecipeRoute());
+                context.router.push(AddEditRecipeRoute());
               },
             ),
             _addRecipeButton(

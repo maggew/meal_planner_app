@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-class AddRecipeRecipeNameTextformfield extends StatelessWidget {
+class AddEditRecipeRecipeNameTextformfield extends StatelessWidget {
   final TextEditingController recipeNameController;
-  const AddRecipeRecipeNameTextformfield({
+  const AddEditRecipeRecipeNameTextformfield({
     super.key,
     required this.recipeNameController,
   });

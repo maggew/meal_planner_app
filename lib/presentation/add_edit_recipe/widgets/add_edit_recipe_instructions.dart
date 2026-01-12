@@ -5,18 +5,18 @@ import 'package:meal_planner/presentation/common/loading_overlay.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_analysis_provider.dart';
 
-class AddRecipeInstructions extends ConsumerStatefulWidget {
+class AddEditRecipeInstructions extends ConsumerStatefulWidget {
   final TextEditingController recipeInstructionsController;
-  const AddRecipeInstructions({
+  const AddEditRecipeInstructions({
     super.key,
     required this.recipeInstructionsController,
   });
   @override
-  ConsumerState<AddRecipeInstructions> createState() =>
+  ConsumerState<AddEditRecipeInstructions> createState() =>
       _AddRecipeInstructions();
 }
 
-class _AddRecipeInstructions extends ConsumerState<AddRecipeInstructions> {
+class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
   @override
   Widget build(BuildContext context) {
     ref.listen(recipeAnalysisProvider, (previous, next) {

@@ -92,15 +92,15 @@ class MockRecipeRepository extends _i1.Mock implements _i2.RecipeRepository {
 
   @override
   _i3.Future<void> updateRecipe(
-    String? recipeId,
     _i4.Recipe? recipe,
+    _i5.File? newImage,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
           #updateRecipe,
           [
-            recipeId,
             recipe,
+            newImage,
           ],
         ),
         returnValue: _i3.Future<void>.value(),

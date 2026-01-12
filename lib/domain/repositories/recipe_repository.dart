@@ -10,7 +10,7 @@ abstract class RecipeRepository {
 
   Future<Recipe?> getRecipeById(String recipeId);
 
-  Future<void> updateRecipe(String recipeId, Recipe recipe);
+  Future<void> updateRecipe(Recipe recipe, File? newImage);
 
   Future<void> deleteRecipe(String recipeId);
 

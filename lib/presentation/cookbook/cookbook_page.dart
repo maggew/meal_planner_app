@@ -15,7 +15,7 @@ class CookbookPage extends StatelessWidget {
       scaffoldAppBar: CommonAppbar(
         title: "Kochbuch",
         hasActionButton: true,
-        onActionPressed: () => context.router.push(const AddRecipeRoute()),
+        onActionPressed: () => context.router.push(AddEditRecipeRoute()),
       ),
       scaffoldBody: CookbookBody(),
     );

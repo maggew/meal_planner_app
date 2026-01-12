@@ -8,13 +8,15 @@ import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart'
 import 'package:meal_planner/services/providers/recipe/recipe_pagination_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_upload_provider.dart';
 
-class AddRecipeButton extends ConsumerWidget {
+class AddEditRecipeButton extends ConsumerWidget {
   final TextEditingController recipeNameController;
   final TextEditingController recipeInstructionsController;
-  const AddRecipeButton({
+  final Recipe? existingRecipe;
+  const AddEditRecipeButton({
     super.key,
     required this.recipeNameController,
     required this.recipeInstructionsController,
+    required this.existingRecipe,
   });
 
   @override
@@ -28,9 +30,9 @@ class AddRecipeButton extends ConsumerWidget {
             style: ElevatedButton.styleFrom(
               fixedSize: Size(130, 40),
             ),
-            onPressed: () => _handleUpload(context, ref),
+            onPressed: () => _handleUpload(context, ref, existingRecipe),
             child: Text(
-              "Speichern",
+              (existingRecipe != null) ? "Rezpet updaten" : "Speichern",
             ),
           ),
           error: (error, _) => ElevatedButton(
@@ -38,7 +40,7 @@ class AddRecipeButton extends ConsumerWidget {
               fixedSize: const Size(130, 40),
               backgroundColor: Colors.red,
             ),
-            onPressed: () => _handleUpload(context, ref),
+            onPressed: () => _handleUpload(context, ref, existingRecipe),
             child: const Text("Erneut versuchen"),
           ),
           loading: () => const SizedBox(
@@ -53,7 +55,8 @@ class AddRecipeButton extends ConsumerWidget {
     );
   }
 
-  Future<void> _handleUpload(BuildContext context, WidgetRef ref) async {
+  Future<void> _handleUpload(
+      BuildContext context, WidgetRef ref, Recipe? existingRecipe) async {
     final selectedCategory = ref.read(selectedCategoryProvider);
     final selectedPortions = ref.read(selectedPortionsProvider);
     final ingredients = ref.read(ingredientsProvider);
@@ -73,21 +76,29 @@ class AddRecipeButton extends ConsumerWidget {
       );
     } else {
       Recipe recipe = Recipe(
+        id: existingRecipe?.id,
         name: recipeNameController.text,
         //TODO: muss angepasst werden, wenn mehrere kategorien unterstützt werden
         // categories: selectedCategories --> ist eine List<String>
-        categories: [selectedCategory],
+        //categories: selectedCategory,
+        category: selectedCategory,
         portions: selectedPortions,
         ingredients: ingredients,
         instructions: recipeInstructionsController.text,
       );
 
-      await ref.read(recipeUploadProvider.notifier).uploadRecipe(recipe, image);
-
-      for (final category in recipe.categories) {
-        print("now invalidating... for category: $category");
-        ref.invalidate(recipesPaginationProvider(category.toLowerCase()));
+      final recipeRepo = ref.read(recipeUploadProvider.notifier);
+      if (existingRecipe != null) {
+        print("trying to update recipe with id: ${recipe.id}");
+        await recipeRepo.updateRecipe(recipe, image);
+      } else {
+        await recipeRepo.createRecipe(recipe, image);
       }
+
+      // for (final category in recipe.categories) {
+      //   print("now invalidating... for category: $category");
+      ref.invalidate(recipesPaginationProvider(recipe.category.toLowerCase()));
+      //}
       _resetForm(
         recipeNameController: recipeNameController,
         recipeInstructionsController: recipeInstructionsController,

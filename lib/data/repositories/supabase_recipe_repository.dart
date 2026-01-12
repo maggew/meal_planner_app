@@ -1,6 +1,7 @@
 // data/repositories/supabase_recipe_repository.dart
 
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:meal_planner/core/constants/firebase_constants.dart';
 import 'package:meal_planner/data/model/recipe_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -44,8 +45,6 @@ class SupabaseRecipeRepository implements RecipeRepository {
             image, FirebaseConstants.imagePathRecipe);
       }
 
-      print("before recipe insert");
-
       // 2. Recipe einfügen
       await _supabase.from(SupabaseConstants.recipesTable).insert(
             model.toSupabase(
@@ -55,18 +54,16 @@ class SupabaseRecipeRepository implements RecipeRepository {
               imageUrl: imageUrl,
             ),
           );
-      print("after recipe insert");
 
       // 3. Categories speichern
-      await _saveCategories(recipeId, recipe.categories);
+      //await _saveCategories(recipeId, recipe.categories);
+      await _saveCategories(recipeId, [recipe.category]);
 
       // 4. Ingredients speichern
       await _saveIngredients(recipeId, recipe.ingredients);
 
       return recipeId;
     } catch (e) {
-      print("============ in catch of saveRecipe ============");
-      print("Error: $e");
       throw RecipeCreationException(e.toString());
     }
   }
@@ -158,29 +155,20 @@ class SupabaseRecipeRepository implements RecipeRepository {
   @override
   Future<List<Recipe>> getRecipesByCategory(String category) async {
     try {
-      print("=== getRecipesByCategory ===");
-      print("1. category input: $category");
-      print("2. groupId: $_groupId");
       final categoryId = await _getCategoryId(category);
-      print("3. categoryId: $categoryId");
       if (categoryId == null) return [];
 
       final recipeIds = await _getRecipeIdsByCategory(categoryId);
-      print("5. recipeIds: $recipeIds");
       if (recipeIds.isEmpty) return [];
-      print("7. fetching recipes...");
       final response = await _supabase
           .from(SupabaseConstants.recipesTable)
           .select()
           .eq(SupabaseConstants.recipeGroupId, _groupId)
           .inFilter(SupabaseConstants.recipeId, recipeIds)
           .order(SupabaseConstants.recipeCreatedAt, ascending: false);
-      print("8. response: $response");
       return await _mapToRecipes(response as List);
     } catch (e, stackTrace) {
-      print("=== ERROR in getRecipesByCategory ===");
-      print("error: $e");
-      print("stackTrace: $stackTrace");
+      debugPrint("Error: $e\n$stackTrace");
       throw RecipeNotFoundException('Kategorie: $category');
     }
   }
@@ -226,10 +214,21 @@ class SupabaseRecipeRepository implements RecipeRepository {
   // ==================== UPDATE ====================
 
   @override
-  Future<void> updateRecipe(String recipeId, Recipe recipe) async {
+  Future<void> updateRecipe(Recipe recipe, File? newImage) async {
     try {
-      final model = RecipeModel.fromEntity(recipe);
+      final String? recipeId = recipe.id;
+      if (recipeId == null) {
+        throw RecipeUpdateException("Recipe has no ID");
+      }
 
+      String? imageUrl = recipe.imageUrl;
+      if (newImage != null) {
+        imageUrl = await _storage.uploadImage(
+            newImage, FirebaseConstants.imagePathRecipe);
+      }
+      final updatedRecipe = recipe.copyWith(imageUrl: imageUrl);
+
+      final model = RecipeModel.fromEntity(updatedRecipe);
       await _supabase
           .from(SupabaseConstants.recipesTable)
           .update(model.toSupabaseUpdate())
@@ -240,7 +239,8 @@ class SupabaseRecipeRepository implements RecipeRepository {
       await _deleteRecipeIngredients(recipeId);
 
       // Neue einfügen
-      await _saveCategories(recipeId, recipe.categories);
+      //await _saveCategories(recipeId, recipe.categories);
+      await _saveCategories(recipeId, [recipe.category]);
       await _saveIngredients(recipeId, recipe.ingredients);
     } catch (e) {
       throw RecipeUpdateException(e.toString());

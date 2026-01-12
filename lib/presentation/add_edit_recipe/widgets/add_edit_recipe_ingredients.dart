@@ -6,24 +6,29 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
-import 'package:meal_planner/presentation/add_recipe/widgets/add_recipe_ingredient_row.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_ingredient_row.dart';
 import 'package:meal_planner/presentation/common/loading_overlay.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_analysis_provider.dart';
 
-class AddRecipeIngredients extends ConsumerStatefulWidget {
-  const AddRecipeIngredients({
+class AddEditRecipeIngredients extends ConsumerStatefulWidget {
+  final List<Ingredient>? initialIngredients;
+  const AddEditRecipeIngredients({
     super.key,
+    this.initialIngredients,
   });
   @override
-  ConsumerState<AddRecipeIngredients> createState() => _AddRecipeIngredients();
+  ConsumerState<AddEditRecipeIngredients> createState() =>
+      _AddRecipeIngredients();
 }
 
-class _AddRecipeIngredients extends ConsumerState<AddRecipeIngredients> {
+class _AddRecipeIngredients extends ConsumerState<AddEditRecipeIngredients> {
   final Map<int, DropdownController<Unit>> dropdownControllers = {};
   final Map<int, TextEditingController> amountControllers = {};
   final Map<int, TextEditingController> ingredientNameControllers = {};
+
+  bool _isInitialized = false;
 
   DropdownController<Unit> _getOrCreateDropdownController(int index) {
     if (!dropdownControllers.containsKey(index)) {
@@ -32,18 +37,20 @@ class _AddRecipeIngredients extends ConsumerState<AddRecipeIngredients> {
     return dropdownControllers[index]!;
   }
 
-  TextEditingController _getAmountController(int index) {
+  TextEditingController _getAmountController(int index, Ingredient ingredient) {
     if (!amountControllers.containsKey(index)) {
       amountControllers[index] = TextEditingController(
-        text: '',
+        text: ingredient.amount > 0 ? ingredient.amount.toString() : "",
       );
     }
     return amountControllers[index]!;
   }
 
-  TextEditingController _getIngredientNameController(int index) {
+  TextEditingController _getIngredientNameController(
+      int index, Ingredient ingredient) {
     if (!ingredientNameControllers.containsKey(index)) {
-      ingredientNameControllers[index] = TextEditingController(text: null);
+      ingredientNameControllers[index] =
+          TextEditingController(text: ingredient.name);
     }
     return ingredientNameControllers[index]!;
   }
@@ -57,14 +64,32 @@ class _AddRecipeIngredients extends ConsumerState<AddRecipeIngredients> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final ingredients = ref.watch(ingredientsProvider);
+  void initState() {
+    super.initState();
 
-    if (ingredients.isEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(ingredientsProvider.notifier).addIngredient();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final notifier = ref.read(ingredientsProvider.notifier);
+      notifier.clear();
+
+      if (widget.initialIngredients != null &&
+          widget.initialIngredients!.isNotEmpty) {
+        notifier.setIngredients(widget.initialIngredients!);
+      } else {
+        notifier.addIngredient();
+      }
+
+      setState(() {
+        _isInitialized = true; // ← Jetzt erst rendern
       });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isInitialized) {
+      return SizedBox(height: 300); // Platzhalter
     }
+    final ingredients = ref.watch(ingredientsProvider);
     final List<CoolDropdownItem<Unit>> unitDropdownItems =
         getUnitDropdownItems();
 
@@ -174,10 +199,11 @@ class _AddRecipeIngredients extends ConsumerState<AddRecipeIngredients> {
                         unitDropdownController:
                             _getOrCreateDropdownController(index),
                         dropdownControllerMap: dropdownControllers,
-                        amountController: _getAmountController(index),
+                        amountController:
+                            _getAmountController(index, ingredient),
                         amountControllerMap: amountControllers,
                         ingredientNameController:
-                            _getIngredientNameController(index),
+                            _getIngredientNameController(index, ingredient),
                         ingredientNameControllerMap: ingredientNameControllers,
                       );
                     }).toList(),

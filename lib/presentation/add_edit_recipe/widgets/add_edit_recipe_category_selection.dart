@@ -5,21 +5,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/common/categories.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
 
-class AddRecipeCategorySelection extends ConsumerStatefulWidget {
+class AddEditRecipeCategorySelection extends ConsumerStatefulWidget {
   final DropdownController categoryDropdownController;
+  final String? initialCategory;
 
-  const AddRecipeCategorySelection({
+  const AddEditRecipeCategorySelection({
     super.key,
     required this.categoryDropdownController,
+    this.initialCategory,
   });
 
   @override
-  ConsumerState<AddRecipeCategorySelection> createState() =>
+  ConsumerState<AddEditRecipeCategorySelection> createState() =>
       _AddRecipeCategorySelection();
 }
 
 class _AddRecipeCategorySelection
-    extends ConsumerState<AddRecipeCategorySelection> {
+    extends ConsumerState<AddEditRecipeCategorySelection> {
   @override
   Widget build(BuildContext context) {
     List<CoolDropdownItem<dynamic>> categoryDropdownItems =
@@ -34,10 +36,14 @@ class _AddRecipeCategorySelection
         SizedBox(height: 10),
         CoolDropdown(
           dropdownList: categoryDropdownItems,
-          defaultItem: categoryDropdownItems[0],
+          defaultItem: categoryDropdownItems.firstWhere(
+              (category) =>
+                  category.value.toString().toLowerCase() ==
+                  widget.initialCategory?.toLowerCase(),
+              orElse: () => categoryDropdownItems[0]),
           dropdownOptions: DropdownOptions(height: 290),
           onChange: (v) {
-            ref.read(selectedCategoryProvider.notifier).state = v;
+            ref.read(selectedCategoryProvider.notifier).state = v.value;
             widget.categoryDropdownController.close();
           },
           controller: widget.categoryDropdownController,

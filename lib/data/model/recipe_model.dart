@@ -6,7 +6,8 @@ class RecipeModel extends Recipe {
   RecipeModel({
     super.id,
     required super.name,
-    required super.categories,
+    //required super.categories,
+    required super.category,
     required super.portions,
     required super.ingredients,
     required super.instructions,
@@ -49,7 +50,8 @@ class RecipeModel extends Recipe {
     return RecipeModel(
       id: data[SupabaseConstants.recipeId] as String,
       name: data[SupabaseConstants.recipeTitle] as String? ?? '',
-      categories: categories,
+      //categories: categories,
+      category: categories.first,
       portions: data[SupabaseConstants.recipePortions] as int? ?? 4,
       ingredients: ingredients,
       instructions: data[SupabaseConstants.recipeInstructions] as String? ?? '',
@@ -64,7 +66,8 @@ class RecipeModel extends Recipe {
     return RecipeModel(
       id: recipe.id,
       name: recipe.name,
-      categories: recipe.categories,
+      category: recipe.category,
+      //categories: recipe.categories,
       portions: recipe.portions,
       ingredients: recipe.ingredients,
       instructions: recipe.instructions,
@@ -77,7 +80,8 @@ class RecipeModel extends Recipe {
     return Recipe(
       id: id,
       name: name,
-      categories: categories,
+      //categories: categories,
+      category: category,
       portions: portions,
       ingredients: ingredients,
       instructions: instructions,

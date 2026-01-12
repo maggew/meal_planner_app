@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_analysis_provider.dart';
 
-class AddRecipeProcessImage extends ConsumerWidget {
+class AddEditRecipeProcessImage extends ConsumerWidget {
   final File image;
-  const AddRecipeProcessImage({super.key, required this.image});
+  const AddEditRecipeProcessImage({super.key, required this.image});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

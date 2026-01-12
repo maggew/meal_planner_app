@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
+import 'package:meal_planner/domain/exceptions/recipe_exceptions.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -50,16 +52,14 @@ class RecipesPagination extends _$RecipesPagination {
   }
 
   Future<void> loadMore() async {
-    print("state in beginning: ${state.recipes}");
-    print("state in beginning: ${state.isLoading}");
-    print("state in beginning: ${state.hasMore}");
     if (state.isLoading || !state.hasMore) {
-      print("state ist empty");
       return;
     }
 
     state = state.copyWith(isLoading: true, error: null);
-    print("state: $state");
+    List<Recipe> newRecipes = [];
+    String? error;
+    bool? hasMore;
 
     try {
       final recipeRepo = ref.read(recipeRepositoryProvider);
@@ -67,27 +67,21 @@ class RecipesPagination extends _$RecipesPagination {
       final allRecipes =
           await recipeRepo.getRecipesByCategory(_currentCategory!);
 
-      print(allRecipes);
-
       final offset = state.recipes.length;
-      print(offset);
-      final newRecipes = allRecipes.skip(offset).take(recipesPerPage).toList();
-      print(newRecipes);
+      newRecipes = allRecipes.skip(offset).take(recipesPerPage).toList();
 
-      final hasMore = newRecipes.length == recipesPerPage;
-      print(hasMore);
-
+      hasMore = newRecipes.length == recipesPerPage;
+    } on RecipeNotFoundException catch (e) {
+      error = e.toString();
+    } catch (e, stacktrace) {
+      debugPrint("error: $e\n$stacktrace");
+      error = e.toString();
+    } finally {
       state = state.copyWith(
         recipes: [...state.recipes, ...newRecipes],
         isLoading: false,
-        hasMore: hasMore,
-      );
-    } catch (e, stacktrace) {
-      print("error: $e");
-      print("stacktrace: $stacktrace");
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
+        hasMore: hasMore ?? state.hasMore,
+        error: error,
       );
     }
   }

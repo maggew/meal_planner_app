@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:meal_planner/domain/exceptions/recipe_exceptions.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
@@ -11,12 +12,20 @@ class RecipeUpload extends _$RecipeUpload {
     return const AsyncValue.data(null);
   }
 
-  Future<void> uploadRecipe(Recipe recipe, File? image) async {
+  Future<void> createRecipe(Recipe recipe, File? image) async {
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
       final recipeRepo = ref.read(recipeRepositoryProvider);
       await recipeRepo.saveRecipe(recipe, image);
+    });
+  }
+
+  Future<void> updateRecipe(Recipe recipe, File? image) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final recipeRepo = ref.read(recipeRepositoryProvider);
+      await recipeRepo.updateRecipe(recipe, image);
     });
   }
 }
