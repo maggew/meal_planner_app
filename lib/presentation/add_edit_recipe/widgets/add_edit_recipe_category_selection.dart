@@ -43,7 +43,6 @@ class _AddRecipeCategorySelection
               orElse: () => categoryDropdownItems[0]),
           dropdownOptions: DropdownOptions(height: 290),
           onChange: (v) {
-            print('onChange triggered: $v}');
             ref.read(selectedCategoryProvider.notifier).state = v;
             widget.categoryDropdownController.close();
           },

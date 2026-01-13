@@ -8,6 +8,7 @@ class ShowRecipeOverviewDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final int ingredientListLength = recipe.ingredients.length;
     return Container(
       margin: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 10),
       padding: EdgeInsets.all(10),
@@ -40,23 +41,27 @@ class ShowRecipeOverviewDetails extends StatelessWidget {
           ListView.builder(
               physics: NeverScrollableScrollPhysics(),
               shrinkWrap: true,
-              itemCount: recipe.ingredients.length,
+              itemCount: ingredientListLength,
               itemBuilder: (BuildContext context, int index) {
                 final ingredient = recipe.ingredients[index];
                 return Column(
                   children: [
-                    SizedBox(height: 5),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         SizedBox(
                             width: 75,
                             child: Text(
                                 "${ingredient.amount.toDisplayString()} ${ingredient.unit.displayName}")),
-                        Text(ingredient.name),
+                        Expanded(child: Text(ingredient.name)),
                       ],
                     ),
-                    SizedBox(height: 5),
+                    if (index != ingredientListLength - 1) ...[
+                      Divider(
+                        thickness: 2,
+                      ),
+                    ],
                   ],
                 );
               }),

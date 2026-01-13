@@ -1,4 +1,5 @@
 // lib/data/models/ingredient_model.dart
+import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
 
@@ -10,25 +11,18 @@ class IngredientModel extends Ingredient {
     required super.amount,
   });
 
-  /// Firestore → Model
-  factory IngredientModel.fromFirestore(Map<String, dynamic> data) {
-    print("==============================================");
-    print("amount type: ${data['amount'].runtimeType}");
-    print("==============================================");
+  /// Supabase → Model
+  factory IngredientModel.fromSupabase(Map<String, dynamic> data) {
     return IngredientModel(
-      name: data['name'] as String? ?? '',
-      unit: _parseUnit(data['unit']),
-      amount: (data['amount'] as num?)?.toDouble() ?? 0,
+      name: data[SupabaseConstants.ingredientsTable]
+              ?[SupabaseConstants.ingredientName] as String? ??
+          '',
+      unit: _parseUnit(data[SupabaseConstants.recipeIngredientUnit]),
+      amount: double.tryParse(
+              data[SupabaseConstants.recipeIngredientAmount]?.toString() ??
+                  '0') ??
+          0,
     );
-  }
-
-  /// Model → Firestore
-  Map<String, dynamic> toFirestore() {
-    return {
-      'name': name,
-      'unit': unit.name, // Enum.name für Konsistenz
-      'amount': amount,
-    };
   }
 
   /// Entity → Model
@@ -49,7 +43,7 @@ class IngredientModel extends Ingredient {
     );
   }
 
-  /// Helper: Unit aus Firestore parsen (robust)
+  /// Helper: Unit aus supabase parsen
   static Unit _parseUnit(dynamic unitValue) {
     if (unitValue == null) return Unit.GRAMM;
 

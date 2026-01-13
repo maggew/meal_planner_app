@@ -64,16 +64,12 @@ class RecipeAnalysis extends _$RecipeAnalysis {
     final recognizedText = await textRecognizer.processImage(inputImage);
     await textRecognizer.close();
 
-    print("=== OCR RESULTS ===");
-    print("recognizedText.text: ${recognizedText.text}");
-
     late ExtractionResult recipeData;
     if (isIngredientImage) {
       recipeData = RecipeExtractor.extractRecipeIngredients(recognizedText);
       return AnalyzedRecipeData(ingredients: recipeData.ingredients);
     } else {
       recipeData = RecipeExtractor.extractRecipeInstructions(recognizedText);
-      print("recipeData.instructions: ${recipeData.instructions}");
       return AnalyzedRecipeData(instructions: recipeData.instructions);
     }
   }

@@ -42,7 +42,6 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
   Widget build(BuildContext context) {
     final paginationState =
         ref.watch(recipesPaginationProvider(widget.category));
-    print("übergebene category: ${widget.category}");
 
     return Container(
       color: Colors.lightGreen[100],
@@ -50,7 +49,6 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
       padding: const EdgeInsets.only(top: 5, left: 5),
       child: RefreshIndicator(
         onRefresh: () async {
-          print('📱 WIDGET: RefreshIndicator triggered');
           ref
               .read(recipesPaginationProvider(widget.category).notifier)
               .refresh();

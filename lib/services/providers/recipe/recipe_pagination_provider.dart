@@ -42,10 +42,7 @@ class RecipesPagination extends _$RecipesPagination {
 
   RecipesPaginationState build(String category) {
     _currentCategory = category;
-    print("before microtask");
-    print("currentCategory: $_currentCategory");
     Future.microtask(() {
-      print("in microtask");
       loadMore();
     });
     return const RecipesPaginationState();

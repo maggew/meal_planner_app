@@ -34,10 +34,6 @@ class _AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
 
     final recipe = widget.existingRecipe;
 
-    print(" === INIT BODY ===");
-    print("recipe: $recipe");
-    print("recipe?.instructions: ${recipe?.instructions}");
-
     _recipeNameController = TextEditingController(text: recipe?.name ?? "");
     _recipeInstructionsController =
         TextEditingController(text: recipe?.instructions ?? "");

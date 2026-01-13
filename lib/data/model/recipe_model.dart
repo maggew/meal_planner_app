@@ -1,4 +1,5 @@
 import 'package:meal_planner/core/constants/supabase_constants.dart';
+import 'package:meal_planner/data/model/ingredient_model.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 
@@ -59,6 +60,37 @@ class RecipeModel extends Recipe {
       createdAt: data[SupabaseConstants.recipeCreatedAt] != null
           ? DateTime.parse(data[SupabaseConstants.recipeCreatedAt])
           : DateTime.now(),
+    );
+  }
+
+  factory RecipeModel.fromSupabaseWithRelations(Map<String, dynamic> data) {
+    // Categories extrahieren
+    final categoriesData =
+        data[SupabaseConstants.recipeCategoriesTable] as List? ?? [];
+    final categories = categoriesData
+        .map((recipeCategory) =>
+            recipeCategory[SupabaseConstants.categoriesTable]
+                ?[SupabaseConstants.categoryName] as String?)
+        .where((name) => name != null)
+        .cast<String>()
+        .toList();
+
+    // Ingredients extrahieren
+    final ingredientsData =
+        data[SupabaseConstants.recipeIngredientsTable] as List? ?? [];
+    final ingredients = ingredientsData
+        .map((recipeIngredient) =>
+            IngredientModel.fromSupabase(recipeIngredient))
+        .toList();
+
+    return RecipeModel(
+      id: data[SupabaseConstants.recipeId] as String?,
+      name: data[SupabaseConstants.recipeTitle] as String? ?? '',
+      instructions: data[SupabaseConstants.recipeInstructions] as String? ?? '',
+      imageUrl: data[SupabaseConstants.recipeImageUrl] as String?,
+      portions: data[SupabaseConstants.recipePortions] as int? ?? 4,
+      category: categories.isNotEmpty ? categories.first : '',
+      ingredients: ingredients,
     );
   }
 

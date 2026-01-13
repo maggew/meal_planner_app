@@ -3,6 +3,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:meal_planner/core/constants/firebase_constants.dart';
+import 'package:meal_planner/data/model/ingredient_model.dart';
 import 'package:meal_planner/data/model/recipe_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:meal_planner/core/constants/supabase_constants.dart';
@@ -140,13 +141,17 @@ class SupabaseRecipeRepository implements RecipeRepository {
     try {
       final response = await _supabase
           .from(SupabaseConstants.recipesTable)
-          .select()
+          .select('''
+          *,
+          recipe_categories(categories(name)),
+          recipe_ingredients(amount, unit, ingredients(name))
+        ''')
           .eq(SupabaseConstants.recipeId, recipeId)
+          .eq(SupabaseConstants.recipeGroupId, _groupId)
           .maybeSingle();
 
       if (response == null) return null;
-
-      return await _mapToRecipe(response);
+      return RecipeModel.fromSupabaseWithRelations(response);
     } catch (e) {
       throw RecipeNotFoundException(recipeId);
     }
@@ -155,18 +160,20 @@ class SupabaseRecipeRepository implements RecipeRepository {
   @override
   Future<List<Recipe>> getRecipesByCategory(String category) async {
     try {
-      final categoryId = await _getCategoryId(category);
-      if (categoryId == null) return [];
-
-      final recipeIds = await _getRecipeIdsByCategory(categoryId);
-      if (recipeIds.isEmpty) return [];
       final response = await _supabase
           .from(SupabaseConstants.recipesTable)
-          .select()
+          .select('''
+          *,
+          recipe_categories!inner(categories!inner(name)),
+          recipe_ingredients(amount, unit, ingredients(name))
+        ''')
           .eq(SupabaseConstants.recipeGroupId, _groupId)
-          .inFilter(SupabaseConstants.recipeId, recipeIds)
+          .eq('recipe_categories.categories.name', category.toLowerCase())
           .order(SupabaseConstants.recipeCreatedAt, ascending: false);
-      return await _mapToRecipes(response as List);
+
+      return (response as List)
+          .map((data) => RecipeModel.fromSupabaseWithRelations(data))
+          .toList();
     } catch (e, stackTrace) {
       debugPrint("Error: $e\n$stackTrace");
       throw RecipeNotFoundException('Kategorie: $category');
@@ -176,21 +183,23 @@ class SupabaseRecipeRepository implements RecipeRepository {
   @override
   Future<List<Recipe>> getRecipesByCategories(List<String> categories) async {
     try {
-      final categoryIds = await _getCategoryIds(categories);
-      if (categoryIds.isEmpty) return [];
-
-      final recipeIds = await _getRecipeIdsByCategories(categoryIds);
-      if (recipeIds.isEmpty) return [];
-
       final response = await _supabase
           .from(SupabaseConstants.recipesTable)
-          .select()
+          .select('''
+          *,
+          recipe_categories!inner(categories!inner(name)),
+          recipe_ingredients(amount, unit, ingredients(name))
+        ''')
           .eq(SupabaseConstants.recipeGroupId, _groupId)
-          .inFilter(SupabaseConstants.recipeId, recipeIds)
+          .inFilter('recipe_categories.categories.name',
+              categories.map((c) => c.toLowerCase()).toList())
           .order(SupabaseConstants.recipeCreatedAt, ascending: false);
 
-      return await _mapToRecipes(response as List);
-    } catch (e) {
+      return (response as List)
+          .map((data) => RecipeModel.fromSupabaseWithRelations(data))
+          .toList();
+    } catch (e, stackTrace) {
+      debugPrint("Error: $e\n$stackTrace");
       throw RecipeNotFoundException('Kategorien: $categories');
     }
   }
@@ -277,110 +286,6 @@ class SupabaseRecipeRepository implements RecipeRepository {
   }
 
   // ==================== PRIVATE HELPERS ====================
-
-  Future<String?> _getCategoryId(String category) async {
-    final response = await _supabase
-        .from(SupabaseConstants.categoriesTable)
-        .select(SupabaseConstants.categoryId)
-        .eq(SupabaseConstants.categoryName, category.toLowerCase())
-        .maybeSingle();
-
-    return response?[SupabaseConstants.categoryId] as String?;
-  }
-
-  Future<List<String>> _getCategoryIds(List<String> categories) async {
-    final response = await _supabase
-        .from(SupabaseConstants.categoriesTable)
-        .select(SupabaseConstants.categoryId)
-        .inFilter(
-          SupabaseConstants.categoryName,
-          categories.map((c) => c.toLowerCase()).toList(),
-        );
-
-    return (response as List)
-        .map((c) => c[SupabaseConstants.categoryId] as String)
-        .toList();
-  }
-
-  Future<List<String>> _getRecipeIdsByCategory(String categoryId) async {
-    final response = await _supabase
-        .from(SupabaseConstants.recipeCategoriesTable)
-        .select(SupabaseConstants.recipeCategoryRecipeId)
-        .eq(SupabaseConstants.recipeCategoryCategoryId, categoryId);
-
-    return (response as List)
-        .map((rc) => rc[SupabaseConstants.recipeCategoryRecipeId] as String)
-        .toList();
-  }
-
-  Future<List<String>> _getRecipeIdsByCategories(
-      List<String> categoryIds) async {
-    final response = await _supabase
-        .from(SupabaseConstants.recipeCategoriesTable)
-        .select(SupabaseConstants.recipeCategoryRecipeId)
-        .inFilter(SupabaseConstants.recipeCategoryCategoryId, categoryIds);
-
-    return (response as List)
-        .map((rc) => rc[SupabaseConstants.recipeCategoryRecipeId] as String)
-        .toSet()
-        .toList();
-  }
-
-  Future<List<String>> _getCategoriesForRecipe(String recipeId) async {
-    final response = await _supabase
-        .from(SupabaseConstants.recipeCategoriesTable)
-        .select(
-            '${SupabaseConstants.categoriesTable}(${SupabaseConstants.categoryName})')
-        .eq(SupabaseConstants.recipeCategoryRecipeId, recipeId);
-
-    return (response as List)
-        .map((data) => data[SupabaseConstants.categoriesTable]
-            [SupabaseConstants.categoryName] as String)
-        .toList();
-  }
-
-  Future<List<Ingredient>> _getIngredientsForRecipe(String recipeId) async {
-    final response = await _supabase
-        .from(SupabaseConstants.recipeIngredientsTable)
-        .select(
-          '${SupabaseConstants.recipeIngredientAmount}, '
-          '${SupabaseConstants.recipeIngredientUnit}, '
-          '${SupabaseConstants.ingredientsTable}(${SupabaseConstants.ingredientName})',
-        )
-        .eq(SupabaseConstants.recipeIngredientRecipeId, recipeId);
-
-    return (response as List).map((data) {
-      return Ingredient(
-        name: data[SupabaseConstants.ingredientsTable]
-            [SupabaseConstants.ingredientName] as String,
-        amount: double.tryParse(
-                data[SupabaseConstants.recipeIngredientAmount].toString()) ??
-            0,
-        unit: UnitParser.parse(data[SupabaseConstants.recipeIngredientUnit]) ??
-            Unit.GRAMM,
-      );
-    }).toList();
-  }
-
-  Future<Recipe> _mapToRecipe(Map<String, dynamic> data) async {
-    final recipeId = data[SupabaseConstants.recipeId] as String;
-    final ingredients = await _getIngredientsForRecipe(recipeId);
-    final categories = await _getCategoriesForRecipe(recipeId);
-
-    return RecipeModel.fromSupabase(
-      data,
-      ingredients: ingredients,
-      categories: categories,
-    );
-  }
-
-  Future<List<Recipe>> _mapToRecipes(List<dynamic> data) async {
-    final recipes = <Recipe>[];
-    for (final item in data) {
-      recipes.add(await _mapToRecipe(item));
-    }
-    return recipes;
-  }
 
   Future<void> _deleteRecipeCategories(String recipeId) async {
     await _supabase
