@@ -12,7 +12,7 @@ class AddEditRecipeCategorySelection extends ConsumerStatefulWidget {
   const AddEditRecipeCategorySelection({
     super.key,
     required this.categoryDropdownController,
-    this.initialCategory,
+    required this.initialCategory,
   });
 
   @override
@@ -43,7 +43,8 @@ class _AddRecipeCategorySelection
               orElse: () => categoryDropdownItems[0]),
           dropdownOptions: DropdownOptions(height: 290),
           onChange: (v) {
-            ref.read(selectedCategoryProvider.notifier).state = v.value;
+            print('onChange triggered: $v}');
+            ref.read(selectedCategoryProvider.notifier).state = v;
             widget.categoryDropdownController.close();
           },
           controller: widget.categoryDropdownController,

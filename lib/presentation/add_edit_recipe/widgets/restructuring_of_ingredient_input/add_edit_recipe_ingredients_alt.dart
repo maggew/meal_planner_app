@@ -1,29 +1,30 @@
-import 'package:cool_dropdown/cool_dropdown.dart';
+import 'package:cool_dropdown/controllers/dropdown_controller.dart';
 import 'package:cool_dropdown/models/cool_dropdown_item.dart';
-import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
-import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_ingredient_row.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/restructuring_of_ingredient_input/add_edit_recipe_igredient_listview_item.dart';
 import 'package:meal_planner/presentation/common/loading_overlay.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_analysis_provider.dart';
 
-class AddEditRecipeIngredients extends ConsumerStatefulWidget {
+class AddEditRecipeIngredientsAlt extends ConsumerStatefulWidget {
   final List<Ingredient>? initialIngredients;
-  const AddEditRecipeIngredients({
-    super.key,
-    this.initialIngredients,
-  });
+  const AddEditRecipeIngredientsAlt(
+      {super.key, required this.initialIngredients});
+
+  bool get isEditMode => initialIngredients != null;
+
   @override
-  ConsumerState<AddEditRecipeIngredients> createState() =>
-      _AddRecipeIngredients();
+  ConsumerState<AddEditRecipeIngredientsAlt> createState() =>
+      _AddEditRecipeIngredientsAltState();
 }
 
-class _AddRecipeIngredients extends ConsumerState<AddEditRecipeIngredients> {
+class _AddEditRecipeIngredientsAltState
+    extends ConsumerState<AddEditRecipeIngredientsAlt> {
   final Map<int, DropdownController<Unit>> dropdownControllers = {};
   final Map<int, TextEditingController> amountControllers = {};
   final Map<int, TextEditingController> ingredientNameControllers = {};
@@ -84,16 +85,25 @@ class _AddRecipeIngredients extends ConsumerState<AddEditRecipeIngredients> {
     });
   }
 
+  void _clearAllControllers() {
+    amountControllers.values.forEach((c) => c.dispose());
+    ingredientNameControllers.values.forEach((c) => c.dispose());
+    dropdownControllers.values.forEach((c) => c.dispose());
+    amountControllers.clear();
+    ingredientNameControllers.clear();
+    dropdownControllers.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_isInitialized) {
       return SizedBox(height: 300); // Platzhalter
     }
+
     final ingredients = ref.watch(ingredientsProvider);
     final List<CoolDropdownItem<Unit>> unitDropdownItems =
         getUnitDropdownItems();
 
-    // Reagiere auf neues Analyse-Bild
     ref.listen(imageManagerProvider, (previous, next) {
       final image = next.ingredientsImage;
       if (image != null && image != previous?.ingredientsImage) {
@@ -153,87 +163,41 @@ class _AddRecipeIngredients extends ConsumerState<AddEditRecipeIngredients> {
         SizedBox(height: 10),
         LoadingOverlay(
           isLoading: isAnalyzing,
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.blueGrey, width: 1.5),
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(3)),
-            ),
-            width: MediaQuery.of(context).size.width,
-            height: 300,
-            child: Column(
-              children: [
-                Expanded(
-                  child: DataTable2(
-                    horizontalMargin: 10,
-                    dividerThickness: 2,
-                    columnSpacing: 12,
-                    isVerticalScrollBarVisible: true,
-                    columns: [
-                      DataColumn2(
-                        label: Text('Zutat'),
-                        size: ColumnSize.L,
-                      ),
-                      DataColumn2(
-                        label: Text('Menge'),
-                        size: ColumnSize.L,
-                      ),
-                      DataColumn2(
-                        label: Text('Einheit'),
-                        size: ColumnSize.M,
-                      ),
-                      DataColumn2(
-                        label: Text(''),
-                        size: ColumnSize.S,
-                      ),
-                    ],
-                    rows: ingredients.asMap().entries.map((entry) {
-                      int index = entry.key;
-                      Ingredient ingredient = entry.value;
-                      return buildIngredientRow(
-                        index: index,
-                        ingredient: ingredient,
-                        unitDropdownItems: unitDropdownItems,
-                        ref: ref,
-                        unitDropdownController:
-                            _getOrCreateDropdownController(index),
-                        dropdownControllerMap: dropdownControllers,
-                        amountController:
-                            _getAmountController(index, ingredient),
-                        amountControllerMap: amountControllers,
-                        ingredientNameController:
-                            _getIngredientNameController(index, ingredient),
-                        ingredientNameControllerMap: ingredientNameControllers,
-                      );
-                    }).toList(),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(10),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        ref.read(ingredientsProvider.notifier).addIngredient();
-                      },
-                      icon: Icon(Icons.add),
-                      label: Text('Zutat hinzufügen'),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          child: ListView.builder(
+            shrinkWrap: true,
+            primary: false,
+            itemCount: ingredients.length,
+            // itemCount: widget.isEditMode
+            //     ? ingredients.length
+            //     : ingredientNameControllers.length,
+            itemBuilder: (context, index) {
+              final Ingredient ingredient = ingredients[index];
+              return AddEditRecipeIgredientListviewItem(
+                index: index,
+                amountController: _getAmountController(index, ingredient),
+                ingredient: ingredient,
+                ingredientNameController:
+                    _getIngredientNameController(index, ingredient),
+                unitDropdownItems: unitDropdownItems,
+                unitDropdownController: _getOrCreateDropdownController(index),
+                onDelete: () {
+                  ref
+                      .read(ingredientsProvider.notifier)
+                      .deleteIngredient(index);
+                  _clearAllControllers();
+                },
+              );
+            },
           ),
+        ),
+        ElevatedButton.icon(
+          onPressed: () {
+            ref.read(ingredientsProvider.notifier).addIngredient();
+          },
+          icon: Icon(Icons.add),
+          label: Text('Zutat hinzufügen'),
         ),
       ],
     );
   }
-}
-
-List<CoolDropdownItem<Unit>> getUnitDropdownItems() {
-  List<CoolDropdownItem<Unit>> out = [];
-  for (Unit unit in Unit.values) {
-    out.add(CoolDropdownItem(label: unit.displayName, value: unit));
-  }
-  return out;
 }

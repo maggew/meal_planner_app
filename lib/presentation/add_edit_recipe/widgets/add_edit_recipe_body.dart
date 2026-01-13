@@ -9,6 +9,7 @@ import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recip
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_picture.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_portion_selection.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_recipe_name_textformfield.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/restructuring_of_ingredient_input/add_edit_recipe_ingredients_alt.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
 
 class AddEditRecipeBody extends ConsumerStatefulWidget {
@@ -32,6 +33,10 @@ class _AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
     super.initState();
 
     final recipe = widget.existingRecipe;
+
+    print(" === INIT BODY ===");
+    print("recipe: $recipe");
+    print("recipe?.instructions: ${recipe?.instructions}");
 
     _recipeNameController = TextEditingController(text: recipe?.name ?? "");
     _recipeInstructionsController =
@@ -82,10 +87,14 @@ class _AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
             initialPortions: widget.existingRecipe?.portions,
           ),
           SizedBox(height: 30),
-          AddEditRecipeIngredients(
+          AddEditRecipeIngredientsAlt(
             key: ValueKey(widget.existingRecipe?.id),
             initialIngredients: widget.existingRecipe?.ingredients,
           ),
+          // AddEditRecipeIngredients(
+          //   key: ValueKey(widget.existingRecipe?.id),
+          //   initialIngredients: widget.existingRecipe?.ingredients,
+          // ),
           SizedBox(height: 30),
           AddEditRecipeInstructions(
             recipeInstructionsController: _recipeInstructionsController,

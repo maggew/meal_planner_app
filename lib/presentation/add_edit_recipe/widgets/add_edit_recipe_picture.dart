@@ -8,7 +8,7 @@ class AddEditRecipePicture extends ConsumerStatefulWidget {
 
   const AddEditRecipePicture({
     super.key,
-    this.existingImageUrl,
+    required this.existingImageUrl,
   });
 
   @override
@@ -144,4 +144,3 @@ class _AddRecipePictureState extends ConsumerState<AddEditRecipePicture> {
     return SizedBox.shrink();
   }
 }
-

@@ -21,9 +21,16 @@ class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
   Widget build(BuildContext context) {
     ref.listen(recipeAnalysisProvider, (previous, next) {
       next.whenData((data) {
+        print("=== ANALYSIS RESULT ===");
+        print("data: $data");
+        print("data?.instructions: ${data?.instructions}");
         if (data != null && data.instructions != null) {
+          print("Setting instructinos to controller...");
+          print(
+              "Controller text BEFORE: ${widget.recipeInstructionsController.text}");
           widget.recipeInstructionsController.text += data.instructions!;
-
+          print(
+              "Controller text AFTER: ${widget.recipeInstructionsController.text}");
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('✓ Anleitung erfolgreich analysiert!'),
@@ -76,7 +83,6 @@ class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
         SizedBox(height: 10),
         LoadingOverlay(
           isLoading: isAnalyzing,
-          height: 300,
           child: Container(
             decoration: BoxDecoration(
               border: Border.all(color: Colors.blueGrey, width: 1.5),

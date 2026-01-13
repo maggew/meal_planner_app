@@ -34,35 +34,7 @@ class RecipeExtractor {
     if (lines.isEmpty) {
       return ExtractionResult();
     }
-    List<String> steps = [];
-    StringBuffer currentStep = StringBuffer();
-
-    for (int i = 0; i < lines.length; i++) {
-      String line = lines[i].trim();
-
-      // Neue Schritt-Nummer gefunden
-      if (line.startsWith(RegExp(r'^\d+\.'))) {
-        // Vorherigen Schritt speichern
-        if (currentStep.isNotEmpty) {
-          steps.add(currentStep.toString().trim());
-          currentStep.clear();
-        }
-
-        // Neuen Schritt beginnen
-        currentStep.write(line);
-      } else if (currentStep.isNotEmpty) {
-        // Fortsetzung des aktuellen Schritts
-        currentStep.write(' ');
-        currentStep.write(line);
-      }
-    }
-
-    // Letzten Schritt speichern
-    if (currentStep.isNotEmpty) {
-      steps.add(currentStep.toString().trim());
-    }
-
-    return ExtractionResult(instructions: steps.join("\n\n"));
+    return ExtractionResult(instructions: lines.join(" "));
   }
 
   static String _normalizeIngredientText(String text) {
