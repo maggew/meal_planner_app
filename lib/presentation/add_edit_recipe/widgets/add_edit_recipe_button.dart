@@ -28,7 +28,7 @@ class AddEditRecipeButton extends ConsumerWidget {
         uploadState.when(
           data: (_) => ElevatedButton(
             style: ElevatedButton.styleFrom(
-              fixedSize: Size(130, 40),
+              minimumSize: Size(100, 40),
             ),
             onPressed: () => _handleUpload(context, ref, existingRecipe),
             child: Text(
@@ -37,15 +37,15 @@ class AddEditRecipeButton extends ConsumerWidget {
           ),
           error: (error, _) => ElevatedButton(
             style: ElevatedButton.styleFrom(
-              fixedSize: const Size(130, 40),
+              minimumSize: Size(100, 40),
               backgroundColor: Colors.red,
             ),
             onPressed: () => _handleUpload(context, ref, existingRecipe),
             child: const Text("Erneut versuchen"),
           ),
           loading: () => const SizedBox(
-            width: 130,
             height: 40,
+            width: 100,
             child: Center(
               child: CircularProgressIndicator(),
             ),

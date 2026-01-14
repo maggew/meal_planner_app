@@ -18,7 +18,7 @@ class ShowRecipePage extends StatefulWidget {
 }
 
 class _ShowRecipePageState extends State<ShowRecipePage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -35,20 +35,21 @@ class _ShowRecipePageState extends State<ShowRecipePage>
 
   @override
   Widget build(BuildContext context) {
-    return AppBackground(
-        scaffoldAppBar: ShowRecipeAppbar(recipe: widget.recipe),
-        scaffoldBottomNavigationBar: ShowRecipeBottomNavigationBar(
-          tabController: _tabController,
-        ),
-        scaffoldBody: TabBarView(
-          controller: _tabController,
-          children: [
-            ShowRecipeOverview(
-              recipe: widget.recipe,
-              image: widget.image,
-            ),
-            ShowRecipeCookingMode(recipe: widget.recipe),
-          ],
-        ));
+    return DefaultTabController(
+      length: 2,
+      child: AppBackground(
+          scaffoldAppBar: ShowRecipeAppbar(recipe: widget.recipe),
+          scaffoldBottomNavigationBar: ShowRecipeBottomNavigationBar(),
+          scaffoldBody: TabBarView(
+            physics: NeverScrollableScrollPhysics(),
+            children: [
+              ShowRecipeOverview(
+                recipe: widget.recipe,
+                image: widget.image,
+              ),
+              ShowRecipeCookingMode(recipe: widget.recipe),
+            ],
+          )),
+    );
   }
 }
