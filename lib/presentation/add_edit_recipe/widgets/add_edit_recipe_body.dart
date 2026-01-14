@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_button.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_category_selection.dart';
-import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_ingredients.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_instructions.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_picture.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_portion_selection.dart';
@@ -87,10 +86,6 @@ class _AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
             key: ValueKey(widget.existingRecipe?.id),
             initialIngredients: widget.existingRecipe?.ingredients,
           ),
-          // AddEditRecipeIngredients(
-          //   key: ValueKey(widget.existingRecipe?.id),
-          //   initialIngredients: widget.existingRecipe?.ingredients,
-          // ),
           SizedBox(height: 30),
           AddEditRecipeInstructions(
             recipeInstructionsController: _recipeInstructionsController,

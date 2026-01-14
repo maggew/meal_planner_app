@@ -163,39 +163,49 @@ class _AddEditRecipeIngredientsAltState
         SizedBox(height: 10),
         LoadingOverlay(
           isLoading: isAnalyzing,
-          child: ListView.builder(
-            shrinkWrap: true,
-            primary: false,
-            itemCount: ingredients.length,
-            // itemCount: widget.isEditMode
-            //     ? ingredients.length
-            //     : ingredientNameControllers.length,
-            itemBuilder: (context, index) {
-              final Ingredient ingredient = ingredients[index];
-              return AddEditRecipeIgredientListviewItem(
-                index: index,
-                amountController: _getAmountController(index, ingredient),
-                ingredient: ingredient,
-                ingredientNameController:
-                    _getIngredientNameController(index, ingredient),
-                unitDropdownItems: unitDropdownItems,
-                unitDropdownController: _getOrCreateDropdownController(index),
-                onDelete: () {
-                  ref
-                      .read(ingredientsProvider.notifier)
-                      .deleteIngredient(index);
-                  _clearAllControllers();
-                },
-              );
-            },
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.blueGrey, width: 1.5),
+              color: Colors.white,
+              borderRadius: BorderRadius.all(Radius.circular(3)),
+            ),
+            width: MediaQuery.of(context).size.width,
+            child: Column(
+              children: [
+                ListView.builder(
+                  shrinkWrap: true,
+                  primary: false,
+                  itemCount: ingredients.length,
+                  itemBuilder: (context, index) {
+                    final Ingredient ingredient = ingredients[index];
+                    return AddEditRecipeIgredientListviewItem(
+                      index: index,
+                      amountController: _getAmountController(index, ingredient),
+                      ingredient: ingredient,
+                      ingredientNameController:
+                          _getIngredientNameController(index, ingredient),
+                      unitDropdownItems: unitDropdownItems,
+                      unitDropdownController:
+                          _getOrCreateDropdownController(index),
+                      onDelete: () {
+                        ref
+                            .read(ingredientsProvider.notifier)
+                            .deleteIngredient(index);
+                        _clearAllControllers();
+                      },
+                    );
+                  },
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    ref.read(ingredientsProvider.notifier).addIngredient();
+                  },
+                  icon: Icon(Icons.add),
+                  label: Text('Zutat hinzufügen'),
+                ),
+              ],
+            ),
           ),
-        ),
-        ElevatedButton.icon(
-          onPressed: () {
-            ref.read(ingredientsProvider.notifier).addIngredient();
-          },
-          icon: Icon(Icons.add),
-          label: Text('Zutat hinzufügen'),
         ),
       ],
     );

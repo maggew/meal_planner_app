@@ -29,7 +29,7 @@ class AddEditRecipeIgredientListviewItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 4),
+      margin: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
       child: Padding(
         padding: EdgeInsets.all(8),
         child: Column(
@@ -58,6 +58,7 @@ class AddEditRecipeIgredientListviewItem extends ConsumerWidget {
                 ),
               ],
             ),
+            Gap(5),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -73,8 +74,8 @@ class AddEditRecipeIgredientListviewItem extends ConsumerWidget {
                             amount: amount,
                           );
                     },
-                    keyboardType: TextInputType.numberWithOptions(
-                        decimal: true), // Wichtig!
+                    keyboardType:
+                        TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
                       border: InputBorder.none,
                       hintText: '0',

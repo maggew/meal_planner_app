@@ -24,6 +24,7 @@ class AppTheme {
         scrolledUnderElevation: 0,
         elevation: 0,
       ),
+      cardTheme: CardThemeData(color: _usedLightGreen),
       checkboxTheme: CheckboxThemeData(
         checkColor: WidgetStateProperty.all(_usedWhite),
         fillColor: WidgetStateProperty.all(_usedGreen),
@@ -104,8 +105,8 @@ class AppTheme {
           ),
         ),
       ),
-      iconButtonTheme: IconButtonThemeData(
-          style: IconButton.styleFrom(backgroundColor: _usedLightGreen)),
+      // iconButtonTheme: IconButtonThemeData(
+      //     style: IconButton.styleFrom(backgroundColor: _usedLightGreen)),
       inputDecorationTheme: InputDecorationTheme(
         prefixIconColor: _usedBlack,
         floatingLabelBehavior: FloatingLabelBehavior.always,

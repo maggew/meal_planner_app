@@ -118,7 +118,7 @@ class SupabaseRecipeRepository implements RecipeRepository {
     final existing = await _supabase
         .from(SupabaseConstants.ingredientsTable)
         .select(SupabaseConstants.ingredientId)
-        .eq(SupabaseConstants.ingredientName, name.toLowerCase())
+        .eq(SupabaseConstants.ingredientName, name)
         .maybeSingle();
 
     if (existing != null) {
@@ -128,7 +128,7 @@ class SupabaseRecipeRepository implements RecipeRepository {
     final ingredientId = generateUuid();
     await _supabase.from(SupabaseConstants.ingredientsTable).insert({
       SupabaseConstants.ingredientId: ingredientId,
-      SupabaseConstants.ingredientName: name.toLowerCase(),
+      SupabaseConstants.ingredientName: name,
     });
 
     return ingredientId;

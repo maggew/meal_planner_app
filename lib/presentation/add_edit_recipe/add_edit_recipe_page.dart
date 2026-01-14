@@ -15,6 +15,7 @@ class AddEditRecipePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final bool isEditMode = existingRecipe != null;
     return AppBackground(
       scaffoldAppBar: AppBar(
         leading: IconButton(
@@ -27,7 +28,7 @@ class AddEditRecipePage extends ConsumerWidget {
               context.router.pop();
             }),
         title: Text(
-          "Neues Rezept erstellen",
+          isEditMode ? "Rezept bearbeiten" : "Neues Rezept erstellen",
           style: Theme.of(context).textTheme.displayMedium,
         ),
       ),
