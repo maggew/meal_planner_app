@@ -114,11 +114,3 @@ class AddEditRecipeIgredientListviewItem extends ConsumerWidget {
     );
   }
 }
-
-List<CoolDropdownItem<Unit>> getUnitDropdownItems() {
-  List<CoolDropdownItem<Unit>> out = [];
-  for (Unit unit in Unit.values) {
-    out.add(CoolDropdownItem(label: unit.displayName, value: unit));
-  }
-  return out;
-}
