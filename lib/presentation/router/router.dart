@@ -38,7 +38,14 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: RefrigeratorRoute.page),
         AutoRoute(page: DetailedWeekplanRoute.page),
         AutoRoute(page: ShowRecipeRoute.page),
-        AutoRoute(page: AddEditRecipeRoute.page),
+        AutoRoute(
+            page: AddEditRecipeRoute.page,
+            type: RouteType.custom(
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) => child,
+              durationInMilliseconds: 50,
+              reverseDurationInMilliseconds: 50,
+            )),
         AutoRoute(page: ZoomPictureRoute.page),
       ];
 }

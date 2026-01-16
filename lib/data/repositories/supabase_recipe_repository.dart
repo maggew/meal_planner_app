@@ -3,6 +3,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:meal_planner/core/constants/firebase_constants.dart';
+import 'package:meal_planner/data/model/ingredient_model.dart';
 import 'package:meal_planner/data/model/recipe_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:meal_planner/core/constants/supabase_constants.dart';
@@ -56,7 +57,7 @@ class SupabaseRecipeRepository implements RecipeRepository {
 
       // 3. Categories speichern
       //await _saveCategories(recipeId, recipe.categories);
-      await _saveCategories(recipeId, [recipe.category]);
+      await _saveCategories(recipeId, recipe.categories);
 
       // 4. Ingredients speichern
       await _saveIngredients(recipeId, recipe.ingredients);
@@ -102,13 +103,11 @@ class SupabaseRecipeRepository implements RecipeRepository {
       String recipeId, List<Ingredient> ingredients) async {
     for (final ingredient in ingredients) {
       final ingredientId = await _upsertIngredient(ingredient.name);
+      final model = IngredientModel.fromEntity(ingredient);
 
-      await _supabase.from(SupabaseConstants.recipeIngredientsTable).insert({
-        SupabaseConstants.recipeIngredientRecipeId: recipeId,
-        SupabaseConstants.recipeIngredientIngredientId: ingredientId,
-        SupabaseConstants.recipeIngredientAmount: ingredient.amount.toString(),
-        SupabaseConstants.recipeIngredientUnit: ingredient.unit.name,
-      });
+      await _supabase
+          .from(SupabaseConstants.recipeIngredientsTable)
+          .insert(model.toSupabaseRecipeIngredient(recipeId, ingredientId));
     }
   }
 
@@ -158,15 +157,25 @@ class SupabaseRecipeRepository implements RecipeRepository {
   @override
   Future<List<Recipe>> getRecipesByCategory(String category) async {
     try {
+      final categoryResponse = await _supabase
+          .from(SupabaseConstants.recipesTable)
+          .select('id, recipe_categories!inner(categories!inner(name))')
+          .eq(SupabaseConstants.recipeGroupId, _groupId)
+          .eq('recipe_categories.categories.name', category.toLowerCase());
+
+      final ids =
+          (categoryResponse as List).map((r) => r['id'] as String).toList();
+
+      if (ids.isEmpty) return [];
+
       final response = await _supabase
           .from(SupabaseConstants.recipesTable)
           .select('''
           *,
-          recipe_categories!inner(categories!inner(name)),
-          recipe_ingredients(amount, unit, ingredients(name))
+          recipe_categories(categories(name)),
+          recipe_ingredients(amount, unit, sort_order, group_name, ingredients(name))
         ''')
-          .eq(SupabaseConstants.recipeGroupId, _groupId)
-          .eq('recipe_categories.categories.name', category.toLowerCase())
+          .inFilter(SupabaseConstants.recipeId, ids)
           .order(SupabaseConstants.recipeCreatedAt, ascending: false);
 
       return (response as List)
@@ -251,7 +260,7 @@ class SupabaseRecipeRepository implements RecipeRepository {
 
       // Neue einfügen
       //await _saveCategories(recipeId, recipe.categories);
-      await _saveCategories(recipeId, [recipe.category]);
+      await _saveCategories(recipeId, recipe.categories);
       await _saveIngredients(recipeId, recipe.ingredients);
     } catch (e) {
       throw RecipeUpdateException(e.toString());

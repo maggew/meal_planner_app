@@ -15,6 +15,7 @@ class AddEditRecipePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    print("3. addeditrecipepage build started");
     final bool isEditMode = existingRecipe != null;
     return AppBackground(
       scaffoldAppBar: AppBar(

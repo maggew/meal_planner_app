@@ -16,6 +16,10 @@ class AppBackground extends StatelessWidget {
     this.scaffoldBottomNavigationBar,
   });
 
+  static final _backgroundImage = Image.asset(
+    'assets/images/background.png',
+  );
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -30,9 +34,7 @@ class AppBackground extends StatelessWidget {
                 quarterTurns: 3,
                 child: FittedBox(
                   fit: BoxFit.fill,
-                  child: Image.asset(
-                    'assets/images/background.png',
-                  ),
+                  child: _backgroundImage,
                 ),
               ),
             ),

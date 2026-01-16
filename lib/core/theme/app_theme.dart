@@ -12,6 +12,7 @@ final Color _usedRed = Colors.red;
 final Color _usedDarkRed = Colors.red[600]!;
 
 final Color _usedTransparent = Colors.transparent;
+final Color _usedGrey = Colors.grey[100]!;
 
 class AppTheme {
   ThemeData getAppTheme() {
@@ -23,6 +24,9 @@ class AppTheme {
         backgroundColor: _usedWhite,
         scrolledUnderElevation: 0,
         elevation: 0,
+      ),
+      dropdownMenuTheme: DropdownMenuThemeData(
+        textStyle: TextStyle(fontSize: 14),
       ),
       cardTheme: CardThemeData(color: _usedLightGreen),
       checkboxTheme: CheckboxThemeData(
@@ -108,6 +112,9 @@ class AppTheme {
       // iconButtonTheme: IconButtonThemeData(
       //     style: IconButton.styleFrom(backgroundColor: _usedLightGreen)),
       inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: _usedGrey,
+        isDense: true,
         prefixIconColor: _usedBlack,
         floatingLabelBehavior: FloatingLabelBehavior.always,
         floatingLabelStyle: TextStyle(

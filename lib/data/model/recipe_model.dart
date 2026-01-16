@@ -7,8 +7,7 @@ class RecipeModel extends Recipe {
   RecipeModel({
     super.id,
     required super.name,
-    //required super.categories,
-    required super.category,
+    required super.categories,
     required super.portions,
     required super.ingredients,
     required super.instructions,
@@ -51,8 +50,7 @@ class RecipeModel extends Recipe {
     return RecipeModel(
       id: data[SupabaseConstants.recipeId] as String,
       name: data[SupabaseConstants.recipeTitle] as String? ?? '',
-      //categories: categories,
-      category: categories.first,
+      categories: categories,
       portions: data[SupabaseConstants.recipePortions] as int? ?? 4,
       ingredients: ingredients,
       instructions: data[SupabaseConstants.recipeInstructions] as String? ?? '',
@@ -81,7 +79,8 @@ class RecipeModel extends Recipe {
     final ingredients = ingredientsData
         .map((recipeIngredient) =>
             IngredientModel.fromSupabase(recipeIngredient))
-        .toList();
+        .toList()
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 
     return RecipeModel(
       id: data[SupabaseConstants.recipeId] as String?,
@@ -89,7 +88,7 @@ class RecipeModel extends Recipe {
       instructions: data[SupabaseConstants.recipeInstructions] as String? ?? '',
       imageUrl: data[SupabaseConstants.recipeImageUrl] as String?,
       portions: data[SupabaseConstants.recipePortions] as int? ?? 4,
-      category: categories.isNotEmpty ? categories.first : '',
+      categories: categories,
       ingredients: ingredients,
     );
   }
@@ -98,7 +97,7 @@ class RecipeModel extends Recipe {
     return RecipeModel(
       id: recipe.id,
       name: recipe.name,
-      category: recipe.category,
+      categories: recipe.categories,
       //categories: recipe.categories,
       portions: recipe.portions,
       ingredients: recipe.ingredients,
@@ -112,8 +111,7 @@ class RecipeModel extends Recipe {
     return Recipe(
       id: id,
       name: name,
-      //categories: categories,
-      category: category,
+      categories: categories,
       portions: portions,
       ingredients: ingredients,
       instructions: instructions,

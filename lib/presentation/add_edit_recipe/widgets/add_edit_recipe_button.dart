@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
+import 'package:meal_planner/services/providers/recipe/add_edit_recipe_ingredients_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_pagination_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_upload_provider.dart';
@@ -11,11 +12,15 @@ import 'package:meal_planner/services/providers/recipe/recipe_upload_provider.da
 class AddEditRecipeButton extends ConsumerWidget {
   final TextEditingController recipeNameController;
   final TextEditingController recipeInstructionsController;
+  final bool isEditMode;
   final Recipe? existingRecipe;
+  final AddEditRecipeIngredientsProvider ingredientsProvider;
   const AddEditRecipeButton({
     super.key,
     required this.recipeNameController,
     required this.recipeInstructionsController,
+    required this.ingredientsProvider,
+    required this.isEditMode,
     required this.existingRecipe,
   });
 
@@ -32,7 +37,7 @@ class AddEditRecipeButton extends ConsumerWidget {
             ),
             onPressed: () => _handleUpload(context, ref, existingRecipe),
             child: Text(
-              (existingRecipe != null) ? "Rezpet updaten" : "Speichern",
+              isEditMode ? "Rezpet updaten" : "Speichern",
             ),
           ),
           error: (error, _) => ElevatedButton(
@@ -57,14 +62,16 @@ class AddEditRecipeButton extends ConsumerWidget {
 
   Future<void> _handleUpload(
       BuildContext context, WidgetRef ref, Recipe? existingRecipe) async {
-    final selectedCategory = ref.read(selectedCategoryProvider);
+    final selectedCategories = ref.read(selectedCategoriesProvider);
     final selectedPortions = ref.read(selectedPortionsProvider);
-    final ingredients = ref.read(ingredientsProvider);
+    final ingredients =
+        ref.read(ingredientsProvider.notifier).buildIngredientsForSave();
     final image = ref.read(imageManagerProvider).recipePhoto;
 
     final validation = ref.validateRecipe(
       name: recipeNameController.text,
       instructions: recipeInstructionsController.text,
+      ingredients: ingredients,
     );
 
     if (!validation.isValid) {
@@ -80,8 +87,7 @@ class AddEditRecipeButton extends ConsumerWidget {
         name: recipeNameController.text,
         //TODO: muss angepasst werden, wenn mehrere kategorien unterstützt werden
         // categories: selectedCategories --> ist eine List<String>
-        //categories: selectedCategory,
-        category: selectedCategory,
+        categories: selectedCategories,
         portions: selectedPortions,
         ingredients: ingredients,
         instructions: recipeInstructionsController.text,
@@ -96,10 +102,11 @@ class AddEditRecipeButton extends ConsumerWidget {
         await recipeRepo.createRecipe(recipe, image);
       }
 
-      // for (final category in recipe.categories) {
-      //   print("now invalidating... for category: $category");
-      ref.invalidate(recipesPaginationProvider(recipe.category.toLowerCase()));
-      //}
+      for (final category in recipe.categories) {
+        print("now invalidating... for category: $category");
+        ref.invalidate(recipesPaginationProvider(category.toLowerCase()));
+      }
+
       _resetForm(
         recipeNameController: recipeNameController,
         recipeInstructionsController: recipeInstructionsController,
@@ -115,9 +122,9 @@ class AddEditRecipeButton extends ConsumerWidget {
     required TextEditingController recipeNameController,
     required TextEditingController recipeInstructionsController,
   }) {
-    ref.read(ingredientsProvider.notifier).clear();
-    ref.read(selectedCategoryProvider.notifier).state = DEFAULT_CATEGORY;
-    ref.read(selectedPortionsProvider.notifier).state = DEFAULT_PORTIONS;
+    //ref.read(ingredientsProvider.notifier).clear();
+    ref.read(selectedCategoriesProvider.notifier).set([DEFAULT_CATEGORY]);
+    ref.read(selectedPortionsProvider.notifier).set(DEFAULT_PORTIONS);
     ref.read(imageManagerProvider.notifier).clearRecipePhoto();
     recipeNameController.clear();
     recipeInstructionsController.clear();

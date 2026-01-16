@@ -3,8 +3,7 @@ import 'package:meal_planner/domain/entities/ingredient.dart';
 class Recipe {
   final String? id;
   final String name;
-  final String category;
-  //final List<String> categories;
+  final List<String> categories;
   final int portions;
   final List<Ingredient> ingredients;
   final String instructions;
@@ -14,7 +13,7 @@ class Recipe {
   Recipe({
     this.id,
     required this.name,
-    required this.category,
+    required this.categories,
     required this.portions,
     required this.ingredients,
     required this.instructions,
@@ -25,7 +24,7 @@ class Recipe {
   Recipe copyWith({
     String? id,
     String? name,
-    String? category,
+    List<String>? categories,
     //List<String>? categories,
     int? portions,
     List<Ingredient>? ingredients,
@@ -36,8 +35,7 @@ class Recipe {
     return Recipe(
       id: id ?? this.id,
       name: name ?? this.name,
-      category: category ?? this.category,
-      //categories: categories ?? this.categories,
+      categories: categories ?? this.categories,
       portions: portions ?? this.portions,
       ingredients: ingredients ?? this.ingredients,
       instructions: instructions ?? this.instructions,

@@ -72,8 +72,10 @@ class ShowRecipeAppbar extends ConsumerWidget implements PreferredSizeWidget {
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed == true && context.mounted) {
+      print("1. starting nav");
       context.router.push(AddEditRecipeRoute(existingRecipe: recipe));
+      print("2. nav call completed");
     }
   }
 

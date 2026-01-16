@@ -1,18 +1,14 @@
-import 'package:cool_dropdown/cool_dropdown.dart';
-import 'package:cool_dropdown/models/cool_dropdown_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/common/categories.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
 
 class AddEditRecipeCategorySelection extends ConsumerStatefulWidget {
-  final DropdownController categoryDropdownController;
-  final String? initialCategory;
+  final List<String>? initialCategories;
 
   const AddEditRecipeCategorySelection({
     super.key,
-    required this.categoryDropdownController,
-    required this.initialCategory,
+    required this.initialCategories,
   });
 
   @override
@@ -24,40 +20,35 @@ class _AddRecipeCategorySelection
     extends ConsumerState<AddEditRecipeCategorySelection> {
   @override
   Widget build(BuildContext context) {
-    List<CoolDropdownItem<dynamic>> categoryDropdownItems =
-        getCategoryDropdownItems();
+    print("initialCategories: ${widget.initialCategories}");
+    final selectedCategories = ref.watch(selectedCategoriesProvider);
+    print("selected categories: $selectedCategories");
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Kategorie",
+          "Kategorien",
           style: Theme.of(context).textTheme.displayMedium,
         ),
         SizedBox(height: 10),
-        CoolDropdown(
-          dropdownList: categoryDropdownItems,
-          defaultItem: categoryDropdownItems.firstWhere(
-              (category) =>
-                  category.value.toString().toLowerCase() ==
-                  widget.initialCategory?.toLowerCase(),
-              orElse: () => categoryDropdownItems[0]),
-          dropdownOptions: DropdownOptions(height: 290),
-          onChange: (v) {
-            ref.read(selectedCategoryProvider.notifier).state = v;
-            widget.categoryDropdownController.close();
-          },
-          controller: widget.categoryDropdownController,
-          isMarquee: true,
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          children: categoryNames
+              .map((category) => FilterChip(
+                    label: Text(category),
+                    selected:
+                        selectedCategories.contains(category.toLowerCase()),
+                    onSelected: (_) {
+                      ref
+                          .read(selectedCategoriesProvider.notifier)
+                          .toggle(category.toLowerCase());
+                    },
+                  ))
+              .toList(),
         ),
       ],
     );
   }
-}
-
-List<CoolDropdownItem<dynamic>> getCategoryDropdownItems() {
-  List<CoolDropdownItem<dynamic>> out = [];
-  for (int i = 0; i < categoryNames.length; i++) {
-    out.add(CoolDropdownItem(label: categoryNames[i], value: categoryNames[i]));
-  }
-  return out;
 }

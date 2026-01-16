@@ -9,6 +9,8 @@ class IngredientModel extends Ingredient {
     required super.name,
     required super.unit,
     required super.amount,
+    super.sortOrder = 0,
+    super.groupName,
   });
 
   /// Supabase → Model
@@ -22,6 +24,8 @@ class IngredientModel extends Ingredient {
               data[SupabaseConstants.recipeIngredientAmount]?.toString() ??
                   '0') ??
           0,
+      sortOrder: data[SupabaseConstants.recipeIngredientSortOrder] as int? ?? 0,
+      groupName: data[SupabaseConstants.recipeIngredientGroupName] as String?,
     );
   }
 
@@ -31,6 +35,8 @@ class IngredientModel extends Ingredient {
       name: ingredient.name,
       unit: ingredient.unit,
       amount: ingredient.amount,
+      sortOrder: ingredient.sortOrder,
+      groupName: ingredient.groupName,
     );
   }
 
@@ -40,7 +46,21 @@ class IngredientModel extends Ingredient {
       name: name,
       unit: unit,
       amount: amount,
+      sortOrder: sortOrder,
+      groupName: groupName,
     );
+  }
+
+  Map<String, dynamic> toSupabaseRecipeIngredient(
+      String recipeId, String ingredientId) {
+    return {
+      SupabaseConstants.recipeIngredientRecipeId: recipeId,
+      SupabaseConstants.recipeIngredientIngredientId: ingredientId,
+      SupabaseConstants.recipeIngredientAmount: amount,
+      SupabaseConstants.recipeIngredientUnit: unit.name,
+      SupabaseConstants.recipeIngredientSortOrder: sortOrder,
+      SupabaseConstants.recipeIngredientGroupName: groupName,
+    };
   }
 
   /// Helper: Unit aus supabase parsen

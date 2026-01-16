@@ -50,6 +50,8 @@ class SupabaseConstants {
   static const String recipeIngredientIngredientId = 'ingredient_id';
   static const String recipeIngredientAmount = 'amount';
   static const String recipeIngredientUnit = 'unit';
+  static const String recipeIngredientSortOrder = 'sort_order';
+  static const String recipeIngredientGroupName = 'group_name';
 
   // Columns: Categories
   static const String categoryId = 'id';
