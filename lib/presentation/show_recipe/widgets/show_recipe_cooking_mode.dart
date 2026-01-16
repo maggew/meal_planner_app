@@ -39,10 +39,9 @@ class _ShowRecipeCookingModeState extends State<ShowRecipeCookingMode>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return Column(
+    return Stack(
       children: [
-        Expanded(
-          child: TabBarView(
+        TabBarView(
             controller: _tabController,
             physics: const NeverScrollableScrollPhysics(),
             children: List.generate(
@@ -55,10 +54,13 @@ class _ShowRecipeCookingModeState extends State<ShowRecipeCookingMode>
                       onExpandToggle: () => setState(() {
                         isIngredientsExpanded = !isIngredientsExpanded;
                       }),
-                    )).toList(),
-          ),
+                    )).toList()),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 16,
+          child: CookingModePageButtons(tabController: _tabController),
         ),
-        CookingModePageButtons(tabController: _tabController),
       ],
     );
   }

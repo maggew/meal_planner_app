@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooking_mode_switch_step_page_button.dart';
 
 class CookingModePageButtons extends StatelessWidget {
   final TabController tabController;
-  const CookingModePageButtons({super.key, required this.tabController});
+  const CookingModePageButtons({
+    super.key,
+    required this.tabController,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -12,32 +16,24 @@ class CookingModePageButtons extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         spacing: 10,
         children: [
-          ElevatedButton(
-              onPressed: () {
-                (tabController.index > 0)
-                    ? tabController.index--
-                    : print("first page!");
-              },
-              child: Row(
-                spacing: 10,
-                children: [
-                  Icon(Icons.arrow_back_outlined),
-                  Text("Links"),
-                ],
-              )),
-          ElevatedButton(
+          CookingModeSwitchStepPageButton(
+            label: "Links",
+            icon: Icons.arrow_back_outlined,
+            onPressed: () {
+              (tabController.index > 0)
+                  ? tabController.index--
+                  : print("first page!");
+            },
+          ),
+          CookingModeSwitchStepPageButton(
+            label: "Rechts",
+            icon: Icons.arrow_forward_outlined,
             onPressed: () {
               (tabController.index < tabController.length - 1)
                   ? tabController.index++
                   : print("last page!");
             },
-            child: Row(
-              spacing: 10,
-              children: [
-                Text("Rechts"),
-                Icon(Icons.arrow_forward_outlined),
-              ],
-            ),
+            iconAfter: true,
           ),
         ],
       ),

@@ -33,60 +33,7 @@ class AppTheme {
         checkColor: WidgetStateProperty.all(_usedWhite),
         fillColor: WidgetStateProperty.all(_usedGreen),
       ),
-      textTheme: TextTheme(
-        //used to indicate big missing information
-        titleLarge: TextStyle(
-          fontFamily: GoogleFonts.oswald().fontFamily,
-          fontSize: 40,
-          color: _usedRed,
-        ),
-        // used for normal Headlines
-        displayMedium: TextStyle(
-          fontFamily: GoogleFonts.aBeeZee().fontFamily,
-          fontSize: 30,
-          color: _usedBlack,
-        ),
-        //used for small headlines
-        displaySmall: TextStyle(
-          fontFamily: GoogleFonts.aBeeZee().fontFamily,
-          fontSize: 25,
-          fontWeight: FontWeight.w600,
-          color: _usedBlack,
-        ),
-        // only used for WelcomeScreen
-        bodySmall: TextStyle(
-          fontFamily: GoogleFonts.quicksand(
-            fontWeight: FontWeight.w500,
-          ).fontFamily,
-          fontSize: 12.5,
-        ),
-        // used for bigger headlines (login / registration)
-        displayLarge: TextStyle(
-          fontFamily: GoogleFonts.aBeeZee().fontFamily,
-          fontSize: 50,
-          color: _usedBlack,
-        ),
-        // used for error messages in Textformfields
-        bodyLarge: TextStyle(
-          fontFamily: GoogleFonts.quicksand().fontFamily,
-          color: _usedDarkRed,
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-        ),
-        titleSmall: TextStyle(
-          fontFamily: GoogleFonts.quicksand(
-            fontWeight: FontWeight.w400,
-          ).fontFamily,
-          fontSize: 15,
-        ),
-        // used for common texts
-        bodyMedium: TextStyle(
-          fontFamily: GoogleFonts.quicksand(
-            fontWeight: FontWeight.w500,
-          ).fontFamily,
-          fontSize: 17.5,
-        ),
-      ),
+      textTheme: _textTheme,
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: _usedBlack,
@@ -156,3 +103,41 @@ class AppTheme {
     );
   }
 }
+
+final _textTheme = TextTheme(
+  //Used in Textfields inside the body of pages
+  bodyLarge: _bodyLarge,
+  bodyMedium: _bodyMedium,
+  bodySmall: _bodySmall,
+
+  displayLarge: _displayLarge,
+  displayMedium: _displayMedium,
+  displaySmall: _displaySmall,
+
+  titleLarge: _titleLarge,
+  titleMedium: _titleMedium,
+  titleSmall: _titleSmall,
+);
+final _titleLarge = TextStyle(
+  fontFamily: GoogleFonts.oswald().fontFamily,
+  fontSize: 40,
+  color: _usedRed,
+);
+final _titleMedium = _titleLarge.copyWith(fontSize: 30);
+final _titleSmall = _titleLarge.copyWith(fontSize: 25);
+
+final _bodyLarge = TextStyle(
+  fontFamily: GoogleFonts.quicksand().fontFamily,
+  fontSize: 18,
+  fontWeight: FontWeight.w500,
+);
+final _bodyMedium = _bodyLarge.copyWith(fontSize: 16);
+final _bodySmall = _bodyLarge.copyWith(fontSize: 14);
+
+final _displayLarge = TextStyle(
+  fontFamily: GoogleFonts.aBeeZee().fontFamily,
+  fontSize: 50,
+  color: _usedBlack,
+);
+final _displayMedium = _displayLarge.copyWith(fontSize: 40);
+final _displaySmall = _displayLarge.copyWith(fontSize: 30);

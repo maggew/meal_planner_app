@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
+import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooking_mode_ingredients_list.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooking_mode_ingredients_widget.dart';
+import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooking_mode_instructions.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooking_mode_step_title.dart';
 
 class CookingModeStepWidget extends StatefulWidget {
@@ -26,26 +28,18 @@ class CookingModeStepWidget extends StatefulWidget {
 class _CookingModeStepWidgetState extends State<CookingModeStepWidget> {
   @override
   Widget build(BuildContext context) {
+    final double pageMargin = 20;
+    final Duration animationDuration = Duration(milliseconds: 200);
+    final double borderRadius = 8;
     return Column(
       children: [
         CookingModeStepTitle(stepNumber: widget.stepNumber),
-        GestureDetector(
-          onTap: widget.onExpandToggle,
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            color: Colors.amber,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text("Zutaten", style: TextStyle(fontWeight: FontWeight.bold)),
-                AnimatedRotation(
-                  turns: widget.isExpanded ? 0.5 : 0,
-                  duration: Duration(milliseconds: 200),
-                  child: Icon(Icons.expand_more),
-                ),
-              ],
-            ),
-          ),
+        CookingModeIngredientsList(
+          isExpanded: widget.isExpanded,
+          onExpandToggle: widget.onExpandToggle,
+          pageMargin: pageMargin,
+          animationDuration: animationDuration,
+          borderRadius: borderRadius,
         ),
         Expanded(
           child: SingleChildScrollView(
@@ -56,24 +50,16 @@ class _CookingModeStepWidgetState extends State<CookingModeStepWidget> {
                 CookingModeIngredientsWidget(
                   ingredients: widget.ingredients,
                   isExpanded: widget.isExpanded,
+                  pageMargin: pageMargin,
+                  animationDuration: animationDuration,
+                  borderRadius: borderRadius,
                 ),
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 20),
-                  padding: EdgeInsets.all(20),
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 10.0,
-                        spreadRadius: 0.0,
-                        offset: Offset(5.0, 5.0),
-                      ),
-                    ],
-                  ),
-                  child: Text(widget.instructionStep),
+                CookingModeInstructions(
+                  pageMargin: pageMargin,
+                  instructionStep: widget.instructionStep,
+                  borderRadius: borderRadius,
                 ),
+                SizedBox(height: 100),
               ],
             ),
           ),
