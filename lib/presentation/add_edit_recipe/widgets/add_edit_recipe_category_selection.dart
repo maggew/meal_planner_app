@@ -20,10 +20,8 @@ class _AddRecipeCategorySelection
     extends ConsumerState<AddEditRecipeCategorySelection> {
   @override
   Widget build(BuildContext context) {
-    print("initialCategories: ${widget.initialCategories}");
     final selectedCategories = ref.watch(selectedCategoriesProvider);
-    print("selected categories: $selectedCategories");
-
+    final TextTheme textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -37,6 +35,7 @@ class _AddRecipeCategorySelection
           runSpacing: 4,
           children: categoryNames
               .map((category) => FilterChip(
+                    labelStyle: textTheme.bodyMedium,
                     label: Text(category),
                     selected:
                         selectedCategories.contains(category.toLowerCase()),

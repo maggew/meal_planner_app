@@ -10,6 +10,7 @@ final Color _usedWhite = Colors.white;
 
 final Color _usedRed = Colors.red;
 final Color _usedDarkRed = Colors.red[600]!;
+final Color _usedViolet = Colors.deepPurple;
 
 final Color _usedTransparent = Colors.transparent;
 final Color _usedGrey = Colors.grey[100]!;
@@ -25,8 +26,15 @@ class AppTheme {
         scrolledUnderElevation: 0,
         elevation: 0,
       ),
+      tabBarTheme: TabBarThemeData(
+        labelStyle: _bodyLarge,
+        labelColor: _usedViolet,
+        indicatorColor: _usedViolet,
+        unselectedLabelColor: _usedBlack,
+        unselectedLabelStyle: _bodyLarge,
+      ),
       dropdownMenuTheme: DropdownMenuThemeData(
-        textStyle: TextStyle(fontSize: 14),
+        textStyle: _textTheme.bodyMedium,
       ),
       cardTheme: CardThemeData(color: _usedLightGreen),
       checkboxTheme: CheckboxThemeData(
@@ -64,19 +72,9 @@ class AppTheme {
         isDense: true,
         prefixIconColor: _usedBlack,
         floatingLabelBehavior: FloatingLabelBehavior.always,
-        floatingLabelStyle: TextStyle(
-          color: _usedBlack,
-        ),
-        labelStyle: TextStyle(
-          fontFamily: GoogleFonts.quicksand(
-            fontWeight: FontWeight.w500,
-          ).fontFamily,
-        ),
-        hintStyle: TextStyle(
-          fontFamily: GoogleFonts.quicksand(
-            fontWeight: FontWeight.w500,
-          ).fontFamily,
-        ),
+        floatingLabelStyle: _textTheme.bodyMedium,
+        labelStyle: _textTheme.bodyMedium,
+        hintStyle: _textTheme.bodyMedium,
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(
             color: _usedDarkGreen,

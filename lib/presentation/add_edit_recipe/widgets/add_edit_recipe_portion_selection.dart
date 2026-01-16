@@ -1,4 +1,3 @@
-import 'package:cool_dropdown/models/cool_dropdown_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -27,6 +26,9 @@ class _AddRecipePortionSelection
       for (int i = 0; i < MAX_PORTION_NUMBER; i++) i + 1
     ];
     final selectedPortions = ref.watch(selectedPortionsProvider);
+    final ThemeData themeData = Theme.of(context);
+    final TextTheme textTheme = themeData.textTheme;
+    final double porstionButtonWidth = 75;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -36,32 +38,35 @@ class _AddRecipePortionSelection
         ),
         Gap(10),
         SizedBox(
-          width: 75,
-          child: DropdownButtonFormField<int>(
-            value: selectedPortions,
-            isDense: true,
-            items: possiblePorstions
-                .map((number) => DropdownMenuItem(
-                      value: number,
-                      child: Text(number.toString()),
-                    ))
-                .toList(),
-            onChanged: (value) {
-              if (value != null) {
-                ref.read(selectedPortionsProvider.notifier).set(value);
-              }
-            },
+          width: porstionButtonWidth,
+          child: InputDecorator(
+            decoration: InputDecoration(
+              isDense: true,
+              contentPadding: EdgeInsets.zero,
+            ),
+            child: Center(
+              child: DropdownButton<int>(
+                style: textTheme.bodyMedium,
+                value: selectedPortions,
+                menuWidth: porstionButtonWidth,
+                //isExpanded: true,
+                //isDense: true,
+                items: possiblePorstions
+                    .map((number) => DropdownMenuItem(
+                          value: number,
+                          child: Text(number.toString()),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    ref.read(selectedPortionsProvider.notifier).set(value);
+                  }
+                },
+              ),
+            ),
           ),
         ),
       ],
     );
   }
-}
-
-List<CoolDropdownItem<int>> getPortionDropdownItems() {
-  List<CoolDropdownItem<int>> out = [];
-  for (int i = 1; i < MAX_PORTION_NUMBER + 1; i++) {
-    out.add(CoolDropdownItem(label: i.toString(), value: i));
-  }
-  return out;
 }

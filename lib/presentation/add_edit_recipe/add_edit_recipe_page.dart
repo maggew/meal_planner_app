@@ -30,7 +30,7 @@ class AddEditRecipePage extends ConsumerWidget {
             }),
         title: Text(
           isEditMode ? "Rezept bearbeiten" : "Neues Rezept erstellen",
-          style: Theme.of(context).textTheme.displayMedium,
+          style: Theme.of(context).textTheme.displaySmall,
         ),
       ),
       scaffoldBody: AddEditRecipeBody(existingRecipe: existingRecipe),

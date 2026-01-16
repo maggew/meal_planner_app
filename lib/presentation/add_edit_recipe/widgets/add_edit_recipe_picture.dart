@@ -28,6 +28,7 @@ class _AddRecipePictureState extends ConsumerState<AddEditRecipePicture> {
   Widget build(BuildContext context) {
     final images = ref.watch(imageManagerProvider);
     final newImage = images.recipePhoto;
+    final TextTheme textTheme = Theme.of(context).textTheme;
 
     if (newImage != null && newImage.path.isNotEmpty) {
       _pictureNameController.text = newImage.path.split('/').last;
@@ -42,11 +43,11 @@ class _AddRecipePictureState extends ConsumerState<AddEditRecipePicture> {
       children: [
         Text(
           "Rezeptfoto",
-          style: Theme.of(context).textTheme.displayMedium,
+          style: textTheme.displayMedium,
         ),
         Text(
           "(optional)",
-          style: Theme.of(context).textTheme.titleSmall,
+          style: textTheme.displaySmall,
         ),
         SizedBox(height: 15),
         FittedBox(

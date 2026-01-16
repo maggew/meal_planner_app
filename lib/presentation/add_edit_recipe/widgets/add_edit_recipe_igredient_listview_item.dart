@@ -28,6 +28,7 @@ class AddEditRecipeIgredientListviewItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
     return RepaintBoundary(
       child: Card(
         margin: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
@@ -77,14 +78,26 @@ class AddEditRecipeIgredientListviewItem extends StatelessWidget {
                     ),
                   ),
                   Gap(10),
-                  DropdownButton<Unit>(
-                    value: ingredient.unit,
-                    items: _unitDropdownItems,
-                    onChanged: (value) {
-                      if (value != null) {
-                        onUnitChanged(value);
-                      }
-                    },
+                  SizedBox(
+                    width: 80,
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      child: Center(
+                        child: DropdownButton<Unit>(
+                          style: textTheme.bodyMedium,
+                          value: ingredient.unit,
+                          items: _unitDropdownItems,
+                          onChanged: (value) {
+                            if (value != null) {
+                              onUnitChanged(value);
+                            }
+                          },
+                        ),
+                      ),
+                    ),
                   ),
                   Gap(10),
                   ReorderableDragStartListener(
