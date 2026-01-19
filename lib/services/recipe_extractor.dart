@@ -12,12 +12,11 @@ class ExtractionResult {
 class RecipeExtractor {
   RecipeExtractor._();
 
+  /* ===================== PUBLIC API ===================== */
+
   static ExtractionResult extractRecipeIngredients(
       RecognizedText recognizedText) {
-    // Text spaltenweise sortiert
-    List<String> lines = _prepareRecognizedText(recognizedText);
-
-    // Zeilen aufteilen
+    final lines = _prepareRecognizedText(recognizedText);
 
     if (lines.isEmpty) {
       return ExtractionResult();
@@ -28,38 +27,49 @@ class RecipeExtractor {
 
   static ExtractionResult extractRecipeInstructions(
       RecognizedText recognizedText) {
-    // Text spaltenweise sortiert
-    List<String> lines = _prepareRecognizedText(recognizedText);
+    final lines = _prepareRecognizedText(recognizedText);
 
     if (lines.isEmpty) {
       return ExtractionResult();
     }
-    return ExtractionResult(instructions: lines.join(" "));
+
+    final instructions = _assembleNumberedSteps(lines);
+    return ExtractionResult(instructions: instructions);
   }
 
-  static String _normalizeIngredientText(String text) {
-    // Bereinige Sonderzeichen
-    text = text.replaceAll('•', ' ');
-    text = text.replaceAll(RegExp(r'\s+'), ' ').trim();
+  /* ===================== INSTRUCTIONS ===================== */
 
-    // Füge Leerzeichen zwischen Zahl und Einheit ein
-    // Behandelt: 100g, 2EL, 1,5kg, 300ml, etc.
-    text = text.replaceAllMapped(
-      RegExp(
-          r'(\d+(?:[,\.]\d+)?)(g|kg|ml|l|EL|TL|el|tl|Prise|prise|Stück|stück|Stk|stk)\b',
-          caseSensitive: false),
-      (match) => '${match.group(1)} ${match.group(2)}',
-    );
+  static String _assembleNumberedSteps(List<String> lines) {
+    final stepPattern = RegExp(r'^\s*(\d+)[\.\)\-]?\s*(.*)');
 
-    // Füge auch Leerzeichen zwischen Zahl und Buchstabe ein (falls keine Einheit)
-    // z.B. "2Zwiebeln" -> "2 Zwiebeln"
-    text = text.replaceAllMapped(
-      RegExp(r'(\d+)([A-ZÄÖÜ])', caseSensitive: false),
-      (match) => '${match.group(1)} ${match.group(2)}',
-    );
+    final Map<int, StringBuffer> steps = {};
+    int? currentStep;
 
-    return text;
+    for (final line in lines) {
+      final match = stepPattern.firstMatch(line);
+
+      if (match != null) {
+        currentStep = int.parse(match.group(1)!);
+        steps[currentStep] = StringBuffer(match.group(2)!.trim());
+      } else if (currentStep != null) {
+        steps[currentStep]!
+          ..write(' ')
+          ..write(line);
+      }
+    }
+
+    if (steps.isEmpty) {
+      return lines.join(' ');
+    }
+
+    final sortedKeys = steps.keys.toList()..sort();
+
+    return sortedKeys
+        .map((k) => '$k. ${steps[k]!.toString().trim()}')
+        .join('\n\n');
   }
+
+  /* ===================== INGREDIENTS ===================== */
 
   static const _stopWords = ['alternativ', 'oder', 'evtl'];
   static const _minNameLength = 2;
@@ -88,16 +98,13 @@ class RecipeExtractor {
       List<String> tokens, int startIndex) {
     int i = startIndex;
 
-    // 1. Amount parsen
-    final amount = _parseAmount(tokens[i]);
+    final amount = _parseAmountToken(tokens[i]);
     if (amount == null || i + 1 >= tokens.length) return null;
     i++;
 
-    // 2. Unit parsen (optional)
     final unit = UnitParser.parse(tokens[i]);
     if (unit != null) i++;
 
-    // 3. Name sammeln
     final name = _collectName(tokens, i);
     if (name.value.length < _minNameLength) return null;
 
@@ -111,17 +118,23 @@ class RecipeExtractor {
     );
   }
 
-  static double? _parseAmount(String token) {
-    // Normale Zahlen
-    final normal = double.tryParse(token.replaceAll(',', '.'));
-    if (normal != null) return normal;
+  /// Validiert und übernimmt Mengen als TEXT (keine Berechnung!)
+  static String? _parseAmountToken(String token) {
+    final normalized = token.replaceAll(',', '.');
 
-    // Brüche: 1/2, 1/4
-    final fractionMatch = RegExp(r'^(\d+)/(\d+)$').firstMatch(token);
-    if (fractionMatch != null) {
-      final num = int.parse(fractionMatch.group(1)!);
-      final den = int.parse(fractionMatch.group(2)!);
-      return num / den;
+    // Zahl: 150 | 1.5
+    if (RegExp(r'^\d+(\.\d+)?$').hasMatch(normalized)) {
+      return normalized;
+    }
+
+    // Bereich: 150-200 | 150–200
+    if (RegExp(r'^\d+(\.\d+)?\s*[-–]\s*\d+(\.\d+)?$').hasMatch(normalized)) {
+      return normalized.replaceAll(RegExp(r'\s+'), '');
+    }
+
+    // Bruch: 1/2
+    if (RegExp(r'^\d+/\d+$').hasMatch(normalized)) {
+      return normalized;
     }
 
     return null;
@@ -135,10 +148,10 @@ class RecipeExtractor {
     while (i < tokens.length) {
       final word = tokens[i];
 
-      // Stop bei nächster Zahl
-      if (_parseAmount(word) != null) break;
+      // Stop bei nächster Mengenangabe
+      if (_parseAmountToken(word) != null) break;
 
-      // Stop bei Stop-Wörtern
+      // Stop bei Stopwörtern
       if (_stopWords.any((sw) => word.toLowerCase().contains(sw))) break;
 
       buffer.write(word);
@@ -151,64 +164,52 @@ class RecipeExtractor {
     return (value: name, endIndex: i);
   }
 
+  static String _normalizeIngredientText(String text) {
+    text = text.replaceAll('•', ' ');
+    text = text.replaceAll(RegExp(r'\s+'), ' ').trim();
+
+    text = text.replaceAllMapped(
+      RegExp(
+        r'(\d+(?:[,\.]\d+)?)(g|kg|ml|l|EL|TL|el|tl|Prise|prise|Stück|stück|Stk|stk)\b',
+        caseSensitive: false,
+      ),
+      (match) => '${match.group(1)} ${match.group(2)}',
+    );
+
+    text = text.replaceAllMapped(
+      RegExp(r'(\d+)([A-ZÄÖÜ])', caseSensitive: false),
+      (match) => '${match.group(1)} ${match.group(2)}',
+    );
+
+    return text;
+  }
+
+  /* ===================== OCR PREPARATION ===================== */
+
   static List<String> _prepareRecognizedText(RecognizedText recognizedText) {
-    List<TextLine> allLines = [];
+    final lines = <TextLine>[];
 
-    for (var block in recognizedText.blocks) {
-      allLines.addAll(block.lines);
+    for (final block in recognizedText.blocks) {
+      lines.addAll(block.lines);
     }
 
-    if (allLines.isEmpty) return [];
+    if (lines.isEmpty) return [];
 
-    // Finde Bildmitte
-    double maxRight = 0;
-    for (var line in allLines) {
-      if (line.boundingBox.right > maxRight) {
-        maxRight = line.boundingBox.right;
+    const double yTolerance = 8.0;
+
+    lines.sort((a, b) {
+      final dy = (a.boundingBox.top - b.boundingBox.top).abs();
+      if (dy < yTolerance) {
+        return a.boundingBox.left.compareTo(b.boundingBox.left);
       }
-    }
+      return a.boundingBox.top.compareTo(b.boundingBox.top);
+    });
 
-    double middle = maxRight / 2;
-
-    // Teile in Spalten
-    List<TextLine> leftColumn = [];
-    List<TextLine> rightColumn = [];
-
-    for (var line in allLines) {
-      double centerX = line.boundingBox.left + (line.boundingBox.width / 2);
-
-      if (centerX < middle) {
-        leftColumn.add(line);
-      } else {
-        rightColumn.add(line);
-      }
-    }
-
-    // Sortiere beide Spalten nach Y (von OBEN nach UNTEN)
-    // Falls falsch herum, tausche a und b
-    leftColumn.sort((a, b) => a.boundingBox.top.compareTo(b.boundingBox.top));
-    rightColumn.sort((a, b) => a.boundingBox.top.compareTo(b.boundingBox.top));
-
-    // Kombiniere
-    StringBuffer result = StringBuffer();
-
-    for (var line in leftColumn) {
-      result.writeln(line.text);
-    }
-
-    result.writeln();
-
-    for (var line in rightColumn) {
-      result.writeln(line.text);
-    }
-
-    return result
-        .toString()
-        .split('\n')
-        .where((line) => line.trim().isNotEmpty)
-        .toList();
+    return lines.map((l) => l.text.trim()).where((t) => t.isNotEmpty).toList();
   }
 }
+
+/* ===================== INTERNAL ===================== */
 
 class _ParseResult {
   final Ingredient ingredient;

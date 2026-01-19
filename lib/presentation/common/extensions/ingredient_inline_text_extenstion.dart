@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
-import 'package:meal_planner/presentation/common/extensions/double_formatting_extension.dart';
 
 extension IngredientInlineText on Ingredient {
   List<TextSpan> toInlineTextSpans({required TextStyle? nameStyle}) {
@@ -8,7 +7,7 @@ extension IngredientInlineText on Ingredient {
 
     return [
       TextSpan(
-        text: "${amount.toDisplayString()}${nbsp}${unit.displayName}${nbsp}",
+        text: "$amount${nbsp}${unit.displayName}${nbsp}",
       ),
       TextSpan(
         text: _noBreak(name),

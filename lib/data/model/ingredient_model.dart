@@ -20,10 +20,7 @@ class IngredientModel extends Ingredient {
               ?[SupabaseConstants.ingredientName] as String? ??
           '',
       unit: _parseUnit(data[SupabaseConstants.recipeIngredientUnit]),
-      amount: double.tryParse(
-              data[SupabaseConstants.recipeIngredientAmount]?.toString() ??
-                  '0') ??
-          0,
+      amount: data[SupabaseConstants.recipeIngredientAmount] as String? ?? '',
       sortOrder: data[SupabaseConstants.recipeIngredientSortOrder] as int? ?? 0,
       groupName: data[SupabaseConstants.recipeIngredientGroupName] as String?,
     );

@@ -142,8 +142,9 @@ extension RecipeValidation on WidgetRef {
       );
     }
 
-    final validIngredients =
-        ingredients.where((i) => i.name.isNotEmpty && i.amount > 0).toList();
+    final validIngredients = ingredients
+        .where((i) => i.name.isNotEmpty && i.amount.isNotEmpty)
+        .toList();
     if (validIngredients.isEmpty) {
       return RecipeValidationResult(
         isValid: false,

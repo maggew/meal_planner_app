@@ -1,9 +1,10 @@
 import 'package:meal_planner/domain/enums/unit.dart';
+import 'package:meal_planner/domain/services/amount_scaler.dart';
 
 class Ingredient {
   final String name;
   final Unit unit;
-  final double amount;
+  final String amount;
   final int sortOrder;
   final String? groupName;
   final String localId;
@@ -25,7 +26,7 @@ class Ingredient {
     return Ingredient(
       name: name,
       unit: unit,
-      amount: amount * factor,
+      amount: AmountScaler.scale(amount, factor),
       sortOrder: sortOrder,
       groupName: groupName,
     );
@@ -34,7 +35,7 @@ class Ingredient {
   Ingredient copyWith({
     String? name,
     Unit? unit,
-    double? amount,
+    String? amount,
     int? sortOrder,
     String? groupName,
     String? localId,

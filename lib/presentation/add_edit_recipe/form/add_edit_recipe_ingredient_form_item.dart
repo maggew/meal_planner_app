@@ -18,7 +18,7 @@ class IngredientFormItem {
       ingredient: ingredient,
       nameController: TextEditingController(text: ingredient.name),
       amountController: TextEditingController(
-        text: ingredient.amount > 0 ? ingredient.amount.toString() : "0",
+        text: ingredient.amount.isNotEmpty ? ingredient.amount.toString() : "0",
       ),
     );
   }
@@ -26,7 +26,7 @@ class IngredientFormItem {
   factory IngredientFormItem.empty({String? groupName}) {
     return IngredientFormItem.fromIngredient(Ingredient(
       name: "",
-      amount: 0,
+      amount: "",
       unit: DEFAULT_UNIT,
       sortOrder: 0,
       groupName: groupName,

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/form/add_edit_recipe_ingredient_form_item.dart';
@@ -48,7 +46,7 @@ class AddEditRecipeIngredients extends _$AddEditRecipeIngredients {
     state = state.copyWith(items: items);
   }
 
-  void updateAmount(int index, double value) {
+  void updateAmount(int index, String value) {
     final item = state.items[index];
     final updated = item.copyWith(
       ingredient: item.ingredient.copyWith(amount: value),

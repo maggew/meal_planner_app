@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
-import 'package:meal_planner/core/utils/double_formatting.dart';
 
 class ShowRecipeOverviewDetails extends StatelessWidget {
   final Recipe recipe;
@@ -53,7 +52,7 @@ class ShowRecipeOverviewDetails extends StatelessWidget {
                         SizedBox(
                             width: 75,
                             child: Text(
-                                "${ingredient.amount.toDisplayString()} ${ingredient.unit.displayName}")),
+                                "${ingredient.amount} ${ingredient.unit.displayName}")),
                         Expanded(child: Text(ingredient.name)),
                       ],
                     ),

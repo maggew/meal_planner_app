@@ -30,6 +30,8 @@ class _CookbookSearchbarState extends ConsumerState<CookbookSearchbar> {
       _controller.selection = TextSelection.collapsed(offset: query.length);
     }
 
+    final showHint = query.isNotEmpty && query.trim().length < 3;
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -85,18 +87,26 @@ class _CookbookSearchbarState extends ConsumerState<CookbookSearchbar> {
               ],
             ),
           ),
-          // Hinweis bei 1-2 Zeichen
-          if (query.isNotEmpty && query.trim().length < 3)
-            Padding(
-              padding: EdgeInsets.only(top: 4, left: 16),
-              child: Text(
-                'Mindestens 3 Zeichen eingeben',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-              ),
+          // Animierter Hinweis
+          AnimatedSize(
+            duration: Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            child: AnimatedOpacity(
+              duration: Duration(milliseconds: 200),
+              opacity: showHint ? 1.0 : 0.0,
+              child: showHint
+                  ? Padding(
+                      padding: EdgeInsets.only(top: 6, left: 16),
+                      child: Text(
+                        'Mindestens 3 Zeichen eingeben',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                    )
+                  : SizedBox.shrink(),
             ),
+          ),
         ],
       ),
     );
   }
 }
-

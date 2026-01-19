@@ -10,7 +10,7 @@ class AddEditRecipeIgredientListviewItem extends StatelessWidget {
   final TextEditingController ingredientNameController;
   final VoidCallback onDelete;
   final void Function(String) onNameChanged;
-  final void Function(double) onAmountchanged;
+  final void Function(String) onAmountchanged;
   final void Function(Unit) onUnitChanged;
   //final bool isDragging;
   const AddEditRecipeIgredientListviewItem({
@@ -71,9 +71,8 @@ class AddEditRecipeIgredientListviewItem extends StatelessWidget {
                           TextInputType.numberWithOptions(decimal: true),
                       onChanged: (value) {
                         // Komma durch Punkt ersetzen für Parsing
-                        final normalized = value.replaceAll(',', '.');
-                        final amount = double.tryParse(normalized) ?? 0;
-                        onAmountchanged(amount);
+                        final normalizedAmount = value.replaceAll(',', '.');
+                        onAmountchanged(normalizedAmount);
                       },
                     ),
                   ),

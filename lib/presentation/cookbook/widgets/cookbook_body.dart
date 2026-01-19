@@ -10,7 +10,8 @@ class CookbookBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bool isSearching = ref.watch(isSearchActiveProvider);
+    final isSearching = ref.watch(isSearchActiveProvider);
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -19,11 +20,28 @@ class CookbookBody extends ConsumerWidget {
         SizedBox(height: 10),
         CookbookSearchbar(),
         SizedBox(height: 20),
-        if (isSearching) ...[
-          Expanded(child: CookbookSearchResultsList()),
-        ] else ...[
-          CookbookTabbar(),
-        ]
+        Expanded(
+          child: AnimatedSwitcher(
+            duration: Duration(milliseconds: 300),
+            switchInCurve: Curves.easeInOut,
+            switchOutCurve: Curves.easeInOut,
+            transitionBuilder: (child, animation) {
+              return FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: Offset(0, 0.05),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                ),
+              );
+            },
+            child: isSearching
+                ? CookbookSearchResultsList(key: ValueKey('search'))
+                : CookbookTabbar(key: ValueKey('tabbar')),
+          ),
+        ),
       ],
     );
   }
