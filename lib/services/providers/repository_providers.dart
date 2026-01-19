@@ -15,6 +15,8 @@ import 'package:meal_planner/domain/repositories/storage_repository.dart';
 import 'package:meal_planner/domain/repositories/user_repository.dart';
 import 'package:meal_planner/services/providers/auth_providers.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
+import 'package:meal_planner/data/datasources/recipe_remote_datasource.dart';
+import 'package:meal_planner/data/datasources/supabase_recipe_remote_datasource.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Firebase Instances
@@ -35,6 +37,12 @@ final supabaseProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
 
+final recipeRemoteDatasourceProvider = Provider<RecipeRemoteDatasource>((ref) {
+  return SupabaseRecipeRemoteDatasource(
+    ref.watch(supabaseProvider),
+  );
+});
+
 // Recipe Repository - nutzt die GroupId aus dem State
 final recipeRepositoryProvider = Provider<RecipeRepository>((ref) {
   final session = ref.watch(sessionProvider);
@@ -42,6 +50,7 @@ final recipeRepositoryProvider = Provider<RecipeRepository>((ref) {
   return SupabaseRecipeRepository(
     supabase: ref.watch(supabaseProvider),
     storage: ref.watch(storageRepositoryProvider),
+    remote: ref.watch(recipeRemoteDatasourceProvider),
     groupId: session.groupId ?? '',
     userId: session.userId ?? '',
   );

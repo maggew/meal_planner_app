@@ -1,3 +1,5 @@
+// lib/presentation/cookbook/widgets/cookbook_tabbar.dart
+
 import 'package:flutter/material.dart';
 import 'package:meal_planner/presentation/common/categories.dart';
 import 'package:meal_planner/presentation/common/vertical_tabbar.dart';
@@ -9,6 +11,8 @@ class CookbookTabbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final allCategories = categoryNames.map((c) => c.toLowerCase()).toList();
+
     return Flexible(
       fit: FlexFit.tight,
       child: VerticalTabs(
@@ -20,7 +24,7 @@ class CookbookTabbar extends StatelessWidget {
         tabsWidth: 100,
         tabs: getDefaultCategoryTabs(),
         contents: [
-          ..._getCategoryLists(),
+          ..._getCategoryLists(allCategories),
           Container(
             child: Center(
               child: Text("Hier kommt noch was"),
@@ -32,10 +36,14 @@ class CookbookTabbar extends StatelessWidget {
   }
 }
 
-List<Widget> _getCategoryLists() {
+List<Widget> _getCategoryLists(List<String> allCategories) {
   List<Widget> categoryLists = [];
   for (String category in categoryNames) {
-    categoryLists.add(CookbookRecipeList(category: category.toLowerCase()));
+    categoryLists.add(CookbookRecipeList(
+      category: category.toLowerCase(),
+      allCategories: allCategories,
+    ));
   }
   return categoryLists;
 }
+

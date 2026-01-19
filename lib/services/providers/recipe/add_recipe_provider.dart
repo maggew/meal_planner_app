@@ -1,14 +1,10 @@
-import 'dart:math';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
-import 'package:meal_planner/presentation/common/categories.dart';
 
 part 'add_recipe_provider.g.dart';
 
-final String DEFAULT_CATEGORY = categoryNames[0];
 final int DEFAULT_PORTIONS = 4;
 final Unit DEFAULT_UNIT = Unit.GRAMM;
 
@@ -119,9 +115,8 @@ extension RecipeValidation on WidgetRef {
     required String name,
     required String instructions,
     required List<Ingredient> ingredients,
+    required List<String> categories,
   }) {
-    //final ingredients = read(ingredientsProvider);
-
     if (name.isEmpty) {
       return RecipeValidationResult(
         isValid: false,
@@ -140,6 +135,13 @@ extension RecipeValidation on WidgetRef {
         error: 'Bitte mindestens eine Zutat hinzufügen',
       );
     }
+    if (categories.isEmpty) {
+      return RecipeValidationResult(
+        isValid: false,
+        error: 'Bitte mindestens eine Kategories auswählen',
+      );
+    }
+
     final validIngredients =
         ingredients.where((i) => i.name.isNotEmpty && i.amount > 0).toList();
     if (validIngredients.isEmpty) {

@@ -1,13 +1,19 @@
+// lib/presentation/cookbook/widgets/cookbook_recipe_list.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/cookbook/widgets/cookbook_recipe_list_item.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_pagination_provider.dart';
+import 'package:meal_planner/services/providers/recipe/recipe_search_provider.dart';
 
 class CookbookRecipeList extends ConsumerStatefulWidget {
   final String category;
+  final List<String> allCategories;
 
   const CookbookRecipeList({
     required this.category,
+    required this.allCategories,
     super.key,
   });
 
@@ -31,7 +37,6 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
   }
 
   void _onScroll() {
-    // Wenn 200px vor dem Ende -> lade mehr
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       ref.read(recipesPaginationProvider(widget.category).notifier).loadMore();
@@ -42,6 +47,14 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
   Widget build(BuildContext context) {
     final paginationState =
         ref.watch(recipesPaginationProvider(widget.category));
+    final isSearching = ref.watch(isSearchActiveProvider);
+
+    final recipes = ref.watch(
+      filteredRecipesProvider(
+        category: widget.category,
+        allCategories: widget.allCategories,
+      ),
+    );
 
     return Container(
       color: Colors.lightGreen[100],
@@ -53,30 +66,45 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
               .read(recipesPaginationProvider(widget.category).notifier)
               .refresh();
         },
-        child: _buildContent(state: paginationState),
+        child: _buildContent(
+          recipes: recipes,
+          isLoading: paginationState.isLoading,
+          hasMore: paginationState.hasMore,
+          error: paginationState.error,
+          isSearching: isSearching,
+        ),
       ),
     );
   }
 
-  Widget _buildContent({required RecipesPaginationState state}) {
-    if (state.recipes.isEmpty && state.isLoading) {
+  Widget _buildContent({
+    required List<Recipe> recipes,
+    required bool isLoading,
+    required bool hasMore,
+    required String? error,
+    required bool isSearching,
+  }) {
+    if (recipes.isEmpty && isLoading) {
       return _alwaysScrollableListView(children: [
         SizedBox(height: 100),
         Center(child: CircularProgressIndicator()),
       ]);
-    } else if (state.recipes.isEmpty && !state.isLoading) {
+    } else if (recipes.isEmpty && !isLoading) {
+      final message = isSearching
+          ? "Keine Rezepte gefunden"
+          : "Keine Rezepte in dieser Kategorie!";
       return _alwaysScrollableListView(children: [
         SizedBox(height: 100),
-        Center(child: Text("Keine Rezepte in dieser Kategorie!")),
+        Center(child: Text(message)),
       ]);
-    } else if (state.error != null && state.recipes.isEmpty) {
+    } else if (error != null && recipes.isEmpty) {
       return _alwaysScrollableListView(children: [
         const SizedBox(height: 100),
         Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Error: ${state.error}'),
+              Text('Error: $error'),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
@@ -92,13 +120,15 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
       ]);
     }
 
+    // Bei aktiver Suche keine Pagination anzeigen
+    final showLoadingIndicator = !isSearching && hasMore;
+
     return ListView.builder(
       controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
-      itemCount: state.recipes.length + (state.hasMore ? 1 : 0),
+      itemCount: recipes.length + (showLoadingIndicator ? 1 : 0),
       itemBuilder: (context, index) {
-        // Loading Indicator am Ende der Liste
-        if (index == state.recipes.length) {
+        if (index == recipes.length) {
           return const Padding(
             padding: EdgeInsets.all(16.0),
             child: Center(
@@ -106,8 +136,7 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
             ),
           );
         }
-
-        return CookbookRecipeListItem(recipe: state.recipes[index]);
+        return CookbookRecipeListItem(recipe: recipes[index]);
       },
     );
   }
@@ -119,3 +148,4 @@ ListView _alwaysScrollableListView({required List<Widget> children}) {
     children: children,
   );
 }
+

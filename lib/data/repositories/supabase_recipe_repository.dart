@@ -1,15 +1,14 @@
 // data/repositories/supabase_recipe_repository.dart
 
+import 'dart:developer';
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:meal_planner/core/constants/firebase_constants.dart';
+import 'package:meal_planner/data/datasources/recipe_remote_datasource.dart';
 import 'package:meal_planner/data/model/ingredient_model.dart';
 import 'package:meal_planner/data/model/recipe_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/core/utils/uuid_generator.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
-import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/repositories/recipe_repository.dart';
 import 'package:meal_planner/domain/repositories/storage_repository.dart';
 import 'package:meal_planner/domain/exceptions/recipe_exceptions.dart';
@@ -17,16 +16,19 @@ import 'package:meal_planner/domain/exceptions/recipe_exceptions.dart';
 class SupabaseRecipeRepository implements RecipeRepository {
   final SupabaseClient _supabase;
   final StorageRepository _storage;
+  final RecipeRemoteDatasource _remote;
   final String _groupId;
   final String _userId;
 
   SupabaseRecipeRepository({
     required SupabaseClient supabase,
     required StorageRepository storage,
+    required RecipeRemoteDatasource remote,
     required String groupId,
     required String userId,
   })  : _supabase = supabase,
         _storage = storage,
+        _remote = remote,
         _groupId = groupId,
         _userId = userId;
 
@@ -46,21 +48,26 @@ class SupabaseRecipeRepository implements RecipeRepository {
       }
 
       // 2. Recipe einfügen
-      await _supabase.from(SupabaseConstants.recipesTable).insert(
-            model.toSupabase(
-              recipeId: recipeId,
-              groupId: _groupId,
-              userId: _userId,
-              imageUrl: imageUrl,
-            ),
-          );
+      await _remote.insertRecipe(
+        recipeId: recipeId,
+        model: model,
+        groupId: _groupId,
+        imageUrl: imageUrl,
+        userId: _userId,
+      );
 
       // 3. Categories speichern
       //await _saveCategories(recipeId, recipe.categories);
-      await _saveCategories(recipeId, recipe.categories);
+      await _remote.saveRecipeCategories(
+          recipeId: recipeId, categories: recipe.categories);
 
+      final List<IngredientModel> ingredientModels =
+          recipe.ingredients.map(IngredientModel.fromEntity).toList();
       // 4. Ingredients speichern
-      await _saveIngredients(recipeId, recipe.ingredients);
+      await _remote.saveRecipeIngredients(
+        recipeId: recipeId,
+        ingredients: ingredientModels,
+      );
 
       return recipeId;
     } catch (e) {
@@ -68,84 +75,76 @@ class SupabaseRecipeRepository implements RecipeRepository {
     }
   }
 
-  Future<void> _saveCategories(String recipeId, List<String> categories) async {
-    for (final categoryName in categories) {
-      final categoryId = await _upsertCategory(categoryName);
+  // Future<void> _saveCategories(String recipeId, List<String> categories) async {
+  //   for (final categoryName in categories) {
+  //     final categoryId = await _upsertCategory(categoryName);
+  //
+  //     await _supabase.from(SupabaseConstants.recipeCategoriesTable).insert({
+  //       SupabaseConstants.recipeCategoryRecipeId: recipeId,
+  //       SupabaseConstants.recipeCategoryCategoryId: categoryId,
+  //     });
+  //   }
+  // }
+  //
+  // Future<String> _upsertCategory(String name) async {
+  //   final existing = await _supabase
+  //       .from(SupabaseConstants.categoriesTable)
+  //       .select(SupabaseConstants.categoryId)
+  //       .eq(SupabaseConstants.categoryName, name.toLowerCase())
+  //       .maybeSingle();
+  //
+  //   if (existing != null) {
+  //     return existing[SupabaseConstants.categoryId] as String;
+  //   }
+  //
+  //   final categoryId = generateUuid();
+  //   await _supabase.from(SupabaseConstants.categoriesTable).insert({
+  //     SupabaseConstants.categoryId: categoryId,
+  //     SupabaseConstants.categoryName: name.toLowerCase(),
+  //   });
+  //
+  //   return categoryId;
+  // }
 
-      await _supabase.from(SupabaseConstants.recipeCategoriesTable).insert({
-        SupabaseConstants.recipeCategoryRecipeId: recipeId,
-        SupabaseConstants.recipeCategoryCategoryId: categoryId,
-      });
-    }
-  }
-
-  Future<String> _upsertCategory(String name) async {
-    final existing = await _supabase
-        .from(SupabaseConstants.categoriesTable)
-        .select(SupabaseConstants.categoryId)
-        .eq(SupabaseConstants.categoryName, name.toLowerCase())
-        .maybeSingle();
-
-    if (existing != null) {
-      return existing[SupabaseConstants.categoryId] as String;
-    }
-
-    final categoryId = generateUuid();
-    await _supabase.from(SupabaseConstants.categoriesTable).insert({
-      SupabaseConstants.categoryId: categoryId,
-      SupabaseConstants.categoryName: name.toLowerCase(),
-    });
-
-    return categoryId;
-  }
-
-  Future<void> _saveIngredients(
-      String recipeId, List<Ingredient> ingredients) async {
-    for (final ingredient in ingredients) {
-      final ingredientId = await _upsertIngredient(ingredient.name);
-      final model = IngredientModel.fromEntity(ingredient);
-
-      await _supabase
-          .from(SupabaseConstants.recipeIngredientsTable)
-          .insert(model.toSupabaseRecipeIngredient(recipeId, ingredientId));
-    }
-  }
-
-  Future<String> _upsertIngredient(String name) async {
-    final existing = await _supabase
-        .from(SupabaseConstants.ingredientsTable)
-        .select(SupabaseConstants.ingredientId)
-        .eq(SupabaseConstants.ingredientName, name)
-        .maybeSingle();
-
-    if (existing != null) {
-      return existing[SupabaseConstants.ingredientId] as String;
-    }
-
-    final ingredientId = generateUuid();
-    await _supabase.from(SupabaseConstants.ingredientsTable).insert({
-      SupabaseConstants.ingredientId: ingredientId,
-      SupabaseConstants.ingredientName: name,
-    });
-
-    return ingredientId;
-  }
+  // Future<void> _saveIngredients(
+  //     String recipeId, List<Ingredient> ingredients) async {
+  //   for (final ingredient in ingredients) {
+  //     final ingredientId = await _upsertIngredient(ingredient.name);
+  //     final model = IngredientModel.fromEntity(ingredient);
+  //
+  //     await _supabase
+  //         .from(SupabaseConstants.recipeIngredientsTable)
+  //         .insert(model.toSupabaseRecipeIngredient(recipeId, ingredientId));
+  //   }
+  // }
+  //
+  // Future<String> _upsertIngredient(String name) async {
+  //   final existing = await _supabase
+  //       .from(SupabaseConstants.ingredientsTable)
+  //       .select(SupabaseConstants.ingredientId)
+  //       .eq(SupabaseConstants.ingredientName, name)
+  //       .maybeSingle();
+  //
+  //   if (existing != null) {
+  //     return existing[SupabaseConstants.ingredientId] as String;
+  //   }
+  //
+  //   final ingredientId = generateUuid();
+  //   await _supabase.from(SupabaseConstants.ingredientsTable).insert({
+  //     SupabaseConstants.ingredientId: ingredientId,
+  //     SupabaseConstants.ingredientName: name,
+  //   });
+  //
+  //   return ingredientId;
+  // }
 
   // ==================== READ ====================
 
   @override
   Future<Recipe?> getRecipeById(String recipeId) async {
     try {
-      final response = await _supabase
-          .from(SupabaseConstants.recipesTable)
-          .select('''
-          *,
-          recipe_categories(categories(name)),
-          recipe_ingredients(amount, unit, ingredients(name))
-        ''')
-          .eq(SupabaseConstants.recipeId, recipeId)
-          .eq(SupabaseConstants.recipeGroupId, _groupId)
-          .maybeSingle();
+      final response =
+          await _remote.getRecipeById(recipeId: recipeId, groupId: _groupId);
 
       if (response == null) return null;
       return RecipeModel.fromSupabaseWithRelations(response);
@@ -157,32 +156,17 @@ class SupabaseRecipeRepository implements RecipeRepository {
   @override
   Future<List<Recipe>> getRecipesByCategory(String category) async {
     try {
-      final categoryResponse = await _supabase
-          .from(SupabaseConstants.recipesTable)
-          .select('id, recipe_categories!inner(categories!inner(name))')
-          .eq(SupabaseConstants.recipeGroupId, _groupId)
-          .eq('recipe_categories.categories.name', category.toLowerCase());
-
-      final ids =
-          (categoryResponse as List).map((r) => r['id'] as String).toList();
-
-      if (ids.isEmpty) return [];
-
-      final response = await _supabase
-          .from(SupabaseConstants.recipesTable)
-          .select('''
-          *,
-          recipe_categories(categories(name)),
-          recipe_ingredients(amount, unit, sort_order, group_name, ingredients(name))
-        ''')
-          .inFilter(SupabaseConstants.recipeId, ids)
-          .order(SupabaseConstants.recipeCreatedAt, ascending: false);
-
-      return (response as List)
-          .map((data) => RecipeModel.fromSupabaseWithRelations(data))
+      final data = await _remote.getRecipesByCategory(
+        category: category,
+        groupId: _groupId,
+      );
+      return data
+          .map(
+              (recipeData) => RecipeModel.fromSupabaseWithRelations(recipeData))
           .toList();
     } catch (e, stackTrace) {
-      debugPrint("Error: $e\n$stackTrace");
+      log("Error fetching recipes by category",
+          error: e, stackTrace: stackTrace);
       throw RecipeNotFoundException('Kategorie: $category');
     }
   }
@@ -190,23 +174,15 @@ class SupabaseRecipeRepository implements RecipeRepository {
   @override
   Future<List<Recipe>> getRecipesByCategories(List<String> categories) async {
     try {
-      final response = await _supabase
-          .from(SupabaseConstants.recipesTable)
-          .select('''
-          *,
-          recipe_categories!inner(categories!inner(name)),
-          recipe_ingredients(amount, unit, ingredients(name))
-        ''')
-          .eq(SupabaseConstants.recipeGroupId, _groupId)
-          .inFilter('recipe_categories.categories.name',
-              categories.map((c) => c.toLowerCase()).toList())
-          .order(SupabaseConstants.recipeCreatedAt, ascending: false);
-
-      return (response as List)
-          .map((data) => RecipeModel.fromSupabaseWithRelations(data))
+      final data = await _remote.getRecipesByCategories(
+          categories: categories, groupId: _groupId);
+      return data
+          .map(
+              (recipeData) => RecipeModel.fromSupabaseWithRelations(recipeData))
           .toList();
     } catch (e, stackTrace) {
-      debugPrint("Error: $e\n$stackTrace");
+      log("Error fetching recipes by categories",
+          error: e, stackTrace: stackTrace);
       throw RecipeNotFoundException('Kategorien: $categories');
     }
   }
@@ -214,14 +190,7 @@ class SupabaseRecipeRepository implements RecipeRepository {
   @override
   Future<List<String>> getAllCategories() async {
     try {
-      final response = await _supabase
-          .from(SupabaseConstants.categoriesTable)
-          .select(SupabaseConstants.categoryName)
-          .order(SupabaseConstants.categoryName);
-
-      return (response as List)
-          .map((data) => data[SupabaseConstants.categoryName] as String)
-          .toList();
+      return await _remote.getAllCategories();
     } catch (e) {
       return [];
     }
@@ -233,6 +202,8 @@ class SupabaseRecipeRepository implements RecipeRepository {
   Future<void> updateRecipe(Recipe recipe, File? newImage) async {
     try {
       final String? recipeId = recipe.id;
+      print("=== Update recipe start: $recipeId ===");
+      print("new categories: ${recipe.categories}");
       if (recipeId == null) {
         throw RecipeUpdateException("Recipe has no ID");
       }
@@ -249,19 +220,22 @@ class SupabaseRecipeRepository implements RecipeRepository {
 
       final updatedRecipe = recipe.copyWith(imageUrl: imageUrl);
       final model = RecipeModel.fromEntity(updatedRecipe);
-      await _supabase
-          .from(SupabaseConstants.recipesTable)
-          .update(model.toSupabaseUpdate())
-          .eq(SupabaseConstants.recipeId, recipeId);
-
+      await _remote.updateRecipe(recipeId, model.toSupabaseUpdate());
       // Alte Junction-Einträge löschen
-      await _deleteRecipeCategories(recipeId);
-      await _deleteRecipeIngredients(recipeId);
+      print("deleting old categories...");
+      await _remote.deleteRecipeCategories(recipeId);
+      print("old categories deletes");
+      await _remote.deleteRecipeIngredients(recipeId);
 
-      // Neue einfügen
-      //await _saveCategories(recipeId, recipe.categories);
-      await _saveCategories(recipeId, recipe.categories);
-      await _saveIngredients(recipeId, recipe.ingredients);
+      print("saving new categoires: ${recipe.categories}");
+      await _remote.saveRecipeCategories(
+          recipeId: recipeId, categories: recipe.categories);
+      print("new categories saved");
+      print("=== update recipe end ===");
+      final List<IngredientModel> ingredientModels =
+          recipe.ingredients.map(IngredientModel.fromEntity).toList();
+      await _remote.saveRecipeIngredients(
+          recipeId: recipeId, ingredients: ingredientModels);
     } catch (e) {
       throw RecipeUpdateException(e.toString());
     }
@@ -279,14 +253,11 @@ class SupabaseRecipeRepository implements RecipeRepository {
       }
 
       // Junction-Einträge löschen
-      await _deleteRecipeCategories(recipeId);
-      await _deleteRecipeIngredients(recipeId);
+      await _remote.deleteRecipeCategories(recipeId);
+      await _remote.deleteRecipeIngredients(recipeId);
 
       // Recipe löschen
-      await _supabase
-          .from(SupabaseConstants.recipesTable)
-          .delete()
-          .eq(SupabaseConstants.recipeId, recipeId);
+      await _remote.deleteRecipe(recipeId);
     } catch (e) {
       throw RecipeDeletionException(e.toString());
     }
@@ -294,17 +265,17 @@ class SupabaseRecipeRepository implements RecipeRepository {
 
   // ==================== PRIVATE HELPERS ====================
 
-  Future<void> _deleteRecipeCategories(String recipeId) async {
-    await _supabase
-        .from(SupabaseConstants.recipeCategoriesTable)
-        .delete()
-        .eq(SupabaseConstants.recipeCategoryRecipeId, recipeId);
-  }
-
-  Future<void> _deleteRecipeIngredients(String recipeId) async {
-    await _supabase
-        .from(SupabaseConstants.recipeIngredientsTable)
-        .delete()
-        .eq(SupabaseConstants.recipeIngredientRecipeId, recipeId);
-  }
+//   Future<void> _deleteRecipeCategories(String recipeId) async {
+//     await _supabase
+//         .from(SupabaseConstants.recipeCategoriesTable)
+//         .delete()
+//         .eq(SupabaseConstants.recipeCategoryRecipeId, recipeId);
+//   }
+//
+//   Future<void> _deleteRecipeIngredients(String recipeId) async {
+//     await _supabase
+//         .from(SupabaseConstants.recipeIngredientsTable)
+//         .delete()
+//         .eq(SupabaseConstants.recipeIngredientRecipeId, recipeId);
+//   }
 }

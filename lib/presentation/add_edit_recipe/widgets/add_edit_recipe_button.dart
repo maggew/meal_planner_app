@@ -72,6 +72,7 @@ class AddEditRecipeButton extends ConsumerWidget {
       name: recipeNameController.text,
       instructions: recipeInstructionsController.text,
       ingredients: ingredients,
+      categories: selectedCategories,
     );
 
     if (!validation.isValid) {
@@ -85,8 +86,6 @@ class AddEditRecipeButton extends ConsumerWidget {
       Recipe recipe = Recipe(
         id: existingRecipe?.id,
         name: recipeNameController.text,
-        //TODO: muss angepasst werden, wenn mehrere kategorien unterstützt werden
-        // categories: selectedCategories --> ist eine List<String>
         categories: selectedCategories,
         portions: selectedPortions,
         ingredients: ingredients,
@@ -102,7 +101,12 @@ class AddEditRecipeButton extends ConsumerWidget {
         await recipeRepo.createRecipe(recipe, image);
       }
 
-      for (final category in recipe.categories) {
+      final oldCategories = existingRecipe?.categories ?? [];
+      final newCategores = recipe.categories;
+      final allCategoriesToInvalidate = {...oldCategories, ...newCategores};
+
+      // Neue Kategorien invalidieren
+      for (final category in allCategoriesToInvalidate) {
         print("now invalidating... for category: $category");
         ref.invalidate(recipesPaginationProvider(category.toLowerCase()));
       }
@@ -122,8 +126,7 @@ class AddEditRecipeButton extends ConsumerWidget {
     required TextEditingController recipeNameController,
     required TextEditingController recipeInstructionsController,
   }) {
-    //ref.read(ingredientsProvider.notifier).clear();
-    ref.read(selectedCategoriesProvider.notifier).set([DEFAULT_CATEGORY]);
+    ref.read(selectedCategoriesProvider.notifier).clear();
     ref.read(selectedPortionsProvider.notifier).set(DEFAULT_PORTIONS);
     ref.read(imageManagerProvider.notifier).clearRecipePhoto();
     recipeNameController.clear();

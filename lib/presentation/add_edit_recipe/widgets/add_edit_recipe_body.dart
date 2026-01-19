@@ -46,7 +46,7 @@ class _AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
             widget.existingRecipe?.ingredients);
         ref
             .read(selectedCategoriesProvider.notifier)
-            .set(widget.existingRecipe?.categories ?? [DEFAULT_CATEGORY]);
+            .set(widget.existingRecipe?.categories ?? []);
         ref
             .read(selectedPortionsProvider.notifier)
             .set(widget.existingRecipe?.portions ?? DEFAULT_PORTIONS);

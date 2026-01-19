@@ -1,39 +1,102 @@
-import 'package:flutter/material.dart';
+// lib/presentation/cookbook/widgets/cookbook_searchbar.dart
 
-class CookbookSearchbar extends StatelessWidget {
-  final TextEditingController searchbarController;
-  const CookbookSearchbar({
-    super.key,
-    required this.searchbarController,
-  });
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/services/providers/recipe/recipe_search_provider.dart';
+
+class CookbookSearchbar extends ConsumerStatefulWidget {
+  const CookbookSearchbar({super.key});
+
+  @override
+  ConsumerState<CookbookSearchbar> createState() => _CookbookSearchbarState();
+}
+
+class _CookbookSearchbarState extends ConsumerState<CookbookSearchbar> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final searchAll = ref.watch(searchAllCategoriesProvider);
+    final query = ref.watch(searchQueryProvider);
+
+    if (_controller.text != query) {
+      _controller.text = query;
+      _controller.selection = TextSelection.collapsed(offset: query.length);
+    }
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 20),
-      height: 40,
-      child: Stack(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextFormField(
-            controller: searchbarController,
-            textAlign: TextAlign.start,
-            textAlignVertical: TextAlignVertical.bottom,
-            autovalidateMode: AutovalidateMode.always,
-            decoration: InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(30)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(30)),
-              ),
-              hintText: "Suche",
-              fillColor: Colors.white70,
-              filled: true,
+          SizedBox(
+            height: 48,
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _controller,
+                    textAlignVertical: TextAlignVertical.center,
+                    onChanged: (value) {
+                      ref.read(searchQueryProvider.notifier).set(value);
+                    },
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.search),
+                      suffixIcon: query.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(Icons.clear, size: 20),
+                              onPressed: () {
+                                _controller.clear();
+                                ref.read(searchQueryProvider.notifier).clear();
+                              },
+                            )
+                          : null,
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(30)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(30)),
+                      ),
+                      hintText: "Suche",
+                      fillColor: Colors.white70,
+                      filled: true,
+                      contentPadding: EdgeInsets.symmetric(vertical: 0),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8),
+                Tooltip(
+                  message: 'In allen Kategorien suchen',
+                  child: FilterChip(
+                    label: Text('Alle'),
+                    selected: searchAll,
+                    onSelected: (_) {
+                      ref.read(searchAllCategoriesProvider.notifier).toggle();
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
+          // Hinweis bei 1-2 Zeichen
+          if (query.isNotEmpty && query.trim().length < 3)
+            Padding(
+              padding: EdgeInsets.only(top: 4, left: 16),
+              child: Text(
+                'Mindestens 3 Zeichen eingeben',
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+            ),
         ],
       ),
     );
   }
 }
+
