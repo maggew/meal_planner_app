@@ -56,3 +56,12 @@ app.*.map.json
 # nvim artifacts
 /coverage/
 /node_modules/
+
+
+# Android / NDK / CMake
+android/app/.cxx/
+**/.cxx/
+**/.cmake/
+**/build.ninja
+**/CMakeCache.txt
+**/CMakeFiles/
