@@ -9,6 +9,11 @@
 .history
 .svn/
 
+.env
+
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
 # IntelliJ related
 *.iml
 *.ipr
@@ -44,3 +49,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# test related
+/test/integration/test_config.dart
+
+# nvim artifacts
+/coverage/
+/node_modules/

@@ -1,9 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'dart:async';
 
 import 'MealRowBreakfast_widget.dart';
 import 'MealRowDinner_widget.dart';
@@ -32,18 +27,9 @@ class _ThreeMeals extends State<ThreeMeals> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-                flex: 1,
-                child: MealRowBreakfast()
-            ),
-            Expanded(
-                flex: 1,
-                child: MealRowLunch()
-            ),
-            Expanded(
-                flex: 1,
-                child: MealRowDinner()
-            ),
+            Expanded(flex: 1, child: MealRowBreakfast()),
+            Expanded(flex: 1, child: MealRowLunch()),
+            Expanded(flex: 1, child: MealRowDinner()),
           ],
         ),
       ),

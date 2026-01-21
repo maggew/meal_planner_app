@@ -1,60 +1,54 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:meal_planner/appstyle/app_theme.dart';
-import 'package:meal_planner/screens/add_recipe_keyboard_screen.dart';
-import 'package:meal_planner/screens/cookbook_screen.dart';
-import 'package:meal_planner/screens/create_group_screen.dart';
-import 'package:meal_planner/screens/detailed_weekplan_screen.dart';
-import 'package:meal_planner/screens/group_created_screen.dart';
-import 'package:meal_planner/screens/join_group_screen.dart';
-import 'package:meal_planner/screens/refrigerator_screen.dart';
-import 'package:meal_planner/screens/show_recipe.dart';
-import 'package:meal_planner/screens/show_singleGroup_screen.dart';
-import 'package:meal_planner/screens/show_userGroups_screen.dart';
-import 'dart:async';
-import 'package:meal_planner/screens/welcome_screen.dart';
-import 'package:meal_planner/screens/login_screen.dart';
-import 'package:meal_planner/screens/registration_screen.dart';
-import 'package:meal_planner/screens/group_screen.dart';
-import 'package:meal_planner/screens/zoom_pic_screen.dart';
-import 'package:meal_planner/widgets/DismissKeyboard.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/core/theme/app_theme.dart';
+import 'package:meal_planner/services/providers/router_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();
+
+  final supabaseUrl = dotenv.env['SUPABASE_URL'];
+  final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'];
+
+  if (supabaseUrl == null || supabaseAnonKey == null) {
+    throw Exception('Supabase environment variables are not set');
+  }
+
+  await Supabase.initialize(
+    url: supabaseUrl,
+    anonKey: supabaseAnonKey,
+  );
+
   await Firebase.initializeApp();
-  runApp(MyApp());
+
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
+  runApp(
+    ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
-  String groupName;
+//TODO: dart run build_runner watch --delete-conflicting-outputs
 
-  // This widget is the root of your application.
+class MyApp extends ConsumerWidget {
+  const MyApp({super.key});
+
   @override
-  Widget build(BuildContext context) {
-    return DismissKeyboard(
-      child: MaterialApp(
-          title: 'Flutter Demo',
-          theme: AppTheme().getAppTheme(),
-          home: WelcomeScreen(), //Todo Welcome screen hier einsetzen
-          routes: {
-            '/registration': (context) => RegistrationScreen(),
-            '/login': (context) => LoginScreen(),
-            '/groups': (context) => GroupScreen(),
-            '/create_group': (context) => CreateGroupScreen(),
-            '/group_created': (context) => GroupCreatedScreen(
-                  groupName: groupName,
-                ),
-            '/join_group': (context) => JoinGroupScreen(),
-            '/detailed_week': (context) => DetailedWeekScreen(),
-            '/cookbook': (context) => CookbookScreen(),
-            RecipeScreen.route: (context) => RecipeScreen(),
-            '/add_recipe_keyboard': (context) => AddRecipeKeyboardScreen(),
-            '/show_userGroups': (context) => ShowUserGroupsScreen(),
-            ShowSingleGroupScreen.route: (context) => ShowSingleGroupScreen(),
-            ZoomPicScreen.route: (context) => ZoomPicScreen(),
-            RefrigeratorScreen.route: (context) => RefrigeratorScreen(),
-          }),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appRouter = ref.watch(appRouterProvider);
+    return MaterialApp.router(
+      title: 'Meal Planner',
+      theme: AppTheme().getAppTheme(),
+      routerConfig: appRouter.config(),
     );
   }
 }
+
+// TODO: supabase policies definieren für production!

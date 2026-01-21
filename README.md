@@ -1,16 +1,40 @@
-# meal_planner
+# Meal Planner App
 
-The best way to plan your meals
+Mobile application for managing and searching recipes.
 
-## Getting Started
+## Motivation
 
-This project is a starting point for a Flutter application.
+This project serves as a practical learning project to deepen my knowledge
+in Flutter and mobile app architecture and to prepare for a role as a
+software developer.
 
-A few resources to get you started if this is your first Flutter project:
+## Features (Current State)
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+- Create and manage recipes
+- Search and filter recipes
+- User authentication
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Tech Stack
+
+- Flutter (Dart)
+- State Management: Riverpod
+- Backend: Supabase (PostgreSQL)
+- Authentication & Storage: Firebase
+
+## Project Scope
+
+The focus of this repository is on application architecture, state management,
+and backend integration. Feature completeness is not the primary goal.
+
+## Setup
+
+This project requires external configuration files and environment variables
+which are not included in the repository for security reasons.
+
+- Supabase credentials via `.env`
+- Firebase configuration files (`google-services.json` / `GoogleService-Info.plist`)
+
+## Status
+
+Work in Progress – with a focus on clean architecture, clear separation of
+business logic and UI, and practical implementation.

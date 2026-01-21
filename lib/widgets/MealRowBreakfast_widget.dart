@@ -1,10 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_number_picker/flutter_number_picker.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'dart:async';
+//import 'package:flutter_number_picker/flutter_number_picker.dart';
+//import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class MealRowBreakfast extends StatefulWidget {
   @override
@@ -24,14 +20,14 @@ class _MealRowBreakfast extends State<MealRowBreakfast> {
           child: Stack(
             children: [
               Text(
-                  "Rezeptname",
-                style: Theme.of(context).textTheme.headline6,
+                "Rezeptname",
+                style: Theme.of(context).textTheme.titleLarge,
               ),
               Positioned(
                 left: 20,
                 child: Text(
-                    "Frühtstück",
-                  style: Theme.of(context).textTheme.bodyText2,
+                  "Frühtstück",
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ),
             ],
@@ -51,33 +47,33 @@ class _MealRowBreakfast extends State<MealRowBreakfast> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text("Personen"),
-                  CustomNumberPicker(
-                    valueTextStyle: Theme.of(context).textTheme.bodyText2,
-                    shape: OutlineInputBorder(
-                      borderSide: BorderSide(),
-                    ),
-                    initialValue: 4,
-                    minValue: 1,
-                    maxValue: 100,
-                    step: 1,
-                    onValue: (int ) {  },  //todo this returns the current value
-                  ),
+                  //   CustomNumberPicker(
+                  //     valueTextStyle: Theme.of(context).textTheme.bodyMedium,
+                  //     shape: OutlineInputBorder(
+                  //       borderSide: BorderSide(),
+                  //     ),
+                  //     initialValue: 4,
+                  //     minValue: 1,
+                  //     maxValue: 100,
+                  //     step: 1,
+                  //     onValue: (int) {}, //todo this returns the current value
+                  //   ),
                 ],
               ),
             ),
             SizedBox(width: 20),
             IconButton(
-              icon: FaIcon(
-                FontAwesomeIcons.bookOpen,
-              ),
-              onPressed: (){},      // todo set Path
+              icon: Icon(Icons.wallet), //FaIcon(
+              //   FontAwesomeIcons.bookOpen,
+              // ),
+              onPressed: () {}, // todo set Path
             ),
             SizedBox(width: 20),
             IconButton(
-              icon: FaIcon(
-                FontAwesomeIcons.trashAlt,
-              ),
-              onPressed: (){},    // todo set Path
+              icon: Icon(Icons.wallet), //FaIcon(
+              //   FontAwesomeIcons.trashAlt,
+              // ),
+              onPressed: () {}, // todo set Path
             ),
           ],
         ),
