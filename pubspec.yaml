@@ -85,6 +85,7 @@ flutter:
   uses-material-design: true
 
   assets:
+      - .env
       - assets/images/avocado.png
       - assets/images/group.png
       - assets/images/team.png
