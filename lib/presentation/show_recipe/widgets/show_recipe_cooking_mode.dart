@@ -49,7 +49,7 @@ class _ShowRecipeCookingModeState extends State<ShowRecipeCookingMode>
                 (index) => CookingModeStepWidget(
                       instructionStep: instructions[index],
                       stepNumber: index + 1,
-                      ingredients: widget.recipe.ingredients,
+                      ingredientSections: widget.recipe.ingredientSections,
                       isExpanded: isIngredientsExpanded,
                       onExpandToggle: () => setState(() {
                         isIngredientsExpanded = !isIngredientsExpanded;

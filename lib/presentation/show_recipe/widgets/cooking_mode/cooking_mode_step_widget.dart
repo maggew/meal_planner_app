@@ -8,7 +8,7 @@ import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooki
 class CookingModeStepWidget extends StatefulWidget {
   final String instructionStep;
   final int stepNumber;
-  final List<Ingredient> ingredients;
+  final List<IngredientSection> ingredientSections;
   final bool isExpanded;
   final VoidCallback onExpandToggle;
 
@@ -16,7 +16,7 @@ class CookingModeStepWidget extends StatefulWidget {
     super.key,
     required this.instructionStep,
     required this.stepNumber,
-    required this.ingredients,
+    required this.ingredientSections,
     required this.isExpanded,
     required this.onExpandToggle,
   });
@@ -48,7 +48,7 @@ class _CookingModeStepWidgetState extends State<CookingModeStepWidget> {
               spacing: 10,
               children: [
                 CookingModeIngredientsWidget(
-                  ingredients: widget.ingredients,
+                  ingredientSections: widget.ingredientSections,
                   isExpanded: widget.isExpanded,
                   pageMargin: pageMargin,
                   animationDuration: animationDuration,

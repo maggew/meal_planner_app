@@ -61,8 +61,18 @@ class SupabaseRecipeRepository implements RecipeRepository {
       await _remote.saveRecipeCategories(
           recipeId: recipeId, categories: recipe.categories);
 
-      final List<IngredientModel> ingredientModels =
-          recipe.ingredients.map(IngredientModel.fromEntity).toList();
+      final List<IngredientModel> ingredientModels = [];
+      for (final section in recipe.ingredientSections) {
+        for (int i = 0; i < section.items.length; i++) {
+          final ingredient = section.items[i];
+
+          ingredientModels.add(IngredientModel.fromEntity(
+            ingredient,
+            groupName: section.title,
+            sortOrder: i,
+          ));
+        }
+      }
       // 4. Ingredients speichern
       await _remote.saveRecipeIngredients(
         recipeId: recipeId,
@@ -232,10 +242,27 @@ class SupabaseRecipeRepository implements RecipeRepository {
           recipeId: recipeId, categories: recipe.categories);
       print("new categories saved");
       print("=== update recipe end ===");
-      final List<IngredientModel> ingredientModels =
-          recipe.ingredients.map(IngredientModel.fromEntity).toList();
+
+      final List<IngredientModel> ingredientModels = [];
+
+      for (final section in recipe.ingredientSections) {
+        for (int i = 0; i < section.items.length; i++) {
+          final ingredient = section.items[i];
+
+          ingredientModels.add(
+            IngredientModel.fromEntity(
+              ingredient,
+              groupName: section.title,
+              sortOrder: i,
+            ),
+          );
+        }
+      }
+
       await _remote.saveRecipeIngredients(
-          recipeId: recipeId, ingredients: ingredientModels);
+        recipeId: recipeId,
+        ingredients: ingredientModels,
+      );
     } catch (e) {
       throw RecipeUpdateException(e.toString());
     }

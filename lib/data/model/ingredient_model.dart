@@ -1,17 +1,22 @@
 // lib/data/models/ingredient_model.dart
 import 'package:meal_planner/core/constants/supabase_constants.dart';
+import 'package:meal_planner/core/utils/uuid_generator.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
 
 /// Data-Transfer-Objekt für Zutaten
 class IngredientModel extends Ingredient {
+  final String groupName;
+  final int sortOrder;
+  final String? localId;
   IngredientModel({
     required super.name,
     required super.unit,
     required super.amount,
-    super.sortOrder = 0,
-    super.groupName,
-  });
+    required this.sortOrder,
+    required this.groupName,
+    localId,
+  }) : localId = localId ?? generateUuid();
 
   /// Supabase → Model
   factory IngredientModel.fromSupabase(Map<String, dynamic> data) {
@@ -22,18 +27,23 @@ class IngredientModel extends Ingredient {
       unit: _parseUnit(data[SupabaseConstants.recipeIngredientUnit]),
       amount: data[SupabaseConstants.recipeIngredientAmount] as String? ?? '',
       sortOrder: data[SupabaseConstants.recipeIngredientSortOrder] as int? ?? 0,
-      groupName: data[SupabaseConstants.recipeIngredientGroupName] as String?,
+      groupName: data[SupabaseConstants.recipeIngredientGroupName] as String? ??
+          'Zutaten',
     );
   }
 
   /// Entity → Model
-  factory IngredientModel.fromEntity(Ingredient ingredient) {
+  factory IngredientModel.fromEntity(
+    Ingredient ingredient, {
+    required String groupName,
+    required int sortOrder,
+  }) {
     return IngredientModel(
       name: ingredient.name,
       unit: ingredient.unit,
       amount: ingredient.amount,
-      sortOrder: ingredient.sortOrder,
-      groupName: ingredient.groupName,
+      groupName: groupName,
+      sortOrder: sortOrder,
     );
   }
 
@@ -43,8 +53,6 @@ class IngredientModel extends Ingredient {
       name: name,
       unit: unit,
       amount: amount,
-      sortOrder: sortOrder,
-      groupName: groupName,
     );
   }
 

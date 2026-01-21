@@ -1,23 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gap/gap.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_igredient_listview_item.dart';
 import 'package:meal_planner/presentation/common/loading_overlay.dart';
 import 'package:meal_planner/services/providers/recipe/add_edit_recipe_ingredients_provider.dart';
 
 class AddEditRecipeIngredientsItem extends ConsumerWidget {
   final AddEditRecipeIngredientsProvider ingredientsProvider;
+
   const AddEditRecipeIngredientsItem({
     super.key,
     required this.ingredientsProvider,
   });
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(ingredientsProvider);
-
     final notifier = ref.read(ingredientsProvider.notifier);
+    final theme = Theme.of(context);
 
-    final ThemeData themeData = Theme.of(context);
+    // 👉 wir zeigen nur die erste (Default-)Section
+    final sectionIndex = 0;
+    final section = state.sections[sectionIndex];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -26,74 +29,64 @@ class AddEditRecipeIngredientsItem extends ConsumerWidget {
           children: [
             Text(
               "Zutaten",
-              style: themeData.textTheme.displayMedium,
+              style: theme.textTheme.displayMedium,
             ),
-            Gap(10),
+            const SizedBox(width: 10),
             IconButton(
-              onPressed: () {
-                notifier.analyzeIngredientsFromImage(pickImageFromCamera: true);
-              },
-              icon: Icon(Icons.camera_alt_outlined),
+              onPressed: () => notifier.analyzeIngredientsFromImage(
+                pickImageFromCamera: true,
+              ),
+              icon: const Icon(Icons.camera_alt_outlined),
             ),
-            Gap(10),
             IconButton(
-              onPressed: () {
-                notifier.analyzeIngredientsFromImage(
-                    pickImageFromCamera: false);
-              },
-              icon: Icon(Icons.folder_outlined),
+              onPressed: () => notifier.analyzeIngredientsFromImage(
+                pickImageFromCamera: false,
+              ),
+              icon: const Icon(Icons.folder_outlined),
             ),
           ],
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         LoadingOverlay(
           isLoading: state.isAnalyzing,
           child: Container(
             decoration: BoxDecoration(
               border: Border.all(color: Colors.blueGrey, width: 1.5),
               color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(3)),
+              borderRadius: const BorderRadius.all(Radius.circular(3)),
             ),
-            width: MediaQuery.of(context).size.width,
             child: Column(
               children: [
                 ReorderableListView.builder(
                   shrinkWrap: true,
-                  primary: false,
-                  buildDefaultDragHandles: false,
                   physics: const NeverScrollableScrollPhysics(),
-                  proxyDecorator: (child, index, animation) {
-                    return Material(
-                      elevation: 4,
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      child: IgnorePointer(child: child),
+                  buildDefaultDragHandles: false,
+                  itemCount: section.items.length,
+                  onReorder: (oldIndex, newIndex) {
+                    notifier.reorderIngredient(
+                      sectionIndex,
+                      oldIndex,
+                      newIndex,
                     );
                   },
-                  // onReorderStart: (_) => _isDragging.value = true,
-                  // onReorderEnd: (_) => _isDragging.value = false,
-                  onReorder: notifier.reorder,
-                  itemCount: state.items.length,
-                  itemBuilder: (context, index) {
-                    //print("building item $index");
-                    final item = state.items[index];
+                  itemBuilder: (context, itemIndex) {
+                    final item = section.items[itemIndex];
+
                     return AddEditRecipeIgredientListviewItem(
-                      key: ValueKey(item.ingredient.localId),
-                      index: index,
-                      amountController: item.amountController,
-                      ingredient: item.ingredient,
-                      ingredientNameController: item.nameController,
-                      onDelete: () => notifier.deleteIngredient(index),
-                      onNameChanged: (v) => notifier.updateName(index, v),
-                      onAmountchanged: (v) => notifier.updateAmount(index, v),
-                      onUnitChanged: (u) => notifier.updateUnit(index, u),
+                      key: ValueKey(item),
+                      item: item,
+                      index: itemIndex,
+                      onDelete: () => notifier.deleteIngredient(
+                        sectionIndex,
+                        itemIndex,
+                      ),
                     );
                   },
                 ),
                 ElevatedButton.icon(
-                  onPressed: notifier.addIngredient,
-                  icon: Icon(Icons.add),
-                  label: Text('Zutat hinzufügen'),
+                  onPressed: () => notifier.addIngredient(sectionIndex),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Zutat hinzufügen'),
                 ),
               ],
             ),

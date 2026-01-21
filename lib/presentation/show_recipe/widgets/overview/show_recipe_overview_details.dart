@@ -7,7 +7,6 @@ class ShowRecipeOverviewDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final int ingredientListLength = recipe.ingredients.length;
     return Container(
       margin: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 10),
       padding: EdgeInsets.all(10),
@@ -26,6 +25,7 @@ class ShowRecipeOverviewDetails extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Portions
           Text(
             "Portionen: ${recipe.portions.toString()}",
             style: TextStyle(
@@ -37,33 +37,71 @@ class ShowRecipeOverviewDetails extends StatelessWidget {
             ),
           ),
           SizedBox(height: 10),
-          ListView.builder(
-              physics: NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              itemCount: ingredientListLength,
-              itemBuilder: (BuildContext context, int index) {
-                final ingredient = recipe.ingredients[index];
-                return Column(
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
+          // Sections + Ingredients
+          ...recipe.ingredientSections.map((section) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(section.title), const SizedBox(height: 8),
+                // Ingredients of section
+                ListView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: section.items.length,
+                  itemBuilder: (context, index) {
+                    final ingredient = section.items[index];
+
+                    return Column(
                       children: [
-                        SizedBox(
-                            width: 75,
-                            child: Text(
-                                "${ingredient.amount} ${ingredient.unit.displayName}")),
-                        Expanded(child: Text(ingredient.name)),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              width: 75,
+                              child: Text(
+                                "${ingredient.amount} ${ingredient.unit.displayName}",
+                              ),
+                            ),
+                            Expanded(child: Text(ingredient.name)),
+                          ],
+                        ),
+                        if (index != section.items.length - 1)
+                          const Divider(thickness: 2),
                       ],
-                    ),
-                    if (index != ingredientListLength - 1) ...[
-                      Divider(
-                        thickness: 2,
-                      ),
-                    ],
-                  ],
-                );
-              }),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+              ],
+            );
+          }),
+          // ListView.builder(
+          //     physics: NeverScrollableScrollPhysics(),
+          //     shrinkWrap: true,
+          //     itemCount: ingredientListLength,
+          //     itemBuilder: (BuildContext context, int index) {
+          //       final ingredient = recipe.ingredients[index];
+          //       return Column(
+          //         children: [
+          //           Row(
+          //             crossAxisAlignment: CrossAxisAlignment.start,
+          //             mainAxisAlignment: MainAxisAlignment.start,
+          //             children: [
+          //               SizedBox(
+          //                   width: 75,
+          //                   child: Text(
+          //                       "${ingredient.amount} ${ingredient.unit.displayName}")),
+          //               Expanded(child: Text(ingredient.name)),
+          //             ],
+          //           ),
+          //           if (index != ingredientListLength - 1) ...[
+          //             Divider(
+          //               thickness: 2,
+          //             ),
+          //           ],
+          //         ],
+          //       );
+          //     }),
         ],
       ),
     );

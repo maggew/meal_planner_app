@@ -156,7 +156,7 @@ final class FilteredRecipesProvider
   }
 }
 
-String _$filteredRecipesHash() => r'cda123871750fc1b587eefa048da36395aee372c';
+String _$filteredRecipesHash() => r'098b782954047d655f382cc856a2cadc58efda8b';
 
 final class FilteredRecipesFamily extends $Family
     with
@@ -252,7 +252,7 @@ final class IsSearchActiveProvider
   }
 }
 
-String _$isSearchActiveHash() => r'0d8b5c5350f76fa5a16d709ef29d9ab5699548b0';
+String _$isSearchActiveHash() => r'ca6742634bcc2f4ad2f95b8d58e474163651ea4e';
 
 abstract class _$IsSearchActive extends $Notifier<bool> {
   bool build();

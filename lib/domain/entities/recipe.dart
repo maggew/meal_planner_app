@@ -5,7 +5,7 @@ class Recipe {
   final String name;
   final List<String> categories;
   final int portions;
-  final List<Ingredient> ingredients;
+  final List<IngredientSection> ingredientSections;
   final String instructions;
   final String? imageUrl;
   final DateTime createdAt;
@@ -15,7 +15,7 @@ class Recipe {
     required this.name,
     required this.categories,
     required this.portions,
-    required this.ingredients,
+    required this.ingredientSections,
     required this.instructions,
     this.imageUrl,
     DateTime? createdAt,
@@ -27,7 +27,7 @@ class Recipe {
     List<String>? categories,
     //List<String>? categories,
     int? portions,
-    List<Ingredient>? ingredients,
+    List<IngredientSection>? ingredientSections,
     String? instructions,
     String? imageUrl,
     DateTime? createdAt,
@@ -37,7 +37,7 @@ class Recipe {
       name: name ?? this.name,
       categories: categories ?? this.categories,
       portions: portions ?? this.portions,
-      ingredients: ingredients ?? this.ingredients,
+      ingredientSections: ingredientSections ?? this.ingredientSections,
       instructions: instructions ?? this.instructions,
       imageUrl: imageUrl ?? this.imageUrl,
       createdAt: createdAt ?? this.createdAt,

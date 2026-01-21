@@ -1,7 +1,8 @@
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
-import 'package:meal_planner/presentation/add_edit_recipe/form/add_edit_recipe_ingredient_form_item.dart';
-import 'package:meal_planner/presentation/add_edit_recipe/state/add_edit_recipe_ingredients_state.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/form/ingredient_form_item.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/form/ingredient_section_form.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/state/ingredients_state.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_analysis_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -12,93 +13,77 @@ part 'add_edit_recipe_ingredients_provider.g.dart';
 class AddEditRecipeIngredients extends _$AddEditRecipeIngredients {
   @override
   AddEditRecipeIngredientsState build(
-    List<Ingredient>? initialIngredients,
+    List<IngredientSection>? initialSections,
   ) {
-    return AddEditRecipeIngredientsState.initial(initialIngredients);
+    return AddEditRecipeIngredientsState.initial(initialSections);
   }
 
-  // ---------- Actions ----------
+  // ------------------------------------------------------------
+  // Section Actions
+  // ------------------------------------------------------------
 
-  void addIngredient({String? groupName}) {
-    state = state.copyWith(
-      items: [
-        ...state.items,
-        IngredientFormItem.empty(groupName: groupName),
-      ],
-    );
-  }
-
-  void deleteIngredient(int index) {
-    final items = [...state.items];
-    final removed = items.removeAt(index);
-    removed.dispose();
-
-    state = state.copyWith(items: items);
-  }
-
-  void updateName(int index, String value) {
-    final item = state.items[index];
-    final updated = item.copyWith(
-      ingredient: item.ingredient.copyWith(name: value),
+  void addSection() {
+    state.sections.add(
+      IngredientSectionForm(
+        items: [IngredientFormItem.empty()],
+      ),
     );
 
-    final items = [...state.items]..[index] = updated;
-    state = state.copyWith(items: items);
+    state = state.copyWith(sections: [...state.sections]);
   }
 
-  void updateAmount(int index, String value) {
-    final item = state.items[index];
-    final updated = item.copyWith(
-      ingredient: item.ingredient.copyWith(amount: value),
-    );
-
-    final items = [...state.items]..[index] = updated;
-    state = state.copyWith(items: items);
+  void renameSection(int sectionIndex, String title) {
+    state.sections[sectionIndex].titleController.text = title;
   }
 
-  void updateUnit(int index, Unit unit) {
-    final item = state.items[index];
-    final updated = item.copyWith(
-      ingredient: item.ingredient.copyWith(unit: unit),
-    );
-
-    final items = [...state.items]..[index] = updated;
-    state = state.copyWith(items: items);
+  void removeSection(int sectionIndex) {
+    final section = state.sections.removeAt(sectionIndex);
+    section.dispose();
+    state = state.copyWith(sections: [...state.sections]);
   }
 
-  void reorder(int oldIndex, int newIndex) {
-    final items = [...state.items];
+  // ------------------------------------------------------------
+  // Ingredient Actions
+  // ------------------------------------------------------------
+
+  void addIngredient(int sectionIndex) {
+    final section = state.sections[sectionIndex];
+    section.items.add(IngredientFormItem.empty());
+
+    state = state.copyWith(sections: [...state.sections]);
+  }
+
+  void deleteIngredient(int sectionIndex, int itemIndex) {
+    final section = state.sections[sectionIndex];
+    final item = section.items.removeAt(itemIndex);
+
+    item.dispose();
+
+    state = state.copyWith(sections: [...state.sections]);
+  }
+
+  void reorderIngredient(
+    int sectionIndex,
+    int oldIndex,
+    int newIndex,
+  ) {
+    final section = state.sections[sectionIndex];
+
     if (oldIndex < newIndex) newIndex -= 1;
 
-    final item = items.removeAt(oldIndex);
-    items.insert(newIndex, item);
+    final item = section.items.removeAt(oldIndex);
+    section.items.insert(newIndex, item);
 
-    state = state.copyWith(items: items);
+    state = state.copyWith(sections: [...state.sections]);
   }
 
-  void applyAnalysis(List<Ingredient> ingredients) {
-    for (final item in state.items) {
-      item.dispose();
-    }
+  // ------------------------------------------------------------
+  // OCR / Analyse
+  // ------------------------------------------------------------
 
-    state = state.copyWith(
-      items:
-          ingredients.map((i) => IngredientFormItem.fromIngredient(i)).toList(),
-    );
-  }
-
-  List<Ingredient> buildIngredientsForSave() {
-    return state.items
-        .asMap()
-        .entries
-        .map(
-          (e) => e.value.ingredient.copyWith(sortOrder: e.key),
-        )
-        .toList();
-  }
-
-  Future<void> analyzeIngredientsFromImage(
-      {required bool pickImageFromCamera}) async {
+  Future<void> analyzeIngredientsFromImage({
+    required bool pickImageFromCamera,
+  }) async {
     state = state.copyWith(isAnalyzing: true);
 
     final imageManager = ref.read(imageManagerProvider.notifier);
@@ -106,48 +91,55 @@ class AddEditRecipeIngredients extends _$AddEditRecipeIngredients {
 
     if (pickImageFromCamera) {
       await imageManager.pickImageFromCamera(
-          imageType: AnalysisImageType.ingredients);
+        imageType: AnalysisImageType.ingredients,
+      );
     } else {
       await imageManager.pickImageFromGallery(
-          imageType: AnalysisImageType.ingredients);
+        imageType: AnalysisImageType.ingredients,
+      );
     }
 
     final image = ref.read(imageManagerProvider).ingredientsImage;
-
     if (image == null) {
       state = state.copyWith(isAnalyzing: false);
       return;
     }
 
-    await analysisNotifier.analyzeImage(image: image, isIngredientImage: true);
+    await analysisNotifier.analyzeImage(
+      image: image,
+      isIngredientImage: true,
+    );
 
     final analysisState = ref.read(recipeAnalysisProvider);
 
     analysisState.when(
       data: (data) {
-        final List<Ingredient>? ingredients = data?.ingredients;
+        final ingredients = data?.ingredients;
         if (ingredients == null) {
           state = state.copyWith(isAnalyzing: false);
           return;
         }
-        for (final item in state.items) {
-          item.dispose();
+
+        // alten State aufräumen
+        for (final section in state.sections) {
+          for (final item in section.items) {
+            item.dispose();
+          }
         }
 
         state = state.copyWith(
-          items: ingredients.map(IngredientFormItem.fromIngredient).toList(),
+          sections: [
+            IngredientSectionForm(
+              title: 'Zutaten',
+              items:
+                  ingredients.map(IngredientFormItem.fromIngredient).toList(),
+            ),
+          ],
           isAnalyzing: false,
         );
       },
-      loading: () {
-        print("==================");
-        print(
-            "loading in \'analyzseIngredientsFromImage\', which shouldn't happen!");
-        print("==================");
-      },
-      error: (error, stackTrace) {
-        print("error in \'analyzseIngredientsFromImage\'");
-        print("error: $error");
+      loading: () {},
+      error: (_, __) {
         state = state.copyWith(isAnalyzing: false);
       },
     );

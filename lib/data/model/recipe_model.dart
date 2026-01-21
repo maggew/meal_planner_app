@@ -9,7 +9,7 @@ class RecipeModel extends Recipe {
     required super.name,
     required super.categories,
     required super.portions,
-    required super.ingredients,
+    required super.ingredientSections,
     required super.instructions,
     super.imageUrl,
     super.createdAt,
@@ -42,45 +42,41 @@ class RecipeModel extends Recipe {
     };
   }
 
-  factory RecipeModel.fromSupabase(
-    Map<String, dynamic> data, {
-    required List<Ingredient> ingredients,
-    required List<String> categories,
-  }) {
-    return RecipeModel(
-      id: data[SupabaseConstants.recipeId] as String,
-      name: data[SupabaseConstants.recipeTitle] as String? ?? '',
-      categories: categories,
-      portions: data[SupabaseConstants.recipePortions] as int? ?? 4,
-      ingredients: ingredients,
-      instructions: data[SupabaseConstants.recipeInstructions] as String? ?? '',
-      imageUrl: data[SupabaseConstants.recipeImageUrl] as String?,
-      createdAt: data[SupabaseConstants.recipeCreatedAt] != null
-          ? DateTime.parse(data[SupabaseConstants.recipeCreatedAt])
-          : DateTime.now(),
-    );
-  }
-
   factory RecipeModel.fromSupabaseWithRelations(Map<String, dynamic> data) {
-    // Categories extrahieren
+    // Kategorien
     final categoriesData =
         data[SupabaseConstants.recipeCategoriesTable] as List? ?? [];
     final categories = categoriesData
         .map((recipeCategory) =>
             recipeCategory[SupabaseConstants.categoriesTable]
                 ?[SupabaseConstants.categoryName] as String?)
-        .where((name) => name != null)
-        .cast<String>()
+        .whereType<String>()
         .toList();
 
-    // Ingredients extrahieren
+    // Ingredients inkl. Section
     final ingredientsData =
         data[SupabaseConstants.recipeIngredientsTable] as List? ?? [];
-    final ingredients = ingredientsData
-        .map((recipeIngredient) =>
-            IngredientModel.fromSupabase(recipeIngredient))
-        .toList()
-      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+
+    final Map<String, List<IngredientModel>> sectionMap = {};
+
+    for (final raw in ingredientsData) {
+      final ingredient = IngredientModel.fromSupabase(raw);
+      final sectionTitle =
+          raw[SupabaseConstants.recipeIngredientGroupName] as String? ??
+              'Zutaten';
+
+      sectionMap.putIfAbsent(sectionTitle, () => []);
+      sectionMap[sectionTitle]!.add(ingredient);
+    }
+
+    final ingredientSections = sectionMap.entries
+        .map(
+          (e) => IngredientSection(
+            title: e.key,
+            items: e.value..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)),
+          ),
+        )
+        .toList();
 
     return RecipeModel(
       id: data[SupabaseConstants.recipeId] as String?,
@@ -89,7 +85,7 @@ class RecipeModel extends Recipe {
       imageUrl: data[SupabaseConstants.recipeImageUrl] as String?,
       portions: data[SupabaseConstants.recipePortions] as int? ?? 4,
       categories: categories,
-      ingredients: ingredients,
+      ingredientSections: ingredientSections,
     );
   }
 
@@ -100,7 +96,7 @@ class RecipeModel extends Recipe {
       categories: recipe.categories,
       //categories: recipe.categories,
       portions: recipe.portions,
-      ingredients: recipe.ingredients,
+      ingredientSections: recipe.ingredientSections,
       instructions: recipe.instructions,
       imageUrl: recipe.imageUrl,
       createdAt: recipe.createdAt,
@@ -113,7 +109,7 @@ class RecipeModel extends Recipe {
       name: name,
       categories: categories,
       portions: portions,
-      ingredients: ingredients,
+      ingredientSections: ingredientSections,
       instructions: instructions,
       imageUrl: imageUrl,
       createdAt: createdAt,

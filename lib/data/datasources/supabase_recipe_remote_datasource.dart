@@ -188,16 +188,19 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
   }
 
   @override
-  Future<void> saveRecipeIngredients(
-      {required String recipeId,
-      required List<IngredientModel> ingredients}) async {
+  Future<void> saveRecipeIngredients({
+    required String recipeId,
+    required List<IngredientModel> ingredients,
+  }) async {
     for (final ingredient in ingredients) {
       final ingredientId = await upsertIngredient(name: ingredient.name);
-      final model = IngredientModel.fromEntity(ingredient);
 
-      await supabase
-          .from(SupabaseConstants.recipeIngredientsTable)
-          .insert(model.toSupabaseRecipeIngredient(recipeId, ingredientId));
+      await supabase.from(SupabaseConstants.recipeIngredientsTable).insert(
+            ingredient.toSupabaseRecipeIngredient(
+              recipeId,
+              ingredientId,
+            ),
+          );
     }
   }
 

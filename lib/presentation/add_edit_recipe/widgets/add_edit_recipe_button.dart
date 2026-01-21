@@ -1,6 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/data/model/ingredient_model.dart';
+import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
@@ -64,14 +66,14 @@ class AddEditRecipeButton extends ConsumerWidget {
       BuildContext context, WidgetRef ref, Recipe? existingRecipe) async {
     final selectedCategories = ref.read(selectedCategoriesProvider);
     final selectedPortions = ref.read(selectedPortionsProvider);
-    final ingredients =
-        ref.read(ingredientsProvider.notifier).buildIngredientsForSave();
+    final ingredientState = ref.read(ingredientsProvider);
+
     final image = ref.read(imageManagerProvider).recipePhoto;
 
     final validation = ref.validateRecipe(
       name: recipeNameController.text,
       instructions: recipeInstructionsController.text,
-      ingredients: ingredients,
+      sections: ingredientState.sections,
       categories: selectedCategories,
     );
 
@@ -83,12 +85,27 @@ class AddEditRecipeButton extends ConsumerWidget {
         ),
       );
     } else {
+      final ingredientSections = ingredientState.sections.map((section) {
+        final rawTitle = section.titleController.text.trim();
+
+        return IngredientSection(
+          title: rawTitle.isEmpty ? 'Zutaten' : rawTitle,
+          items: section.items.map((item) {
+            return item.ingredient.copyWith(
+              name: item.nameController.text.trim(),
+              amount: item.amountController.text.trim(),
+              unit: item.unit,
+            );
+          }).toList(),
+        );
+      }).toList();
+
       Recipe recipe = Recipe(
         id: existingRecipe?.id,
         name: recipeNameController.text,
         categories: selectedCategories,
         portions: selectedPortions,
-        ingredients: ingredients,
+        ingredientSections: ingredientSections,
         instructions: recipeInstructionsController.text,
         imageUrl: existingRecipe?.imageUrl,
       );

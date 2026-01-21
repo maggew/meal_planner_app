@@ -1,16 +1,27 @@
-# meal_planner
+# Meal Planner App
 
-The best way to plan your meals
+Mobile App zur Verwaltung und Suche von Rezepten.
 
-## Getting Started
+## Motivation
 
-This project is a starting point for a Flutter application.
+Praxisprojekt zur Vertiefung von Flutter- und App-Architekturkenntnissen
+im Rahmen meines Studiums und zur Vorbereitung auf eine Tätigkeit
+als Softwareentwickler.
 
-A few resources to get you started if this is your first Flutter project:
+## Features (aktueller Stand)
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+- Erfassen und Verwalten von Rezepten
+- Suche und Filterung von Rezepten
+- Benutzer-Authentifizierung
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Tech Stack
+
+- Flutter (Dart)
+- State Management: Riverpod
+- Backend: Supabase (PostgreSQL)
+- Auth & Storage: Firebase
+
+## Status
+
+Work in Progress – Fokus auf Architektur, saubere Trennung von Logik
+und UI sowie praxisnahe Umsetzung.

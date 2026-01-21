@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/form/ingredient_section_form.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
 
 part 'add_recipe_provider.g.dart';
@@ -114,7 +114,7 @@ extension RecipeValidation on WidgetRef {
   RecipeValidationResult validateRecipe({
     required String name,
     required String instructions,
-    required List<Ingredient> ingredients,
+    required List<IngredientSectionForm> sections,
     required List<String> categories,
   }) {
     if (name.isEmpty) {
@@ -129,12 +129,28 @@ extension RecipeValidation on WidgetRef {
         error: 'Rezeptname muss mindestens 3 Zeichen haben',
       );
     }
-    if (ingredients.isEmpty) {
+
+    final allItems = sections.expand((ing) => ing.items).toList();
+
+    if (allItems.isEmpty) {
       return RecipeValidationResult(
         isValid: false,
         error: 'Bitte mindestens eine Zutat hinzufügen',
       );
     }
+    final hasValidIngredient = allItems.any((item) {
+      final name = item.nameController.text.trim();
+      final amount = item.amountController.text.trim();
+      return name.isNotEmpty && amount.isNotEmpty;
+    });
+
+    if (!hasValidIngredient) {
+      return RecipeValidationResult(
+        isValid: false,
+        error: 'Bitte gültige Zutaten mit Name und Menge eingeben',
+      );
+    }
+
     if (categories.isEmpty) {
       return RecipeValidationResult(
         isValid: false,
@@ -142,15 +158,6 @@ extension RecipeValidation on WidgetRef {
       );
     }
 
-    final validIngredients = ingredients
-        .where((i) => i.name.isNotEmpty && i.amount.isNotEmpty)
-        .toList();
-    if (validIngredients.isEmpty) {
-      return RecipeValidationResult(
-        isValid: false,
-        error: 'Bitte gültige Zutaten mit Name und Menge eingeben',
-      );
-    }
     if (instructions.isEmpty) {
       return RecipeValidationResult(
         isValid: false,

@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/theme/app_theme.dart';
 import 'package:meal_planner/services/providers/router_provider.dart';
@@ -8,11 +9,22 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await dotenv.load();
+
+  final supabaseUrl = dotenv.env['SUPABASE_URL'];
+  final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'];
+
+  if (supabaseUrl == null || supabaseAnonKey == null) {
+    throw Exception('Supabase environment variables are not set');
+  }
+
   await Supabase.initialize(
-    url: 'https://esreihfibhoueesrlmxj.supabase.co',
-    anonKey: 'sb_publishable_N7QneJzj41mlq-N3gvzlbQ_gDEvS2Mt',
+    url: supabaseUrl,
+    anonKey: supabaseAnonKey,
   );
+
+  await Firebase.initializeApp();
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);

@@ -16,7 +16,7 @@ final class AddEditRecipeIngredientsProvider extends $NotifierProvider<
     AddEditRecipeIngredients, AddEditRecipeIngredientsState> {
   const AddEditRecipeIngredientsProvider._(
       {required AddEditRecipeIngredientsFamily super.from,
-      required List<Ingredient>? super.argument})
+      required List<IngredientSection>? super.argument})
       : super(
           retry: null,
           name: r'addEditRecipeIngredientsProvider',
@@ -61,7 +61,7 @@ final class AddEditRecipeIngredientsProvider extends $NotifierProvider<
 }
 
 String _$addEditRecipeIngredientsHash() =>
-    r'43c23d871f5ddb039babda55df04380fb20e1366';
+    r'9009fcb688f5a3d358ea5c16eaf8024e5d402fb7';
 
 final class AddEditRecipeIngredientsFamily extends $Family
     with
@@ -70,7 +70,7 @@ final class AddEditRecipeIngredientsFamily extends $Family
             AddEditRecipeIngredientsState,
             AddEditRecipeIngredientsState,
             AddEditRecipeIngredientsState,
-            List<Ingredient>?> {
+            List<IngredientSection>?> {
   const AddEditRecipeIngredientsFamily._()
       : super(
           retry: null,
@@ -81,10 +81,9 @@ final class AddEditRecipeIngredientsFamily extends $Family
         );
 
   AddEditRecipeIngredientsProvider call(
-    List<Ingredient>? initialIngredients,
+    List<IngredientSection>? initialSections,
   ) =>
-      AddEditRecipeIngredientsProvider._(
-          argument: initialIngredients, from: this);
+      AddEditRecipeIngredientsProvider._(argument: initialSections, from: this);
 
   @override
   String toString() => r'addEditRecipeIngredientsProvider';
@@ -92,11 +91,11 @@ final class AddEditRecipeIngredientsFamily extends $Family
 
 abstract class _$AddEditRecipeIngredients
     extends $Notifier<AddEditRecipeIngredientsState> {
-  late final _$args = ref.$arg as List<Ingredient>?;
-  List<Ingredient>? get initialIngredients => _$args;
+  late final _$args = ref.$arg as List<IngredientSection>?;
+  List<IngredientSection>? get initialSections => _$args;
 
   AddEditRecipeIngredientsState build(
-    List<Ingredient>? initialIngredients,
+    List<IngredientSection>? initialSections,
   );
   @$mustCallSuper
   @override
