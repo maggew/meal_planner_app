@@ -6,12 +6,14 @@ import 'package:meal_planner/presentation/add_edit_recipe/form/ingredient_form_i
 class AddEditRecipeIgredientListviewItem extends StatelessWidget {
   final int index;
   final IngredientFormItem item;
+  final void Function(Unit) onUnitChanged;
   final VoidCallback onDelete;
 
   const AddEditRecipeIgredientListviewItem({
     super.key,
     required this.index,
     required this.item,
+    required this.onUnitChanged,
     required this.onDelete,
   });
 
@@ -85,7 +87,7 @@ class AddEditRecipeIgredientListviewItem extends StatelessWidget {
                       items: _unitDropdownItems,
                       onChanged: (unit) {
                         if (unit != null) {
-                          item.unit = unit;
+                          onUnitChanged(unit);
                         }
                       },
                     ),

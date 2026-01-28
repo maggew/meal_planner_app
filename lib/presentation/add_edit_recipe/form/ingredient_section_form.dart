@@ -4,9 +4,13 @@ import 'package:meal_planner/presentation/add_edit_recipe/form/ingredient_form_i
 class IngredientSectionForm {
   final TextEditingController titleController;
   final List<IngredientFormItem> items;
+  bool isEditable;
 
-  IngredientSectionForm({String? title, required this.items})
-      : titleController = TextEditingController(text: title ?? '');
+  IngredientSectionForm({
+    String? title,
+    required this.items,
+    this.isEditable = false,
+  }) : titleController = TextEditingController(text: title ?? '');
 
   void dispose() {
     titleController.dispose();

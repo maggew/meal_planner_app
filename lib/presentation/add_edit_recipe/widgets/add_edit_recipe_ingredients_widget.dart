@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_ingredient_section_widget.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/ingredients_new/add_edit_recipe_ingredients_list_widget.dart';
 import 'package:meal_planner/services/providers/recipe/add_edit_recipe_ingredients_provider.dart';
 
-class AddEditRecipeIngredientsBlock extends ConsumerWidget {
+class AddEditRecipeIngredientsWidget extends ConsumerWidget {
   final AddEditRecipeIngredientsProvider ingredientsProvider;
-
-  const AddEditRecipeIngredientsBlock({
+  const AddEditRecipeIngredientsWidget({
     super.key,
     required this.ingredientsProvider,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(ingredientsProvider);
+    //final state = ref.watch(ingredientsProvider);
     final notifier = ref.read(ingredientsProvider.notifier);
-    final theme = Theme.of(context);
-
+    final TextTheme textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -25,7 +23,7 @@ class AddEditRecipeIngredientsBlock extends ConsumerWidget {
           children: [
             Text(
               'Zutaten',
-              style: theme.textTheme.displayMedium,
+              style: textTheme.displayMedium,
             ),
             const SizedBox(width: 12),
             IconButton(
@@ -49,21 +47,8 @@ class AddEditRecipeIngredientsBlock extends ConsumerWidget {
 
         const SizedBox(height: 12),
 
-        // ---------- Sections ----------
-        ...List.generate(
-          state.sections.length,
-          (sectionIndex) => AddEditRecipeIngredientSectionWidget(
-            ingredientsProvider: ingredientsProvider,
-            sectionIndex: sectionIndex,
-          ),
-        ),
-
-        // ---------- Add Section ----------
-        TextButton.icon(
-          onPressed: notifier.addSection,
-          icon: const Icon(Icons.add),
-          label: const Text('Abschnitt hinzufügen'),
-        ),
+        AddEditRecipeIngredientsListWidget(
+            ingredientsProvider: ingredientsProvider),
       ],
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
+import 'package:meal_planner/presentation/common/display_ingredient.dart';
 
 class ShowRecipeOverviewDetails extends StatelessWidget {
   final Recipe recipe;
@@ -53,18 +54,7 @@ class ShowRecipeOverviewDetails extends StatelessWidget {
 
                     return Column(
                       children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              width: 75,
-                              child: Text(
-                                "${ingredient.amount} ${ingredient.unit.displayName}",
-                              ),
-                            ),
-                            Expanded(child: Text(ingredient.name)),
-                          ],
-                        ),
+                        DisplayIngredient(ingredient: ingredient),
                         if (index != section.items.length - 1)
                           const Divider(thickness: 2),
                       ],

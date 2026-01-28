@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/data/model/ingredient_model.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
@@ -64,6 +63,7 @@ class AddEditRecipeButton extends ConsumerWidget {
 
   Future<void> _handleUpload(
       BuildContext context, WidgetRef ref, Recipe? existingRecipe) async {
+    print("========== SAVING RECIPE ==========");
     final selectedCategories = ref.read(selectedCategoriesProvider);
     final selectedPortions = ref.read(selectedPortionsProvider);
     final ingredientState = ref.read(ingredientsProvider);
@@ -85,12 +85,18 @@ class AddEditRecipeButton extends ConsumerWidget {
         ),
       );
     } else {
+      print("Sections: ${ingredientState.sections.length}");
       final ingredientSections = ingredientState.sections.map((section) {
         final rawTitle = section.titleController.text.trim();
+        print("SectionTitle: $rawTitle");
 
+        print("    Items: ${section.items.length}");
         return IngredientSection(
           title: rawTitle.isEmpty ? 'Zutaten' : rawTitle,
           items: section.items.map((item) {
+            print("    name: ${item.nameController.text}");
+            print("        amount: ${item.amountController.text}");
+            print("        unit: ${item.unit}");
             return item.ingredient.copyWith(
               name: item.nameController.text.trim(),
               amount: item.amountController.text.trim(),

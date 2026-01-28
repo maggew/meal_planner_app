@@ -8,6 +8,7 @@ enum Unit {
   PIECE("Stk."),
   PRISE("Prise"),
   KNIFETIP("Msp."),
+  CAN("Dose"),
   BUNCH("Bund");
 
   final String displayName;
@@ -39,6 +40,8 @@ class UnitParser {
     'messerspitze': Unit.KNIFETIP,
     'bund': Unit.BUNCH,
     'bunch': Unit.BUNCH,
+    'Dose': Unit.CAN,
+    'dose': Unit.CAN,
   };
 
   static Unit? parse(String unitStr) {

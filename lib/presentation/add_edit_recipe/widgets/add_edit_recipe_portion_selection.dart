@@ -6,11 +6,8 @@ import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart'
 const int MAX_PORTION_NUMBER = 12;
 
 class AddEditRecipePortionSelection extends ConsumerStatefulWidget {
-  final int? initialPortions;
-
   const AddEditRecipePortionSelection({
     super.key,
-    required this.initialPortions,
   });
 
   @override

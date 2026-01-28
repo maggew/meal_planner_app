@@ -4,11 +4,8 @@ import 'package:meal_planner/presentation/common/categories.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
 
 class AddEditRecipeCategorySelection extends ConsumerStatefulWidget {
-  final List<String>? initialCategories;
-
   const AddEditRecipeCategorySelection({
     super.key,
-    required this.initialCategories,
   });
 
   @override

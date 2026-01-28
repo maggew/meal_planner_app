@@ -37,3 +37,7 @@ class AddEditRecipePage extends ConsumerWidget {
     );
   }
 }
+
+class Test {
+  // test
+}

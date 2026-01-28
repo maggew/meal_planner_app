@@ -65,3 +65,7 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:29.0.2')
     implementation 'androidx.multidex:multidex:2.0.1'
 }
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-Xlint:deprecation"
+}

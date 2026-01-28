@@ -4,17 +4,21 @@ import 'package:meal_planner/domain/enums/unit.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
 
 class IngredientFormItem {
+  final String? id;
   Ingredient ingredient;
   final TextEditingController nameController;
   final TextEditingController amountController;
   Unit unit;
+  bool isEditable;
 
   IngredientFormItem({
+    String? id,
     required this.ingredient,
     required this.nameController,
     required this.amountController,
     required this.unit,
-  });
+    required this.isEditable,
+  }) : id = id ?? DateTime.now().microsecondsSinceEpoch.toString();
 
   factory IngredientFormItem.fromIngredient(Ingredient ingredient) {
     return IngredientFormItem(
@@ -24,17 +28,20 @@ class IngredientFormItem {
       amountController: TextEditingController(
         text: ingredient.amount.isNotEmpty ? ingredient.amount : '',
       ),
+      isEditable: false,
     );
   }
 
   factory IngredientFormItem.empty() {
-    return IngredientFormItem.fromIngredient(
+    IngredientFormItem item = IngredientFormItem.fromIngredient(
       Ingredient(
         name: '',
         amount: '',
         unit: DEFAULT_UNIT,
       ),
     );
+    item.isEditable = true;
+    return item;
   }
 
   void dispose() {
@@ -42,4 +49,3 @@ class IngredientFormItem {
     amountController.dispose();
   }
 }
-

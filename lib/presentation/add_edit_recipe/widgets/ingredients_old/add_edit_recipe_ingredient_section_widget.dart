@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/form/ingredient_form_item.dart';
-import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_igredient_listview_item.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/ingredients_old/add_edit_recipe_igredient_listview_item.dart';
 import 'package:meal_planner/services/providers/recipe/add_edit_recipe_ingredients_provider.dart';
 
 class AddEditRecipeIngredientSectionWidget extends ConsumerWidget {
@@ -57,6 +57,8 @@ class AddEditRecipeIngredientSectionWidget extends ConsumerWidget {
               key: ValueKey(item),
               index: itemIndex,
               item: item,
+              onUnitChanged: (unit) => notifier.changeUnit(
+                  sectionIndex: sectionIndex, itemIndex: itemIndex, unit: unit),
               onDelete: () => notifier.deleteIngredient(
                 sectionIndex,
                 itemIndex,

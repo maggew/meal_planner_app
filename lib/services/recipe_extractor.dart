@@ -27,21 +27,34 @@ class RecipeExtractor {
 
   static ExtractionResult extractRecipeInstructions(
       RecognizedText recognizedText) {
+    print("============== extracting instructions ===============");
+    print("with the recgonizedText:");
+    print(recognizedText.text);
     final lines = _prepareRecognizedText(recognizedText);
 
     if (lines.isEmpty) {
       return ExtractionResult();
     }
 
-    final instructions = _assembleNumberedSteps(lines);
+    String instructions = lines.join("\n").replaceAll(RegExp(r'-\s*\n\s*'), '');
+    instructions = _assembleNumberedStepsFromString(instructions);
     return ExtractionResult(instructions: instructions);
   }
 
   /* ===================== INSTRUCTIONS ===================== */
 
-  static String _assembleNumberedSteps(List<String> lines) {
-    final stepPattern = RegExp(r'^\s*(\d+)[\.\)\-]?\s*(.*)');
+  static String _assembleNumberedStepsFromString(String text) {
+    final lines = text
+        .split(RegExp(r'\r?\n'))
+        .map((l) => l.trim())
+        .where((l) => l.isNotEmpty)
+        .toList();
 
+    return _assembleNumberedSteps(lines);
+  }
+
+  static String _assembleNumberedSteps(List<String> lines) {
+    final stepPattern = RegExp(r'^\s*(\d+)\s*[:\.\)\-]\s*(.+)$');
     final Map<int, StringBuffer> steps = {};
     int? currentStep;
 
@@ -49,12 +62,23 @@ class RecipeExtractor {
       final match = stepPattern.firstMatch(line);
 
       if (match != null) {
-        currentStep = int.parse(match.group(1)!);
-        steps[currentStep] = StringBuffer(match.group(2)!.trim());
+        final step = int.parse(match.group(1)!);
+        final text = match.group(2)!.trim();
+
+        steps.putIfAbsent(step, () => StringBuffer());
+
+        if (text.isNotEmpty) {
+          if (steps[step]!.isNotEmpty) {
+            steps[step]!.write(' ');
+          }
+          steps[step]!.write(text);
+        }
+
+        currentStep = step;
       } else if (currentStep != null) {
         steps[currentStep]!
           ..write(' ')
-          ..write(line);
+          ..write(line.trim());
       }
     }
 
@@ -187,23 +211,86 @@ class RecipeExtractor {
   /* ===================== OCR PREPARATION ===================== */
 
   static List<String> _prepareRecognizedText(RecognizedText recognizedText) {
-    final lines = <TextLine>[];
+    List<TextLine> lines = [];
+    print("============= in prepare ============");
 
+    // collect all lines
     for (final block in recognizedText.blocks) {
       lines.addAll(block.lines);
     }
 
-    if (lines.isEmpty) return [];
+    // return early
+    if (lines.isEmpty) {
+      print("returning beaucse lines.isEmpty!");
+      return [];
+    }
+
+    // sort lines by left
+    lines.sort((a, b) {
+      return a.boundingBox.left.compareTo(b.boundingBox.left);
+    });
+    print("========================= lines after sort by left: ");
+    for (TextLine textLine in lines) {
+      print(textLine.text);
+    }
+
+    // define xClusterThreshold
+    const double xClusterThreshold = 40.0;
+
+    // cluster lines
+    List<List<TextLine>> columns = [];
+    int columnIndex = 0;
+    double lastLeft = lines.first.boundingBox.left;
+    for (TextLine textLine in lines) {
+      if ((textLine.boundingBox.left - lastLeft).abs() > xClusterThreshold) {
+        columnIndex++;
+      }
+      if (columns.length <= columnIndex) {
+        columns.add(<TextLine>[]);
+      }
+
+      columns[columnIndex].add(textLine);
+      lastLeft = textLine.boundingBox.left;
+    }
+
+    // sorting columns
+    columns.sort((a, b) => columnX(a).compareTo(columnX(b)));
 
     const double yTolerance = 8.0;
+    // sort top to bot inside columns
+    for (final column in columns) {
+      column.sort((a, b) {
+        final dy = (a.boundingBox.top - b.boundingBox.top).abs();
+        if (dy < yTolerance) {
+          return a.boundingBox.left.compareTo(b.boundingBox.left);
+        }
+        return a.boundingBox.top.compareTo(b.boundingBox.top);
+      });
+    }
+    print("========================= lines after sorting inside columns: ");
+    for (TextLine textLine in lines) {
+      print(textLine.text);
+    }
 
-    lines.sort((a, b) {
-      final dy = (a.boundingBox.top - b.boundingBox.top).abs();
-      if (dy < yTolerance) {
-        return a.boundingBox.left.compareTo(b.boundingBox.left);
-      }
-      return a.boundingBox.top.compareTo(b.boundingBox.top);
-    });
+    // add column back to a list
+    lines = columns.expand((column) => column).toList();
+
+    // print lines for debugging
+    print("============== printing lines ==================");
+    for (TextLine textLine in lines) {
+      print(textLine.text);
+    }
+    print("============== printing lines end ==================");
+
+    // const double yTolerance = 8.0;
+    //
+    // lines.sort((a, b) {
+    //   final dy = (a.boundingBox.top - b.boundingBox.top).abs();
+    //   if (dy < yTolerance) {
+    //     return a.boundingBox.left.compareTo(b.boundingBox.left);
+    //   }
+    //   return a.boundingBox.top.compareTo(b.boundingBox.top);
+    // });
 
     return lines.map((l) => l.text.trim()).where((t) => t.isNotEmpty).toList();
   }
@@ -216,4 +303,17 @@ class _ParseResult {
   final int nextIndex;
 
   _ParseResult({required this.ingredient, required this.nextIndex});
+}
+
+double columnX(List<TextLine> column) {
+  double sum = 0;
+  double weight = 0;
+
+  for (final line in column) {
+    final w = line.boundingBox.width;
+    sum += line.boundingBox.left * w;
+    weight += w;
+  }
+
+  return sum / weight;
 }
