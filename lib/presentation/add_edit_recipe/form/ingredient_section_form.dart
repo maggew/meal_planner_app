@@ -5,11 +5,13 @@ class IngredientSectionForm {
   final TextEditingController titleController;
   final List<IngredientFormItem> items;
   bool isEditable;
+  bool shouldRequestFocus;
 
   IngredientSectionForm({
     String? title,
     required this.items,
     this.isEditable = false,
+    this.shouldRequestFocus = false,
   }) : titleController = TextEditingController(text: title ?? '');
 
   void dispose() {

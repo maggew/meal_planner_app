@@ -10,6 +10,7 @@ class IngredientFormItem {
   final TextEditingController amountController;
   Unit unit;
   bool isEditable;
+  bool shouldRequestFocus;
 
   IngredientFormItem({
     String? id,
@@ -18,6 +19,7 @@ class IngredientFormItem {
     required this.amountController,
     required this.unit,
     required this.isEditable,
+    this.shouldRequestFocus = false,
   }) : id = id ?? DateTime.now().microsecondsSinceEpoch.toString();
 
   factory IngredientFormItem.fromIngredient(Ingredient ingredient) {
@@ -41,6 +43,7 @@ class IngredientFormItem {
       ),
     );
     item.isEditable = true;
+    item.shouldRequestFocus = true;
     return item;
   }
 

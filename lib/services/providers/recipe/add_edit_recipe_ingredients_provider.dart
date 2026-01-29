@@ -28,6 +28,7 @@ class AddEditRecipeIngredients extends _$AddEditRecipeIngredients {
       IngredientSectionForm(
         items: [],
         isEditable: true,
+        shouldRequestFocus: true,
       ),
     );
 
@@ -42,6 +43,7 @@ class AddEditRecipeIngredients extends _$AddEditRecipeIngredients {
 
   void editSectionTitle(int sectionIndex) {
     state.sections[sectionIndex].isEditable = true;
+    state.sections[sectionIndex].shouldRequestFocus = true;
     state = state.copyWith(sections: [...state.sections]);
   }
 
@@ -51,6 +53,7 @@ class AddEditRecipeIngredients extends _$AddEditRecipeIngredients {
     }
 
     state.sections[sectionIndex].isEditable = false;
+    state.sections[sectionIndex].shouldRequestFocus = false;
     state = state.copyWith(sections: [...state.sections]);
   }
 

@@ -81,13 +81,14 @@ class AddEditRecipeIngredientsListWidget extends ConsumerWidget {
                       titleController: itemData.section!.titleController,
                       isEditable: itemData.section!.isEditable,
                       sectionHasNoIngredient: sectionHasNoIngredient,
+                      shouldRequestFocus: itemData.section!.shouldRequestFocus,
                       onDeletePressed: () => _handleDeletePressed(context, ref,
                           ingredientsProvider, itemData.sectionIndex),
                       onEditPressed: () {
-                        print("edit pressed...");
                         ref
                             .read(ingredientsProvider.notifier)
                             .editSectionTitle(itemData.sectionIndex);
+                        itemData.section!.shouldRequestFocus = true;
                       },
                       onConfirmPressed: () {
                         FocusScope.of(context).unfocus();

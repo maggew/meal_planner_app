@@ -4,7 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/form/ingredient_form_item.dart';
 
-class AddEditRecipeIngredientsInputCard extends ConsumerWidget {
+class AddEditRecipeIngredientsInputCard extends ConsumerStatefulWidget {
   final IngredientFormItem item;
   final void Function() onChecked;
   final void Function(Unit) onUnitChanged;
@@ -20,13 +20,40 @@ class AddEditRecipeIngredientsInputCard extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AddEditRecipeIngredientsInputCard> createState() =>
+      _AddEditRecipeIngredientsInputCardState();
+}
+
+class _AddEditRecipeIngredientsInputCardState
+    extends ConsumerState<AddEditRecipeIngredientsInputCard> {
+  late final FocusNode _nameFocusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameFocusNode = FocusNode();
+
+    if (widget.item.shouldRequestFocus) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _nameFocusNode.requestFocus();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
-    final BorderRadius borderRadius = isFinalItem
+    final BorderRadius borderRadius = widget.isFinalItem
         ? BorderRadius.vertical(bottom: Radius.circular(8))
         : BorderRadius.zero;
     final Border? border =
-        isFinalItem ? null : Border(bottom: BorderSide(width: 1));
+        widget.isFinalItem ? null : Border(bottom: BorderSide(width: 1));
     final MenuController _dropdownMenuController = MenuController();
     return AnimatedContainer(
       duration: Duration(milliseconds: 200),
@@ -44,8 +71,8 @@ class AddEditRecipeIngredientsInputCard extends ConsumerWidget {
               children: [
                 Expanded(
                   child: TextField(
-                    controller: item.nameController,
-                    autofocus: true,
+                    controller: widget.item.nameController,
+                    focusNode: _nameFocusNode,
                     textInputAction: TextInputAction.next,
                     onSubmitted: (_) => FocusScope.of(context).nextFocus(),
                     decoration: const InputDecoration(
@@ -57,7 +84,7 @@ class AddEditRecipeIngredientsInputCard extends ConsumerWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red, size: 20),
-                  onPressed: onDelete,
+                  onPressed: widget.onDelete,
                 ),
               ],
             ),
@@ -69,7 +96,7 @@ class AddEditRecipeIngredientsInputCard extends ConsumerWidget {
               children: [
                 Expanded(
                   child: TextField(
-                    controller: item.amountController,
+                    controller: widget.item.amountController,
                     textInputAction: TextInputAction.next,
                     onSubmitted: (_) {
                       // unfocus for keyboard to disappear
@@ -87,8 +114,8 @@ class AddEditRecipeIngredientsInputCard extends ConsumerWidget {
                     onChanged: (value) {
                       final normalized = value.replaceAll(',', '.');
                       if (normalized != value) {
-                        item.amountController.value =
-                            item.amountController.value.copyWith(
+                        widget.item.amountController.value =
+                            widget.item.amountController.value.copyWith(
                           text: normalized,
                           selection: TextSelection.collapsed(
                               offset: normalized.length),
@@ -107,17 +134,17 @@ class AddEditRecipeIngredientsInputCard extends ConsumerWidget {
                     enableFilter: false,
                     expandedInsets: EdgeInsets.zero,
                     dropdownMenuEntries: _unitDropdownMenuEntries,
-                    initialSelection: item.unit,
+                    initialSelection: widget.item.unit,
                     onSelected: (unit) {
                       if (unit != null) {
-                        onUnitChanged(unit);
+                        widget.onUnitChanged(unit);
                       }
                     },
                   ),
                 ),
                 const Gap(10),
                 IconButton(
-                  onPressed: () => onChecked(),
+                  onPressed: () => widget.onChecked(),
                   icon: Icon(Icons.check),
                 ),
               ],
