@@ -26,7 +26,7 @@ class AddEditRecipeIngredients extends _$AddEditRecipeIngredients {
   void addSection() {
     state.sections.add(
       IngredientSectionForm(
-        items: [IngredientFormItem.empty()],
+        items: [],
         isEditable: true,
       ),
     );

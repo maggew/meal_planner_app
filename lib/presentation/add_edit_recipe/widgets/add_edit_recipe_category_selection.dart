@@ -37,6 +37,9 @@ class _AddRecipeCategorySelection
                     selected:
                         selectedCategories.contains(category.toLowerCase()),
                     onSelected: (_) {
+                      // unfocus textformfield
+                      FocusScope.of(context).unfocus();
+                      // toggle filterchip
                       ref
                           .read(selectedCategoriesProvider.notifier)
                           .toggle(category.toLowerCase());

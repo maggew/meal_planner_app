@@ -25,7 +25,7 @@ class _AddRecipePortionSelection
     final selectedPortions = ref.watch(selectedPortionsProvider);
     final ThemeData themeData = Theme.of(context);
     final TextTheme textTheme = themeData.textTheme;
-    final double porstionButtonWidth = 75;
+    final double porstionButtonWidth = 100;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -36,31 +36,27 @@ class _AddRecipePortionSelection
         Gap(10),
         SizedBox(
           width: porstionButtonWidth,
-          child: InputDecorator(
-            decoration: InputDecoration(
-              isDense: true,
-              contentPadding: EdgeInsets.zero,
+          child: DropdownMenu<int>(
+            inputDecorationTheme: const InputDecorationTheme(
+              fillColor: Colors.white,
+              filled: true,
+              border: OutlineInputBorder(),
             ),
-            child: Center(
-              child: DropdownButton<int>(
-                style: textTheme.bodyMedium,
-                value: selectedPortions,
-                menuWidth: porstionButtonWidth,
-                //isExpanded: true,
-                //isDense: true,
-                items: possiblePorstions
-                    .map((number) => DropdownMenuItem(
-                          value: number,
-                          child: Text(number.toString()),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    ref.read(selectedPortionsProvider.notifier).set(value);
-                  }
-                },
-              ),
-            ),
+            enableSearch: false,
+            enableFilter: false,
+            expandedInsets: EdgeInsets.zero,
+            dropdownMenuEntries: possiblePorstions
+                .map((number) => DropdownMenuEntry(
+                      value: number,
+                      label: number.toString(),
+                    ))
+                .toList(),
+            initialSelection: selectedPortions,
+            onSelected: (portions) {
+              if (portions != null) {
+                ref.read(selectedPortionsProvider.notifier).set(portions);
+              }
+            },
           ),
         ),
       ],

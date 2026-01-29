@@ -20,7 +20,7 @@ class AddEditRecipeIngredientsState {
         sections: [
           IngredientSectionForm(
             title: 'Zutaten',
-            items: [IngredientFormItem.empty()],
+            items: [], //[IngredientFormItem.empty()],
           ),
         ],
         isAnalyzing: false,

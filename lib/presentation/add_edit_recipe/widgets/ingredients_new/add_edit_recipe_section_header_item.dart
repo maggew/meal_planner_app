@@ -33,9 +33,11 @@ class AddEditRecipeSectionHeaderItem extends StatelessWidget {
         children: [
           Expanded(
             child: isEditable
-                ? TextFormField(
+                ? TextField(
+                    autofocus: true,
                     controller: titleController,
                     textAlign: TextAlign.center,
+                    onSubmitted: (_) => onConfirmPressed(),
                   )
                 : Center(
                     child: Text(

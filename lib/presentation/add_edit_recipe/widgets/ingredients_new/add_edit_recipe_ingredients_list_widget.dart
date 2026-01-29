@@ -90,6 +90,7 @@ class AddEditRecipeIngredientsListWidget extends ConsumerWidget {
                             .editSectionTitle(itemData.sectionIndex);
                       },
                       onConfirmPressed: () {
+                        FocusScope.of(context).unfocus();
                         print("confirm pressed...");
                         ref
                             .read(ingredientsProvider.notifier)
@@ -111,16 +112,19 @@ class AddEditRecipeIngredientsListWidget extends ConsumerWidget {
                             .read(ingredientsProvider.notifier)
                             .deleteIngredient(index),
                         onChecked: () {
+                          // unfocus the textformfields
+                          FocusScope.of(context).unfocus();
                           // Lock the current ingredient
                           ref
                               .read(ingredientsProvider.notifier)
                               .confirmIngredient(index);
-                          // open new ingredient input field if at end of list
-                          if (isFinalItem) {
-                            ref
-                                .read(ingredientsProvider.notifier)
-                                .addIngredient(itemData.sectionIndex);
-                          }
+                          // TODO: may use or maybe not
+                          // // open new ingredient input field if at end of list
+                          // if (isFinalItem) {
+                          //   ref
+                          //       .read(ingredientsProvider.notifier)
+                          //       .addIngredient(itemData.sectionIndex);
+                          // }
                         },
                         onUnitChanged: (unit) {
                           ref

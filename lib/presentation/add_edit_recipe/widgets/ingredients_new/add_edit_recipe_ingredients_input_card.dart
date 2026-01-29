@@ -27,6 +27,7 @@ class AddEditRecipeIngredientsInputCard extends ConsumerWidget {
         : BorderRadius.zero;
     final Border? border =
         isFinalItem ? null : Border(bottom: BorderSide(width: 1));
+    final MenuController _dropdownMenuController = MenuController();
     return AnimatedContainer(
       duration: Duration(milliseconds: 200),
       decoration: BoxDecoration(
@@ -44,6 +45,9 @@ class AddEditRecipeIngredientsInputCard extends ConsumerWidget {
                 Expanded(
                   child: TextField(
                     controller: item.nameController,
+                    autofocus: true,
+                    textInputAction: TextInputAction.next,
+                    onSubmitted: (_) => FocusScope.of(context).nextFocus(),
                     decoration: const InputDecoration(
                       border: InputBorder.none,
                       labelText: 'Zutat',
@@ -66,6 +70,13 @@ class AddEditRecipeIngredientsInputCard extends ConsumerWidget {
                 Expanded(
                   child: TextField(
                     controller: item.amountController,
+                    textInputAction: TextInputAction.next,
+                    onSubmitted: (_) {
+                      // unfocus for keyboard to disappear
+                      FocusScope.of(context).unfocus();
+                      // dropdownMenu opens
+                      _dropdownMenuController.open();
+                    },
                     decoration: const InputDecoration(
                       border: InputBorder.none,
                       labelText: 'Menge',
@@ -88,14 +99,16 @@ class AddEditRecipeIngredientsInputCard extends ConsumerWidget {
                 ),
                 const Gap(10),
                 SizedBox(
-                  width: 80,
-                  child: DropdownButton<Unit>(
-                    value: item.unit,
-                    style: textTheme.bodyMedium,
-                    isExpanded: true,
-                    underline: const SizedBox(),
-                    items: _unitDropdownItems,
-                    onChanged: (unit) {
+                  width: 120,
+                  child: DropdownMenu<Unit>(
+                    menuController: _dropdownMenuController,
+                    label: Text("Einheit"),
+                    enableSearch: false,
+                    enableFilter: false,
+                    expandedInsets: EdgeInsets.zero,
+                    dropdownMenuEntries: _unitDropdownMenuEntries,
+                    initialSelection: item.unit,
+                    onSelected: (unit) {
                       if (unit != null) {
                         onUnitChanged(unit);
                       }
@@ -116,11 +129,11 @@ class AddEditRecipeIngredientsInputCard extends ConsumerWidget {
   }
 }
 
-final _unitDropdownItems = Unit.values
+final _unitDropdownMenuEntries = Unit.values
     .map(
-      (unit) => DropdownMenuItem<Unit>(
+      (unit) => DropdownMenuEntry<Unit>(
         value: unit,
-        child: Text(unit.displayName),
+        label: unit.displayName,
       ),
     )
     .toList();
