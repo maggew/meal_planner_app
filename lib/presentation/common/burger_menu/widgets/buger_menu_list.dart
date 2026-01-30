@@ -47,19 +47,23 @@ List<Widget> getBurgerMenuItems(BuildContext context, WidgetRef ref) {
 }
 
 Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
-  // 1. Bestätigungsdialog abholen
-  final confirmed = await showDialog<bool>(
+  final authController = ref.read(authControllerProvider.notifier);
+
+  showDialog<bool>(
     context: context,
-    builder: (context) => AlertDialog(
+    builder: (dialogContext) => AlertDialog(
       title: const Text('Ausloggen'),
       content: const Text('Möchtest du dich wirklich ausloggen?'),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context, false),
+          onPressed: () => Navigator.pop(dialogContext),
           child: const Text('Abbrechen'),
         ),
         FilledButton(
-          onPressed: () => Navigator.pop(context, true),
+          onPressed: () {
+            Navigator.pop(dialogContext);
+            authController.logout();
+          },
           style: FilledButton.styleFrom(
             backgroundColor: Colors.red,
           ),
@@ -68,18 +72,4 @@ Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
       ],
     ),
   );
-
-  // 2. Nur ausloggen wenn bestätigt
-  if (confirmed == true && context.mounted) {
-    // 3. Drawer schließen
-    Navigator.pop(context);
-
-    // 4. Logout durchführen
-    await ref.read(authControllerProvider.notifier).logout();
-
-    // 5. Zur Login-Page navigieren
-    if (context.mounted) {
-      context.router.replace(const LoginRoute());
-    }
-  }
 }

@@ -9,11 +9,11 @@ final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
   return FirebaseAuth.instance;
 });
 
-// final currentUserIdProvider = StreamProvider<String?>((ref) {
-//   final authRepo = ref.watch(authRepositoryProvider);
-//   return authRepo.authStateChanges();
-// });
-//
+final authStateProvider = StreamProvider<String?>((ref) {
+  final authRepo = ref.watch(authRepositoryProvider);
+  return authRepo.authStateChanges();
+});
+
 // final isSignedInProvider = Provider<bool>((ref) {
 //   final authRepo = ref.watch(authRepositoryProvider);
 //   return authRepo.isSignedIn;

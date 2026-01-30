@@ -141,8 +141,8 @@ String? _validateEmail(String? email) {
 String? _validatePassword(String? password) {
   if (password == null || password.isEmpty) {
     return "Bitte Passwort eingeben.";
-  } else
-    return null;
+  }
+  return null;
 }
 
 String _mapAuthError(Object error) {

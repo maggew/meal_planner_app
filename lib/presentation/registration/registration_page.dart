@@ -180,7 +180,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
                         fixedSize: Size(150, 40),
                       ),
                       onPressed: () {
-                        _isLoading ? null : _register;
+                        _isLoading ? null : _register();
                       },
                       child: _isLoading
                           ? SizedBox(
