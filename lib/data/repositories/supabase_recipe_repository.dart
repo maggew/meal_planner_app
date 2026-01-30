@@ -63,8 +63,8 @@ class SupabaseRecipeRepository implements RecipeRepository {
 
       final List<IngredientModel> ingredientModels = [];
       for (final section in recipe.ingredientSections) {
-        for (int i = 0; i < section.items.length; i++) {
-          final ingredient = section.items[i];
+        for (int i = 0; i < section.ingredients.length; i++) {
+          final ingredient = section.ingredients[i];
 
           ingredientModels.add(IngredientModel.fromEntity(
             ingredient,
@@ -246,8 +246,8 @@ class SupabaseRecipeRepository implements RecipeRepository {
       final List<IngredientModel> ingredientModels = [];
 
       for (final section in recipe.ingredientSections) {
-        for (int i = 0; i < section.items.length; i++) {
-          final ingredient = section.items[i];
+        for (int i = 0; i < section.ingredients.length; i++) {
+          final ingredient = section.ingredients[i];
 
           ingredientModels.add(
             IngredientModel.fromEntity(

@@ -7,7 +7,7 @@ import 'package:meal_planner/presentation/add_edit_recipe/form/ingredient_form_i
 class AddEditRecipeIngredientsInputCard extends ConsumerStatefulWidget {
   final IngredientFormItem item;
   final void Function() onChecked;
-  final void Function(Unit) onUnitChanged;
+  final void Function(Unit?) onUnitChanged;
   final VoidCallback onDelete;
   final bool isFinalItem;
   const AddEditRecipeIngredientsInputCard({
@@ -127,7 +127,7 @@ class _AddEditRecipeIngredientsInputCardState
                 const Gap(10),
                 SizedBox(
                   width: 120,
-                  child: DropdownMenu<Unit>(
+                  child: DropdownMenu<Unit?>(
                     menuController: _dropdownMenuController,
                     label: Text("Einheit"),
                     enableSearch: false,
@@ -135,11 +135,8 @@ class _AddEditRecipeIngredientsInputCardState
                     expandedInsets: EdgeInsets.zero,
                     dropdownMenuEntries: _unitDropdownMenuEntries,
                     initialSelection: widget.item.unit,
-                    onSelected: (unit) {
-                      if (unit != null) {
-                        widget.onUnitChanged(unit);
-                      }
-                    },
+                    onSelected: (unitSelection) =>
+                        widget.onUnitChanged(unitSelection),
                   ),
                 ),
                 const Gap(10),
@@ -156,11 +153,14 @@ class _AddEditRecipeIngredientsInputCardState
   }
 }
 
-final _unitDropdownMenuEntries = Unit.values
-    .map(
-      (unit) => DropdownMenuEntry<Unit>(
-        value: unit,
-        label: unit.displayName,
-      ),
-    )
-    .toList();
+final List<DropdownMenuEntry<Unit?>> _unitDropdownMenuEntries = [
+  DropdownMenuEntry(value: null, label: "-"),
+  ...Unit.values
+      .map(
+        (unit) => DropdownMenuEntry<Unit?>(
+          value: unit,
+          label: unit.displayName,
+        ),
+      )
+      .toList()
+];

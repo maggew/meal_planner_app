@@ -8,7 +8,7 @@ class IngredientFormItem {
   Ingredient ingredient;
   final TextEditingController nameController;
   final TextEditingController amountController;
-  Unit unit;
+  Unit? unit;
   bool isEditable;
   bool shouldRequestFocus;
 
@@ -27,9 +27,7 @@ class IngredientFormItem {
       ingredient: ingredient,
       unit: ingredient.unit,
       nameController: TextEditingController(text: ingredient.name),
-      amountController: TextEditingController(
-        text: ingredient.amount.isNotEmpty ? ingredient.amount : '',
-      ),
+      amountController: TextEditingController(text: ingredient.amount),
       isEditable: false,
     );
   }
@@ -38,8 +36,8 @@ class IngredientFormItem {
     IngredientFormItem item = IngredientFormItem.fromIngredient(
       Ingredient(
         name: '',
-        amount: '',
-        unit: DEFAULT_UNIT,
+        amount: null,
+        unit: null,
       ),
     );
     item.isEditable = true;

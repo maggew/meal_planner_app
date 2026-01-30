@@ -8,6 +8,7 @@ class AddEditRecipeSectionHeaderItem extends StatefulWidget {
   final VoidCallback onDeletePressed;
   final VoidCallback onConfirmPressed;
   final bool shouldRequestFocus;
+  final bool isFirstSection;
   const AddEditRecipeSectionHeaderItem({
     super.key,
     required this.titleController,
@@ -17,6 +18,7 @@ class AddEditRecipeSectionHeaderItem extends StatefulWidget {
     required this.onConfirmPressed,
     required this.sectionHasNoIngredient,
     required this.shouldRequestFocus,
+    required this.isFirstSection,
   });
 
   @override
@@ -92,10 +94,12 @@ class _AddEditRecipeSectionHeaderItemState
                 onPressed: widget.onConfirmPressed,
                 icon: Icon(Icons.check)),
           ] else ...[
-            IconButton(
-                key: const ValueKey("delete"),
-                onPressed: widget.onDeletePressed,
-                icon: Icon(Icons.delete)),
+            if (!widget.isFirstSection) ...[
+              IconButton(
+                  key: const ValueKey("delete"),
+                  onPressed: widget.onDeletePressed,
+                  icon: Icon(Icons.delete)),
+            ],
             IconButton(
                 key: const ValueKey("edit"),
                 onPressed: widget.onEditPressed,

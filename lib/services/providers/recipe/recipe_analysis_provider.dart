@@ -8,11 +8,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'recipe_analysis_provider.g.dart';
 
 class AnalyzedRecipeData {
-  final List<Ingredient>? ingredients;
+  final List<IngredientSection>? ingredientSections;
   final String? instructions;
 
   AnalyzedRecipeData({
-    this.ingredients,
+    this.ingredientSections,
     this.instructions,
   });
 }
@@ -67,7 +67,8 @@ class RecipeAnalysis extends _$RecipeAnalysis {
     late ExtractionResult recipeData;
     if (isIngredientImage) {
       recipeData = RecipeExtractor.extractRecipeIngredients(recognizedText);
-      return AnalyzedRecipeData(ingredients: recipeData.ingredients);
+      return AnalyzedRecipeData(
+          ingredientSections: recipeData.ingredientSections);
     } else {
       recipeData = RecipeExtractor.extractRecipeInstructions(recognizedText);
       return AnalyzedRecipeData(instructions: recipeData.instructions);

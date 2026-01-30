@@ -33,8 +33,9 @@ class AddEditRecipeIngredientsState {
           .map(
             (section) => IngredientSectionForm(
               title: section.title,
-              items:
-                  section.items.map(IngredientFormItem.fromIngredient).toList(),
+              items: section.ingredients
+                  .map(IngredientFormItem.fromIngredient)
+                  .toList(),
             ),
           )
           .toList(),

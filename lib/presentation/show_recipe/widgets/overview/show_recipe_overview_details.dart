@@ -48,14 +48,14 @@ class ShowRecipeOverviewDetails extends StatelessWidget {
                 ListView.builder(
                   physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
-                  itemCount: section.items.length,
+                  itemCount: section.ingredients.length,
                   itemBuilder: (context, index) {
-                    final ingredient = section.items[index];
+                    final ingredient = section.ingredients[index];
 
                     return Column(
                       children: [
                         DisplayIngredient(ingredient: ingredient),
-                        if (index != section.items.length - 1)
+                        if (index != section.ingredients.length - 1)
                           const Divider(thickness: 2),
                       ],
                     );

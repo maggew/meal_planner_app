@@ -3,10 +3,10 @@ import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
 
 class ExtractionResult {
-  final List<Ingredient>? ingredients;
+  final List<IngredientSection>? ingredientSections;
   final String? instructions;
 
-  ExtractionResult({this.ingredients, this.instructions});
+  ExtractionResult({this.ingredientSections, this.instructions});
 }
 
 class RecipeExtractor {
@@ -22,7 +22,24 @@ class RecipeExtractor {
       return ExtractionResult();
     }
 
-    return ExtractionResult(ingredients: _getIngredients(lines));
+    List<String> ingredients = _mergeHyphenatedLines(lines);
+    ingredients = _mergeContinuationLines(ingredients);
+
+    Map<String, List<String>> ingredientSectionsMap =
+        _createSections(ingredients);
+
+    List<IngredientSection> ingredientSections =
+        _parseIngredients(ingredientSectionsMap);
+
+    print("????????????????????? printing sections ?????????????????");
+    for (IngredientSection section in ingredientSections) {
+      print("============= sectionTitle: ${section.title} ============= ");
+      for (Ingredient ing in section.ingredients) {
+        print("${ing.amount} ${ing.unit?.displayName}: ${ing.name}");
+      }
+    }
+
+    return ExtractionResult(ingredientSections: ingredientSections);
   }
 
   static ExtractionResult extractRecipeInstructions(
@@ -95,27 +112,144 @@ class RecipeExtractor {
 
   /* ===================== INGREDIENTS ===================== */
 
-  static const _stopWords = ['alternativ', 'oder', 'evtl'];
-  static const _minNameLength = 2;
+  static Map<String, List<String>> _createSections(List<String> lines) {
+    Map<String, List<String>> output = {};
+    String currentSection = "Zutaten";
 
-  static List<Ingredient> _getIngredients(List<String> lines) {
-    final text = _normalizeIngredientText(lines.join(' '));
-    final tokens = text.split(' ');
-    final ingredients = <Ingredient>[];
-
-    int i = 0;
-    while (i < tokens.length) {
-      final parsed = _tryParseIngredient(tokens, i);
-
-      if (parsed != null) {
-        ingredients.add(parsed.ingredient);
-        i = parsed.nextIndex;
+    for (String line in lines) {
+      if (line[0] == line[0].toUpperCase() &&
+          line[0] != line[0].toLowerCase() &&
+          !_quantitylessIngredients
+              .any((z) => line.toLowerCase().contains(z))) {
+        output[line] = [];
+        currentSection = line;
       } else {
-        i++;
+        if (output.isEmpty || !output.containsKey(currentSection)) {
+          output[currentSection] = [];
+        }
+        output[currentSection]!.add(line);
       }
     }
 
-    return ingredients;
+    return output;
+  }
+
+  static List<String> _mergeContinuationLines(List<String> list) {
+    List<String> output = [];
+
+    for (int i = list.length - 1; i >= 0; i--) {
+      String line = list[i];
+      if (line[0] == line[0].toLowerCase() &&
+          line[0] != line[0].toUpperCase() &&
+          !_quantitylessIngredients
+              .any((z) => line.toLowerCase().contains(z))) {
+        output.insert(0, list[i - 1] + " " + line);
+        i--;
+      } else if (_flourType.any((z) => line.toLowerCase().contains(z))) {
+        output.insert(0, list[i - 1] + " " + line);
+        i--;
+      } else {
+        output.insert(0, line);
+      }
+    }
+
+    return output;
+  }
+
+  static const _flourType = [
+    'type',
+    'typ',
+  ];
+
+  static const _quantitylessIngredients = [
+    'salz',
+    'pfeffer',
+    'muskat',
+    'muskatnuss',
+    'zimt',
+    'paprikapulver',
+    'curry',
+    'kreuzkümmel',
+    'kumin',
+    'oregano',
+    'basilikum',
+    'thymian',
+    'rosmarin',
+    'petersilie',
+    'schnittlauch',
+    'dill',
+    'koriander',
+    'majoran',
+    'chiliflocken',
+    'cayennepfeffer',
+    'zucker',
+  ];
+
+  static List<String> _mergeHyphenatedLines(List<String> lines) {
+    List<String> output = [];
+
+    for (int i = 0; i < lines.length; i++) {
+      String line = lines[i].trim();
+      int lastIndex = line.length - 1;
+      if (line.endsWith('-')) {
+        String nextLine = lines[i + 1].trim();
+        if (nextLine[0] == nextLine[0].toLowerCase()) {
+          String lineAdd = line.substring(0, lastIndex);
+          output.add(lineAdd + nextLine);
+        } else {
+          output.add(line + nextLine);
+        }
+        i++;
+      } else {
+        output.add(line);
+      }
+    }
+
+    return output;
+  }
+
+  static const _stopWords = ['alternativ', 'oder', 'evtl'];
+  static const _minNameLength = 2;
+
+  static List<IngredientSection> _parseIngredients(
+      Map<String, List<String>> ingredientSectionsMap) {
+    List<IngredientSection> output = [];
+
+    for (String sectionName in ingredientSectionsMap.keys) {
+      IngredientSection currentSection =
+          IngredientSection(title: sectionName, ingredients: []);
+      for (String ingredientLine in ingredientSectionsMap[sectionName]!) {
+        currentSection.ingredients.add(_parseIngredientLine(ingredientLine));
+      }
+      output.add(currentSection);
+    }
+    return output;
+  }
+
+  static Ingredient _parseIngredientLine(String ingredientLine) {
+    final lineText = _normalizeIngredientText(ingredientLine);
+    final tokens = lineText.split(' ');
+    String? amount = _parseAmountToken(tokens.first);
+    Unit? unit;
+    String name = '';
+
+    if (amount != null) {
+      unit = UnitParser.parse(tokens[1]);
+      if (unit == null) {
+        unit = Unit.PIECE;
+        name = tokens.skip(1).join(" ");
+      } else {
+        name = tokens.skip(2).join(" ");
+      }
+    } else if (tokens.length > 1 && UnitParser.parse(tokens[1]) != null) {
+      unit = UnitParser.parse(tokens[1]);
+      amount = tokens.first;
+      name = tokens.skip(2).join(" ");
+    } else {
+      name = tokens.join(" ");
+    }
+
+    return Ingredient(name: name, unit: unit, amount: amount);
   }
 
   static _ParseResult? _tryParseIngredient(
@@ -190,11 +324,18 @@ class RecipeExtractor {
 
   static String _normalizeIngredientText(String text) {
     text = text.replaceAll('•', ' ');
+    text = text.replaceAll('½', '1/2');
+    text = text.replaceAll('¼', '1/4');
+    text = text.replaceAll('¾', '3/4');
+    text = text.replaceAll('⅓', '1/3');
+    text = text.replaceAll('⅔', '2/3');
     text = text.replaceAll(RegExp(r'\s+'), ' ').trim();
+
+    final unitPatterns = UnitParser.patterns.join('|');
 
     text = text.replaceAllMapped(
       RegExp(
-        r'(\d+(?:[,\.]\d+)?)(g|kg|ml|l|EL|TL|el|tl|Prise|prise|Stück|stück|Stk|stk)\b',
+        r'(\d+(?:[,\.]\d+)?)(' + unitPatterns + r')\b',
         caseSensitive: false,
       ),
       (match) => '${match.group(1)} ${match.group(2)}',
@@ -212,7 +353,6 @@ class RecipeExtractor {
 
   static List<String> _prepareRecognizedText(RecognizedText recognizedText) {
     List<TextLine> lines = [];
-    print("============= in prepare ============");
 
     // collect all lines
     for (final block in recognizedText.blocks) {
@@ -221,7 +361,6 @@ class RecipeExtractor {
 
     // return early
     if (lines.isEmpty) {
-      print("returning beaucse lines.isEmpty!");
       return [];
     }
 
@@ -229,10 +368,6 @@ class RecipeExtractor {
     lines.sort((a, b) {
       return a.boundingBox.left.compareTo(b.boundingBox.left);
     });
-    print("========================= lines after sort by left: ");
-    for (TextLine textLine in lines) {
-      print(textLine.text);
-    }
 
     // define xClusterThreshold
     const double xClusterThreshold = 40.0;
@@ -267,30 +402,14 @@ class RecipeExtractor {
         return a.boundingBox.top.compareTo(b.boundingBox.top);
       });
     }
-    print("========================= lines after sorting inside columns: ");
-    for (TextLine textLine in lines) {
-      print(textLine.text);
-    }
 
     // add column back to a list
     lines = columns.expand((column) => column).toList();
 
     // print lines for debugging
-    print("============== printing lines ==================");
     for (TextLine textLine in lines) {
       print(textLine.text);
     }
-    print("============== printing lines end ==================");
-
-    // const double yTolerance = 8.0;
-    //
-    // lines.sort((a, b) {
-    //   final dy = (a.boundingBox.top - b.boundingBox.top).abs();
-    //   if (dy < yTolerance) {
-    //     return a.boundingBox.left.compareTo(b.boundingBox.left);
-    //   }
-    //   return a.boundingBox.top.compareTo(b.boundingBox.top);
-    // });
 
     return lines.map((l) => l.text.trim()).where((t) => t.isNotEmpty).toList();
   }

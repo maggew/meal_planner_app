@@ -7,7 +7,7 @@ extension IngredientInlineText on Ingredient {
 
     return [
       TextSpan(
-        text: "$amount${nbsp}${unit.displayName}${nbsp}",
+        text: "$amount${nbsp}${unit?.displayName}${nbsp}",
       ),
       TextSpan(
         text: _noBreak(name),

@@ -44,6 +44,8 @@ class UnitParser {
     'dose': Unit.CAN,
   };
 
+  static List<String> get patterns => _unitMap.keys.toList();
+
   static Unit? parse(String unitStr) {
     String normalized = unitStr.toLowerCase().replaceAll('.', '').trim();
     return _unitMap[normalized];

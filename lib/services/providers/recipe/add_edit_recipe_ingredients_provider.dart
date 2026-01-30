@@ -36,6 +36,13 @@ class AddEditRecipeIngredients extends _$AddEditRecipeIngredients {
   }
 
   void removeSection(int sectionIndex) {
+    if (sectionIndex == 0) return;
+
+    final List<IngredientFormItem> ingredientForms =
+        state.sections[sectionIndex].items;
+
+    state.sections[sectionIndex - 1].items.addAll(ingredientForms);
+
     final section = state.sections.removeAt(sectionIndex);
     section.dispose();
     state = state.copyWith(sections: [...state.sections]);
@@ -80,7 +87,7 @@ class AddEditRecipeIngredients extends _$AddEditRecipeIngredients {
 
   void changeUnit({
     required int flatIndex,
-    required Unit unit,
+    required Unit? unit,
   }) {
     final mapping = _getFlatMapping(flatIndex: flatIndex);
     final section = state.sections[mapping.sectionIndex];
@@ -298,8 +305,8 @@ class AddEditRecipeIngredients extends _$AddEditRecipeIngredients {
 
     analysisState.when(
       data: (data) {
-        final ingredients = data?.ingredients;
-        if (ingredients == null) {
+        final ingredientSections = data?.ingredientSections;
+        if (ingredientSections == null) {
           state = state.copyWith(isAnalyzing: false);
           return;
         }
@@ -311,14 +318,17 @@ class AddEditRecipeIngredients extends _$AddEditRecipeIngredients {
           }
         }
 
+        final List<IngredientSectionForm> list = [];
+        for (final section in ingredientSections) {
+          list.add(IngredientSectionForm(
+              title: section.title,
+              items: section.ingredients
+                  .map(IngredientFormItem.fromIngredient)
+                  .toList()));
+        }
+
         state = state.copyWith(
-          sections: [
-            IngredientSectionForm(
-              title: 'Zutaten',
-              items:
-                  ingredients.map(IngredientFormItem.fromIngredient).toList(),
-            ),
-          ],
+          sections: list,
           isAnalyzing: false,
         );
       },

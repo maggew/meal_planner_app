@@ -16,8 +16,5 @@ class IngredientSectionForm {
 
   void dispose() {
     titleController.dispose();
-    for (final item in items) {
-      item.dispose();
-    }
   }
 }

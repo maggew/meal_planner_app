@@ -51,7 +51,7 @@ class CookingModeIngredientsWidget extends StatelessWidget {
                         Text.rich(
                           TextSpan(
                             style: textTheme.bodyMedium,
-                            children: section.items
+                            children: section.ingredients
                                 .asMap()
                                 .entries
                                 .expand<TextSpan>((entry) {

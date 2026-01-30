@@ -93,7 +93,7 @@ class AddEditRecipeButton extends ConsumerWidget {
         print("    Items: ${section.items.length}");
         return IngredientSection(
           title: rawTitle.isEmpty ? 'Zutaten' : rawTitle,
-          items: section.items.map((item) {
+          ingredients: section.items.map((item) {
             print("    name: ${item.nameController.text}");
             print("        amount: ${item.amountController.text}");
             print("        unit: ${item.unit}");

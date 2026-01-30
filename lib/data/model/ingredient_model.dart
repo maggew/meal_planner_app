@@ -24,8 +24,10 @@ class IngredientModel extends Ingredient {
       name: data[SupabaseConstants.ingredientsTable]
               ?[SupabaseConstants.ingredientName] as String? ??
           '',
-      unit: _parseUnit(data[SupabaseConstants.recipeIngredientUnit]),
-      amount: data[SupabaseConstants.recipeIngredientAmount] as String? ?? '',
+      unit: data[SupabaseConstants.recipeIngredientUnit] != null
+          ? Unit.values.byName(data[SupabaseConstants.recipeIngredientUnit])
+          : null,
+      amount: data[SupabaseConstants.recipeIngredientAmount] as String?,
       sortOrder: data[SupabaseConstants.recipeIngredientSortOrder] as int? ?? 0,
       groupName: data[SupabaseConstants.recipeIngredientGroupName] as String? ??
           'Zutaten',
@@ -62,27 +64,27 @@ class IngredientModel extends Ingredient {
       SupabaseConstants.recipeIngredientRecipeId: recipeId,
       SupabaseConstants.recipeIngredientIngredientId: ingredientId,
       SupabaseConstants.recipeIngredientAmount: amount,
-      SupabaseConstants.recipeIngredientUnit: unit.name,
+      SupabaseConstants.recipeIngredientUnit: unit?.name,
       SupabaseConstants.recipeIngredientSortOrder: sortOrder,
       SupabaseConstants.recipeIngredientGroupName: groupName,
     };
   }
 
-  /// Helper: Unit aus supabase parsen
-  static Unit _parseUnit(dynamic unitValue) {
-    if (unitValue == null) return Unit.GRAMM;
-
-    try {
-      return Unit.values.byName(unitValue as String);
-    } catch (e) {
-      try {
-        return Unit.values.firstWhere(
-          (u) => u.displayName == unitValue,
-          orElse: () => Unit.GRAMM,
-        );
-      } catch (e) {
-        return Unit.GRAMM;
-      }
-    }
-  }
+  // /// Helper: Unit aus supabase parsen
+  // static Unit _parseUnit(dynamic unitValue) {
+  //   if (unitValue == null) return Unit.GRAMM;
+  //
+  //   try {
+  //     return Unit.values.byName(unitValue as String);
+  //   } catch (e) {
+  //     try {
+  //       return Unit.values.firstWhere(
+  //         (u) => u.displayName == unitValue,
+  //         orElse: () => Unit.GRAMM,
+  //       );
+  //     } catch (e) {
+  //       return Unit.GRAMM;
+  //     }
+  //   }
+  // }
 }

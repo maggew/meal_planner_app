@@ -7,13 +7,15 @@ class DisplayIngredient extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String displayAmount = ingredient.amount ?? '';
+    String displayUnit = ingredient.unit?.displayName ?? '';
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
           width: 75,
           child: Text(
-            "${ingredient.amount} ${ingredient.unit.displayName}",
+            "$displayAmount $displayUnit",
           ),
         ),
         Expanded(child: Text(ingredient.name)),

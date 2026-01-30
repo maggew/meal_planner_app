@@ -73,7 +73,8 @@ class RecipeModel extends Recipe {
         .map(
           (e) => IngredientSection(
             title: e.key,
-            items: e.value..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)),
+            ingredients: e.value
+              ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)),
           ),
         )
         .toList();

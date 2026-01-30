@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/form/ingredient_form_item.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/flat_list_item.dart';
-import 'package:meal_planner/presentation/add_edit_recipe/widgets/ingredients_new/add_edit_recipe_ingredient_item.dart';
-import 'package:meal_planner/presentation/add_edit_recipe/widgets/ingredients_new/add_edit_recipe_ingredients_input_card.dart';
-import 'package:meal_planner/presentation/add_edit_recipe/widgets/ingredients_new/add_edit_recipe_section_header_item.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/ingredients/add_edit_recipe_ingredient_item.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/ingredients/add_edit_recipe_ingredients_input_card.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/ingredients/add_edit_recipe_section_header_item.dart';
 import 'package:meal_planner/services/providers/recipe/add_edit_recipe_ingredients_provider.dart';
 
 class AddEditRecipeIngredientsListWidget extends ConsumerWidget {
@@ -82,13 +82,13 @@ class AddEditRecipeIngredientsListWidget extends ConsumerWidget {
                       isEditable: itemData.section!.isEditable,
                       sectionHasNoIngredient: sectionHasNoIngredient,
                       shouldRequestFocus: itemData.section!.shouldRequestFocus,
+                      isFirstSection: itemData.sectionIndex == 0,
                       onDeletePressed: () => _handleDeletePressed(context, ref,
                           ingredientsProvider, itemData.sectionIndex),
                       onEditPressed: () {
                         ref
                             .read(ingredientsProvider.notifier)
                             .editSectionTitle(itemData.sectionIndex);
-                        itemData.section!.shouldRequestFocus = true;
                       },
                       onConfirmPressed: () {
                         FocusScope.of(context).unfocus();
@@ -191,7 +191,7 @@ Future<void> _handleDeletePressed(
     builder: (context) => AlertDialog(
       title: const Text('Sektion löschen'),
       content: const Text(
-          'Möchtest du wirklich die Sektion löschen? \nAlle Zutaten darin werden gelöscht!'),
+          'Möchtest du wirklich die Sektion löschen? \nDie Zutaten werden nach oben verschoben!'),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
