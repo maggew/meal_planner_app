@@ -212,8 +212,6 @@ class SupabaseRecipeRepository implements RecipeRepository {
   Future<void> updateRecipe(Recipe recipe, File? newImage) async {
     try {
       final String? recipeId = recipe.id;
-      print("=== Update recipe start: $recipeId ===");
-      print("new categories: ${recipe.categories}");
       if (recipeId == null) {
         throw RecipeUpdateException("Recipe has no ID");
       }
@@ -232,16 +230,11 @@ class SupabaseRecipeRepository implements RecipeRepository {
       final model = RecipeModel.fromEntity(updatedRecipe);
       await _remote.updateRecipe(recipeId, model.toSupabaseUpdate());
       // Alte Junction-Einträge löschen
-      print("deleting old categories...");
       await _remote.deleteRecipeCategories(recipeId);
-      print("old categories deletes");
       await _remote.deleteRecipeIngredients(recipeId);
 
-      print("saving new categoires: ${recipe.categories}");
       await _remote.saveRecipeCategories(
           recipeId: recipeId, categories: recipe.categories);
-      print("new categories saved");
-      print("=== update recipe end ===");
 
       final List<IngredientModel> ingredientModels = [];
 

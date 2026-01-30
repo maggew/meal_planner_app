@@ -14,7 +14,6 @@ class CookbookRecipeListItem extends StatelessWidget {
             recipe.imageUrl == 'assets/images/default_pic_2.jpg')
         ? Image.asset('assets/images/caticorn.png', fit: BoxFit.cover)
         : Image.network(recipe.imageUrl!, fit: BoxFit.cover);
-    print("recipe categories: ${recipe.categories}");
     return GestureDetector(
       onTap: () {
         context.router

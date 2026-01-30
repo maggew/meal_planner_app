@@ -92,7 +92,6 @@ class AddEditRecipeIngredientsListWidget extends ConsumerWidget {
                       },
                       onConfirmPressed: () {
                         FocusScope.of(context).unfocus();
-                        print("confirm pressed...");
                         ref
                             .read(ingredientsProvider.notifier)
                             .confirmSectionTitle(itemData.sectionIndex);

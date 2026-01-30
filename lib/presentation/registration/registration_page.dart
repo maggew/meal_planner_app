@@ -243,8 +243,6 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
         password: password,
       );
 
-      print('✅ Registrierung erfolgreich: $uid');
-
       if (mounted) {
         context.router.push(const GroupsRoute());
       }

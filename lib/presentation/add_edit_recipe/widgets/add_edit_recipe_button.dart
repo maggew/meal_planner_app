@@ -63,7 +63,6 @@ class AddEditRecipeButton extends ConsumerWidget {
 
   Future<void> _handleUpload(
       BuildContext context, WidgetRef ref, Recipe? existingRecipe) async {
-    print("========== SAVING RECIPE ==========");
     final selectedCategories = ref.read(selectedCategoriesProvider);
     final selectedPortions = ref.read(selectedPortionsProvider);
     final ingredientState = ref.read(ingredientsProvider);
@@ -85,18 +84,12 @@ class AddEditRecipeButton extends ConsumerWidget {
         ),
       );
     } else {
-      print("Sections: ${ingredientState.sections.length}");
       final ingredientSections = ingredientState.sections.map((section) {
         final rawTitle = section.titleController.text.trim();
-        print("SectionTitle: $rawTitle");
 
-        print("    Items: ${section.items.length}");
         return IngredientSection(
           title: rawTitle.isEmpty ? 'Zutaten' : rawTitle,
           ingredients: section.items.map((item) {
-            print("    name: ${item.nameController.text}");
-            print("        amount: ${item.amountController.text}");
-            print("        unit: ${item.unit}");
             return item.ingredient.copyWith(
               name: item.nameController.text.trim(),
               amount: item.amountController.text.trim(),
@@ -118,7 +111,6 @@ class AddEditRecipeButton extends ConsumerWidget {
 
       final recipeRepo = ref.read(recipeUploadProvider.notifier);
       if (existingRecipe != null) {
-        print("trying to update recipe with id: ${recipe.id}");
         await recipeRepo.updateRecipe(recipe, image);
       } else {
         await recipeRepo.createRecipe(recipe, image);
@@ -130,7 +122,6 @@ class AddEditRecipeButton extends ConsumerWidget {
 
       // Neue Kategorien invalidieren
       for (final category in allCategoriesToInvalidate) {
-        print("now invalidating... for category: $category");
         ref.invalidate(recipesPaginationProvider(category.toLowerCase()));
       }
 

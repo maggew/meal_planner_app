@@ -31,22 +31,11 @@ class RecipeExtractor {
     List<IngredientSection> ingredientSections =
         _parseIngredients(ingredientSectionsMap);
 
-    print("????????????????????? printing sections ?????????????????");
-    for (IngredientSection section in ingredientSections) {
-      print("============= sectionTitle: ${section.title} ============= ");
-      for (Ingredient ing in section.ingredients) {
-        print("${ing.amount} ${ing.unit?.displayName}: ${ing.name}");
-      }
-    }
-
     return ExtractionResult(ingredientSections: ingredientSections);
   }
 
   static ExtractionResult extractRecipeInstructions(
       RecognizedText recognizedText) {
-    print("============== extracting instructions ===============");
-    print("with the recgonizedText:");
-    print(recognizedText.text);
     final lines = _prepareRecognizedText(recognizedText);
 
     if (lines.isEmpty) {
@@ -405,11 +394,6 @@ class RecipeExtractor {
 
     // add column back to a list
     lines = columns.expand((column) => column).toList();
-
-    // print lines for debugging
-    for (TextLine textLine in lines) {
-      print(textLine.text);
-    }
 
     return lines.map((l) => l.text.trim()).where((t) => t.isNotEmpty).toList();
   }
