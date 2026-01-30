@@ -197,9 +197,6 @@ class RecipeExtractor {
     return output;
   }
 
-  static const _stopWords = ['alternativ', 'oder', 'evtl'];
-  static const _minNameLength = 2;
-
   static List<IngredientSection> _parseIngredients(
       Map<String, List<String>> ingredientSectionsMap) {
     List<IngredientSection> output = [];
@@ -241,30 +238,6 @@ class RecipeExtractor {
     return Ingredient(name: name, unit: unit, amount: amount);
   }
 
-  static _ParseResult? _tryParseIngredient(
-      List<String> tokens, int startIndex) {
-    int i = startIndex;
-
-    final amount = _parseAmountToken(tokens[i]);
-    if (amount == null || i + 1 >= tokens.length) return null;
-    i++;
-
-    final unit = UnitParser.parse(tokens[i]);
-    if (unit != null) i++;
-
-    final name = _collectName(tokens, i);
-    if (name.value.length < _minNameLength) return null;
-
-    return _ParseResult(
-      ingredient: Ingredient(
-        amount: amount,
-        unit: unit ?? Unit.GRAMM,
-        name: name.value,
-      ),
-      nextIndex: name.endIndex,
-    );
-  }
-
   /// Validiert und übernimmt Mengen als TEXT (keine Berechnung!)
   static String? _parseAmountToken(String token) {
     final normalized = token.replaceAll(',', '.');
@@ -285,30 +258,6 @@ class RecipeExtractor {
     }
 
     return null;
-  }
-
-  static ({String value, int endIndex}) _collectName(
-      List<String> tokens, int startIndex) {
-    final buffer = StringBuffer();
-    int i = startIndex;
-
-    while (i < tokens.length) {
-      final word = tokens[i];
-
-      // Stop bei nächster Mengenangabe
-      if (_parseAmountToken(word) != null) break;
-
-      // Stop bei Stopwörtern
-      if (_stopWords.any((sw) => word.toLowerCase().contains(sw))) break;
-
-      buffer.write(word);
-      buffer.write(' ');
-      i++;
-    }
-
-    final name =
-        buffer.toString().trim().replaceAll(RegExp(r'[,\.\(\)]+$'), '');
-    return (value: name, endIndex: i);
   }
 
   static String _normalizeIngredientText(String text) {
@@ -400,13 +349,6 @@ class RecipeExtractor {
 }
 
 /* ===================== INTERNAL ===================== */
-
-class _ParseResult {
-  final Ingredient ingredient;
-  final int nextIndex;
-
-  _ParseResult({required this.ingredient, required this.nextIndex});
-}
 
 double columnX(List<TextLine> column) {
   double sum = 0;
