@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:meal_planner/core/constants/local_storage_service.dart';
 import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 
@@ -43,23 +44,16 @@ class SessionController extends StateNotifier<SessionState> {
     state = state.copyWith(isLoading: true, userId: userId);
 
     try {
-      final userRepo = ref.read(userRepositoryProvider);
-      final groupId = await userRepo.getCurrentGroupId(userId);
-
-      if (groupId == null || groupId.isEmpty) {
-        state = SessionState(userId: userId, isLoading: false);
-        return;
-      }
-
-      final groupRepo = ref.read(groupRepositoryProvider);
-      final group = await groupRepo.getGroup(groupId);
+      final storage = LocalStorageService();
+      final groupId = await storage.loadActiveGroup();
 
       state = SessionState(
         userId: userId,
         groupId: groupId,
-        group: group,
         isLoading: false,
       );
+
+      print("Session geladen, aktive Gruppe: $groupId");
     } catch (e) {
       state = SessionState(userId: userId, isLoading: false);
       rethrow;

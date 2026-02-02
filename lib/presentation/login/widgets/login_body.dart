@@ -3,6 +3,9 @@ import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/core/constants/local_storage_service.dart';
+import 'package:meal_planner/presentation/login/widgets/login_register_widget.dart';
+import 'package:meal_planner/presentation/login/widgets/login_reset_password_widget.dart';
 import 'package:meal_planner/presentation/login/widgets/login_textformfield.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/auth_providers.dart';
@@ -19,19 +22,40 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
 
   late final TextEditingController emailController;
   late final TextEditingController passwordController;
+  late final FocusNode emailFocusNode;
+  late final FocusNode passwordFocusNode;
 
   @override
   void initState() {
     super.initState();
     emailController = TextEditingController();
     passwordController = TextEditingController();
+    emailFocusNode = FocusNode();
+    passwordFocusNode = FocusNode();
   }
 
   @override
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
+    emailFocusNode.dispose();
+    passwordFocusNode.dispose();
     super.dispose();
+  }
+
+  Future<void> _submitForm() async {
+    if (_formKey.currentState?.validate() != true) return;
+
+    final authController = ref.read(authControllerProvider.notifier);
+
+    await authController.login(
+      emailController.text.trim(),
+      passwordController.text,
+    );
+
+    final storage = LocalStorageService();
+    final groupId = await storage.loadActiveGroup();
+    print("Letzte aktive Gruppe nach Login: $groupId");
   }
 
   @override
@@ -42,7 +66,9 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
     ref.listen<AsyncValue<void>>(authControllerProvider, (prev, next) {
       next.whenOrNull(
         data: (_) {
-          context.router.replace(const CookbookRoute());
+          if (prev?.isLoading == true) {
+            context.router.replace(const CookbookRoute());
+          }
         },
         error: (e, _) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -72,6 +98,10 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
                 validator: _validateEmail,
                 text: "E-mail",
                 textInputType: TextInputType.emailAddress,
+                textObscured: false,
+                focusNode: emailFocusNode,
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: () => passwordFocusNode.requestFocus(),
               ),
               LoginTextFormField(
                 controller: passwordController,
@@ -79,21 +109,12 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
                 text: "Passwort",
                 textInputType: TextInputType.visiblePassword,
                 textObscured: true,
+                focusNode: passwordFocusNode,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: () => _submitForm(),
               ),
               ElevatedButton(
-                onPressed: isLoading
-                    ? null
-                    : () async {
-                        if (_formKey.currentState?.validate() != true) return;
-
-                        final authController =
-                            ref.read(authControllerProvider.notifier);
-
-                        await authController.login(
-                          emailController.text.trim(),
-                          passwordController.text,
-                        );
-                      },
+                onPressed: isLoading ? null : _submitForm,
                 child: isLoading
                     ? const SizedBox(
                         width: 20,
@@ -105,21 +126,8 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
               SizedBox(
                 height: 60,
               ),
-              Text(
-                "Du hast noch keinen Account?",
-              ),
-              TextButton(
-                child: Text(
-                  "Registrieren",
-                  style: TextStyle(
-                      color: Colors.green[100],
-                      fontWeight: FontWeight.w600,
-                      decoration: TextDecoration.underline),
-                ),
-                onPressed: () {
-                  context.router.push(const RegistrationRoute());
-                },
-              ),
+              LoginRegisterWidget(),
+              LoginResetPasswordWidget(),
             ],
           ),
         ),

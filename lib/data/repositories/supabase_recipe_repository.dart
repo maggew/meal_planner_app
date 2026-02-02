@@ -18,19 +18,16 @@ class SupabaseRecipeRepository implements RecipeRepository {
   final StorageRepository _storage;
   final RecipeRemoteDatasource _remote;
   final String _groupId;
-  final String _userId;
 
   SupabaseRecipeRepository({
     required SupabaseClient supabase,
     required StorageRepository storage,
     required RecipeRemoteDatasource remote,
     required String groupId,
-    required String userId,
   })  : _supabase = supabase,
         _storage = storage,
         _remote = remote,
-        _groupId = groupId,
-        _userId = userId;
+        _groupId = groupId;
 
   // ==================== CREATE ====================
 
@@ -53,7 +50,6 @@ class SupabaseRecipeRepository implements RecipeRepository {
         model: model,
         groupId: _groupId,
         imageUrl: imageUrl,
-        userId: _userId,
       );
 
       // 3. Categories speichern
@@ -266,22 +262,57 @@ class SupabaseRecipeRepository implements RecipeRepository {
   @override
   Future<void> deleteRecipe(String recipeId) async {
     try {
-      // Bild löschen
-      final recipe = await getRecipeById(recipeId);
-      if (recipe?.imageUrl != null && recipe!.imageUrl!.isNotEmpty) {
-        await _storage.deleteImage(recipe.imageUrl!);
-      }
-
-      // Junction-Einträge löschen
-      await _remote.deleteRecipeCategories(recipeId);
-      await _remote.deleteRecipeIngredients(recipeId);
-
-      // Recipe löschen
-      await _remote.deleteRecipe(recipeId);
+      await _remote.softDeleteRecipe(recipeId);
     } catch (e) {
       throw RecipeDeletionException(e.toString());
     }
   }
+
+  @override
+  Future<void> hardDeleteRecipe(String recipeId) async {
+    try {
+      final recipe = await getRecipeById(recipeId);
+
+      if (recipe?.imageUrl != null && recipe!.imageUrl!.isNotEmpty) {
+        await _storage.deleteImage(recipe.imageUrl!);
+      }
+
+      await _remote.deleteRecipeCategories(recipeId);
+      await _remote.deleteRecipeIngredients(recipeId);
+      await _remote.hardDeleteRecipe(recipeId);
+    } catch (e) {
+      throw RecipeDeletionException(e.toString());
+    }
+  }
+
+  @override
+  Future<void> restoreRecipe(String recipeId) async {
+    try {
+      await _remote.restoreRecipe(recipeId);
+    } catch (e) {
+      throw RecipeUpdateException(e.toString());
+    }
+  }
+
+  // @override
+  // Future<void> deleteRecipe(String recipeId) async {
+  //   try {
+  //     // Bild löschen
+  //     final recipe = await getRecipeById(recipeId);
+  //     if (recipe?.imageUrl != null && recipe!.imageUrl!.isNotEmpty) {
+  //       await _storage.deleteImage(recipe.imageUrl!);
+  //     }
+  //
+  //     // Junction-Einträge löschen
+  //     await _remote.deleteRecipeCategories(recipeId);
+  //     await _remote.deleteRecipeIngredients(recipeId);
+  //
+  //     // Recipe löschen
+  //     await _remote.deleteRecipe(recipeId);
+  //   } catch (e) {
+  //     throw RecipeDeletionException(e.toString());
+  //   }
+  // }
 
   // ==================== PRIVATE HELPERS ====================
 

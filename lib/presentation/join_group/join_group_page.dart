@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:meal_planner/core/constants/local_storage_service.dart';
 
 @RoutePage()
 class JoinGroupPage extends StatefulWidget {
@@ -27,14 +28,20 @@ class _JoinGroupPage extends State<JoinGroupPage> {
   //   final EdgeInsets padding = MediaQuery.of(context).padding;
   //   return padding.top;
   // }
+  late final TextEditingController groupIdController;
 
   //Screen is locked to landscape mode
   @override
   void initState() {
     super.initState();
+    groupIdController = TextEditingController();
   }
 
-  String groupID = "";
+  @override
+  void dispose() {
+    groupIdController.dispose();
+    super.dispose();
+  }
 
   // This widget is the root of your application.
   @override
@@ -93,9 +100,7 @@ class _JoinGroupPage extends State<JoinGroupPage> {
                   height: 100,
                   width: 270,
                   child: TextFormField(
-                    onChanged: (val) {
-                      groupID = val;
-                    },
+                    controller: groupIdController,
                     autovalidateMode: AutovalidateMode.disabled,
                     //validator: _validateGroupID,
                     decoration: InputDecoration(
@@ -118,14 +123,14 @@ class _JoinGroupPage extends State<JoinGroupPage> {
                   ),
                   child: Text("beitreten"),
                   onPressed: () async {
-                    //TODO: nicht über database lösen sondern repos
-                    // await Database().checkGroupID(groupID).then((ds) {
-                    //   if (ds == true) {
-                    //     context.router.push(const CookbookRoute());
-                    //   } else {
-                    //     //TODO: show user incorrect input
-                    //   }
-                    // });
+                    print("groupId: ${groupIdController.text}");
+                    if (groupIdController.text.isEmpty) return;
+
+                    final storage = LocalStorageService();
+                    await storage.saveActiveGroup(groupIdController.text);
+
+                    print(
+                        "gruppe lokal gespeichert: ${groupIdController.text}");
                   },
                 ),
               ],

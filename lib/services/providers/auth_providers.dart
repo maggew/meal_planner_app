@@ -1,5 +1,5 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:meal_planner/domain/exceptions/auth_exceptions.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
@@ -38,12 +38,6 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
         email: email,
         password: password,
       );
-
-      final firebaseUser = FirebaseAuth.instance.currentUser!;
-      await _ref.read(userRepositoryProvider).ensureUserExists(
-            uid,
-            firebaseUser.displayName ?? '',
-          );
 
       await _ref.read(sessionProvider.notifier).loadSession(uid);
 

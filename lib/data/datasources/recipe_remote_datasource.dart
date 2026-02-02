@@ -20,7 +20,9 @@ abstract class RecipeRemoteDatasource {
     required String groupId,
   });
 
-  Future<void> deleteRecipe(String recipeId);
+  Future<void> restoreRecipe(String recipeId);
+  Future<void> hardDeleteRecipe(String recipeId);
+  Future<void> softDeleteRecipe(String recipeId);
 
   Future<void> deleteRecipeCategories(String recipeId);
   Future<void> deleteRecipeIngredients(String recipeId);
@@ -34,7 +36,6 @@ abstract class RecipeRemoteDatasource {
     required String recipeId,
     required RecipeModel model,
     required String groupId,
-    required String userId,
     String? imageUrl,
   });
 

@@ -52,7 +52,6 @@ final recipeRepositoryProvider = Provider<RecipeRepository>((ref) {
     storage: ref.watch(storageRepositoryProvider),
     remote: ref.watch(recipeRemoteDatasourceProvider),
     groupId: session.groupId ?? '',
-    userId: session.userId ?? '',
   );
 });
 

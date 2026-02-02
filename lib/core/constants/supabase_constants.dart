@@ -40,7 +40,7 @@ class SupabaseConstants {
   static const String recipeCreatedBy = 'created_by';
   static const String recipeImageUrl = 'image_url';
   static const String recipeCreatedAt = 'created_at';
-
+  static const String recipeDeletedAt = 'deleted_at';
   // Columns: Ingredients
   static const String ingredientId = 'id';
   static const String ingredientName = 'name';

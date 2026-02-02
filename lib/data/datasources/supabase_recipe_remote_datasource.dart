@@ -58,13 +58,12 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
     final response = await supabase
         .from(SupabaseConstants.recipesTable)
         .select('''
-          *,
-          recipe_categories(categories(name)),
-          recipe_ingredients(amount, unit, sort_order, group_name, ingredients(name))
-        ''')
+      *,
+      recipe_categories(categories(name)),
+      recipe_ingredients(amount, unit, sort_order, group_name, ingredients(name))
+    ''')
         .inFilter(SupabaseConstants.recipeId, ids)
         .order(SupabaseConstants.recipeCreatedAt, ascending: false);
-
     return (response as List).cast<Map<String, dynamic>>();
   }
 
@@ -102,14 +101,6 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
   }
 
   @override
-  Future<void> deleteRecipe(String recipeId) async {
-    await supabase
-        .from(SupabaseConstants.recipesTable)
-        .delete()
-        .eq(SupabaseConstants.recipeId, recipeId);
-  }
-
-  @override
   Future<void> deleteRecipeCategories(String recipeId) async {
     await supabase
         .from(SupabaseConstants.recipeCategoriesTable)
@@ -141,13 +132,11 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
       {required String recipeId,
       required RecipeModel model,
       required String groupId,
-      required String userId,
       String? imageUrl}) async {
     await supabase.from(SupabaseConstants.recipesTable).insert(
           model.toSupabase(
             recipeId: recipeId,
             groupId: groupId,
-            userId: userId,
             imageUrl: imageUrl,
           ),
         );
@@ -223,5 +212,28 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
     });
 
     return ingredientId;
+  }
+
+  @override
+  Future<void> hardDeleteRecipe(String recipeId) {
+    return supabase
+        .from(SupabaseConstants.recipesTable)
+        .delete()
+        .eq(SupabaseConstants.recipeId, recipeId);
+  }
+
+  @override
+  Future<void> restoreRecipe(String recipeId) {
+    return supabase
+        .from(SupabaseConstants.recipesTable)
+        .update({SupabaseConstants.recipeDeletedAt: null}).eq(
+            SupabaseConstants.recipeId, recipeId);
+  }
+
+  @override
+  Future<void> softDeleteRecipe(String recipeId) {
+    return supabase.from(SupabaseConstants.recipesTable).update({
+      SupabaseConstants.recipeDeletedAt: DateTime.now().toIso8601String()
+    }).eq(SupabaseConstants.recipeId, recipeId);
   }
 }

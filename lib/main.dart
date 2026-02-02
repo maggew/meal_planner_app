@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,12 +23,16 @@ void main() async {
     throw Exception('Supabase environment variables are not set');
   }
 
-  await Supabase.initialize(
-    url: supabaseUrl,
-    anonKey: supabaseAnonKey,
-  );
-
   await Firebase.initializeApp();
+
+  await Supabase.initialize(
+      url: supabaseUrl,
+      anonKey: supabaseAnonKey,
+      accessToken: () async {
+        final firebaseUser = FirebaseAuth.instance.currentUser;
+        if (firebaseUser == null) return null;
+        return await firebaseUser.getIdToken();
+      });
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
