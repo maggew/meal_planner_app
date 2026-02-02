@@ -1,16 +1,23 @@
 // lib/data/repositories/firebase_auth_repository.dart
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:meal_planner/domain/exceptions/auth_exceptions.dart';
 import 'package:meal_planner/domain/repositories/auth_repository.dart';
 import 'package:meal_planner/domain/repositories/user_repository.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class FirebaseAuthRepository implements AuthRepository {
   final FirebaseAuth auth;
   final UserRepository userRepository;
+  final GoogleSignIn googleSignIn;
 
   FirebaseAuthRepository({
     required this.auth,
     required this.userRepository,
+    required this.googleSignIn,
   });
 
   @override
@@ -98,4 +105,48 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   bool get isSignedIn => auth.currentUser != null;
+
+  @override
+  Future<String> signInWithGoogle() async {
+    try {
+      print("Google Login start");
+      final signIn = googleSignIn;
+
+      await signIn.initialize(
+        serverClientId: dotenv.env['GOOGLE_LOGIN_SERVER_CLIENT_ID'],
+      );
+
+      if (!signIn.supportsAuthenticate()) {
+        throw AuthException("Google Sign-In not supported on this device");
+      }
+
+      final googleUser = await signIn.authenticate();
+
+      final googleAuth = googleUser.authentication;
+      if (googleAuth.idToken == null) {
+        throw AuthException("Google idToken is null");
+      }
+
+      final credential = GoogleAuthProvider.credential(
+        idToken: googleAuth.idToken,
+      );
+
+      final result = await auth.signInWithCredential(credential);
+
+      final user = result.user;
+      if (user == null) {
+        throw AuthException("Unknown error in with googleAuth");
+      }
+
+      return user.uid;
+    } on PlatformException catch (e) {
+      if (e.code == 'sign_in_cancelled') {
+        throw AuthException("google auth cancelled");
+      }
+      rethrow;
+    } catch (e) {
+      print(e);
+      throw AuthException("Unknown error in with googleAuth");
+    }
+  }
 }

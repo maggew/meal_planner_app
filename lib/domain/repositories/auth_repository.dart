@@ -10,6 +10,8 @@ abstract class AuthRepository {
     required String password,
   });
 
+  Future<String> signInWithGoogle();
+
   Future<void> signOut();
 
   String? getCurrentUserId();
