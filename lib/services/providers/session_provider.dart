@@ -49,9 +49,16 @@ class SessionController extends StateNotifier<SessionState> {
       final storage = LocalStorageService();
       final groupId = await storage.loadActiveGroup();
 
+      Group? group;
+      if (groupId != null) {
+        final groupRepo = ref.read(groupRepositoryProvider);
+        group = await groupRepo.getGroup(groupId);
+      }
+
       state = SessionState(
         userId: userId,
         groupId: groupId,
+        group: group,
         isLoading: false,
       );
 
@@ -94,6 +101,8 @@ class SessionController extends StateNotifier<SessionState> {
     final groupRepository = ref.read(groupRepositoryProvider);
 
     final group = await groupRepository.getGroup(groupId);
+    final storage = LocalStorageService();
+    await storage.saveActiveGroup(groupId);
 
     state = state.copyWith(groupId: groupId, group: group);
   }
