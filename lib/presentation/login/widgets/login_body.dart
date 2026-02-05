@@ -56,10 +56,6 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
       emailController.text.trim(),
       passwordController.text,
     );
-
-    final storage = LocalStorageService();
-    final groupId = await storage.loadActiveGroup();
-    print("Letzte aktive Gruppe nach Login: $groupId");
   }
 
   @override
@@ -74,11 +70,9 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
           if (session.groupId != null && session.groupId!.isNotEmpty) {
             context.router.replace(const CookbookRoute());
           } else {
-            print("session.userId!: ${session.userId}");
             final groups = await ref
                 .read(groupRepositoryProvider)
                 .getUserGroups(session.userId!);
-            print("groups: $groups");
             if (groups.isNotEmpty) {
               context.router.replace(GroupsRoute());
             } else {

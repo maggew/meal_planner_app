@@ -36,10 +36,12 @@ class CookbookTabbar extends StatelessWidget {
 List<Widget> _getCategoryLists(List<String> allCategories) {
   List<Widget> categoryLists = [];
   for (String category in categoryNames) {
-    categoryLists.add(CookbookRecipeList(
-      category: category.toLowerCase(),
-      allCategories: allCategories,
-    ));
+    categoryLists.add(
+      CookbookRecipeList(
+        category: category.toLowerCase(),
+        allCategories: allCategories,
+      ),
+    );
   }
   return categoryLists;
 }
