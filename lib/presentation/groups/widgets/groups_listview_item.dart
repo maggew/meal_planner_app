@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:meal_planner/domain/entities/group.dart';
+import 'package:meal_planner/presentation/groups/widgets/groups_listview_item_image.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
 
@@ -20,16 +21,12 @@ class GroupsListviewItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final TextTheme textTheme = Theme.of(context).textTheme;
-    final imageWidget = (group.imageUrl.isEmpty ||
-            group.imageUrl == 'assets/images/group_pic.jpg')
-        ? Image.asset('assets/images/group_pic.jpg', fit: BoxFit.cover)
-        : Image.network(group.imageUrl, fit: BoxFit.cover);
     return GestureDetector(
       onTap: () async {
         onLoadingChanged(true);
 
         final session = ref.read(sessionProvider.notifier);
-        await session.joinGroup(group.id);
+        await session.setActiveGroup(group.id);
         context.router.push(const CookbookRoute());
       },
       child: Container(
@@ -42,11 +39,9 @@ class GroupsListviewItem extends ConsumerWidget {
         child: Stack(
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: imageWidget,
-                ),
+                GroupsListviewItemImage(imageUrl: group.imageUrl),
                 Gap(10),
                 Text(
                   group.name,

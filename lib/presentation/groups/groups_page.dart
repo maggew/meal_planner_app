@@ -41,10 +41,11 @@ class _GroupsPageState extends ConsumerState<GroupsPage> {
     final bool sessionHasCurrentGroup = ref.read(sessionProvider).group != null;
     final String appbarTitle = "Gruppen";
     final TextTheme textTheme = Theme.of(context).textTheme;
+    final stack = context.router.stack;
     return AppBackground(
       scaffoldAppBar: isLoading
           ? AppBar(
-              leading: null,
+              leading: Text(""),
               centerTitle: true,
               title: Text(
                 appbarTitle,
@@ -54,8 +55,13 @@ class _GroupsPageState extends ConsumerState<GroupsPage> {
           : (!isLoading && sessionHasCurrentGroup)
               ? CommonAppbar(title: appbarTitle, hasActionButton: false)
               : AppBar(
-                  leading: IconButton(
-                      onPressed: () {}, icon: Icon(Icons.chevron_left)),
+                  leading: (stack.length == 1)
+                      ? Text("")
+                      : IconButton(
+                          onPressed: () {
+                            print("text");
+                          },
+                          icon: Icon(Icons.chevron_left)),
                   centerTitle: true,
                   title: Text(
                     appbarTitle,
