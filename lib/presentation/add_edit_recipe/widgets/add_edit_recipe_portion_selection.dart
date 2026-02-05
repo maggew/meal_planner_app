@@ -23,8 +23,6 @@ class _AddRecipePortionSelection
       for (int i = 0; i < MAX_PORTION_NUMBER; i++) i + 1
     ];
     final selectedPortions = ref.watch(selectedPortionsProvider);
-    final ThemeData themeData = Theme.of(context);
-    final TextTheme textTheme = themeData.textTheme;
     final double porstionButtonWidth = 100;
     return Row(
       mainAxisSize: MainAxisSize.min,

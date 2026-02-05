@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:meal_planner/core/constants/local_storage_service.dart';
 import 'package:meal_planner/domain/entities/group.dart';
+import 'package:meal_planner/domain/exceptions/group_exceptions.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Synchroner State für die aktuelle Session
 class SessionState {
@@ -61,22 +63,28 @@ class SessionController extends StateNotifier<SessionState> {
   }
 
   Future<void> joinGroup(String groupId) async {
-    print("start joinGroup");
-    final groupRepo = ref.read(groupRepositoryProvider);
-    final group = await groupRepo.getGroup(groupId);
-    print("groupId: $groupId");
-    print(group.toString());
+    try {
+      final groupRepo = ref.read(groupRepositoryProvider);
+      final group = await groupRepo.getGroup(groupId);
 
-    if (group == null) {
-      throw Exception('Gruppe nicht gefunden');
+      if (group == null) {
+        throw Exception('Gruppe nicht gefunden');
+      }
+
+      final userId = state.userId;
+      await groupRepo.addMember(groupId, userId!);
+
+      final storage = LocalStorageService();
+      await storage.saveActiveGroup(groupId);
+
+      state = state.copyWith(groupId: groupId, group: group);
+    } on GroupNotFoundException {
+      rethrow;
+    } on PostgrestException catch (e) {
+      throw Exception('Datenbankfehler: ${e.message}');
+    } catch (e) {
+      throw Exception('Fehler beim Beitreten: $e');
     }
-
-    // In SharedPreferences speichern
-    final storage = LocalStorageService();
-    await storage.saveActiveGroup(groupId);
-
-    // State aktualisieren
-    state = state.copyWith(groupId: groupId, group: group);
   }
 
   Future<void> setActiveGroup(String groupId) async {

@@ -67,7 +67,7 @@ class AddEditRecipeButton extends ConsumerWidget {
     final selectedPortions = ref.read(selectedPortionsProvider);
     final ingredientState = ref.read(ingredientsProvider);
 
-    final image = ref.read(imageManagerProvider).recipePhoto;
+    final image = ref.read(imageManagerProvider).photo;
 
     final validation = ref.validateRecipe(
       name: recipeNameController.text,
@@ -142,7 +142,7 @@ class AddEditRecipeButton extends ConsumerWidget {
   }) {
     ref.read(selectedCategoriesProvider.notifier).clear();
     ref.read(selectedPortionsProvider.notifier).set(DEFAULT_PORTIONS);
-    ref.read(imageManagerProvider.notifier).clearRecipePhoto();
+    ref.read(imageManagerProvider.notifier).clearPhoto();
     recipeNameController.clear();
     recipeInstructionsController.clear();
   }

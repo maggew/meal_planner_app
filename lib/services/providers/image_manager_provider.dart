@@ -12,18 +12,18 @@ enum AnalysisImageType { ingredients, instructions, photo }
 class CustomImages {
   final File? ingredientsImage;
   final File? instructionsImage;
-  final File? recipePhoto;
+  final File? photo;
 
   const CustomImages({
     this.ingredientsImage,
     this.instructionsImage,
-    this.recipePhoto,
+    this.photo,
   });
 
   CustomImages copyWith({
     File? Function()? ingredientsImage,
     File? Function()? instructionsImage,
-    File? Function()? recipePhoto,
+    File? Function()? photo,
   }) {
     return CustomImages(
       ingredientsImage:
@@ -31,7 +31,7 @@ class CustomImages {
       instructionsImage: instructionsImage != null
           ? instructionsImage()
           : this.instructionsImage,
-      recipePhoto: recipePhoto != null ? recipePhoto() : this.recipePhoto,
+      photo: photo != null ? photo() : this.photo,
     );
   }
 }
@@ -85,7 +85,7 @@ class ImageManager extends _$ImageManager {
       case AnalysisImageType.instructions:
         state = state.copyWith(instructionsImage: () => file);
       case AnalysisImageType.photo:
-        state = state.copyWith(recipePhoto: () => file);
+        state = state.copyWith(photo: () => file);
     }
   }
 
@@ -97,8 +97,8 @@ class ImageManager extends _$ImageManager {
     state = state.copyWith(instructionsImage: () => null);
   }
 
-  void clearRecipePhoto() {
-    state = state.copyWith(recipePhoto: () => null);
+  void clearPhoto() {
+    state = state.copyWith(photo: () => null);
   }
 
   void clearAll() {
@@ -123,4 +123,3 @@ class ImageManager extends _$ImageManager {
     return File(croppedFile.path);
   }
 }
-

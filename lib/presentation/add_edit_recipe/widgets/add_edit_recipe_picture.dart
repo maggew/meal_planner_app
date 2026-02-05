@@ -27,7 +27,7 @@ class _AddRecipePictureState extends ConsumerState<AddEditRecipePicture> {
   @override
   Widget build(BuildContext context) {
     final images = ref.watch(imageManagerProvider);
-    final newImage = images.recipePhoto;
+    final newImage = images.photo;
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     if (newImage != null && newImage.path.isNotEmpty) {

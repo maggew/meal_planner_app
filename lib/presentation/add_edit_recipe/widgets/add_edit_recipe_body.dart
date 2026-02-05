@@ -55,9 +55,6 @@ class _AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(ingredientsProvider);
-    final sections = state.sections;
-
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       child: Column(
