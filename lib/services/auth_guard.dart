@@ -15,25 +15,39 @@ class AuthGuard extends AutoRouteGuard {
     StackRouter router,
   ) async {
     final authRepo = ref.read(authRepositoryProvider);
-    final userId = authRepo.getCurrentUserId();
+    final firebaseUid = authRepo.getCurrentUserId();
 
-    if (userId == null || userId.isEmpty) {
+    if (firebaseUid == null || firebaseUid.isEmpty) {
+      router.replace(const LoginRoute());
+      return;
+    }
+
+    final userRepo = ref.read(userRepositoryProvider);
+    final user = await userRepo.getUserByFirebaseUid(firebaseUid);
+
+    if (user == null) {
       router.replace(const LoginRoute());
       return;
     }
 
     final currentSession = ref.read(sessionProvider);
-    if (currentSession.userId != userId || currentSession.group == null) {
-      await ref.read(sessionProvider.notifier).loadSession(userId);
+    if (currentSession.userId != user.id || currentSession.group == null) {
+      await ref.read(sessionProvider.notifier).loadSession(user.id);
     }
 
     final session = ref.read(sessionProvider);
 
     if (session.groupId == null || session.groupId!.isEmpty) {
-      router.replace(const GroupsRoute());
+      final groupRepo = ref.read(groupRepositoryProvider);
+      final groups = await groupRepo.getUserGroups(user.id);
+
+      if (groups.isEmpty) {
+        router.replace(const GroupOnboardingRoute());
+      } else {
+        router.replace(GroupsRoute());
+      }
       return;
     }
-
     resolver.next(true);
   }
 }

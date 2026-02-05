@@ -6,6 +6,14 @@ class GroupNotFoundException implements Exception {
   String toString() => 'Gruppe nicht gefunden: $groupId';
 }
 
+class GroupsNotFoundException implements Exception {
+  final String message;
+  GroupsNotFoundException(this.message);
+
+  @override
+  String toString() => "Keine Gruppen gefunden: $message";
+}
+
 class GroupCreationException implements Exception {
   final String message;
   GroupCreationException(this.message);

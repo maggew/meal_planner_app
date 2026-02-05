@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +31,6 @@ void main() async {
         if (firebaseUser == null) return null;
         return await firebaseUser.getIdToken();
       });
-
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);

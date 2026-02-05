@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -37,6 +38,11 @@ final supabaseProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
 
+// Supabase Instances
+final dioProvider = Provider<Dio>((ref) {
+  return Dio();
+});
+
 final recipeRemoteDatasourceProvider = Provider<RecipeRemoteDatasource>((ref) {
   return SupabaseRecipeRemoteDatasource(
     ref.watch(supabaseProvider),
@@ -71,6 +77,7 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
     auth: ref.watch(firebaseAuthProvider),
     googleSignIn: ref.watch(googleSignInProvider),
     userRepository: ref.watch(userRepositoryProvider),
+    dio: ref.watch(dioProvider),
   );
 });
 final fridgeRepositoryProvider = Provider<FridgeRepository>((ref) {

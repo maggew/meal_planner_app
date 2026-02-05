@@ -244,7 +244,7 @@ class _RegistrationPageState extends ConsumerState<RegistrationPage> {
       );
 
       if (mounted) {
-        context.router.push(const GroupsRoute());
+        context.router.push(const GroupOnboardingRoute());
       }
     } on AuthException catch (e) {
       _showError(e.message);

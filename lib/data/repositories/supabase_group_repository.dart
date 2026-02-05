@@ -37,20 +37,27 @@ class SupabaseGroupRepository implements GroupRepository {
   }
 
   @override
-  Future<Group> getGroup(String groupId) async {
+  Future<Group?> getGroup(String groupId) async {
     try {
+      print("=============== goupId: $groupId");
       final response = await _supabase
           .from(SupabaseConstants.groupsTable)
           .select()
           .eq(SupabaseConstants.groupId, groupId)
-          .single();
+          .maybeSingle();
+      print("response: $response");
+
+      if (response == null) return null;
 
       return GroupModel.fromSupabase(response);
     } on PostgrestException catch (e) {
+      print("throwing postgrestexception");
       throw GroupNotFoundException("Datenbankfehler: $e");
     } on SocketException {
+      print("throwing socketexception");
       throw GroupNotFoundException("Keine Internetverbindung");
     } catch (e) {
+      print("throwing exception");
       throw GroupNotFoundException("Unbekannter Fehler: $e");
     }
   }
@@ -168,6 +175,32 @@ class SupabaseGroupRepository implements GroupRepository {
       throw GroupMemberException("Keine Internetverbindung");
     } catch (e) {
       throw GroupMemberException("Unbekannter Fehler: $e");
+    }
+  }
+
+  @override
+  Future<List<Group>> getUserGroups(String userId) async {
+    List<Group> userGroups = [];
+    try {
+      final response = await _supabase
+          .from(SupabaseConstants.groupMembersTable)
+          .select(SupabaseConstants.memberGroupId)
+          .eq(SupabaseConstants.memberUserId, userId);
+
+      final List<String> groupIds = (response as List)
+          .map((row) => row[SupabaseConstants.memberGroupId] as String)
+          .toList();
+
+      for (String groupId in groupIds) {
+        final Group? group = await getGroup(groupId);
+        if (group != null) {
+          userGroups.add(group);
+        }
+      }
+
+      return userGroups;
+    } catch (e) {
+      throw GroupsNotFoundException(e.toString());
     }
   }
 

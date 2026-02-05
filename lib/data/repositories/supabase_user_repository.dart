@@ -41,41 +41,29 @@ class SupabaseUserRepository implements UserRepository {
   }
 
   @override
+  Future<User?> getUserByFirebaseUid(String firebaseUid) async {
+    try {
+      final response = await _supabase
+          .from(SupabaseConstants.usersTable)
+          .select()
+          .eq(SupabaseConstants.userFirebaseUid, firebaseUid)
+          .maybeSingle();
+
+      if (response == null) return null;
+      return UserModel.fromSupabase(response);
+    } catch (e) {
+      throw UserNotFoundException(firebaseUid);
+    }
+  }
+
+  @override
   Future<void> updateUser(User user) async {
     try {
       await _supabase.from(SupabaseConstants.usersTable).update({
         SupabaseConstants.userName: user.name,
-        SupabaseConstants.userCurrentGroup: user.currentGroup,
-      }).eq(SupabaseConstants.userId, user.uid);
+      }).eq(SupabaseConstants.userId, user.id);
     } catch (e) {
       throw UserUpdateException(e.toString());
-    }
-  }
-
-  @override
-  Future<void> setActiveGroup(String uid, String groupId) async {
-    try {
-      await _supabase
-          .from(SupabaseConstants.usersTable)
-          .update({SupabaseConstants.userCurrentGroup: groupId}).eq(
-              SupabaseConstants.userId, uid);
-    } catch (e) {
-      throw UserUpdateException('Active Group konnte nicht gesetzt werden: $e');
-    }
-  }
-
-  @override
-  Future<String?> getCurrentGroupId(String uid) async {
-    try {
-      final response = await _supabase
-          .from(SupabaseConstants.usersTable)
-          .select(SupabaseConstants.userCurrentGroup)
-          .eq(SupabaseConstants.userId, uid)
-          .maybeSingle();
-
-      return response?[SupabaseConstants.userCurrentGroup] as String?;
-    } catch (e) {
-      throw UserNotFoundException(uid);
     }
   }
 

@@ -44,7 +44,12 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
         password: password,
       );
 
+      print("login returned: $uid");
+
       await _ref.read(sessionProvider.notifier).loadSession(uid);
+
+      final session = _ref.read(sessionProvider);
+      print("Session nach loadSession: ${session.userId}");
 
       state = const AsyncValue.data(null);
     } on AuthException catch (e, st) {
@@ -62,8 +67,12 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
     try {
       final authRepo = _ref.read(authRepositoryProvider);
       final userId = await authRepo.signInWithGoogle();
+      print("signInWithGoogle returned: $userId");
 
       await _ref.read(sessionProvider.notifier).loadSession(userId);
+
+      final session = _ref.read(sessionProvider);
+      print("Session nach loadSession: ${session.userId}");
 
       state = const AsyncValue.data(null);
     } catch (e, stackTrace) {
@@ -98,7 +107,7 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
       final authRepo = _ref.read(authRepositoryProvider);
       await authRepo.signOut();
 
-      _ref.read(sessionProvider.notifier).clearSession();
+      await _ref.read(sessionProvider.notifier).clearSession();
 
       state = const AsyncValue.data(null);
     } catch (e, st) {

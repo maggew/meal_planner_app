@@ -1,6 +1,7 @@
 // lib/data/repositories/firebase_auth_repository.dart
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -13,11 +14,13 @@ class FirebaseAuthRepository implements AuthRepository {
   final FirebaseAuth auth;
   final UserRepository userRepository;
   final GoogleSignIn googleSignIn;
+  final Dio dio;
 
   FirebaseAuthRepository({
     required this.auth,
     required this.userRepository,
     required this.googleSignIn,
+    required this.dio,
   });
 
   @override
@@ -64,8 +67,23 @@ class FirebaseAuthRepository implements AuthRepository {
         email: email,
         password: password,
       );
+      final user = userCredential.user;
+      if (user == null) {
+        throw AuthException('Login fehlgeschlagen');
+      }
 
-      return userCredential.user!.uid;
+      // Supabase User ID holen (wie bei Google Login)
+      final firebaseIdToken = await user.getIdToken();
+      final supabaseResponse = await dio.post(
+        'https://esreihfibhoueesrlmxj.functions.supabase.co/bootstrap-user',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $firebaseIdToken',
+          },
+        ),
+      );
+      final supabaseUserId = supabaseResponse.data['user_id'] as String;
+      return supabaseUserId;
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case 'user-not-found':
@@ -109,7 +127,6 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   Future<String> signInWithGoogle() async {
     try {
-      print("Google Login start");
       final signIn = googleSignIn;
 
       await signIn.initialize(
@@ -138,7 +155,19 @@ class FirebaseAuthRepository implements AuthRepository {
         throw AuthException("Unknown error in with googleAuth");
       }
 
-      return user.uid;
+      final firebaseIdToken = await user.getIdToken();
+
+      final supabaseResponse = await dio.post(
+        'https://esreihfibhoueesrlmxj.functions.supabase.co/bootstrap-user',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $firebaseIdToken',
+          },
+        ),
+      );
+
+      final supabaseUserId = supabaseResponse.data['user_id'] as String;
+      return supabaseUserId;
     } on PlatformException catch (e) {
       if (e.code == 'sign_in_cancelled') {
         throw AuthException("google auth cancelled");

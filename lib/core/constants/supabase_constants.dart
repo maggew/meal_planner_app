@@ -24,7 +24,9 @@ class SupabaseConstants {
   // Columns: Users
   static const String userId = 'id';
   static const String userName = 'name';
-  static const String userCurrentGroup = 'current_group';
+  static const String userFirebaseUid = 'firebase_uid';
+  static const String userEmail = 'email';
+  static const String userCreatedAt = 'created_at';
 
   // Columns: Roles
   static const String roleAdmin = 'admin';

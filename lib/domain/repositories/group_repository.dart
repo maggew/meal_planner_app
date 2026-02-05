@@ -4,10 +4,12 @@ abstract class GroupRepository {
   // CRUD Groups
   Future<void> createGroup(
       String groupId, String name, String imageUrl, String creatorUserId);
-  Future<Group> getGroup(String groupId);
+  Future<Group?> getGroup(String groupId);
   Future<List<Group>> getGroupsByIds(List<String> groupIds);
   Future<void> updateGroupPic(String groupId, String url);
   Future<void> deleteGroup(String groupId);
+
+  Future<List<Group>> getUserGroups(String userId);
 
   // Members
   Future<void> addMember(String groupId, String userId,

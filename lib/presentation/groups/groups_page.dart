@@ -1,138 +1,68 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:meal_planner/core/constants/app_icons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
-import 'package:meal_planner/presentation/router/router.gr.dart';
+import 'package:meal_planner/presentation/common/common_appbar.dart';
+import 'package:meal_planner/presentation/groups/widgets/groups_body.dart';
+import 'package:meal_planner/services/providers/repository_providers.dart';
+import 'package:meal_planner/services/providers/session_provider.dart';
 
 @RoutePage()
-class GroupsPage extends StatefulWidget {
+class GroupsPage extends ConsumerStatefulWidget {
+  const GroupsPage({super.key});
+
   @override
-  State<GroupsPage> createState() => _GroupsPage();
+  ConsumerState<GroupsPage> createState() => _GroupsPageState();
 }
 
-class _GroupsPage extends State<GroupsPage> {
-  double getScreenWidth(BuildContext context) {
-    return MediaQuery.of(context).size.width;
-  }
+class _GroupsPageState extends ConsumerState<GroupsPage> {
+  List<Group>? groups;
+  bool isLoading = true;
 
-  double getScreenHeight(BuildContext context) {
-    return MediaQuery.of(context).size.height;
-  }
-
-  double getScreenHeightExcludeSafeArea(BuildContext context) {
-    final double height = MediaQuery.of(context).size.height;
-    final EdgeInsets padding = MediaQuery.of(context).padding;
-    return height - padding.top - padding.bottom;
-  }
-
-  double getHeightOfDropDownMenu(BuildContext context) {
-    final double height = MediaQuery.of(context).size.height;
-    final EdgeInsets padding = MediaQuery.of(context).padding;
-    return padding.top;
-  }
-
-  //Screen is locked to landscape mode
   @override
   void initState() {
     super.initState();
+    _loadGroups();
   }
 
-  // This widget is the root of your application.
+  Future<void> _loadGroups() async {
+    final session = ref.read(sessionProvider);
+    final groupRepo = ref.read(groupRepositoryProvider);
+    final loadedGroups = await groupRepo.getUserGroups(session.userId!);
+    setState(() {
+      groups = loadedGroups;
+      isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final bool sessionHasCurrentGroup = ref.read(sessionProvider).group != null;
+    final String appbarTitle = "Gruppen";
+    final TextTheme textTheme = Theme.of(context).textTheme;
     return AppBackground(
-      scaffoldBody: SizedBox(
-        height: getScreenHeight(context),
-        width: getScreenWidth(context),
-        child: Row(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              height: 140,
-              width: 140,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green[100],
-                  disabledForegroundColor: Colors.green[100]!.withOpacity(0.38),
-                  disabledBackgroundColor: Colors.green[100]!.withOpacity(0.12),
-                  elevation: 10,
-                ),
-                onPressed: () {
-                  context.router.push(const CreateGroupRoute());
-                },
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(left: 13),
-                      child: Icon(
-                        AppIcons.add,
-                        color: Colors.black,
-                        size: 80,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 15,
-                    ),
-                    FittedBox(
-                      child: Text(
-                        "Gruppe erstellen",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                  ],
-                ),
+      scaffoldAppBar: isLoading
+          ? AppBar(
+              leading: null,
+              centerTitle: true,
+              title: Text(
+                appbarTitle,
+                style: textTheme.displayMedium,
               ),
-            ),
-            SizedBox(
-              width: 20,
-            ),
-            SizedBox(
-              height: 140,
-              width: 140,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green[100],
-                  disabledForegroundColor: Colors.green[100]!.withOpacity(0.38),
-                  disabledBackgroundColor: Colors.green[100]!.withOpacity(0.12),
-                  elevation: 10,
+            )
+          : (!isLoading && sessionHasCurrentGroup)
+              ? CommonAppbar(title: appbarTitle, hasActionButton: false)
+              : AppBar(
+                  leading: IconButton(
+                      onPressed: () {}, icon: Icon(Icons.chevron_left)),
+                  centerTitle: true,
+                  title: Text(
+                    appbarTitle,
+                    style: textTheme.displayMedium,
+                  ),
                 ),
-                onPressed: () {
-                  context.router.push(const JoinGroupRoute());
-                },
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Icon(
-                      AppIcons.cheers,
-                      color: Colors.black,
-                      size: 75,
-                    ),
-                    SizedBox(
-                      height: 15,
-                    ),
-                    FittedBox(
-                      child: Text(
-                        "Gruppe beitreten",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+      scaffoldBody: GroupsBody(isLoading: isLoading, groups: groups),
     );
   }
 }

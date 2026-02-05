@@ -60,21 +60,40 @@ class SessionController extends StateNotifier<SessionState> {
     }
   }
 
+  Future<void> joinGroup(String groupId) async {
+    print("start joinGroup");
+    final groupRepo = ref.read(groupRepositoryProvider);
+    final group = await groupRepo.getGroup(groupId);
+    print("groupId: $groupId");
+    print(group.toString());
+
+    if (group == null) {
+      throw Exception('Gruppe nicht gefunden');
+    }
+
+    // In SharedPreferences speichern
+    final storage = LocalStorageService();
+    await storage.saveActiveGroup(groupId);
+
+    // State aktualisieren
+    state = state.copyWith(groupId: groupId, group: group);
+  }
+
   Future<void> setActiveGroup(String groupId) async {
     final userId = state.userId;
     if (userId == null) return;
 
-    final userRepository = ref.read(userRepositoryProvider);
     final groupRepository = ref.read(groupRepositoryProvider);
 
-    await userRepository.setActiveGroup(userId, groupId);
     final group = await groupRepository.getGroup(groupId);
 
     state = state.copyWith(groupId: groupId, group: group);
   }
 
   /// Session zurücksetzen (Logout)
-  void clearSession() {
+  Future<void> clearSession() async {
+    final storage = LocalStorageService();
+    await storage.clearActiveGroup();
     state = const SessionState();
   }
 }

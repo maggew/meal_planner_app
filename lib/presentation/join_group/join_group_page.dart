@@ -1,14 +1,17 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/local_storage_service.dart';
+import 'package:meal_planner/presentation/router/router.gr.dart';
+import 'package:meal_planner/services/providers/session_provider.dart';
 
 @RoutePage()
-class JoinGroupPage extends StatefulWidget {
+class JoinGroupPage extends ConsumerStatefulWidget {
   @override
-  State<JoinGroupPage> createState() => _JoinGroupPage();
+  ConsumerState<JoinGroupPage> createState() => _JoinGroupPage();
 }
 
-class _JoinGroupPage extends State<JoinGroupPage> {
+class _JoinGroupPage extends ConsumerState<JoinGroupPage> {
   double getScreenWidth(BuildContext context) {
     return MediaQuery.of(context).size.width;
   }
@@ -123,14 +126,21 @@ class _JoinGroupPage extends State<JoinGroupPage> {
                   ),
                   child: Text("beitreten"),
                   onPressed: () async {
-                    print("groupId: ${groupIdController.text}");
-                    if (groupIdController.text.isEmpty) return;
+                    print("test");
+                    final groupId = groupIdController.text.trim();
+                    print("groupId input: $groupId");
+                    if (groupId.isEmpty) return;
 
-                    final storage = LocalStorageService();
-                    await storage.saveActiveGroup(groupIdController.text);
-
-                    print(
-                        "gruppe lokal gespeichert: ${groupIdController.text}");
+                    try {
+                      await ref
+                          .read(sessionProvider.notifier)
+                          .joinGroup(groupId);
+                      context.router.replace(const CookbookRoute());
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Gruppe nicht gefunden')),
+                      );
+                    }
                   },
                 ),
               ],

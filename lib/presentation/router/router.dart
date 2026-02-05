@@ -29,6 +29,7 @@ class AppRouter extends RootStackRouter {
 
         /// Gruppen
         AutoRoute(page: GroupsRoute.page),
+        AutoRoute(page: GroupOnboardingRoute.page),
         AutoRoute(page: CreateGroupRoute.page),
         AutoRoute(page: JoinGroupRoute.page),
         AutoRoute(page: GroupCreatedRoute.page),
@@ -43,8 +44,8 @@ class AppRouter extends RootStackRouter {
             type: RouteType.custom(
               transitionsBuilder:
                   (context, animation, secondaryAnimation, child) => child,
-              durationInMilliseconds: 50,
-              reverseDurationInMilliseconds: 50,
+              duration: Duration(milliseconds: 50),
+              reverseDuration: Duration(milliseconds: 50),
             )),
         AutoRoute(page: ZoomPictureRoute.page),
       ];

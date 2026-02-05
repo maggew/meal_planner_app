@@ -8,11 +8,9 @@ abstract class UserRepository {
 
   Future<User?> getUserById(String uid);
 
+  Future<User?> getUserByFirebaseUid(String firebaseUid);
+
   Future<void> updateUser(User user);
-
-  Future<void> setActiveGroup(String uid, String groupId);
-
-  Future<String?> getCurrentGroupId(String uid);
 
   Future<List<String>> getGroupIds(String uid);
 

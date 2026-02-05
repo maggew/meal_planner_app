@@ -10,6 +10,8 @@ import 'package:meal_planner/presentation/login/widgets/login_reset_password_wid
 import 'package:meal_planner/presentation/login/widgets/login_textformfield.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/auth_providers.dart';
+import 'package:meal_planner/services/providers/repository_providers.dart';
+import 'package:meal_planner/services/providers/session_provider.dart';
 
 class LoginBody extends ConsumerStatefulWidget {
   const LoginBody({super.key});
@@ -67,6 +69,23 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
 
     ref.listen<AsyncValue<void>>(authControllerProvider, (prev, next) {
       next.whenOrNull(
+        data: (_) async {
+          final session = ref.read(sessionProvider);
+          if (session.groupId != null && session.groupId!.isNotEmpty) {
+            context.router.replace(const CookbookRoute());
+          } else {
+            print("session.userId!: ${session.userId}");
+            final groups = await ref
+                .read(groupRepositoryProvider)
+                .getUserGroups(session.userId!);
+            print("groups: $groups");
+            if (groups.isNotEmpty) {
+              context.router.replace(GroupsRoute());
+            } else {
+              context.router.replace(GroupOnboardingRoute());
+            }
+          }
+        },
         error: (e, _) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(_mapAuthError(e))),

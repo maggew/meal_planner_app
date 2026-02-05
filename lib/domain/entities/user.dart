@@ -1,23 +1,23 @@
 class User {
-  final String uid;
+  final String id;
   final String name;
   final String? currentGroup;
 
   User({
-    required this.uid,
+    required this.id,
     required this.name,
     this.currentGroup,
   });
 
   User copyWith({
-    String? uid,
+    String? id,
     String? name,
     String? email,
     List<String>? groups,
     String? currentGroup,
   }) {
     return User(
-      uid: uid ?? this.uid,
+      id: id ?? this.id,
       name: name ?? this.name,
       currentGroup: currentGroup ?? this.currentGroup,
     );
@@ -25,15 +25,15 @@ class User {
 
   @override
   String toString() {
-    return 'User(uid: $uid, name: $name)';
+    return 'User(id: $id, name: $name)';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is User && other.uid == uid;
+    return other is User && other.id == id;
   }
 
   @override
-  int get hashCode => uid.hashCode;
+  int get hashCode => id.hashCode;
 }
