@@ -7,7 +7,10 @@ class GroupsListviewItemImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (imageUrl.isEmpty || imageUrl == 'assets/images/group_pic.jpg') {
-      return Image.asset('assets/images/group_pic.jpg', fit: BoxFit.cover);
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.asset('assets/images/group_pic.jpg', fit: BoxFit.cover),
+      );
     } else {
       return Image.network(
         imageUrl,
