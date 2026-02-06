@@ -28,11 +28,11 @@ List<Widget> getBurgerMenuItems(BuildContext context, WidgetRef ref) {
       label: 'Gefriertruhe',
       onTap: () => context.router.push(const RefrigeratorRoute()),
     ),
-    BurgerMenuListItem(
-      icon: AppIcons.unity,
-      label: "Meine Gruppen",
-      onTap: () => context.router.push(const ShowUserGroupsRoute()),
-    ),
+    // BurgerMenuListItem(
+    //   icon: AppIcons.unity,
+    //   label: "Meine Gruppen",
+    //   onTap: () => context.router.push(const ShowUserGroupsRoute()),
+    // ),
     BurgerMenuListItem(
       icon: AppIcons.cat_1,
       label: "Mein Profil",

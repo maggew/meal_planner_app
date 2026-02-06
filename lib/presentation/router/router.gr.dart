@@ -348,15 +348,10 @@ class ShowSingleGroupRoute
   ShowSingleGroupRoute({
     _i18.Key? key,
     required _i20.Group group,
-    required _i18.Widget groupImage,
     List<_i17.PageRouteInfo>? children,
   }) : super(
           ShowSingleGroupRoute.name,
-          args: ShowSingleGroupRouteArgs(
-            key: key,
-            group: group,
-            groupImage: groupImage,
-          ),
+          args: ShowSingleGroupRouteArgs(key: key, group: group),
           initialChildren: children,
         );
 
@@ -366,44 +361,32 @@ class ShowSingleGroupRoute
     name,
     builder: (data) {
       final args = data.argsAs<ShowSingleGroupRouteArgs>();
-      return _i13.ShowSingleGroupPage(
-        key: args.key,
-        group: args.group,
-        groupImage: args.groupImage,
-      );
+      return _i13.ShowSingleGroupPage(key: args.key, group: args.group);
     },
   );
 }
 
 class ShowSingleGroupRouteArgs {
-  const ShowSingleGroupRouteArgs({
-    this.key,
-    required this.group,
-    required this.groupImage,
-  });
+  const ShowSingleGroupRouteArgs({this.key, required this.group});
 
   final _i18.Key? key;
 
   final _i20.Group group;
 
-  final _i18.Widget groupImage;
-
   @override
   String toString() {
-    return 'ShowSingleGroupRouteArgs{key: $key, group: $group, groupImage: $groupImage}';
+    return 'ShowSingleGroupRouteArgs{key: $key, group: $group}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! ShowSingleGroupRouteArgs) return false;
-    return key == other.key &&
-        group == other.group &&
-        groupImage == other.groupImage;
+    return key == other.key && group == other.group;
   }
 
   @override
-  int get hashCode => key.hashCode ^ group.hashCode ^ groupImage.hashCode;
+  int get hashCode => key.hashCode ^ group.hashCode;
 }
 
 /// generated route for

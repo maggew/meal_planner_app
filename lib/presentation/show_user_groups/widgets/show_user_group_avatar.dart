@@ -32,10 +32,7 @@ class ShowUserGroupAvatar extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        context.router.push(ShowSingleGroupRoute(
-          group: group,
-          groupImage: image,
-        ));
+        context.router.push(ShowSingleGroupRoute(group: group));
       },
       child: Container(
         width: avatarDiameter,

@@ -11,12 +11,10 @@ import 'package:meal_planner/services/providers/groups/group_members_provider.da
 @RoutePage()
 class ShowSingleGroupPage extends ConsumerWidget {
   final Group group;
-  final Widget groupImage;
 
   const ShowSingleGroupPage({
     super.key,
     required this.group,
-    required this.groupImage,
   });
 
   @override
@@ -40,7 +38,7 @@ class ShowSingleGroupPage extends ConsumerWidget {
       ),
       scaffoldBody: Column(
         children: [
-          ShowSingleGroupImage(groupImage: groupImage),
+          ShowSingleGroupImage(imageUrl: group.imageUrl),
           ShowSingleGroupClickableText(group: group),
           ShowSingleGroupMemberList(membersAsync: membersAsync, group: group),
         ],
