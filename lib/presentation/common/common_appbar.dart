@@ -34,7 +34,7 @@ class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
       elevation: 0,
       title: Text(
         title,
-        style: Theme.of(context).textTheme.displayMedium,
+        style: Theme.of(context).textTheme.displaySmall,
       ),
       centerTitle: true,
       actions: hasActionButton

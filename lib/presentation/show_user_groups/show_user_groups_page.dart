@@ -19,10 +19,7 @@ class ShowUserGroupsPage extends StatelessWidget {
       ),
       scaffoldFloatingActionButton: FloatingActionButton(
           onPressed: () {
-            //TODO: gruppen hinzufügen
-            print(
-                "================ gruppen müssen noch übergeben werden ============");
-            context.router.push(GroupsRoute());
+            context.router.push(CreateGroupRoute());
           },
           child: Icon(
             AppIcons.plus_1,

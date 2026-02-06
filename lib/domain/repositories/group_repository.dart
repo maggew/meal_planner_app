@@ -1,4 +1,5 @@
 import 'package:meal_planner/domain/entities/group.dart';
+import 'package:meal_planner/domain/entities/user.dart';
 
 abstract class GroupRepository {
   // CRUD Groups
@@ -10,6 +11,7 @@ abstract class GroupRepository {
   Future<void> deleteGroup(String groupId);
 
   Future<List<Group>> getUserGroups(String userId);
+  Future<List<User>> getGroupMembers(String groupId);
 
   // Members
   Future<void> addMember(String groupId, String userId,

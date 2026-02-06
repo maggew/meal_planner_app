@@ -19,9 +19,23 @@ class ShowUserGroupAvatar extends StatelessWidget {
     final bool hasValidImage = group.imageUrl.isNotEmpty;
     final double avatarDiameter =
         MediaQuery.of(context).size.width / 2 - 3 * 20;
+    final Widget image = hasValidImage
+        ? CachedNetworkImage(
+            imageUrl: group.imageUrl,
+            fit: BoxFit.cover,
+            width: avatarDiameter,
+            height: avatarDiameter,
+            placeholder: (_, __) => const PlacerholderImage(),
+            errorWidget: (_, __, ___) => const PlacerholderImage(),
+          )
+        : const PlacerholderImage();
+
     return GestureDetector(
       onTap: () {
-        context.router.push(const ShowSingleGroupRoute());
+        context.router.push(ShowSingleGroupRoute(
+          group: group,
+          groupImage: image,
+        ));
       },
       child: Container(
         width: avatarDiameter,
@@ -32,18 +46,7 @@ class ShowUserGroupAvatar extends StatelessWidget {
               ? Border.all(color: Colors.pink[200]!, width: 3)
               : null,
         ),
-        child: ClipOval(
-          child: hasValidImage
-              ? CachedNetworkImage(
-                  imageUrl: group.imageUrl,
-                  fit: BoxFit.cover,
-                  width: avatarDiameter,
-                  height: avatarDiameter,
-                  placeholder: (_, __) => const PlacerholderImage(),
-                  errorWidget: (_, __, ___) => const PlacerholderImage(),
-                )
-              : const PlacerholderImage(),
-        ),
+        child: ClipOval(child: image),
       ),
     );
   }

@@ -1,11 +1,13 @@
 import 'dart:io';
 
+import 'package:meal_planner/domain/entities/user.dart';
 import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/data/model/group_model.dart';
 import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/domain/exceptions/group_exceptions.dart';
 import 'package:meal_planner/domain/repositories/group_repository.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:meal_planner/services/providers/repository_providers.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 class SupabaseGroupRepository implements GroupRepository {
   final SupabaseClient _supabase;
@@ -59,6 +61,35 @@ class SupabaseGroupRepository implements GroupRepository {
     } catch (e) {
       print("throwing exception");
       throw GroupNotFoundException("Unbekannter Fehler: $e");
+    }
+  }
+
+  @override
+  Future<List<User>> getGroupMembers(String groupId) async {
+    try {
+      final response = await _supabase
+          .from(SupabaseConstants.groupMembersTable)
+          .select('users(id, name)')
+          .eq(SupabaseConstants.memberGroupId, groupId);
+
+      if (response.isEmpty) {
+        return [];
+      }
+
+      return (response as List).map((row) {
+        final userData =
+            row[SupabaseConstants.usersTable] as Map<String, dynamic>;
+        return User(
+          id: userData[SupabaseConstants.userId],
+          name: userData[SupabaseConstants.userName],
+        );
+      }).toList();
+    } on PostgrestException catch (e) {
+      throw GroupMemberException("Datenbankfehler: $e");
+    } on SocketException {
+      throw GroupMemberException("Keine Internetverbindung");
+    } catch (e) {
+      throw GroupMemberException("Unbekannter Fehler: $e");
     }
   }
 

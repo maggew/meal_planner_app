@@ -58,7 +58,7 @@ final class RecipesPaginationProvider
   }
 }
 
-String _$recipesPaginationHash() => r'24afe51004c23985009fcf92007d01275cf50deb';
+String _$recipesPaginationHash() => r'53654dcb55b087dca14da2394428027a541f4142';
 
 final class RecipesPaginationFamily extends $Family
     with

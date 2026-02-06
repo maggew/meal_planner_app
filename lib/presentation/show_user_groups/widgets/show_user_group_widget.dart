@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:gap/gap.dart';
 import 'package:meal_planner/domain/entities/group.dart';
+import 'package:meal_planner/presentation/common/extensions/text_theme_extensions.dart';
 import 'package:meal_planner/presentation/show_user_groups/widgets/show_user_group_avatar.dart';
 
 class ShowUserGroupWidget extends StatelessWidget {
@@ -13,38 +16,25 @@ class ShowUserGroupWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
     return Column(
       children: [
         ShowUserGroupAvatar(group: group, isCurrentGroup: isCurrentGroup),
-        Column(
-          children: [
-            FittedBox(
-              child: Text(
-                group.name,
-                textAlign: TextAlign.center,
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Gruppen ID: ",
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                SelectableText(
-                  group.id,
-                  style: Theme.of(context).textTheme.bodySmall,
-                  onTap: () {
-                    print("test, group.id: ${group.id} pressed");
-                  },
-                ),
-              ],
-            ),
-            SizedBox(
-              height: 30,
-            ),
-          ],
-        )
+        Gap(10),
+        GestureDetector(
+          onLongPress: () async {
+            await Clipboard.setData(ClipboardData(text: group.id));
+            HapticFeedback.mediumImpact();
+
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text("Gruppen-Id kopiert: \n${group.id}"),
+                duration: Duration(seconds: 2),
+              ));
+            }
+          },
+          child: Text(group.name, style: textTheme.bodyLargeClickable),
+        ),
       ],
     );
   }

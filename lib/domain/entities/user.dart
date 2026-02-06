@@ -1,12 +1,12 @@
 class User {
   final String id;
   final String name;
-  final String? currentGroup;
+  final String? image_url;
 
   User({
     required this.id,
     required this.name,
-    this.currentGroup,
+    this.image_url,
   });
 
   User copyWith({
@@ -14,12 +14,12 @@ class User {
     String? name,
     String? email,
     List<String>? groups,
-    String? currentGroup,
+    String? imageUrl,
   }) {
     return User(
       id: id ?? this.id,
       name: name ?? this.name,
-      currentGroup: currentGroup ?? this.currentGroup,
+      image_url: image_url ?? this.image_url,
     );
   }
 

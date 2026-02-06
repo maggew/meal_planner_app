@@ -11,6 +11,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:auto_route/auto_route.dart' as _i17;
 import 'package:flutter/material.dart' as _i18;
+import 'package:meal_planner/domain/entities/group.dart' as _i20;
 import 'package:meal_planner/domain/entities/recipe.dart' as _i19;
 import 'package:meal_planner/presentation/add_edit_recipe/add_edit_recipe_page.dart'
     as _i1;
@@ -342,18 +343,67 @@ class ShowRecipeRouteArgs {
 
 /// generated route for
 /// [_i13.ShowSingleGroupPage]
-class ShowSingleGroupRoute extends _i17.PageRouteInfo<void> {
-  const ShowSingleGroupRoute({List<_i17.PageRouteInfo>? children})
-      : super(ShowSingleGroupRoute.name, initialChildren: children);
+class ShowSingleGroupRoute
+    extends _i17.PageRouteInfo<ShowSingleGroupRouteArgs> {
+  ShowSingleGroupRoute({
+    _i18.Key? key,
+    required _i20.Group group,
+    required _i18.Widget groupImage,
+    List<_i17.PageRouteInfo>? children,
+  }) : super(
+          ShowSingleGroupRoute.name,
+          args: ShowSingleGroupRouteArgs(
+            key: key,
+            group: group,
+            groupImage: groupImage,
+          ),
+          initialChildren: children,
+        );
 
   static const String name = 'ShowSingleGroupRoute';
 
   static _i17.PageInfo page = _i17.PageInfo(
     name,
     builder: (data) {
-      return _i13.ShowSingleGroupPage();
+      final args = data.argsAs<ShowSingleGroupRouteArgs>();
+      return _i13.ShowSingleGroupPage(
+        key: args.key,
+        group: args.group,
+        groupImage: args.groupImage,
+      );
     },
   );
+}
+
+class ShowSingleGroupRouteArgs {
+  const ShowSingleGroupRouteArgs({
+    this.key,
+    required this.group,
+    required this.groupImage,
+  });
+
+  final _i18.Key? key;
+
+  final _i20.Group group;
+
+  final _i18.Widget groupImage;
+
+  @override
+  String toString() {
+    return 'ShowSingleGroupRouteArgs{key: $key, group: $group, groupImage: $groupImage}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ShowSingleGroupRouteArgs) return false;
+    return key == other.key &&
+        group == other.group &&
+        groupImage == other.groupImage;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ group.hashCode ^ groupImage.hashCode;
 }
 
 /// generated route for
