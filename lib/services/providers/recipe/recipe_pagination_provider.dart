@@ -62,7 +62,7 @@ class RecipesPagination extends _$RecipesPagination {
       final recipeRepo = ref.read(recipeRepositoryProvider);
 
       final allRecipes =
-          await recipeRepo.getRecipesByCategory(_currentCategory!);
+          await recipeRepo.getRecipesByCategory(_currentCategory!, false);
 
       final offset = state.recipes.length;
       newRecipes = allRecipes.skip(offset).take(recipesPerPage).toList();

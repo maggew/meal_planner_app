@@ -13,6 +13,7 @@ abstract class RecipeRemoteDatasource {
   Future<List<Map<String, dynamic>>> getRecipesByCategory({
     required String category,
     required String groupId,
+    required bool isDeleted,
   });
 
   Future<List<Map<String, dynamic>>> getRecipesByCategories({
@@ -36,6 +37,7 @@ abstract class RecipeRemoteDatasource {
     required String recipeId,
     required RecipeModel model,
     required String groupId,
+    required String createdBy,
     String? imageUrl,
   });
 

@@ -83,56 +83,60 @@ class AddEditRecipeButton extends ConsumerWidget {
           backgroundColor: Colors.red,
         ),
       );
-    } else {
-      final ingredientSections = ingredientState.sections.map((section) {
-        final rawTitle = section.titleController.text.trim();
-
-        return IngredientSection(
-          title: rawTitle.isEmpty ? 'Zutaten' : rawTitle,
-          ingredients: section.items.map((item) {
-            return item.ingredient.copyWith(
-              name: item.nameController.text.trim(),
-              amount: item.amountController.text.trim(),
-              unit: item.unit,
-            );
-          }).toList(),
-        );
-      }).toList();
-
-      Recipe recipe = Recipe(
-        id: existingRecipe?.id,
-        name: recipeNameController.text,
-        categories: selectedCategories,
-        portions: selectedPortions,
-        ingredientSections: ingredientSections,
-        instructions: recipeInstructionsController.text,
-        imageUrl: existingRecipe?.imageUrl,
-      );
-
-      final recipeRepo = ref.read(recipeUploadProvider.notifier);
-      if (existingRecipe != null) {
-        await recipeRepo.updateRecipe(recipe, image);
-      } else {
-        await recipeRepo.createRecipe(recipe, image);
-      }
-
-      final oldCategories = existingRecipe?.categories ?? [];
-      final newCategores = recipe.categories;
-      final allCategoriesToInvalidate = {...oldCategories, ...newCategores};
-
-      // Neue Kategorien invalidieren
-      for (final category in allCategoriesToInvalidate) {
-        ref.invalidate(recipesPaginationProvider(category.toLowerCase()));
-      }
-
-      _resetForm(
-        recipeNameController: recipeNameController,
-        recipeInstructionsController: recipeInstructionsController,
-        ref: ref,
-      );
-
-      context.router.replace(const CookbookRoute());
+      return;
     }
+
+    final ingredientSections = ingredientState.sections.map((section) {
+      final rawTitle = section.titleController.text.trim();
+
+      return IngredientSection(
+        title: rawTitle.isEmpty ? 'Zutaten' : rawTitle,
+        ingredients: section.items.map((item) {
+          return item.ingredient.copyWith(
+            name: item.nameController.text.trim(),
+            amount: item.amountController.text.trim(),
+            unit: item.unit,
+          );
+        }).toList(),
+      );
+    }).toList();
+    print("creating recipe");
+
+    Recipe recipe = Recipe(
+      id: existingRecipe?.id,
+      name: recipeNameController.text,
+      categories: selectedCategories,
+      portions: selectedPortions,
+      ingredientSections: ingredientSections,
+      instructions: recipeInstructionsController.text,
+      imageUrl: existingRecipe?.imageUrl,
+    );
+
+    final recipeRepo = ref.read(recipeUploadProvider.notifier);
+    if (existingRecipe != null) {
+      await recipeRepo.updateRecipe(recipe, image);
+    } else {
+      print("creating recipe now");
+      await recipeRepo.createRecipe(recipe, image);
+      print("after creation");
+    }
+
+    final oldCategories = existingRecipe?.categories ?? [];
+    final newCategores = recipe.categories;
+    final allCategoriesToInvalidate = {...oldCategories, ...newCategores};
+
+    // Neue Kategorien invalidieren
+    for (final category in allCategoriesToInvalidate) {
+      ref.invalidate(recipesPaginationProvider(category.toLowerCase()));
+    }
+
+    _resetForm(
+      recipeNameController: recipeNameController,
+      recipeInstructionsController: recipeInstructionsController,
+      ref: ref,
+    );
+
+    context.router.replace(const CookbookRoute());
   }
 
   void _resetForm({

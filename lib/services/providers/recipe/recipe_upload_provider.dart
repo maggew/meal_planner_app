@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:meal_planner/services/providers/session_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
@@ -16,7 +17,8 @@ class RecipeUpload extends _$RecipeUpload {
 
     state = await AsyncValue.guard(() async {
       final recipeRepo = ref.read(recipeRepositoryProvider);
-      await recipeRepo.saveRecipe(recipe, image);
+      final userId = ref.read(sessionProvider).userId!;
+      await recipeRepo.saveRecipe(recipe, image, userId);
     });
   }
 

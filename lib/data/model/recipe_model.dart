@@ -18,6 +18,7 @@ class RecipeModel extends Recipe {
   Map<String, dynamic> toSupabase({
     required String recipeId,
     required String groupId,
+    required String createdBy,
     String? imageUrl,
   }) {
     return {
@@ -27,6 +28,7 @@ class RecipeModel extends Recipe {
       SupabaseConstants.recipePortions: portions,
       SupabaseConstants.recipeInstructions: instructions,
       SupabaseConstants.recipeImageUrl: imageUrl ?? this.imageUrl,
+      SupabaseConstants.recipeCreatedBy: createdBy,
       SupabaseConstants.recipeCreatedAt: createdAt.toIso8601String(),
     };
   }

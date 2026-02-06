@@ -6,6 +6,7 @@ import 'package:meal_planner/core/constants/firebase_constants.dart';
 import 'package:meal_planner/data/datasources/recipe_remote_datasource.dart';
 import 'package:meal_planner/data/model/ingredient_model.dart';
 import 'package:meal_planner/data/model/recipe_model.dart';
+import 'package:meal_planner/services/providers/session_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:meal_planner/core/utils/uuid_generator.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
@@ -32,7 +33,8 @@ class SupabaseRecipeRepository implements RecipeRepository {
   // ==================== CREATE ====================
 
   @override
-  Future<String> saveRecipe(Recipe recipe, File? image) async {
+  Future<String> saveRecipe(
+      Recipe recipe, File? image, String createdBy) async {
     try {
       final recipeId = generateUuid();
       final model = RecipeModel.fromEntity(recipe);
@@ -49,6 +51,7 @@ class SupabaseRecipeRepository implements RecipeRepository {
         recipeId: recipeId,
         model: model,
         groupId: _groupId,
+        createdBy: createdBy,
         imageUrl: imageUrl,
       );
 
@@ -160,11 +163,13 @@ class SupabaseRecipeRepository implements RecipeRepository {
   }
 
   @override
-  Future<List<Recipe>> getRecipesByCategory(String category) async {
+  Future<List<Recipe>> getRecipesByCategory(
+      String category, bool isDeleted) async {
     try {
       final data = await _remote.getRecipesByCategory(
         category: category,
         groupId: _groupId,
+        isDeleted: isDeleted,
       );
       return data
           .map(

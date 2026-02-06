@@ -43,12 +43,18 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
   Future<List<Map<String, dynamic>>> getRecipesByCategory({
     required String category,
     required String groupId,
+    required bool isDeleted,
   }) async {
     final categoryResponse = await supabase
         .from(SupabaseConstants.recipesTable)
         .select('id, recipe_categories!inner(categories!inner(name))')
         .eq(SupabaseConstants.recipeGroupId, groupId)
-        .eq('recipe_categories.categories.name', category.toLowerCase());
+        .eq('recipe_categories.categories.name', category.toLowerCase())
+        .filter(
+          SupabaseConstants.recipeDeletedAt,
+          isDeleted ? 'not.is' : 'is',
+          null,
+        );
 
     final ids =
         (categoryResponse as List).map((r) => r['id'] as String).toList();
@@ -128,16 +134,19 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
   }
 
   @override
-  Future<void> insertRecipe(
-      {required String recipeId,
-      required RecipeModel model,
-      required String groupId,
-      String? imageUrl}) async {
+  Future<void> insertRecipe({
+    required String recipeId,
+    required RecipeModel model,
+    required String groupId,
+    required String createdBy,
+    String? imageUrl,
+  }) async {
     await supabase.from(SupabaseConstants.recipesTable).insert(
           model.toSupabase(
             recipeId: recipeId,
             groupId: groupId,
             imageUrl: imageUrl,
+            createdBy: createdBy,
           ),
         );
   }
@@ -146,12 +155,15 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
   Future<void> saveRecipeCategories(
       {required String recipeId, required List<String> categories}) async {
     for (final categoryName in categories) {
-      final categoryId = await upsertCategory(name: categoryName);
-
-      await supabase.from(SupabaseConstants.recipeCategoriesTable).insert({
-        SupabaseConstants.recipeCategoryRecipeId: recipeId,
-        SupabaseConstants.recipeCategoryCategoryId: categoryId,
-      });
+      try {
+        final categoryId = await upsertCategory(name: categoryName);
+        await supabase.from(SupabaseConstants.recipeCategoriesTable).insert({
+          SupabaseConstants.recipeCategoryRecipeId: recipeId,
+          SupabaseConstants.recipeCategoryCategoryId: categoryId,
+        });
+      } catch (e) {
+        rethrow;
+      }
     }
   }
 
