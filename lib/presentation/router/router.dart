@@ -35,6 +35,7 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: GroupCreatedRoute.page),
         AutoRoute(page: ShowUserGroupsRoute.page),
         AutoRoute(page: ShowSingleGroupRoute.page),
+        AutoRoute(page: EditGroupRoute.page),
 
         /// App
         AutoRoute(page: RefrigeratorRoute.page),

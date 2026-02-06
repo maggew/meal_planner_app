@@ -6,7 +6,6 @@ import 'package:meal_planner/data/model/group_model.dart';
 import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/domain/exceptions/group_exceptions.dart';
 import 'package:meal_planner/domain/repositories/group_repository.dart';
-import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 class SupabaseGroupRepository implements GroupRepository {
@@ -29,6 +28,26 @@ class SupabaseGroupRepository implements GroupRepository {
         SupabaseConstants.memberUserId: creatorUserId,
         SupabaseConstants.memberRole: SupabaseConstants.roleAdmin,
       });
+    } on PostgrestException catch (e) {
+      throw GroupCreationException("Datenbankfehler: $e");
+    } on SocketException {
+      throw GroupCreationException("Keine Internetverbindung");
+    } catch (e) {
+      throw GroupCreationException("Unbekannter Fehler: $e");
+    }
+  }
+
+  @override
+  Future<void> updateGroup(
+      {required String oldGroupId,
+      required String newName,
+      required String imageUrl}) async {
+    try {
+      print("in update: $oldGroupId");
+      await _supabase.from(SupabaseConstants.groupsTable).update({
+        SupabaseConstants.groupName: newName,
+        SupabaseConstants.groupImageUrl: imageUrl,
+      }).eq(SupabaseConstants.groupId, oldGroupId);
     } on PostgrestException catch (e) {
       throw GroupCreationException("Datenbankfehler: $e");
     } on SocketException {

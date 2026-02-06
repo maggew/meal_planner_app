@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
+import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/presentation/show_single_group/widgets/show_single_group_clickable_text.dart';
 import 'package:meal_planner/presentation/show_single_group/widgets/show_single_group_image.dart';
 import 'package:meal_planner/presentation/show_single_group/widgets/show_single_group_member_list.dart';
@@ -34,7 +35,14 @@ class ShowSingleGroupPage extends ConsumerWidget {
           },
           icon: Icon(Icons.chevron_left),
         ),
-        actions: [IconButton(onPressed: () {}, icon: Icon(Icons.edit))],
+        actions: [
+          IconButton(
+              onPressed: () {
+                context.router.push(EditGroupRoute(group: group));
+              },
+              icon: Icon(Icons.edit)),
+          IconButton(onPressed: () {}, icon: Icon(Icons.switch_left))
+        ],
       ),
       scaffoldBody: Column(
         children: [

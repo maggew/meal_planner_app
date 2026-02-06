@@ -9,6 +9,10 @@ abstract class GroupRepository {
   Future<List<Group>> getGroupsByIds(List<String> groupIds);
   Future<void> updateGroupPic(String groupId, String url);
   Future<void> deleteGroup(String groupId);
+  Future<void> updateGroup(
+      {required String oldGroupId,
+      required String newName,
+      required String imageUrl});
 
   Future<List<Group>> getUserGroups(String userId);
   Future<List<User>> getGroupMembers(String groupId);

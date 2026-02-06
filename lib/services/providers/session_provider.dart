@@ -107,6 +107,16 @@ class SessionController extends StateNotifier<SessionState> {
     state = state.copyWith(groupId: groupId, group: group);
   }
 
+  Future<void> reloadActiveGroup() async {
+    final groupId = state.groupId;
+    if (groupId == null) return;
+
+    final groupRepo = ref.read(groupRepositoryProvider);
+    final group = await groupRepo.getGroup(groupId);
+
+    state = state.copyWith(group: group);
+  }
+
   /// Session zurücksetzen (Logout)
   Future<void> clearSession() async {
     final storage = LocalStorageService();
