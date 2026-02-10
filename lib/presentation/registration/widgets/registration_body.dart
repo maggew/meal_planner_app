@@ -9,6 +9,7 @@ import 'package:meal_planner/presentation/registration/widgets/registration_text
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
+import 'package:meal_planner/services/providers/session_provider.dart';
 
 class RegistrationBody extends ConsumerStatefulWidget {
   const RegistrationBody({super.key});
@@ -195,6 +196,9 @@ class _RegistrationBodyState extends ConsumerState<RegistrationBody> {
         password: passwordController.text,
         image: images.photo,
       );
+
+      final session = ref.read(sessionProvider.notifier);
+      session.setActiveUserAfterRegistration(uid);
 
       ref.read(imageManagerProvider.notifier).clearPhoto();
 

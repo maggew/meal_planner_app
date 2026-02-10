@@ -65,6 +65,9 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
       next.whenOrNull(
         data: (_) async {
           final session = ref.read(sessionProvider);
+
+          if (session.userId == null) return;
+
           if (session.groupId != null && session.groupId!.isNotEmpty) {
             context.router.replace(const CookbookRoute());
           } else {
