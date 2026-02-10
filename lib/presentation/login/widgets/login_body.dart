@@ -1,8 +1,9 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/domain/validators/auth_validators.dart';
+import 'package:meal_planner/presentation/common/loading_overlay.dart';
 import 'package:meal_planner/presentation/login/widgets/login_register_widget.dart';
 import 'package:meal_planner/presentation/login/widgets/login_reset_password_widget.dart';
 import 'package:meal_planner/presentation/login/widgets/login_textformfield.dart';
@@ -89,91 +90,71 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
       );
     });
 
-    return Center(
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          autovalidateMode: AutovalidateMode.disabled,
-          child: Column(
-            spacing: 15,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              LoginTextFormField(
-                controller: emailController,
-                validator: _validateEmail,
-                text: "E-mail",
-                textInputType: TextInputType.emailAddress,
-                textObscured: false,
-                focusNode: emailFocusNode,
-                textInputAction: TextInputAction.next,
-                onFieldSubmitted: () => passwordFocusNode.requestFocus(),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              LoginTextFormField(
-                controller: passwordController,
-                validator: _validatePassword,
-                text: "Passwort",
-                textInputType: TextInputType.visiblePassword,
-                textObscured: _obscurePassword,
-                focusNode: passwordFocusNode,
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: () => _submitForm(),
-                keyboardType: TextInputType.visiblePassword,
-                suffixIcon: IconButton(
-                  onPressed: () => setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  }),
-                  icon: Icon(_obscurePassword
-                      ? Icons.visibility
-                      : Icons.visibility_off),
+    return LoadingOverlay(
+      isLoading: isLoading,
+      child: Center(
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            autovalidateMode: AutovalidateMode.disabled,
+            child: Column(
+              spacing: 15,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                LoginTextFormField(
+                  controller: emailController,
+                  validator: AuthValidators.email,
+                  text: "E-mail",
+                  textInputType: TextInputType.emailAddress,
+                  textObscured: false,
+                  focusNode: emailFocusNode,
+                  textInputAction: TextInputAction.next,
+                  onFieldSubmitted: () => passwordFocusNode.requestFocus(),
+                  keyboardType: TextInputType.emailAddress,
                 ),
-              ),
-              ElevatedButton(
-                onPressed: isLoading ? null : _submitForm,
-                child: isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Login'),
-              ),
-              LoginRegisterWidget(),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.login),
-                label: const Text('Mit Google anmelden'),
-                onPressed: authState.isLoading
-                    ? null
-                    : () {
-                        ref
-                            .read(authControllerProvider.notifier)
-                            .loginWithGoogle();
-                      },
-              ),
-              LoginResetPasswordWidget(),
-            ],
+                LoginTextFormField(
+                  controller: passwordController,
+                  validator: AuthValidators.loginPassword,
+                  text: "Passwort",
+                  textInputType: TextInputType.visiblePassword,
+                  textObscured: _obscurePassword,
+                  focusNode: passwordFocusNode,
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: () => _submitForm(),
+                  keyboardType: TextInputType.visiblePassword,
+                  suffixIcon: IconButton(
+                    onPressed: () => setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    }),
+                    icon: Icon(_obscurePassword
+                        ? Icons.visibility
+                        : Icons.visibility_off),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: isLoading ? null : _submitForm,
+                  child: const Text('Login'),
+                ),
+                LoginRegisterWidget(),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.login),
+                  label: const Text('Mit Google anmelden'),
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          ref
+                              .read(authControllerProvider.notifier)
+                              .loginWithGoogle();
+                        },
+                ),
+                LoginResetPasswordWidget(),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
-}
-
-String? _validateEmail(String? email) {
-  if (email == null || email.isEmpty) {
-    return "Bitte E-Mail Adresse eingeben.";
-  } else if (!EmailValidator.validate(email)) {
-    return "Ungültige E-Mail-Adressee";
-  }
-
-  return null;
-}
-
-String? _validatePassword(String? password) {
-  if (password == null || password.isEmpty) {
-    return "Bitte Passwort eingeben.";
-  }
-  return null;
 }
 
 String _mapAuthError(Object error) {

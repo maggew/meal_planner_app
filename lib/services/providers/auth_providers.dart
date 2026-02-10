@@ -73,8 +73,12 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
     }
   }
 
-  Future<void> register(
-      String email, String password, String name, File? image) async {
+  Future<void> register({
+    required String email,
+    required String password,
+    required String name,
+    required File? image,
+  }) async {
     state = const AsyncValue.loading();
     try {
       final authRepo = _ref.read(authRepositoryProvider);
@@ -85,10 +89,10 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
         image: image,
       );
 
-      // User in Supabase anlegen
-      await _ref.read(userRepositoryProvider).ensureUserExists(uid, name);
+      await _ref
+          .read(sessionProvider.notifier)
+          .setActiveUserAfterRegistration(uid);
 
-      await _ref.read(sessionProvider.notifier).loadSession(uid);
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
