@@ -1,8 +1,11 @@
+import 'dart:io';
+
 abstract class AuthRepository {
   Future<String> registerWithEmail({
     required String name,
     required String email,
     required String password,
+    required File? image,
   });
 
   Future<String> signInWithEmail({

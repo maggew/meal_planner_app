@@ -25,13 +25,18 @@ Deno.serve(async (req) => {
       return new Response("Missing Authorization header", { status: 401 });
     }
 
+    // Request Body lesen (für name)
+    let bodyName: string | null = null;
+    try {
+      const body = await req.json();
+      bodyName = body.name ?? null;
+    } catch {
+      // Kein Body oder kein JSON – ist okay
+    }
+
     const token = auth.replace("Bearer ", "");
-    
-    // Manuelles Dekodieren ohne djwt (sicherer)
     const payloadBase64 = token.split(".")[1];
-    
     const payloadJson = atob(payloadBase64);
-    
     const payload = JSON.parse(payloadJson);
 
     if (!payload?.sub) {
@@ -40,7 +45,8 @@ Deno.serve(async (req) => {
 
     const firebaseUid = payload.sub;
     const email = payload.email ?? null;
-    const name = payload.name ?? null;
+    // Name aus Body bevorzugen, sonst aus Token (für Google Sign-In)
+    const name = bodyName ?? payload.name ?? null;
 
     // User suchen
     const { data: existingUser, error: selectError } = await supabase

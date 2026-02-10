@@ -3,8 +3,6 @@ import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gap/gap.dart';
-import 'package:meal_planner/core/constants/local_storage_service.dart';
 import 'package:meal_planner/presentation/login/widgets/login_register_widget.dart';
 import 'package:meal_planner/presentation/login/widgets/login_reset_password_widget.dart';
 import 'package:meal_planner/presentation/login/widgets/login_textformfield.dart';
@@ -94,15 +92,9 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
           key: _formKey,
           autovalidateMode: AutovalidateMode.disabled,
           child: Column(
+            spacing: 15,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                "Login",
-                style: Theme.of(context).textTheme.displayLarge,
-              ),
-              SizedBox(
-                height: 35,
-              ),
               LoginTextFormField(
                 controller: emailController,
                 validator: _validateEmail,
@@ -112,8 +104,8 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
                 focusNode: emailFocusNode,
                 textInputAction: TextInputAction.next,
                 onFieldSubmitted: () => passwordFocusNode.requestFocus(),
+                keyboardType: TextInputType.emailAddress,
               ),
-              Gap(15),
               LoginTextFormField(
                 controller: passwordController,
                 validator: _validatePassword,
@@ -123,6 +115,7 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
                 focusNode: passwordFocusNode,
                 textInputAction: TextInputAction.done,
                 onFieldSubmitted: () => _submitForm(),
+                keyboardType: TextInputType.visiblePassword,
                 suffixIcon: IconButton(
                   onPressed: () => setState(() {
                     _obscurePassword = !_obscurePassword;
@@ -132,7 +125,6 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
                       : Icons.visibility_off),
                 ),
               ),
-              Gap(15),
               ElevatedButton(
                 onPressed: isLoading ? null : _submitForm,
                 child: isLoading
@@ -143,11 +135,7 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
                       )
                     : const Text('Login'),
               ),
-              SizedBox(
-                height: 60,
-              ),
               LoginRegisterWidget(),
-              Gap(15),
               ElevatedButton.icon(
                 icon: const Icon(Icons.login),
                 label: const Text('Mit Google anmelden'),

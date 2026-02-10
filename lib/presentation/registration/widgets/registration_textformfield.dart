@@ -1,27 +1,25 @@
 import 'package:flutter/material.dart';
 
-class LoginTextFormField extends StatelessWidget {
+class RegistrationTextformfield extends StatelessWidget {
   final TextEditingController controller;
-  final FormFieldValidator<String?> validator;
   final String text;
-  final TextInputType textInputType;
-  final bool textObscured;
+  final String? Function(String?) validator;
   final FocusNode focusNode;
+  final bool textObscured;
   final TextInputAction textInputAction;
+  final TextInputType keyboardType;
   final VoidCallback onFieldSubmitted;
   final Widget? suffixIcon;
-  final TextInputType keyboardType;
-  const LoginTextFormField({
+  const RegistrationTextformfield({
     super.key,
     required this.controller,
-    required this.validator,
     required this.text,
-    required this.textInputType,
-    required this.textObscured,
+    required this.validator,
     required this.focusNode,
+    required this.textObscured,
     required this.textInputAction,
-    required this.onFieldSubmitted,
     required this.keyboardType,
+    required this.onFieldSubmitted,
     this.suffixIcon,
   });
 
@@ -32,12 +30,13 @@ class LoginTextFormField extends StatelessWidget {
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: 300),
         child: TextFormField(
-          focusNode: focusNode,
           controller: controller,
+          focusNode: focusNode,
+          obscureText: textObscured,
           onFieldSubmitted: (_) => onFieldSubmitted(),
+          keyboardType: keyboardType,
           textInputAction: textInputAction,
           validator: validator,
-          obscureText: textObscured,
           decoration: InputDecoration(
             labelText: text,
             hintText: text,
@@ -68,7 +67,6 @@ class LoginTextFormField extends StatelessWidget {
             ),
             suffixIcon: suffixIcon,
           ),
-          keyboardType: keyboardType,
         ),
       ),
     );

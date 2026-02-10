@@ -11,6 +11,7 @@ abstract class UserRepository {
   Future<User?> getUserByFirebaseUid(String firebaseUid);
 
   Future<void> updateUser(User user);
+  Future<void> updateUserImage({required String uid, required String imageUrl});
 
   Future<List<String>> getGroupIds(String uid);
 

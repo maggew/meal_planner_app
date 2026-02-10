@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -71,7 +73,8 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
     }
   }
 
-  Future<void> register(String email, String password, String name) async {
+  Future<void> register(
+      String email, String password, String name, File? image) async {
     state = const AsyncValue.loading();
     try {
       final authRepo = _ref.read(authRepositoryProvider);
@@ -79,6 +82,7 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
         email: email,
         password: password,
         name: name,
+        image: image,
       );
 
       // User in Supabase anlegen

@@ -1,45 +1,82 @@
 // lib/data/repositories/firebase_auth_repository.dart
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:meal_planner/core/constants/firebase_constants.dart';
 import 'package:meal_planner/domain/exceptions/auth_exceptions.dart';
 import 'package:meal_planner/domain/repositories/auth_repository.dart';
+import 'package:meal_planner/domain/repositories/storage_repository.dart';
 import 'package:meal_planner/domain/repositories/user_repository.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class FirebaseAuthRepository implements AuthRepository {
-  final FirebaseAuth auth;
-  final UserRepository userRepository;
-  final GoogleSignIn googleSignIn;
-  final Dio dio;
+  final FirebaseAuth _auth;
+  final UserRepository _userRepository;
+  final StorageRepository _storageRepository;
+  final GoogleSignIn _googleSignIn;
+  final Dio _dio;
 
   FirebaseAuthRepository({
-    required this.auth,
-    required this.userRepository,
-    required this.googleSignIn,
-    required this.dio,
-  });
+    required FirebaseAuth auth,
+    required UserRepository userRepository,
+    required GoogleSignIn googleSignIn,
+    required Dio dio,
+    required StorageRepository storageRepository,
+  })  : _storageRepository = storageRepository,
+        _dio = dio,
+        _googleSignIn = googleSignIn,
+        _userRepository = userRepository,
+        _auth = auth;
 
   @override
   Future<String> registerWithEmail({
     required String name,
     required String email,
     required String password,
+    required File? image,
   }) async {
     try {
-      final userCredential = await auth.createUserWithEmailAndPassword(
+      final userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      final uid = userCredential.user!.uid;
+      final user = userCredential.user;
+      if (user == null) {
+        throw AuthException("User konnte nicht erstellt werden");
+      }
 
-      await userRepository.createUser(uid: uid, name: name);
+      final firebaseIdToken = await user.getIdToken();
 
-      return uid;
+      final supabaseResponse = await _dio.post(
+        'https://esreihfibhoueesrlmxj.functions.supabase.co/bootstrap-user',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $firebaseIdToken',
+          },
+        ),
+        data: {'name': name},
+      );
+
+      final supabaseUserId = supabaseResponse.data['user_id'] as String;
+
+      if (image != null) {
+        try {
+          final imageUrl = await _storageRepository.uploadImage(
+              image, FirebaseConstants.imageUser);
+
+          await _userRepository.updateUserImage(
+              uid: supabaseUserId, imageUrl: imageUrl);
+        } catch (e) {
+          print('Profilbild konnte nicht gespeichert werden: $e');
+        }
+      }
+
+      return supabaseUserId;
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case 'weak-password':
@@ -63,7 +100,7 @@ class FirebaseAuthRepository implements AuthRepository {
     required String password,
   }) async {
     try {
-      final userCredential = await auth.signInWithEmailAndPassword(
+      final userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -74,7 +111,7 @@ class FirebaseAuthRepository implements AuthRepository {
 
       // Supabase User ID holen (wie bei Google Login)
       final firebaseIdToken = await user.getIdToken();
-      final supabaseResponse = await dio.post(
+      final supabaseResponse = await _dio.post(
         'https://esreihfibhoueesrlmxj.functions.supabase.co/bootstrap-user',
         options: Options(
           headers: {
@@ -105,7 +142,7 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   Future<void> signOut() async {
     try {
-      await auth.signOut();
+      await _auth.signOut();
     } catch (e) {
       throw AuthException('Logout fehlgeschlagen: $e');
     }
@@ -113,21 +150,21 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   String? getCurrentUserId() {
-    return auth.currentUser?.uid;
+    return _auth.currentUser?.uid;
   }
 
   @override
   Stream<String?> authStateChanges() {
-    return auth.authStateChanges().map((user) => user?.uid);
+    return _auth.authStateChanges().map((user) => user?.uid);
   }
 
   @override
-  bool get isSignedIn => auth.currentUser != null;
+  bool get isSignedIn => _auth.currentUser != null;
 
   @override
   Future<String> signInWithGoogle() async {
     try {
-      final signIn = googleSignIn;
+      final signIn = _googleSignIn;
 
       await signIn.initialize(
         serverClientId: dotenv.env['GOOGLE_LOGIN_SERVER_CLIENT_ID'],
@@ -148,7 +185,7 @@ class FirebaseAuthRepository implements AuthRepository {
         idToken: googleAuth.idToken,
       );
 
-      final result = await auth.signInWithCredential(credential);
+      final result = await _auth.signInWithCredential(credential);
 
       final user = result.user;
       if (user == null) {
@@ -157,7 +194,7 @@ class FirebaseAuthRepository implements AuthRepository {
 
       final firebaseIdToken = await user.getIdToken();
 
-      final supabaseResponse = await dio.post(
+      final supabaseResponse = await _dio.post(
         'https://esreihfibhoueesrlmxj.functions.supabase.co/bootstrap-user',
         options: Options(
           headers: {
@@ -167,6 +204,16 @@ class FirebaseAuthRepository implements AuthRepository {
       );
 
       final supabaseUserId = supabaseResponse.data['user_id'] as String;
+      final imageUrl = googleUser.photoUrl;
+
+      if (imageUrl != null) {
+        try {
+          await _userRepository.updateUserImage(
+              uid: supabaseUserId, imageUrl: imageUrl);
+        } catch (e) {
+          print('Google-Profilbild konnte nicht gespeichert werden: $e');
+        }
+      }
       return supabaseUserId;
     } on PlatformException catch (e) {
       if (e.code == 'sign_in_cancelled') {

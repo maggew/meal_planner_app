@@ -10,7 +10,13 @@ class LoginPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
     return AppBackground(
+      scaffoldAppBar: AppBar(
+        leading: Text(""),
+        title: Text("Login", style: textTheme.displaySmall),
+        centerTitle: true,
+      ),
       scaffoldBody: LoginBody(),
     );
   }

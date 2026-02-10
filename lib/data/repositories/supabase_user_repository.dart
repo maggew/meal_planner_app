@@ -94,4 +94,19 @@ class SupabaseUserRepository implements UserRepository {
       throw UserCreationException(e.toString());
     }
   }
+
+  @override
+  Future<void> updateUserImage(
+      {required String uid, required String imageUrl}) async {
+    try {
+      await _supabase
+          .from(SupabaseConstants.usersTable)
+          .update({SupabaseConstants.userImage: imageUrl}).eq(
+              SupabaseConstants.userId, uid);
+    } on PostgrestException catch (e) {
+      throw UserUpdateException("Datenbankfehler: ${e.message}");
+    } catch (e) {
+      throw UserUpdateException("Userimage could not be saved: $e");
+    }
+  }
 }

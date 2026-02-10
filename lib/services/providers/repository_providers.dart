@@ -78,6 +78,7 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
     googleSignIn: ref.watch(googleSignInProvider),
     userRepository: ref.watch(userRepositoryProvider),
     dio: ref.watch(dioProvider),
+    storageRepository: ref.watch(storageRepositoryProvider),
   );
 });
 final fridgeRepositoryProvider = Provider<FridgeRepository>((ref) {

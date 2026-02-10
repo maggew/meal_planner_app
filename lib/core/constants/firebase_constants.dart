@@ -10,6 +10,7 @@ class FirebaseConstants {
   // Storage paths
   static const String imagePathRecipe = 'images/recipes';
   static const String imagePathGroups = 'images/groups';
+  static const String imageUser = 'images/user';
 
   // User
   static const String userCurrentGroup = 'current_group';
