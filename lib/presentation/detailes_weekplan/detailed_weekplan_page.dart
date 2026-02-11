@@ -17,26 +17,6 @@ class _DetailedWeekplanPage extends State<DetailedWeekplanPage>
     with SingleTickerProviderStateMixin {
   TabController? _tabBarController;
 
-  double getScreenWidth(BuildContext context) {
-    return MediaQuery.of(context).size.width;
-  }
-
-  double getScreenHeight(BuildContext context) {
-    return MediaQuery.of(context).size.height;
-  }
-
-  double getScreenHeightExcludeSafeArea(BuildContext context) {
-    final double height = MediaQuery.of(context).size.height;
-    final EdgeInsets padding = MediaQuery.of(context).padding;
-    return height - padding.top - padding.bottom;
-  }
-
-  double getHeightOfDropDownMenu(BuildContext context) {
-    final double height = MediaQuery.of(context).size.height;
-    final EdgeInsets padding = MediaQuery.of(context).padding;
-    return padding.top;
-  }
-
   //Screen is locked to landscape mode
   @override
   void initState() {

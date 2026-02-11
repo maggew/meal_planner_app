@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
-import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
 
 class IngredientFormItem {
   final String? id;

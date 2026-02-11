@@ -53,19 +53,5 @@ class GroupsCreateJoinButton extends StatelessWidget {
         ),
       ),
     );
-
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.green[100],
-        disabledForegroundColor: Colors.green[100]!.withOpacity(0.38),
-        disabledBackgroundColor: Colors.green[100]!.withOpacity(0.12),
-        elevation: 10,
-      ),
-      onPressed: onPressed,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [],
-      ),
-    );
   }
 }
