@@ -5,12 +5,14 @@ class UserModel extends User {
   UserModel({
     required super.id,
     required super.name,
+    super.imageUrl,
   });
 
   factory UserModel.fromSupabase(Map<String, dynamic> data) {
     return UserModel(
       id: data[SupabaseConstants.userId] as String,
       name: data[SupabaseConstants.userName] as String? ?? '',
+      imageUrl: data[SupabaseConstants.userImage] as String?,
     );
   }
 
@@ -18,6 +20,7 @@ class UserModel extends User {
     return {
       SupabaseConstants.userId: id,
       SupabaseConstants.userName: name,
+      if (imageUrl != null) SupabaseConstants.userImage: imageUrl,
     };
   }
 
@@ -25,6 +28,7 @@ class UserModel extends User {
     return UserModel(
       id: user.id,
       name: user.name,
+      imageUrl: user.imageUrl,
     );
   }
 
@@ -32,6 +36,7 @@ class UserModel extends User {
     return User(
       id: id,
       name: name,
+      imageUrl: imageUrl,
     );
   }
 }

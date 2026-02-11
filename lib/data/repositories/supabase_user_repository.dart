@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/data/model/user_model.dart';
+import 'package:meal_planner/data/model/user_profile_model.dart';
 import 'package:meal_planner/domain/entities/user.dart';
+import 'package:meal_planner/domain/entities/user_profile.dart';
 import 'package:meal_planner/domain/exceptions/user_exception.dart';
 import 'package:meal_planner/domain/repositories/user_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
@@ -36,6 +38,23 @@ class SupabaseUserRepository implements UserRepository {
       if (response == null) return null;
 
       return UserModel.fromSupabase(response);
+    } catch (e) {
+      throw UserNotFoundException(uid);
+    }
+  }
+
+  @override
+  Future<UserProfile?> getUserProfileById(String uid) async {
+    try {
+      final response = await _supabase
+          .from(SupabaseConstants.usersTable)
+          .select()
+          .eq(SupabaseConstants.userId, uid)
+          .maybeSingle();
+
+      if (response == null) return null;
+
+      return UserProfileModel.fromSupabase(response);
     } catch (e) {
       throw UserNotFoundException(uid);
     }

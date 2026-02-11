@@ -1,4 +1,5 @@
 import 'package:meal_planner/domain/entities/user.dart';
+import 'package:meal_planner/domain/entities/user_profile.dart';
 
 abstract class UserRepository {
   Future<void> createUser({
@@ -7,6 +8,7 @@ abstract class UserRepository {
   });
 
   Future<User?> getUserById(String uid);
+  Future<UserProfile?> getUserProfileById(String uid);
 
   Future<User?> getUserByFirebaseUid(String firebaseUid);
 

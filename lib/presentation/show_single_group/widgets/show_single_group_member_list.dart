@@ -25,7 +25,7 @@ class ShowSingleGroupMemberList extends StatelessWidget {
           itemCount: users.length,
           itemBuilder: (BuildContext, index) {
             User user = users[index];
-            final hasValidImage = user.image_url != null;
+            final hasValidImage = user.imageUrl != null;
 
             final Widget userImage = hasValidImage
                 ? CachedNetworkImage(

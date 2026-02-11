@@ -36,7 +36,7 @@ List<Widget> getBurgerMenuItems(BuildContext context, WidgetRef ref) {
     BurgerMenuListItem(
       icon: AppIcons.cat_1,
       label: "Mein Profil",
-      onTap: () {},
+      onTap: () => context.router.push(const ProfileRoute()),
     ),
     BurgerMenuListItem(
       icon: AppIcons.logout,
