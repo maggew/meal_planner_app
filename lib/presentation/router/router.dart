@@ -32,7 +32,6 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: GroupOnboardingRoute.page),
         AutoRoute(page: CreateGroupRoute.page),
         AutoRoute(page: JoinGroupRoute.page),
-        AutoRoute(page: GroupCreatedRoute.page),
         AutoRoute(page: ShowUserGroupsRoute.page),
         AutoRoute(page: ShowSingleGroupRoute.page),
         AutoRoute(page: EditGroupRoute.page),
