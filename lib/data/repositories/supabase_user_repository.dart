@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/data/model/user_model.dart';
 import 'package:meal_planner/domain/entities/user.dart';
@@ -52,7 +53,8 @@ class SupabaseUserRepository implements UserRepository {
       if (response == null) return null;
       return UserModel.fromSupabase(response);
     } catch (e) {
-      throw UserNotFoundException(firebaseUid);
+      debugPrint('getUserByFirebaseUid fehlgeschlagen: $e');
+      return null;
     }
   }
 

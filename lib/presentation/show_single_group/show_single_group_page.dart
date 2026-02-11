@@ -37,11 +37,17 @@ class ShowSingleGroupPage extends ConsumerWidget {
         ),
         actions: [
           IconButton(
-              onPressed: () {
-                context.router.push(EditGroupRoute(group: group));
-              },
-              icon: Icon(Icons.edit)),
-          IconButton(onPressed: () {}, icon: Icon(Icons.switch_left))
+            onPressed: () {
+              context.router.push(EditGroupRoute(group: group));
+            },
+            icon: Icon(Icons.edit),
+          ),
+          IconButton(
+            onPressed: () {
+              context.router.push(const GroupsRoute());
+            },
+            icon: Icon(Icons.switch_left),
+          )
         ],
       ),
       scaffoldBody: Column(

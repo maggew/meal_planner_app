@@ -5,5 +5,5 @@ import 'package:meal_planner/services/providers/repository_providers.dart';
 final groupMembersProvider =
     FutureProvider.family<List<User>, String>((ref, groupId) async {
   final groupRepo = ref.read(groupRepositoryProvider);
-  return groupRepo.getGroupMembers(groupId);
+  return await groupRepo.getGroupMembers(groupId);
 });

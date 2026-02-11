@@ -101,6 +101,7 @@ class SupabaseGroupRepository implements GroupRepository {
         return User(
           id: userData[SupabaseConstants.userId],
           name: userData[SupabaseConstants.userName],
+          image_url: userData[SupabaseConstants.userImage],
         );
       }).toList();
     } on PostgrestException catch (e) {
