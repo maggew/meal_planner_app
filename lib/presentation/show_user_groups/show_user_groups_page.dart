@@ -13,10 +13,7 @@ class ShowUserGroupsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppBackground(
-      scaffoldAppBar: CommonAppbar(
-        title: "Meine Gruppen",
-        hasActionButton: false,
-      ),
+      scaffoldAppBar: CommonAppbar(title: "Meine Gruppen"),
       scaffoldFloatingActionButton: FloatingActionButton(
           onPressed: () {
             context.router.push(CreateGroupRoute());

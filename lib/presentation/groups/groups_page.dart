@@ -53,7 +53,7 @@ class _GroupsPageState extends ConsumerState<GroupsPage> {
               ),
             )
           : (!isLoading && sessionHasCurrentGroup)
-              ? CommonAppbar(title: appbarTitle, hasActionButton: false)
+              ? CommonAppbar(title: appbarTitle)
               : AppBar(
                   leading: (stack.length == 1)
                       ? Text("")

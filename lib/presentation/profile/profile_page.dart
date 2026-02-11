@@ -13,8 +13,14 @@ class ProfilePage extends StatelessWidget {
     return AppBackground(
       scaffoldAppBar: CommonAppbar(
         title: "Profil",
-        hasActionButton: true,
-        onActionPressed: () {},
+        actionsButtons: [
+          IconButton(
+            onPressed: () {
+              //TODO: edit mode on
+            },
+            icon: Icon(Icons.edit),
+          ),
+        ],
       ),
       scaffoldBody: ProfileBody(),
     );

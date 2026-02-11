@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:meal_planner/core/constants/app_icons.dart';
 
 class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
-  final bool hasActionButton;
-  final Function()? onActionPressed;
-  const CommonAppbar(
-      {super.key,
-      required this.title,
-      required this.hasActionButton,
-      this.onActionPressed})
-      : assert(!hasActionButton || onActionPressed != null,
-            'onActionPressed is required if hasActionButton is true!');
+  final List<Widget>? actionsButtons;
+  const CommonAppbar({
+    super.key,
+    required this.title,
+    this.actionsButtons,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,17 +33,7 @@ class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
         style: Theme.of(context).textTheme.displaySmall,
       ),
       centerTitle: true,
-      actions: hasActionButton
-          ? [
-              IconButton(
-                onPressed: onActionPressed!,
-                icon: Icon(
-                  AppIcons.plus_1,
-                  size: 35,
-                ),
-              ),
-            ]
-          : null,
+      actions: actionsButtons,
     );
   }
 
