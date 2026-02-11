@@ -30,7 +30,7 @@ class ProfileBody extends ConsumerWidget {
         data: (userProfile) {
           if (userProfile == null) return const SizedBox.shrink();
 
-          if (nameController.text.isEmpty) {
+          if (nameController.text != userProfile.name) {
             nameController.text = userProfile.name;
           }
 
