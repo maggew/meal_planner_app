@@ -69,7 +69,9 @@ final groupRepositoryProvider = Provider<GroupRepository>((ref) {
 
 // User Repository
 final userRepositoryProvider = Provider<UserRepository>((ref) {
-  return SupabaseUserRepository(supabase: ref.watch(supabaseProvider));
+  return SupabaseUserRepository(
+      supabase: ref.watch(supabaseProvider),
+      storage: ref.watch(storageRepositoryProvider));
 });
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:meal_planner/domain/entities/user.dart';
 import 'package:meal_planner/domain/entities/user_profile.dart';
 
@@ -14,6 +16,11 @@ abstract class UserRepository {
 
   Future<void> updateUser(User user);
   Future<void> updateUserImage({required String uid, required String imageUrl});
+  Future<void> updateUserProfile({
+    required String userId,
+    required File? image,
+    required String name,
+  });
 
   Future<List<String>> getGroupIds(String uid);
 

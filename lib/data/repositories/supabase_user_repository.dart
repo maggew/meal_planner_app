@@ -1,18 +1,26 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:meal_planner/core/constants/firebase_constants.dart';
 import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/data/model/user_model.dart';
 import 'package:meal_planner/data/model/user_profile_model.dart';
 import 'package:meal_planner/domain/entities/user.dart';
 import 'package:meal_planner/domain/entities/user_profile.dart';
 import 'package:meal_planner/domain/exceptions/user_exception.dart';
+import 'package:meal_planner/domain/repositories/storage_repository.dart';
 import 'package:meal_planner/domain/repositories/user_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 class SupabaseUserRepository implements UserRepository {
   final SupabaseClient _supabase;
+  final StorageRepository _storage;
 
-  SupabaseUserRepository({required SupabaseClient supabase})
-      : _supabase = supabase;
+  SupabaseUserRepository({
+    required SupabaseClient supabase,
+    required StorageRepository storage,
+  })  : _supabase = supabase,
+        _storage = storage;
 
   @override
   Future<void> createUser({required String uid, required String name}) async {
@@ -128,6 +136,49 @@ class SupabaseUserRepository implements UserRepository {
       throw UserUpdateException("Datenbankfehler: ${e.message}");
     } catch (e) {
       throw UserUpdateException("Userimage could not be saved: $e");
+    }
+  }
+
+  Future<void> updateUserProfile({
+    required String userId,
+    required File? image,
+    required String name,
+  }) async {
+    try {
+      String? imageUrl;
+      String? oldImageUrl;
+
+      // Bild hochladen falls vorhanden
+      if (image != null) {
+        imageUrl =
+            await _storage.uploadImage(image, FirebaseConstants.imageUser);
+        final result = await _supabase
+            .from(SupabaseConstants.usersTable)
+            .select(SupabaseConstants.userImage)
+            .eq(SupabaseConstants.userId, userId)
+            .maybeSingle();
+
+        oldImageUrl = result?[SupabaseConstants.userImage] as String?;
+      }
+
+      // Supabase updaten
+      final updates = <String, dynamic>{SupabaseConstants.userName: name};
+      if (imageUrl != null) {
+        updates[SupabaseConstants.userImage] = imageUrl;
+      }
+
+      await _supabase
+          .from(SupabaseConstants.usersTable)
+          .update(updates)
+          .eq(SupabaseConstants.userId, userId);
+
+      if (oldImageUrl != null) {
+        _storage.deleteImage(oldImageUrl);
+      }
+    } on PostgrestException catch (e) {
+      throw UserUpdateException("Datenbankfehler: ${e.message}");
+    } catch (e) {
+      throw UserUpdateException("User could not be updated: $e");
     }
   }
 }
