@@ -7,6 +7,7 @@ import 'package:meal_planner/presentation/common/app_background.dart';
 import 'package:meal_planner/presentation/common/common_appbar.dart';
 import 'package:meal_planner/presentation/common/loading_overlay.dart';
 import 'package:meal_planner/presentation/profile/widgets/profile_body.dart';
+import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
@@ -38,15 +39,19 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     setState(() {
       _isLoading = true;
     });
-    final session = ref.read(sessionProvider);
-    final userRepo = ref.read(userRepositoryProvider);
-    await userRepo.updateUserProfile(
-      userId: session.userId!,
-      image: _pickedImage,
-      name: _nameController.text,
-    );
-    ref.invalidate(userProfileProvider);
-    await ref.read(userProfileProvider.future);
+    final userProfile = ref.read(userProfileProvider).value;
+    // only update if changes are made
+    if (_nameController.text != userProfile!.name || _pickedImage != null) {
+      final session = ref.read(sessionProvider);
+      final userRepo = ref.read(userRepositoryProvider);
+      await userRepo.updateUserProfile(
+        userId: session.userId!,
+        image: _pickedImage,
+        name: _nameController.text,
+      );
+      ref.invalidate(userProfileProvider);
+      await ref.read(userProfileProvider.future);
+    }
 
     setState(() {
       _isEditing = false;
@@ -119,6 +124,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       ];
     }
     return [
+      IconButton(
+        key: ValueKey("settings"),
+        onPressed: () {
+          context.router.push(const SettingsRoute());
+        },
+        icon: Icon(Icons.settings),
+      ),
       IconButton(
         key: ValueKey("edit"),
         onPressed: _startEditing,

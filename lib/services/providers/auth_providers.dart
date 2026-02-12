@@ -89,9 +89,7 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
         image: image,
       );
 
-      await _ref
-          .read(sessionProvider.notifier)
-          .setActiveUserAfterRegistration(uid);
+      _ref.read(sessionProvider.notifier).setActiveUserAfterRegistration(uid);
 
       state = const AsyncValue.data(null);
     } catch (e, st) {

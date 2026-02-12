@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
+  final Widget? leading;
   final List<Widget>? actionsButtons;
   const CommonAppbar({
     super.key,
     required this.title,
+    this.leading,
     this.actionsButtons,
   });
 
@@ -15,17 +17,20 @@ class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: Colors.white,
       surfaceTintColor: Colors.transparent,
       toolbarHeight: 80,
-      leading: Builder(
-        builder: (context) {
-          return IconButton(
-            style: IconButton.styleFrom(backgroundColor: Colors.transparent),
-            icon: Icon(Icons.menu), //FaIcon(FontAwesomeIcons.bars),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-          );
-        },
-      ),
+      leading: leading != null
+          ? leading
+          : Builder(
+              builder: (context) {
+                return IconButton(
+                  style:
+                      IconButton.styleFrom(backgroundColor: Colors.transparent),
+                  icon: Icon(Icons.menu), //FaIcon(FontAwesomeIcons.bars),
+                  onPressed: () {
+                    Scaffold.of(context).openDrawer();
+                  },
+                );
+              },
+            ),
       foregroundColor: Colors.black,
       elevation: 0,
       title: Text(

@@ -16,10 +16,9 @@ class CookbookTabbar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final allCategories = categoryNames.map((c) => c.toLowerCase()).toList();
 
-    final session = ref.read(sessionProvider);
-    final tabPosition = session.settings!.tabPosition == TabPosition.left
-        ? TextDirection.ltr
-        : TextDirection.rtl;
+    final session = ref.watch(sessionProvider);
+    final bool tabsLeft = session.settings!.tabPosition == TabPosition.left;
+    final tabPosition = tabsLeft ? TextDirection.ltr : TextDirection.rtl;
 
     return VerticalTabs(
       disabledChangePageFromContentView: true,
@@ -31,7 +30,7 @@ class CookbookTabbar extends ConsumerWidget {
       direction: tabPosition,
       tabs: getDefaultCategoryTabs(),
       contents: [
-        ..._getCategoryLists(allCategories: allCategories, tabsLeft: true),
+        ..._getCategoryLists(allCategories: allCategories, tabsLeft: tabsLeft),
         Container(
           child: Center(
             child: Text("Hier kommt noch was"),

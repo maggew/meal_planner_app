@@ -135,7 +135,7 @@ class SessionController extends StateNotifier<SessionState> {
     state = state.copyWith(group: group);
   }
 
-  Future<void> setActiveUserAfterRegistration(String userId) async {
+  void setActiveUserAfterRegistration(String userId) {
     state = SessionState(
       userId: userId,
       groupId: null,
@@ -143,6 +143,12 @@ class SessionController extends StateNotifier<SessionState> {
       settings: UserSettings.defaultSettings,
       isLoading: false,
     );
+  }
+
+  Future<void> changeSettings(UserSettings settings) async {
+    final storage = LocalStorageService();
+    await storage.saveUserSettings(settings);
+    state = state.copyWith(settings: settings);
   }
 
   /// Session zurücksetzen (Logout)
