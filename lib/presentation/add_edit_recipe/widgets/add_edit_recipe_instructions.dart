@@ -20,17 +20,16 @@ class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
   @override
   Widget build(BuildContext context) {
     ref.listen(recipeAnalysisProvider, (previous, next) {
-      next.whenData((data) {
-        if (data != null && data.instructions != null) {
-          widget.recipeInstructionsController.text += data.instructions!;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('✓ Anleitung erfolgreich analysiert!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      });
+      final data = next.data;
+      if (data != null && data.instructions != null && data != previous?.data) {
+        widget.recipeInstructionsController.text += data.instructions!;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✓ Anleitung erfolgreich analysiert!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
     });
 
     ref.listen(imageManagerProvider, (previous, next) {
@@ -43,8 +42,9 @@ class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
       }
     });
 
-    final isAnalyzing = ref.watch(recipeAnalysisProvider).isLoading &&
-        ref.read(recipeAnalysisProvider.notifier).isLoadingInstructions;
+    final analysisState = ref.watch(recipeAnalysisProvider);
+    final isAnalyzing =
+        analysisState.isLoading && analysisState.isLoadingInstructions;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

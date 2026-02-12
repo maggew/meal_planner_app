@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class RegistrationButton extends ConsumerWidget {
+class RegistrationButton extends StatelessWidget {
   final VoidCallback onPressed;
   const RegistrationButton({
     super.key,
@@ -9,7 +8,7 @@ class RegistrationButton extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         fixedSize: Size(150, 40),

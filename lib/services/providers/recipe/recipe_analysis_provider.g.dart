@@ -13,7 +13,7 @@ part of 'recipe_analysis_provider.dart';
 const recipeAnalysisProvider = RecipeAnalysisProvider._();
 
 final class RecipeAnalysisProvider
-    extends $NotifierProvider<RecipeAnalysis, AsyncValue<AnalyzedRecipeData?>> {
+    extends $NotifierProvider<RecipeAnalysis, RecipeAnalysisState> {
   const RecipeAnalysisProvider._()
       : super(
           from: null,
@@ -33,30 +33,26 @@ final class RecipeAnalysisProvider
   RecipeAnalysis create() => RecipeAnalysis();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(AsyncValue<AnalyzedRecipeData?> value) {
+  Override overrideWithValue(RecipeAnalysisState value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride:
-          $SyncValueProvider<AsyncValue<AnalyzedRecipeData?>>(value),
+      providerOverride: $SyncValueProvider<RecipeAnalysisState>(value),
     );
   }
 }
 
-String _$recipeAnalysisHash() => r'76c667fa706c3ecd191844d750a130258830d446';
+String _$recipeAnalysisHash() => r'8e7add3945789f54a7577910248887424d1b703f';
 
-abstract class _$RecipeAnalysis
-    extends $Notifier<AsyncValue<AnalyzedRecipeData?>> {
-  AsyncValue<AnalyzedRecipeData?> build();
+abstract class _$RecipeAnalysis extends $Notifier<RecipeAnalysisState> {
+  RecipeAnalysisState build();
   @$mustCallSuper
   @override
   void runBuild() {
     final created = build();
-    final ref = this.ref as $Ref<AsyncValue<AnalyzedRecipeData?>,
-        AsyncValue<AnalyzedRecipeData?>>;
+    final ref = this.ref as $Ref<RecipeAnalysisState, RecipeAnalysisState>;
     final element = ref.element as $ClassProviderElement<
-        AnyNotifier<AsyncValue<AnalyzedRecipeData?>,
-            AsyncValue<AnalyzedRecipeData?>>,
-        AsyncValue<AnalyzedRecipeData?>,
+        AnyNotifier<RecipeAnalysisState, RecipeAnalysisState>,
+        RecipeAnalysisState,
         Object?,
         Object?>;
     element.handleValue(ref, created);

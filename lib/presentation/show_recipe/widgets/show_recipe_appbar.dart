@@ -32,7 +32,7 @@ class ShowRecipeAppbar extends ConsumerWidget implements PreferredSizeWidget {
       )),
       actions: [
         IconButton(
-          onPressed: () => _showEditDialog(context, ref),
+          onPressed: () => _showEditDialog(context),
           icon: Icon(
             Icons.edit_outlined,
             color: Colors.black,
@@ -52,7 +52,7 @@ class ShowRecipeAppbar extends ConsumerWidget implements PreferredSizeWidget {
     );
   }
 
-  Future<void> _showEditDialog(BuildContext context, WidgetRef ref) async {
+  Future<void> _showEditDialog(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(

@@ -12,8 +12,6 @@ class AddEditRecipeIngredientsWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    //final state = ref.watch(ingredientsProvider);
-    final notifier = ref.read(ingredientsProvider.notifier);
     final TextTheme textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,17 +27,17 @@ class AddEditRecipeIngredientsWidget extends ConsumerWidget {
             IconButton(
               icon: const Icon(Icons.camera_alt_outlined),
               onPressed: () {
-                notifier.analyzeIngredientsFromImage(
-                  pickImageFromCamera: true,
-                );
+                ref
+                    .watch(ingredientsProvider.notifier)
+                    .analyzeIngredientsFromImage(pickImageFromCamera: true);
               },
             ),
             IconButton(
               icon: const Icon(Icons.folder_outlined),
               onPressed: () {
-                notifier.analyzeIngredientsFromImage(
-                  pickImageFromCamera: false,
-                );
+                ref
+                    .watch(ingredientsProvider.notifier)
+                    .analyzeIngredientsFromImage(pickImageFromCamera: false);
               },
             ),
           ],

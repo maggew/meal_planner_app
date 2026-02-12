@@ -1,10 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/presentation/common/placerholder_image.dart';
 
-class BurgerMenuHeader extends ConsumerWidget {
+class BurgerMenuHeader extends StatelessWidget {
   final Group? group;
   const BurgerMenuHeader({
     super.key,
@@ -12,7 +11,7 @@ class BurgerMenuHeader extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final BoxFit boxFit = BoxFit.cover;
     final StackFit stackFit = StackFit.expand;
     final bool hasValidImage =

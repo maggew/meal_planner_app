@@ -17,48 +17,76 @@ class AnalyzedRecipeData {
   });
 }
 
+class RecipeAnalysisState {
+  final AnalyzedRecipeData? data;
+  final bool isLoadingIngredients;
+  final bool isLoadingInstructions;
+  final Object? error;
+
+  const RecipeAnalysisState({
+    this.data,
+    this.isLoadingIngredients = false,
+    this.isLoadingInstructions = false,
+    this.error,
+  });
+
+  bool get isLoading => isLoadingIngredients || isLoadingInstructions;
+
+  RecipeAnalysisState copyWith({
+    AnalyzedRecipeData? data,
+    bool? isLoadingIngredients,
+    bool? isLoadingInstructions,
+    Object? error,
+  }) {
+    return RecipeAnalysisState(
+      data: data ?? this.data,
+      isLoadingIngredients: isLoadingIngredients ?? this.isLoadingIngredients,
+      isLoadingInstructions:
+          isLoadingInstructions ?? this.isLoadingInstructions,
+      error: error,
+    );
+  }
+}
+
 @Riverpod(keepAlive: true)
 class RecipeAnalysis extends _$RecipeAnalysis {
-  bool _isLoadingIngredients = false;
-  bool _isLoadingInstructions = false;
-
-  bool get isLoadingIngredients => _isLoadingIngredients;
-  bool get isLoadingInstructions => _isLoadingInstructions;
-
   @override
-  AsyncValue<AnalyzedRecipeData?> build() {
-    return const AsyncValue.data(null);
+  RecipeAnalysisState build() {
+    return const RecipeAnalysisState();
   }
 
   Future<void> analyzeImage({
     required File image,
     required bool isIngredientImage,
   }) async {
-    if (isIngredientImage) {
-      _isLoadingIngredients = true;
-    } else {
-      _isLoadingInstructions = true;
-    }
-    state = const AsyncValue.loading();
+    state = state.copyWith(
+      isLoadingIngredients: isIngredientImage ? true : null,
+      isLoadingInstructions: !isIngredientImage ? true : null,
+    );
 
-    state = await AsyncValue.guard(() async {
+    try {
       final result = await _performImageAnalysis(
         imageFile: image,
         isIngredientImage: isIngredientImage,
       );
-
-      if (isIngredientImage) {
-        _isLoadingIngredients = false;
-      } else {
-        _isLoadingInstructions = false;
-      }
-
-      return result;
-    });
+      state = state.copyWith(
+        data: result,
+        isLoadingIngredients: isIngredientImage ? false : null,
+        isLoadingInstructions: !isIngredientImage ? false : null,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        error: e,
+        isLoadingIngredients: isIngredientImage ? false : null,
+        isLoadingInstructions: !isIngredientImage ? false : null,
+      );
+    }
   }
 
-  Future<AnalyzedRecipeData> _performImageAnalysis(
-      {required File imageFile, required bool isIngredientImage}) async {
+  Future<AnalyzedRecipeData> _performImageAnalysis({
+    required File imageFile,
+    required bool isIngredientImage,
+  }) async {
     final inputImage = InputImage.fromFile(imageFile);
     final textRecognizer = TextRecognizer();
     final recognizedText = await textRecognizer.processImage(inputImage);
@@ -68,14 +96,17 @@ class RecipeAnalysis extends _$RecipeAnalysis {
     if (isIngredientImage) {
       recipeData = RecipeExtractor.extractRecipeIngredients(recognizedText);
       return AnalyzedRecipeData(
-          ingredientSections: recipeData.ingredientSections);
+        ingredientSections: recipeData.ingredientSections,
+      );
     } else {
       recipeData = RecipeExtractor.extractRecipeInstructions(recognizedText);
-      return AnalyzedRecipeData(instructions: recipeData.instructions);
+      return AnalyzedRecipeData(
+        instructions: recipeData.instructions,
+      );
     }
   }
 
   void clear() {
-    state = const AsyncValue.data(null);
+    state = const RecipeAnalysisState();
   }
 }

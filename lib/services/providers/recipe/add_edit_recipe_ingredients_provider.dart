@@ -303,39 +303,36 @@ class AddEditRecipeIngredients extends _$AddEditRecipeIngredients {
 
     final analysisState = ref.read(recipeAnalysisProvider);
 
-    analysisState.when(
-      data: (data) {
-        final ingredientSections = data?.ingredientSections;
-        if (ingredientSections == null) {
-          state = state.copyWith(isAnalyzing: false);
-          return;
-        }
+    if (analysisState.error != null) {
+      state = state.copyWith(isAnalyzing: false);
+      return;
+    }
 
-        // alten State aufräumen
-        for (final section in state.sections) {
-          for (final item in section.items) {
-            item.dispose();
-          }
-        }
+    final ingredientSections = analysisState.data?.ingredientSections;
+    if (ingredientSections == null) {
+      state = state.copyWith(isAnalyzing: false);
+      return;
+    }
 
-        final List<IngredientSectionForm> list = [];
-        for (final section in ingredientSections) {
-          list.add(IngredientSectionForm(
-              title: section.title,
-              items: section.ingredients
-                  .map(IngredientFormItem.fromIngredient)
-                  .toList()));
-        }
+// alten State aufräumen
+    for (final section in state.sections) {
+      for (final item in section.items) {
+        item.dispose();
+      }
+    }
 
-        state = state.copyWith(
-          sections: list,
-          isAnalyzing: false,
-        );
-      },
-      loading: () {},
-      error: (_, __) {
-        state = state.copyWith(isAnalyzing: false);
-      },
+    final List<IngredientSectionForm> list = [];
+    for (final section in ingredientSections) {
+      list.add(IngredientSectionForm(
+        title: section.title,
+        items:
+            section.ingredients.map(IngredientFormItem.fromIngredient).toList(),
+      ));
+    }
+
+    state = state.copyWith(
+      sections: list,
+      isAnalyzing: false,
     );
   }
 

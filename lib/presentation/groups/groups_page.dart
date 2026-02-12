@@ -38,7 +38,8 @@ class _GroupsPageState extends ConsumerState<GroupsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final bool sessionHasCurrentGroup = ref.read(sessionProvider).group != null;
+    final bool sessionHasCurrentGroup =
+        ref.watch(sessionProvider).group != null;
     final String appbarTitle = "Gruppen";
     final TextTheme textTheme = Theme.of(context).textTheme;
     final stack = context.router.stack;
