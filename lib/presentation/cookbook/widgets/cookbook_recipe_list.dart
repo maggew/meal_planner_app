@@ -58,7 +58,6 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
 
     return Container(
       color: Colors.lightGreen[100],
-      margin: const EdgeInsets.only(left: 10),
       padding: const EdgeInsets.only(top: 5, left: 5),
       child: RefreshIndicator(
         onRefresh: () async {

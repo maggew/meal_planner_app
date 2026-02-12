@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:meal_planner/core/constants/local_storage_service.dart';
 import 'package:meal_planner/domain/entities/group.dart';
+import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/domain/exceptions/group_exceptions.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -11,12 +12,14 @@ class SessionState {
   final String? userId;
   final String? groupId;
   final Group? group;
+  final UserSettings? settings;
   final bool isLoading;
 
   const SessionState({
     this.userId,
     this.groupId,
     this.group,
+    this.settings,
     this.isLoading = false,
   });
 
@@ -24,12 +27,14 @@ class SessionState {
     String? userId,
     String? groupId,
     Group? group,
+    UserSettings? settings,
     bool? isLoading,
   }) {
     return SessionState(
       userId: userId ?? this.userId,
       groupId: groupId ?? this.groupId,
       group: group ?? this.group,
+      settings: settings ?? this.settings,
       isLoading: isLoading ?? this.isLoading,
     );
   }
@@ -55,16 +60,24 @@ class SessionController extends StateNotifier<SessionState> {
         group = await groupRepo.getGroup(groupId);
       }
 
+      UserSettings settings = await storage.loadUserSettings();
+
       state = SessionState(
         userId: userId,
         groupId: groupId,
         group: group,
+        settings: settings,
         isLoading: false,
       );
 
       print("Session geladen, aktive Gruppe: $groupId");
+      print("active user: $userId");
     } catch (e) {
-      state = SessionState(userId: userId, isLoading: false);
+      state = SessionState(
+        userId: userId,
+        settings: UserSettings.defaultSettings,
+        isLoading: false,
+      );
       rethrow;
     }
   }
@@ -127,6 +140,7 @@ class SessionController extends StateNotifier<SessionState> {
       userId: userId,
       groupId: null,
       group: null,
+      settings: UserSettings.defaultSettings,
       isLoading: false,
     );
   }

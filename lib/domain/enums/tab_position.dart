@@ -1,0 +1,4 @@
+enum TabPosition {
+  left,
+  right,
+}

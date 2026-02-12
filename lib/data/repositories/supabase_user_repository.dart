@@ -112,17 +112,17 @@ class SupabaseUserRepository implements UserRepository {
     }
   }
 
-  @override
-  Future<void> ensureUserExists(String id, String name) async {
-    try {
-      await _supabase.from(SupabaseConstants.usersTable).upsert({
-        SupabaseConstants.userId: id,
-        SupabaseConstants.userName: name,
-      });
-    } catch (e) {
-      throw UserCreationException(e.toString());
-    }
-  }
+  // @override
+  // Future<void> ensureUserExists(String id, String name) async {
+  //   try {
+  //     await _supabase.from(SupabaseConstants.usersTable).upsert({
+  //       SupabaseConstants.userId: id,
+  //       SupabaseConstants.userName: name,
+  //     });
+  //   } catch (e) {
+  //     throw UserCreationException(e.toString());
+  //   }
+  // }
 
   @override
   Future<void> updateUserImage(

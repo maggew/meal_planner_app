@@ -12,7 +12,6 @@ import 'package:meal_planner/domain/repositories/storage_repository.dart';
 import 'package:meal_planner/domain/exceptions/recipe_exceptions.dart';
 
 class SupabaseRecipeRepository implements RecipeRepository {
-  final SupabaseClient _supabase;
   final StorageRepository _storage;
   final RecipeRemoteDatasource _remote;
   final String _groupId;
@@ -22,8 +21,7 @@ class SupabaseRecipeRepository implements RecipeRepository {
     required StorageRepository storage,
     required RecipeRemoteDatasource remote,
     required String groupId,
-  })  : _supabase = supabase,
-        _storage = storage,
+  })  : _storage = storage,
         _remote = remote,
         _groupId = groupId;
 

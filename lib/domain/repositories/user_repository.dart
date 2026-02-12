@@ -24,5 +24,5 @@ abstract class UserRepository {
 
   Future<List<String>> getGroupIds(String uid);
 
-  Future<void> ensureUserExists(String id, String name);
+  //Future<void> ensureUserExists(String id, String name);
 }
