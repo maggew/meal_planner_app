@@ -51,14 +51,17 @@ Deno.serve(async (req) => {
     // User suchen
     const { data: existingUser, error: selectError } = await supabase
       .from("users")
-      .select("id")
+      .select("id, image_url")
       .eq("firebase_uid", firebaseUid)
       .maybeSingle();
 
     if (selectError) throw selectError;
 
     if (existingUser) {
-      return Response.json({ user_id: existingUser.id });
+      return Response.json({ 
+				user_id: existingUser.id,
+				image_url: existingUser.image_url ?? null,
+			});
     }
 
     // User anlegen

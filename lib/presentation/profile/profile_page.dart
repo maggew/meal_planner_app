@@ -26,10 +26,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   bool _isLoading = false;
   File? _pickedImage;
 
-  void _toggleEditing() {
-    setState(() {
-      _isEditing = !_isEditing;
-    });
+  void _startEditing() {
+    final userProfile = ref.read(userProfileProvider).value;
+    if (userProfile != null) {
+      _nameController.text = userProfile.name;
+    }
+    setState(() => _isEditing = true);
   }
 
   void _saveChanges() async {
@@ -44,11 +46,21 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       name: _nameController.text,
     );
     ref.invalidate(userProfileProvider);
+    await ref.read(userProfileProvider.future);
+
     setState(() {
       _isEditing = false;
       _pickedImage = null;
       _isLoading = false;
     });
+  }
+
+  void _endEditing() {
+    final userProfile = ref.read(userProfileProvider).value;
+    if (userProfile != null) {
+      _nameController.text = userProfile.name;
+    }
+    setState(() => _isEditing = false);
   }
 
   @override
@@ -96,7 +108,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       return [
         IconButton(
           key: ValueKey("close"),
-          onPressed: _toggleEditing,
+          onPressed: _endEditing,
           icon: Icon(Icons.close),
         ),
         IconButton(
@@ -109,7 +121,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     return [
       IconButton(
         key: ValueKey("edit"),
-        onPressed: _toggleEditing,
+        onPressed: _startEditing,
         icon: Icon(Icons.edit),
       ),
     ];

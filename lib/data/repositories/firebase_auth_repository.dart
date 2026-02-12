@@ -204,9 +204,12 @@ class FirebaseAuthRepository implements AuthRepository {
       );
 
       final supabaseUserId = supabaseResponse.data['user_id'] as String;
+      final existingImage = supabaseResponse.data['image_url'] as String?;
+
       final imageUrl = googleUser.photoUrl;
 
-      if (imageUrl != null) {
+      if (imageUrl != null &&
+          (existingImage == null || existingImage.isEmpty)) {
         try {
           await _userRepository.updateUserImage(
               uid: supabaseUserId, imageUrl: imageUrl);
