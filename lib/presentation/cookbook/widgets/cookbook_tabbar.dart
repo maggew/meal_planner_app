@@ -17,8 +17,8 @@ class CookbookTabbar extends ConsumerWidget {
     final allCategories = categoryNames.map((c) => c.toLowerCase()).toList();
 
     final session = ref.watch(sessionProvider);
-    final bool tabsLeft = session.settings!.tabPosition == TabPosition.left;
-    final tabPosition = tabsLeft ? TextDirection.ltr : TextDirection.rtl;
+    final tabsPosition = session.settings!.tabPosition;
+    final tabsLeft = tabsPosition == TabPosition.left;
 
     return VerticalTabs(
       disabledChangePageFromContentView: true,
@@ -27,7 +27,7 @@ class CookbookTabbar extends ConsumerWidget {
       indicatorColor: Colors.pink[100]!,
       backgroundColor: Colors.transparent,
       tabsWidth: 100,
-      direction: tabPosition,
+      tabsPosition: tabsPosition,
       tabs: getDefaultCategoryTabs(),
       contents: [
         ..._getCategoryLists(allCategories: allCategories, tabsLeft: tabsLeft),
