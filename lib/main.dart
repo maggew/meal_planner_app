@@ -5,9 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/theme/app_theme.dart';
+import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/auth_providers.dart';
 import 'package:meal_planner/services/providers/router_provider.dart';
+import 'package:meal_planner/services/providers/session_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -49,6 +51,8 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appRouter = ref.watch(appRouterProvider);
+    final settings = ref.watch(sessionProvider).settings;
+    final themeOption = settings?.themeOption ?? ThemeOption.system;
 
     ref.listen(authStateProvider, (prev, next) {
       next.whenData((userId) {
@@ -63,7 +67,13 @@ class MyApp extends ConsumerWidget {
 
     return MaterialApp.router(
       title: 'Meal Planner',
-      theme: AppTheme().getAppTheme(),
+      themeMode: switch (themeOption) {
+        ThemeOption.light => ThemeMode.light,
+        ThemeOption.dark => ThemeMode.dark,
+        ThemeOption.system => ThemeMode.system,
+      },
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
       routerConfig: appRouter.config(),
       builder: (context, child) => GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),

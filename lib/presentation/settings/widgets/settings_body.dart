@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/domain/enums/tab_position.dart';
+import 'package:meal_planner/presentation/settings/widgets/control_widgets/theme_segmented_button.dart';
 import 'package:meal_planner/presentation/settings/widgets/settings_row_widget.dart';
 
 class SettingsBody extends StatelessWidget {
@@ -32,8 +33,12 @@ class SettingsBody extends StatelessWidget {
               },
             ),
           ),
-          // Weitere Settings einfach anhängen:
-          // SettingsRowWidget(label: 'Theme', control: ...),
+          SettingsRowWidget(
+              label: "Theme",
+              controlWidget: ThemeSegmentedButton(
+                newSettings: newSettings,
+                onSettingsChanged: onSettingsChanged,
+              )),
         ],
       ),
     );

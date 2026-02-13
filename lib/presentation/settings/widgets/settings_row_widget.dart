@@ -23,7 +23,7 @@ class SettingsRowWidget extends StatelessWidget {
               ),
               VerticalDivider(width: 1, thickness: 1, color: color),
               Expanded(
-                flex: 3,
+                flex: 5,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   child: Center(child: controlWidget),
