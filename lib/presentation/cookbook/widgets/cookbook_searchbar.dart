@@ -2,7 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/domain/entities/user_settings.dart';
+import 'package:meal_planner/presentation/cookbook/widgets/cookbook_sorting_button.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_search_provider.dart';
+import 'package:meal_planner/services/providers/session_provider.dart';
 
 class CookbookSearchbar extends ConsumerStatefulWidget {
   const CookbookSearchbar({super.key});
@@ -41,6 +44,7 @@ class _CookbookSearchbarState extends ConsumerState<CookbookSearchbar> {
           SizedBox(
             height: 48,
             child: Row(
+              spacing: 10,
               children: [
                 Expanded(
                   child: TextFormField(
@@ -73,7 +77,6 @@ class _CookbookSearchbarState extends ConsumerState<CookbookSearchbar> {
                     ),
                   ),
                 ),
-                SizedBox(width: 8),
                 Tooltip(
                   message: 'In allen Kategorien suchen',
                   child: FilterChip(
@@ -84,6 +87,7 @@ class _CookbookSearchbarState extends ConsumerState<CookbookSearchbar> {
                     },
                   ),
                 ),
+                CookbookSortingButton(),
               ],
             ),
           ),

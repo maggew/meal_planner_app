@@ -4,6 +4,7 @@ import 'package:meal_planner/core/constants/firebase_constants.dart';
 import 'package:meal_planner/data/datasources/recipe_remote_datasource.dart';
 import 'package:meal_planner/data/model/ingredient_model.dart';
 import 'package:meal_planner/data/model/recipe_model.dart';
+import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:meal_planner/core/utils/uuid_generator.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
@@ -158,14 +159,23 @@ class SupabaseRecipeRepository implements RecipeRepository {
   }
 
   @override
-  Future<List<Recipe>> getRecipesByCategory(
-      String category, bool isDeleted) async {
+  Future<List<Recipe>> getRecipesByCategory({
+    required String category,
+    required int limit,
+    required int offset,
+    required RecipeSortOption sortOption,
+    required bool isDeleted,
+  }) async {
     try {
       final data = await _remote.getRecipesByCategory(
         category: category,
         groupId: _groupId,
         isDeleted: isDeleted,
+        limit: limit,
+        offset: offset,
+        sortOption: sortOption,
       );
+
       return data
           .map(
               (recipeData) => RecipeModel.fromSupabaseWithRelations(recipeData))

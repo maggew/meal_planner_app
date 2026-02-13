@@ -1,10 +1,17 @@
 import 'dart:io';
 import 'package:meal_planner/domain/entities/recipe.dart';
+import 'package:meal_planner/domain/entities/user_settings.dart';
 
 abstract class RecipeRepository {
   Future<String> saveRecipe(Recipe recipe, File? image, String createdBy);
 
-  Future<List<Recipe>> getRecipesByCategory(String category, bool isDeleted);
+  Future<List<Recipe>> getRecipesByCategory({
+    required String category,
+    required int offset,
+    required int limit,
+    required RecipeSortOption sortOption,
+    required bool isDeleted,
+  });
 
   Future<List<Recipe>> getRecipesByCategories(List<String> categories);
 

@@ -1,5 +1,6 @@
 import 'package:meal_planner/data/model/ingredient_model.dart';
 import 'package:meal_planner/data/model/recipe_model.dart';
+import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract class RecipeRemoteDatasource {
@@ -14,6 +15,9 @@ abstract class RecipeRemoteDatasource {
     required String category,
     required String groupId,
     required bool isDeleted,
+    required int limit,
+    required int offset,
+    required RecipeSortOption sortOption,
   });
 
   Future<List<Map<String, dynamic>>> getRecipesByCategories({

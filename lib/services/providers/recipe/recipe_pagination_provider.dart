@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
+import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/domain/exceptions/recipe_exceptions.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
+import 'package:meal_planner/services/providers/session_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'recipe_pagination_provider.g.dart';
@@ -39,22 +41,22 @@ class RecipesPaginationState {
 @Riverpod(keepAlive: true)
 class RecipesPagination extends _$RecipesPagination {
   String? _currentCategory;
+  RecipeSortOption _currentSort = UserSettings.defaultSettings.recipeSortOption;
 
   RecipesPaginationState build(String category) {
     _currentCategory = category;
-    print("BUILD called for $category");
-    Future.microtask(() {
-      if (!state.isLoading) {
-        loadMore();
-      }
-    });
+
+    final settings = ref.watch(sessionProvider).settings;
+    if (settings != null) {
+      _currentSort = settings.recipeSortOption;
+    }
+
+    Future.microtask(() => loadMore());
     return const RecipesPaginationState();
   }
 
   Future<void> loadMore() async {
     if (state.isLoading || !state.hasMore) {
-      print(
-          "loadMore skipped - isLoading: ${state.isLoading}, hasMore: ${state.hasMore}");
       return;
     }
 
@@ -66,15 +68,15 @@ class RecipesPagination extends _$RecipesPagination {
     try {
       final recipeRepo = ref.read(recipeRepositoryProvider);
 
-      final allRecipes =
-          await recipeRepo.getRecipesByCategory(_currentCategory!, false);
-      print("fetched ${allRecipes.length} recipes for $_currentCategory");
-      for (final r in allRecipes) {
-        print(
-            "  - ${r.name} | ingredients: ${r.ingredientSections.expand((s) => s.ingredients).map((i) => i.name).toList()}");
-      }
       final offset = state.recipes.length;
-      newRecipes = allRecipes.skip(offset).take(recipesPerPage).toList();
+
+      newRecipes = await recipeRepo.getRecipesByCategory(
+        category: _currentCategory!,
+        offset: offset,
+        limit: recipesPerPage,
+        sortOption: _currentSort,
+        isDeleted: false,
+      );
 
       hasMore = newRecipes.length == recipesPerPage;
     } on RecipeNotFoundException catch (e) {
@@ -94,11 +96,18 @@ class RecipesPagination extends _$RecipesPagination {
 
   Future<void> refresh() async {
     state = const RecipesPaginationState(isLoading: true);
+
     try {
       final recipeRepo = ref.read(recipeRepositoryProvider);
-      final allRecipes =
-          await recipeRepo.getRecipesByCategory(_currentCategory!, false);
-      final recipes = allRecipes.take(recipesPerPage).toList();
+
+      final recipes = await recipeRepo.getRecipesByCategory(
+        category: _currentCategory!,
+        offset: 0,
+        limit: recipesPerPage,
+        sortOption: _currentSort,
+        isDeleted: false,
+      );
+
       state = RecipesPaginationState(
         recipes: recipes,
         hasMore: recipes.length == recipesPerPage,

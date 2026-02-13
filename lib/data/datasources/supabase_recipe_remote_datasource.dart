@@ -3,6 +3,7 @@ import 'package:meal_planner/core/utils/uuid_generator.dart';
 import 'package:meal_planner/data/datasources/recipe_remote_datasource.dart';
 import 'package:meal_planner/data/model/ingredient_model.dart';
 import 'package:meal_planner/data/model/recipe_model.dart';
+import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
@@ -44,10 +45,17 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
     required String category,
     required String groupId,
     required bool isDeleted,
+    required int limit,
+    required int offset,
+    required RecipeSortOption sortOption,
   }) async {
-    final categoryResponse = await supabase
+    final baseQuery = supabase
         .from(SupabaseConstants.recipesTable)
-        .select('id, recipe_categories!inner(categories!inner(name))')
+        .select('''
+        *,
+        recipe_categories!inner(categories!inner(name)),
+        recipe_ingredients(amount, unit, sort_order, group_name, ingredients(name))
+      ''')
         .eq(SupabaseConstants.recipeGroupId, groupId)
         .eq('recipe_categories.categories.name', category.toLowerCase())
         .filter(
@@ -56,20 +64,17 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
           null,
         );
 
-    final ids =
-        (categoryResponse as List).map((r) => r['id'] as String).toList();
+    final sortedQuery = switch (sortOption) {
+      RecipeSortOption.alphabetical =>
+        baseQuery.order(SupabaseConstants.recipeTitle, ascending: true),
+      RecipeSortOption.newest =>
+        baseQuery.order(SupabaseConstants.recipeCreatedAt, ascending: false),
+      RecipeSortOption.mostCooked =>
+        baseQuery.order('times_cooked', ascending: false),
+    };
 
-    if (ids.isEmpty) return [];
+    final response = await sortedQuery.range(offset, offset + limit - 1);
 
-    final response = await supabase
-        .from(SupabaseConstants.recipesTable)
-        .select('''
-      *,
-      recipe_categories(categories(name)),
-      recipe_ingredients(amount, unit, sort_order, group_name, ingredients(name))
-    ''')
-        .inFilter(SupabaseConstants.recipeId, ids)
-        .order(SupabaseConstants.recipeCreatedAt, ascending: false);
     return (response as List).cast<Map<String, dynamic>>();
   }
 
