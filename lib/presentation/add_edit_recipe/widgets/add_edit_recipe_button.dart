@@ -100,7 +100,6 @@ class AddEditRecipeButton extends ConsumerWidget {
         }).toList(),
       );
     }).toList();
-    print("creating recipe");
 
     Recipe recipe = Recipe(
       id: existingRecipe?.id,
@@ -116,9 +115,7 @@ class AddEditRecipeButton extends ConsumerWidget {
     if (existingRecipe != null) {
       await recipeRepo.updateRecipe(recipe, image);
     } else {
-      print("creating recipe now");
       await recipeRepo.createRecipe(recipe, image);
-      print("after creation");
     }
 
     final oldCategories = existingRecipe?.categories ?? [];

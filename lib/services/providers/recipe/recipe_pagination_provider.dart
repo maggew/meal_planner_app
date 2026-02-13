@@ -42,14 +42,19 @@ class RecipesPagination extends _$RecipesPagination {
 
   RecipesPaginationState build(String category) {
     _currentCategory = category;
+    print("BUILD called for $category");
     Future.microtask(() {
-      loadMore();
+      if (!state.isLoading) {
+        loadMore();
+      }
     });
     return const RecipesPaginationState();
   }
 
   Future<void> loadMore() async {
     if (state.isLoading || !state.hasMore) {
+      print(
+          "loadMore skipped - isLoading: ${state.isLoading}, hasMore: ${state.hasMore}");
       return;
     }
 
@@ -63,7 +68,11 @@ class RecipesPagination extends _$RecipesPagination {
 
       final allRecipes =
           await recipeRepo.getRecipesByCategory(_currentCategory!, false);
-
+      print("fetched ${allRecipes.length} recipes for $_currentCategory");
+      for (final r in allRecipes) {
+        print(
+            "  - ${r.name} | ingredients: ${r.ingredientSections.expand((s) => s.ingredients).map((i) => i.name).toList()}");
+      }
       final offset = state.recipes.length;
       newRecipes = allRecipes.skip(offset).take(recipesPerPage).toList();
 
@@ -83,8 +92,19 @@ class RecipesPagination extends _$RecipesPagination {
     }
   }
 
-  void refresh() {
-    state = const RecipesPaginationState();
-    Future.microtask(() => loadMore());
+  Future<void> refresh() async {
+    state = const RecipesPaginationState(isLoading: true);
+    try {
+      final recipeRepo = ref.read(recipeRepositoryProvider);
+      final allRecipes =
+          await recipeRepo.getRecipesByCategory(_currentCategory!, false);
+      final recipes = allRecipes.take(recipesPerPage).toList();
+      state = RecipesPaginationState(
+        recipes: recipes,
+        hasMore: recipes.length == recipesPerPage,
+      );
+    } catch (e) {
+      state = RecipesPaginationState(error: e.toString());
+    }
   }
 }

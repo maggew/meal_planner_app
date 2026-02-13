@@ -25,11 +25,13 @@ class CookbookRecipeList extends ConsumerStatefulWidget {
 
 class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
   final ScrollController _scrollController = ScrollController();
+  late final String category;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    category = widget.category.toLowerCase();
   }
 
   @override
@@ -41,19 +43,25 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      ref.read(recipesPaginationProvider(widget.category).notifier).loadMore();
+      ref.read(recipesPaginationProvider(category).notifier).loadMore();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final paginationState =
-        ref.watch(recipesPaginationProvider(widget.category));
+    final paginationState = ref.watch(recipesPaginationProvider(category));
     final isSearching = ref.watch(isSearchActiveProvider);
+
+    print(
+        "CookbookRecipeList rebuild for ${category}, recipes: ${paginationState.recipes.length}");
+    for (final r in paginationState.recipes) {
+      print(
+          "  list item: ${r.name} | ingredients: ${r.ingredientSections.expand((s) => s.ingredients).map((i) => i.name).toList()}");
+    }
 
     final recipes = ref.watch(
       filteredRecipesProvider(
-        category: widget.category,
+        category: category,
         allCategories: widget.allCategories,
       ),
     );
@@ -73,9 +81,7 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
       ),
       child: RefreshIndicator(
         onRefresh: () async {
-          ref
-              .read(recipesPaginationProvider(widget.category).notifier)
-              .refresh();
+          ref.read(recipesPaginationProvider(category).notifier).refresh();
         },
         child: _buildContent(
           recipes: recipes,
@@ -120,7 +126,7 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
               ElevatedButton(
                 onPressed: () {
                   ref
-                      .read(recipesPaginationProvider(widget.category).notifier)
+                      .read(recipesPaginationProvider(category).notifier)
                       .refresh();
                 },
                 child: const Text('Erneut versuchen'),
