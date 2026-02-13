@@ -46,6 +46,17 @@ class CookbookSortingButton extends ConsumerWidget {
             ),
           ),
           PopupMenuItem(
+            value: RecipeSortOption.oldest,
+            child: ListTile(
+              leading: const Icon(Icons.schedule),
+              title: const Text('Älteste'),
+              trailing: current == RecipeSortOption.oldest
+                  ? const Icon(Icons.check, size: 18)
+                  : null,
+              dense: true,
+            ),
+          ),
+          PopupMenuItem(
             value: RecipeSortOption.mostCooked,
             child: ListTile(
               leading: const Icon(Icons.favorite),

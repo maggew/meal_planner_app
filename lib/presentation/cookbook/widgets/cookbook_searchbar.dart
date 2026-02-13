@@ -1,11 +1,7 @@
-// lib/presentation/cookbook/widgets/cookbook_searchbar.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/presentation/cookbook/widgets/cookbook_sorting_button.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_search_provider.dart';
-import 'package:meal_planner/services/providers/session_provider.dart';
 
 class CookbookSearchbar extends ConsumerStatefulWidget {
   const CookbookSearchbar({super.key});

@@ -2,7 +2,7 @@ import 'package:meal_planner/domain/enums/tab_position.dart';
 
 enum ThemeOption { light, dark, system }
 
-enum RecipeSortOption { alphabetical, newest, mostCooked }
+enum RecipeSortOption { alphabetical, newest, oldest, mostCooked }
 
 class UserSettings {
   final TabPosition tabPosition;

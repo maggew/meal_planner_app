@@ -69,6 +69,8 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
         baseQuery.order(SupabaseConstants.recipeTitle, ascending: true),
       RecipeSortOption.newest =>
         baseQuery.order(SupabaseConstants.recipeCreatedAt, ascending: false),
+      RecipeSortOption.oldest =>
+        baseQuery.order(SupabaseConstants.recipeCreatedAt, ascending: true),
       RecipeSortOption.mostCooked =>
         baseQuery.order('times_cooked', ascending: false),
     };
