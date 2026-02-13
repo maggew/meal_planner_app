@@ -43,7 +43,6 @@ class SupabaseGroupRepository implements GroupRepository {
       required String newName,
       required String imageUrl}) async {
     try {
-      print("in update: $oldGroupId");
       await _supabase.from(SupabaseConstants.groupsTable).update({
         SupabaseConstants.groupName: newName,
         SupabaseConstants.groupImageUrl: imageUrl,
@@ -60,13 +59,11 @@ class SupabaseGroupRepository implements GroupRepository {
   @override
   Future<Group?> getGroup(String groupId) async {
     try {
-      print("=============== goupId: $groupId");
       final response = await _supabase
           .from(SupabaseConstants.groupsTable)
           .select()
           .eq(SupabaseConstants.groupId, groupId)
           .maybeSingle();
-      print("response: $response");
 
       if (response == null) return null;
 

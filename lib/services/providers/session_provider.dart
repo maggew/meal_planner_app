@@ -69,9 +69,6 @@ class SessionController extends StateNotifier<SessionState> {
         settings: settings,
         isLoading: false,
       );
-
-      print("Session geladen, aktive Gruppe: $groupId");
-      print("active user: $userId");
     } catch (e) {
       state = SessionState(
         userId: userId,
@@ -84,20 +81,15 @@ class SessionController extends StateNotifier<SessionState> {
 
   Future<void> joinGroup(String groupId) async {
     try {
-      print("1. start join group with groupId. $groupId");
       final groupRepo = ref.read(groupRepositoryProvider);
       final group = await groupRepo.getGroup(groupId);
 
-      print("2. getGroup returned $group");
       if (group == null) {
-        print("3a. group is null");
         throw Exception('Gruppe nicht gefunden');
       }
 
       final userId = state.userId;
-      print("4. userId: $userId");
       await groupRepo.addMember(groupId, userId!);
-      print("5. member hinzugefügt");
 
       final storage = LocalStorageService();
       await storage.saveActiveGroup(groupId);

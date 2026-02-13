@@ -52,13 +52,6 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
     final paginationState = ref.watch(recipesPaginationProvider(category));
     final isSearching = ref.watch(isSearchActiveProvider);
 
-    print(
-        "CookbookRecipeList rebuild for ${category}, recipes: ${paginationState.recipes.length}");
-    for (final r in paginationState.recipes) {
-      print(
-          "  list item: ${r.name} | ingredients: ${r.ingredientSections.expand((s) => s.ingredients).map((i) => i.name).toList()}");
-    }
-
     final recipes = ref.watch(
       filteredRecipesProvider(
         category: category,
