@@ -10,10 +10,12 @@ import 'package:meal_planner/services/providers/recipe/recipe_search_provider.da
 class CookbookRecipeList extends ConsumerStatefulWidget {
   final String category;
   final List<String> allCategories;
+  final bool tabsLeft;
 
   const CookbookRecipeList({
     required this.category,
     required this.allCategories,
+    required this.tabsLeft,
     super.key,
   });
 
@@ -55,10 +57,20 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
         allCategories: widget.allCategories,
       ),
     );
+    final margin = widget.tabsLeft
+        ? EdgeInsets.only(left: 10)
+        : EdgeInsets.only(right: 10);
+    final containerBorderRadius = widget.tabsLeft
+        ? BorderRadius.only(topLeft: Radius.circular(8))
+        : BorderRadius.only(topRight: Radius.circular(8));
 
     return Container(
-      color: Colors.lightGreen[100],
-      padding: const EdgeInsets.only(top: 5, left: 5),
+      margin: margin,
+      padding: EdgeInsets.only(top: 5),
+      decoration: BoxDecoration(
+        color: Colors.lightGreen[100],
+        borderRadius: containerBorderRadius,
+      ),
       child: RefreshIndicator(
         onRefresh: () async {
           ref

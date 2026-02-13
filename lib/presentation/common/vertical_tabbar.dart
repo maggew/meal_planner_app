@@ -9,7 +9,7 @@ class VerticalTabs extends StatefulWidget {
   final int initialIndex;
   final double tabsWidth;
   final double indicatorWidth;
-  final IndicatorSide? indicatorSide;
+  final IndicatorSide indicatorSide;
   final List<Tab> tabs;
   final List<Widget> contents;
   final TabPosition tabsPosition;
@@ -33,7 +33,7 @@ class VerticalTabs extends StatefulWidget {
       required this.contents,
       this.tabsWidth = 200,
       this.indicatorWidth = 3,
-      this.indicatorSide,
+      this.indicatorSide = IndicatorSide.end,
       this.initialIndex = 0,
       this.tabsPosition = TabPosition.left,
       this.indicatorColor = Colors.green,
@@ -119,6 +119,7 @@ class _VerticalTabsState extends State<VerticalTabs>
                   Directionality(
                     textDirection: TextDirection.ltr,
                     child: Material(
+                      clipBehavior: Clip.antiAlias,
                       child: Container(
                         width: widget.tabsWidth,
                         child: ListView.builder(
@@ -127,7 +128,7 @@ class _VerticalTabsState extends State<VerticalTabs>
                             Tab tab = widget.tabs[index];
 
                             Alignment alignment = Alignment.centerLeft;
-                            if (widget.tabsPosition == TextDirection.rtl) {
+                            if (widget.tabsPosition == TabPosition.right) {
                               alignment = Alignment.centerRight;
                             }
 
@@ -170,15 +171,7 @@ class _VerticalTabsState extends State<VerticalTabs>
                               itemBGColor = widget.selectedTabBackgroundColor;
 
                             double? left, right;
-                            if (widget.tabsPosition == TextDirection.rtl) {
-                              left = (widget.indicatorSide == IndicatorSide.end)
-                                  ? 0
-                                  : null;
-                              right =
-                                  (widget.indicatorSide == IndicatorSide.start)
-                                      ? 0
-                                      : null;
-                            } else {
+                            if (widget.tabsPosition == TabPosition.left) {
                               left =
                                   (widget.indicatorSide == IndicatorSide.start)
                                       ? 0
@@ -187,13 +180,55 @@ class _VerticalTabsState extends State<VerticalTabs>
                                   (widget.indicatorSide == IndicatorSide.end)
                                       ? 0
                                       : null;
+                            } else {
+                              left = (widget.indicatorSide == IndicatorSide.end)
+                                  ? 0
+                                  : null;
+                              right =
+                                  (widget.indicatorSide == IndicatorSide.start)
+                                      ? 0
+                                      : null;
                             }
 
                             return Stack(
                               children: <Widget>[
+                                GestureDetector(
+                                  onTap: () {
+                                    _changePageByTapView = true;
+                                    setState(() {
+                                      _selectTab(index);
+                                    });
+
+                                    pageController.animateToPage(index,
+                                        duration: widget.changePageDuration,
+                                        curve: widget.changePageCurve);
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: itemBGColor,
+                                      borderRadius: index == 0
+                                          ? BorderRadius.only(
+                                              topRight: widget.tabsPosition ==
+                                                      TabPosition.left
+                                                  ? const Radius.circular(8)
+                                                  : Radius.zero,
+                                              topLeft: widget.tabsPosition ==
+                                                      TabPosition.right
+                                                  ? const Radius.circular(8)
+                                                  : Radius.zero,
+                                            )
+                                          : null,
+                                    ),
+                                    clipBehavior:
+                                        index == 0 ? Clip.antiAlias : Clip.none,
+                                    alignment: alignment,
+                                    padding: EdgeInsets.all(5),
+                                    child: child,
+                                  ),
+                                ),
                                 Positioned(
-                                  top: 2,
-                                  bottom: 2,
+                                  top: 0,
+                                  bottom: 0,
                                   width: widget.indicatorWidth,
                                   left: left,
                                   right: right,
@@ -209,26 +244,6 @@ class _VerticalTabsState extends State<VerticalTabs>
                                     ),
                                   ),
                                 ),
-                                GestureDetector(
-                                  onTap: () {
-                                    _changePageByTapView = true;
-                                    setState(() {
-                                      _selectTab(index);
-                                    });
-
-                                    pageController.animateToPage(index,
-                                        duration: widget.changePageDuration,
-                                        curve: widget.changePageCurve);
-                                  },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: itemBGColor,
-                                    ),
-                                    alignment: alignment,
-                                    padding: EdgeInsets.all(5),
-                                    child: child,
-                                  ),
-                                ),
                               ],
                             );
                           },
@@ -236,7 +251,17 @@ class _VerticalTabsState extends State<VerticalTabs>
                       ),
                       elevation: widget.tabsElevation,
                       shadowColor: widget.tabsShadowColor,
-                      shape: BeveledRectangleBorder(),
+                      shape: RoundedRectangleBorder(
+                        // <-- ersetze BeveledRectangleBorder()
+                        borderRadius: BorderRadius.only(
+                          topRight: widget.tabsPosition == TabPosition.left
+                              ? const Radius.circular(8)
+                              : Radius.zero,
+                          topLeft: widget.tabsPosition == TabPosition.right
+                              ? const Radius.circular(8)
+                              : Radius.zero,
+                        ),
+                      ),
                     ),
                   ),
                   Expanded(

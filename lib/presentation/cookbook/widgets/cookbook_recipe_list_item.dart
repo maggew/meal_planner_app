@@ -21,19 +21,25 @@ class CookbookRecipeListItem extends StatelessWidget {
       },
       child: Container(
         height: 100,
-        margin: EdgeInsets.only(top: 5, bottom: 5, left: 5),
-        color: Colors.white70,
+        margin: EdgeInsets.fromLTRB(10, 5, 10, 5),
+        decoration: BoxDecoration(
+          color: Colors.white70,
+          borderRadius: BorderRadius.circular(8),
+        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             SizedBox(width: 10),
             Hero(
               tag: recipe.name,
-              child: Image(
-                width: 100,
-                height: 80,
-                fit: BoxFit.cover,
-                image: recipeImage.image,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image(
+                  width: 100,
+                  height: 80,
+                  fit: BoxFit.cover,
+                  image: recipeImage.image,
+                ),
               ),
             ),
             SizedBox(width: 10),

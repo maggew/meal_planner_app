@@ -65,6 +65,10 @@ class MyApp extends ConsumerWidget {
       title: 'Meal Planner',
       theme: AppTheme().getAppTheme(),
       routerConfig: appRouter.config(),
+      builder: (context, child) => GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: child,
+      ),
     );
   }
 }
