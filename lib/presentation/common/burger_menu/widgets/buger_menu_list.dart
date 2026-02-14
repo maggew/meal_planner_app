@@ -21,7 +21,7 @@ List<Widget> getBurgerMenuItems(BuildContext context, WidgetRef ref) {
     BurgerMenuListItem(
       icon: AppIcons.shopping_list,
       label: "Einkaufsliste",
-      onTap: () {},
+      onTap: () => context.router.push(const ShoppingListRoute()),
     ),
     BurgerMenuListItem(
       icon: AppIcons.snowflake,
