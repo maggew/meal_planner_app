@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/domain/exceptions/recipe_exceptions.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
+import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'recipe_pagination_provider.g.dart';
@@ -45,11 +47,8 @@ class RecipesPagination extends _$RecipesPagination {
 
   RecipesPaginationState build(String category) {
     _currentCategory = category;
-
-    final settings = ref.watch(sessionProvider).settings;
-    if (settings != null) {
-      _currentSort = settings.recipeSortOption;
-    }
+    _currentSort =
+        ref.watch(userSettingsProvider.select((s) => s.recipeSortOption));
 
     Future.microtask(() => loadMore());
     return const RecipesPaginationState();

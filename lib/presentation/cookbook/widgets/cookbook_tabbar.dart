@@ -1,5 +1,3 @@
-// lib/presentation/cookbook/widgets/cookbook_tabbar.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/enums/tab_position.dart';
@@ -7,7 +5,7 @@ import 'package:meal_planner/presentation/common/categories.dart';
 import 'package:meal_planner/presentation/common/vertical_tabbar.dart';
 import 'package:meal_planner/presentation/cookbook/widgets/cookbook_category_tab.dart';
 import 'package:meal_planner/presentation/cookbook/widgets/cookbook_recipe_list.dart';
-import 'package:meal_planner/services/providers/session_provider.dart';
+import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
 
 class CookbookTabbar extends ConsumerWidget {
   const CookbookTabbar({super.key});
@@ -16,8 +14,8 @@ class CookbookTabbar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final allCategories = categoryNames.map((c) => c.toLowerCase()).toList();
 
-    final session = ref.watch(sessionProvider);
-    final tabsPosition = session.settings!.tabPosition;
+    final tabsPosition =
+        ref.watch(userSettingsProvider.select((s) => s.tabPosition));
     final tabsLeft = tabsPosition == TabPosition.left;
 
     return VerticalTabs(

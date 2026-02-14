@@ -9,8 +9,10 @@ import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/auth_providers.dart';
 import 'package:meal_planner/services/providers/router_provider.dart';
-import 'package:meal_planner/services/providers/session_provider.dart';
+import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:meal_planner/services/providers/shared_preferences_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,8 +38,13 @@ void main() async {
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
+
+  final prefs = await SharedPreferences.getInstance();
   runApp(
     ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
       child: MyApp(),
     ),
   );
@@ -51,8 +58,8 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appRouter = ref.watch(appRouterProvider);
-    final settings = ref.watch(sessionProvider).settings;
-    final themeOption = settings?.themeOption ?? ThemeOption.system;
+    final themeOption =
+        ref.watch(userSettingsProvider.select((s) => s.themeOption));
 
     ref.listen(authStateProvider, (prev, next) {
       next.whenData((userId) {

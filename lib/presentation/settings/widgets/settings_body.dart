@@ -5,11 +5,11 @@ import 'package:meal_planner/presentation/settings/widgets/control_widgets/theme
 import 'package:meal_planner/presentation/settings/widgets/settings_row_widget.dart';
 
 class SettingsBody extends StatelessWidget {
-  final UserSettings newSettings;
+  final UserSettings settings;
   final ValueChanged<UserSettings> onSettingsChanged;
   const SettingsBody({
     super.key,
-    required this.newSettings,
+    required this.settings,
     required this.onSettingsChanged,
   });
 
@@ -23,10 +23,10 @@ class SettingsBody extends StatelessWidget {
             label: 'Tab Position',
             controlWidget: SwitchListTile(
               title: const Text('Tabs rechts anzeigen'),
-              value: newSettings.tabPosition == TabPosition.right,
+              value: settings.tabPosition == TabPosition.right,
               onChanged: (value) {
                 onSettingsChanged(
-                  newSettings.copyWith(
+                  settings.copyWith(
                     tabPosition: value ? TabPosition.right : TabPosition.left,
                   ),
                 );
@@ -36,7 +36,7 @@ class SettingsBody extends StatelessWidget {
           SettingsRowWidget(
               label: "Theme",
               controlWidget: ThemeSegmentedButton(
-                newSettings: newSettings,
+                newSettings: settings,
                 onSettingsChanged: onSettingsChanged,
               )),
         ],
