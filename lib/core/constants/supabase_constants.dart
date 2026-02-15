@@ -69,5 +69,6 @@ class SupabaseConstants {
   static const String shoppingListItemId = 'id';
   static const String shoppingListItemGroupId = 'group_id';
   static const String shoppingListItemInformation = 'information';
+  static const String shoppingListItemQuantity = 'quantity';
   static const String shoppingListItemIsChecked = 'is_checked';
 }

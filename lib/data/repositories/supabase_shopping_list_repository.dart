@@ -33,13 +33,14 @@ class SupabaseShoppingListRepository implements ShoppingListRepository {
   }
 
   @override
-  Future<ShoppingListItem> addItem(String information) async {
+  Future<ShoppingListItem> addItem(String information, String? quantity) async {
     try {
       final response = await _supabase
           .from(SupabaseConstants.shoppingListItemsTable)
           .insert({
             SupabaseConstants.shoppingListItemGroupId: _groupId,
             SupabaseConstants.shoppingListItemInformation: information,
+            SupabaseConstants.shoppingListItemQuantity: quantity,
             SupabaseConstants.shoppingListItemIsChecked: false,
           })
           .select()

@@ -1,0 +1,53 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'shopping_list_provider.dart';
+
+// **************************************************************************
+// RiverpodGenerator
+// **************************************************************************
+
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(ShoppingList)
+const shoppingListProvider = ShoppingListProvider._();
+
+final class ShoppingListProvider
+    extends $AsyncNotifierProvider<ShoppingList, List<ShoppingListItem>> {
+  const ShoppingListProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'shoppingListProvider',
+          isAutoDispose: false,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$shoppingListHash();
+
+  @$internal
+  @override
+  ShoppingList create() => ShoppingList();
+}
+
+String _$shoppingListHash() => r'3e664eda6d8e91b7c1a9c26fa54dbdd03b05d706';
+
+abstract class _$ShoppingList extends $AsyncNotifier<List<ShoppingListItem>> {
+  FutureOr<List<ShoppingListItem>> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref
+        as $Ref<AsyncValue<List<ShoppingListItem>>, List<ShoppingListItem>>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<AsyncValue<List<ShoppingListItem>>, List<ShoppingListItem>>,
+        AsyncValue<List<ShoppingListItem>>,
+        Object?,
+        Object?>;
+    element.handleValue(ref, created);
+  }
+}

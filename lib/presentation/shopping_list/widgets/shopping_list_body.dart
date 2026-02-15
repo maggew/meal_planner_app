@@ -1,10 +1,57 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/presentation/shopping_list/widgets/shopping_list_input.dart';
+import 'package:meal_planner/presentation/shopping_list/widgets/shopping_list_item_tile.dart';
+import 'package:meal_planner/services/providers/shopping_list_provider.dart';
 
-class ShoppingListBody extends StatelessWidget {
+class ShoppingListBody extends ConsumerWidget {
   const ShoppingListBody({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Container();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final shoppingListState = ref.watch(shoppingListProvider);
+
+    return Column(
+      children: [
+        const ShoppingListInput(),
+        Expanded(
+          child: shoppingListState.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, _) => Center(child: Text('Fehler: $error')),
+            data: (items) {
+              if (items.isEmpty) {
+                return const Center(
+                  child: Text('Deine Einkaufsliste ist leer'),
+                );
+              }
+
+              final unchecked = items.where((i) => !i.isChecked).toList();
+              final checked = items.where((i) => i.isChecked).toList();
+
+              return ListView(
+                children: [
+                  ...unchecked.map((item) => ShoppingListItemTile(item: item)),
+                  if (checked.isNotEmpty) ...[
+                    const Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Text(
+                        'Erledigt',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    ...checked.map((item) => ShoppingListItemTile(item: item)),
+                  ],
+                ],
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 }
+
