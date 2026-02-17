@@ -80,6 +80,23 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     super.dispose();
   }
 
+  Future<void> _pickImage({required bool pickFromCamera}) async {
+    final imageManagerNotifier = ref.read(imageManagerProvider.notifier);
+    if (pickFromCamera) {
+      await imageManagerNotifier.pickImageFromCamera(
+          imageType: AnalysisImageType.photo);
+    } else {
+      await imageManagerNotifier.pickImageFromGallery(
+          imageType: AnalysisImageType.photo);
+    }
+
+    final imageManager = ref.read(imageManagerProvider);
+    setState(() {
+      _pickedImage = imageManager.photo;
+    });
+    imageManagerNotifier.clearPhoto();
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppBackground(
@@ -91,18 +108,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           isEditing: _isEditing,
           nameController: _nameController,
           pickedImage: _pickedImage,
-          onEditImage: () async {
-            final imageManagerNotifier =
-                ref.read(imageManagerProvider.notifier);
-            await imageManagerNotifier.pickImageFromCamera(
-                imageType: AnalysisImageType.photo);
-
-            final imageManager = ref.read(imageManagerProvider);
-            setState(() {
-              _pickedImage = imageManager.photo;
-            });
-            imageManagerNotifier.clearPhoto();
-          },
+          onPickFromCamera: () => _pickImage(pickFromCamera: true),
+          onPickFromGallery: () => _pickImage(pickFromCamera: false),
         ),
       ),
     );

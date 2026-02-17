@@ -31,7 +31,8 @@ class ShowSingleGroupMemberList extends StatelessWidget {
                 ? CachedNetworkImage(
                     imageUrl: group.imageUrl,
                     fit: BoxFit.cover,
-                    placeholder: (_, __) => const PlacerholderImage(),
+                    placeholder: (_, __) =>
+                        Center(child: const CircularProgressIndicator()),
                     errorWidget: (_, __, ___) => const PlacerholderImage(),
                   )
                 : const PlacerholderImage();

@@ -25,7 +25,8 @@ class ShowUserGroupAvatar extends StatelessWidget {
             fit: BoxFit.cover,
             width: avatarDiameter,
             height: avatarDiameter,
-            placeholder: (_, __) => const PlacerholderImage(),
+            placeholder: (_, __) =>
+                Center(child: const CircularProgressIndicator()),
             errorWidget: (_, __, ___) => const PlacerholderImage(),
           )
         : const PlacerholderImage();

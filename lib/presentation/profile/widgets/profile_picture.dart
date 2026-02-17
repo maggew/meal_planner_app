@@ -5,13 +5,15 @@ import 'package:flutter/material.dart';
 class ProfilePicture extends StatelessWidget {
   final String? imageUrl;
   final bool isEditing;
-  final VoidCallback onEditImage;
+  final VoidCallback onPickFromCamera;
+  final VoidCallback onPickFromGallery;
   final File? pickedImage;
   const ProfilePicture({
     super.key,
     required this.imageUrl,
     required this.isEditing,
-    required this.onEditImage,
+    required this.onPickFromCamera,
+    required this.onPickFromGallery,
     required this.pickedImage,
   });
 
@@ -25,27 +27,43 @@ class ProfilePicture extends StatelessWidget {
     } else {
       backgroundImage = const AssetImage('assets/default_pic.jpg');
     }
-    return GestureDetector(
-      onTap: isEditing ? onEditImage : null,
-      child: Stack(
-        alignment: Alignment.bottomRight,
-        children: [
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 150, maxHeight: 150),
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: CircleAvatar(
-                backgroundImage: backgroundImage,
+    return Stack(
+      alignment: Alignment.bottomRight,
+      children: [
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 150, maxHeight: 150),
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: CircleAvatar(
+              backgroundImage: backgroundImage,
+            ),
+          ),
+        ),
+        if (isEditing) ...[
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: GestureDetector(
+              onTap: onPickFromCamera,
+              child: const CircleAvatar(
+                radius: 16,
+                child: Icon(Icons.camera_alt, size: 16),
               ),
             ),
           ),
-          if (isEditing)
-            const CircleAvatar(
-              radius: 16,
-              child: Icon(Icons.camera_alt, size: 16),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            child: GestureDetector(
+              onTap: onPickFromGallery,
+              child: const CircleAvatar(
+                radius: 16,
+                child: Icon(Icons.folder, size: 16),
+              ),
             ),
+          ),
         ],
-      ),
+      ],
     );
   }
 }

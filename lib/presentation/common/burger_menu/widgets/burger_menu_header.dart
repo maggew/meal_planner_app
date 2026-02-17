@@ -28,7 +28,8 @@ class BurgerMenuHeader extends StatelessWidget {
                 ? CachedNetworkImage(
                     imageUrl: group!.imageUrl,
                     fit: boxFit,
-                    placeholder: (_, __) => PlacerholderImage(),
+                    placeholder: (_, __) =>
+                        Center(child: const CircularProgressIndicator()),
                     errorWidget: (_, __, ___) => PlacerholderImage(),
                   )
                 : PlacerholderImage(),

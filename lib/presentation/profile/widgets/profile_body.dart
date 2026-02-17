@@ -11,13 +11,15 @@ class ProfileBody extends ConsumerWidget {
   final bool isEditing;
   final TextEditingController nameController;
   final File? pickedImage;
-  final VoidCallback onEditImage;
+  final VoidCallback onPickFromCamera;
+  final VoidCallback onPickFromGallery;
   const ProfileBody({
     super.key,
     required this.isEditing,
     required this.nameController,
     required this.pickedImage,
-    required this.onEditImage,
+    required this.onPickFromCamera,
+    required this.onPickFromGallery,
   });
 
   @override
@@ -40,7 +42,8 @@ class ProfileBody extends ConsumerWidget {
                   imageUrl: userProfile.imageUrl,
                   isEditing: isEditing,
                   pickedImage: pickedImage,
-                  onEditImage: onEditImage,
+                  onPickFromCamera: onPickFromCamera,
+                  onPickFromGallery: onPickFromGallery,
                 ),
                 ProfileNameWidget(
                   nameController: nameController,
