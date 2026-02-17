@@ -10,11 +10,11 @@ part of 'add_recipe_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(SelectedCategories)
-const selectedCategoriesProvider = SelectedCategoriesProvider._();
+final selectedCategoriesProvider = SelectedCategoriesProvider._();
 
 final class SelectedCategoriesProvider
     extends $NotifierProvider<SelectedCategories, List<String>> {
-  const SelectedCategoriesProvider._()
+  SelectedCategoriesProvider._()
       : super(
           from: null,
           argument: null,
@@ -49,23 +49,22 @@ abstract class _$SelectedCategories extends $Notifier<List<String>> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<List<String>, List<String>>;
     final element = ref.element as $ClassProviderElement<
         AnyNotifier<List<String>, List<String>>,
         List<String>,
         Object?,
         Object?>;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(SelectedPortions)
-const selectedPortionsProvider = SelectedPortionsProvider._();
+final selectedPortionsProvider = SelectedPortionsProvider._();
 
 final class SelectedPortionsProvider
     extends $NotifierProvider<SelectedPortions, int> {
-  const SelectedPortionsProvider._()
+  SelectedPortionsProvider._()
       : super(
           from: null,
           argument: null,
@@ -99,10 +98,9 @@ abstract class _$SelectedPortions extends $Notifier<int> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<int, int>;
     final element = ref.element
         as $ClassProviderElement<AnyNotifier<int, int>, int, Object?, Object?>;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

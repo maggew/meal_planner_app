@@ -10,11 +10,11 @@ part of 'recipe_upload_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(RecipeUpload)
-const recipeUploadProvider = RecipeUploadProvider._();
+final recipeUploadProvider = RecipeUploadProvider._();
 
 final class RecipeUploadProvider
     extends $NotifierProvider<RecipeUpload, AsyncValue<void>> {
-  const RecipeUploadProvider._()
+  RecipeUploadProvider._()
       : super(
           from: null,
           argument: null,
@@ -48,13 +48,12 @@ abstract class _$RecipeUpload extends $Notifier<AsyncValue<void>> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<AsyncValue<void>, AsyncValue<void>>;
     final element = ref.element as $ClassProviderElement<
         AnyNotifier<AsyncValue<void>, AsyncValue<void>>,
         AsyncValue<void>,
         Object?,
         Object?>;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

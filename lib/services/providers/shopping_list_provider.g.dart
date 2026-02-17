@@ -10,11 +10,11 @@ part of 'shopping_list_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ShoppingList)
-const shoppingListProvider = ShoppingListProvider._();
+final shoppingListProvider = ShoppingListProvider._();
 
 final class ShoppingListProvider
     extends $AsyncNotifierProvider<ShoppingList, List<ShoppingListItem>> {
-  const ShoppingListProvider._()
+  ShoppingListProvider._()
       : super(
           from: null,
           argument: null,
@@ -40,7 +40,6 @@ abstract class _$ShoppingList extends $AsyncNotifier<List<ShoppingListItem>> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref
         as $Ref<AsyncValue<List<ShoppingListItem>>, List<ShoppingListItem>>;
     final element = ref.element as $ClassProviderElement<
@@ -48,6 +47,6 @@ abstract class _$ShoppingList extends $AsyncNotifier<List<ShoppingListItem>> {
         AsyncValue<List<ShoppingListItem>>,
         Object?,
         Object?>;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

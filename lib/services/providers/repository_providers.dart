@@ -1,16 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:meal_planner/data/repositories/firebase_auth_repository.dart';
-import 'package:meal_planner/data/repositories/firebase_fridge_repository.dart';
 import 'package:meal_planner/data/repositories/firebase_storage_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_group_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_recipe_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_shopping_list_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_user_repository.dart';
 import 'package:meal_planner/domain/repositories/auth_repository.dart';
-import 'package:meal_planner/domain/repositories/fridge_repository.dart';
 import 'package:meal_planner/domain/repositories/group_repository.dart';
 import 'package:meal_planner/domain/repositories/recipe_repository.dart';
 import 'package:meal_planner/domain/repositories/shopping_list_repository.dart';
@@ -23,9 +20,9 @@ import 'package:meal_planner/data/datasources/supabase_recipe_remote_datasource.
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Firebase Instances
-final firestoreProvider = Provider<FirebaseFirestore>((ref) {
-  return FirebaseFirestore.instance;
-});
+// final firestoreProvider = Provider<FirebaseFirestore>((ref) {
+//   return FirebaseFirestore.instance;
+// });
 
 final storageProvider = Provider<FirebaseStorage>((ref) {
   return FirebaseStorage.instance;
@@ -95,10 +92,10 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   );
 });
 
-final fridgeRepositoryProvider = Provider<FridgeRepository>((ref) {
-  return FirebaseFridgeRepository(
-    firestore: ref.watch(firestoreProvider),
-    storage: ref.watch(storageProvider),
-    getCurrentGroupId: () => ref.read(sessionProvider).groupId ?? '',
-  );
-});
+// final fridgeRepositoryProvider = Provider<FridgeRepository>((ref) {
+//   return FirebaseFridgeRepository(
+//     firestore: ref.watch(firestoreProvider),
+//     storage: ref.watch(storageProvider),
+//     getCurrentGroupId: () => ref.read(sessionProvider).groupId ?? '',
+//   );
+// });

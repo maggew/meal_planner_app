@@ -10,10 +10,10 @@ part of 'recipe_search_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(SearchQuery)
-const searchQueryProvider = SearchQueryProvider._();
+final searchQueryProvider = SearchQueryProvider._();
 
 final class SearchQueryProvider extends $NotifierProvider<SearchQuery, String> {
-  const SearchQueryProvider._()
+  SearchQueryProvider._()
       : super(
           from: null,
           argument: null,
@@ -47,20 +47,19 @@ abstract class _$SearchQuery extends $Notifier<String> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<String, String>;
     final element = ref.element as $ClassProviderElement<
         AnyNotifier<String, String>, String, Object?, Object?>;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(SearchAllCategories)
-const searchAllCategoriesProvider = SearchAllCategoriesProvider._();
+final searchAllCategoriesProvider = SearchAllCategoriesProvider._();
 
 final class SearchAllCategoriesProvider
     extends $NotifierProvider<SearchAllCategories, bool> {
-  const SearchAllCategoriesProvider._()
+  SearchAllCategoriesProvider._()
       : super(
           from: null,
           argument: null,
@@ -95,20 +94,19 @@ abstract class _$SearchAllCategories extends $Notifier<bool> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<bool, bool>;
     final element = ref.element as $ClassProviderElement<
         AnyNotifier<bool, bool>, bool, Object?, Object?>;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }
 
 @ProviderFor(FilteredRecipes)
-const filteredRecipesProvider = FilteredRecipesFamily._();
+final filteredRecipesProvider = FilteredRecipesFamily._();
 
 final class FilteredRecipesProvider
     extends $NotifierProvider<FilteredRecipes, List<Recipe>> {
-  const FilteredRecipesProvider._(
+  FilteredRecipesProvider._(
       {required FilteredRecipesFamily super.from,
       required ({
         String category,
@@ -169,7 +167,7 @@ final class FilteredRecipesFamily extends $Family
               String category,
               List<String> allCategories,
             })> {
-  const FilteredRecipesFamily._()
+  FilteredRecipesFamily._()
       : super(
           retry: null,
           name: r'filteredRecipesProvider',
@@ -206,26 +204,27 @@ abstract class _$FilteredRecipes extends $Notifier<List<Recipe>> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(
-      category: _$args.category,
-      allCategories: _$args.allCategories,
-    );
     final ref = this.ref as $Ref<List<Recipe>, List<Recipe>>;
     final element = ref.element as $ClassProviderElement<
         AnyNotifier<List<Recipe>, List<Recipe>>,
         List<Recipe>,
         Object?,
         Object?>;
-    element.handleValue(ref, created);
+    element.handleCreate(
+        ref,
+        () => build(
+              category: _$args.category,
+              allCategories: _$args.allCategories,
+            ));
   }
 }
 
 @ProviderFor(IsSearchActive)
-const isSearchActiveProvider = IsSearchActiveProvider._();
+final isSearchActiveProvider = IsSearchActiveProvider._();
 
 final class IsSearchActiveProvider
     extends $NotifierProvider<IsSearchActive, bool> {
-  const IsSearchActiveProvider._()
+  IsSearchActiveProvider._()
       : super(
           from: null,
           argument: null,
@@ -259,10 +258,9 @@ abstract class _$IsSearchActive extends $Notifier<bool> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<bool, bool>;
     final element = ref.element as $ClassProviderElement<
         AnyNotifier<bool, bool>, bool, Object?, Object?>;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

@@ -40,7 +40,7 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: ProfileRoute.page),
         AutoRoute(page: ShoppingListRoute.page),
         AutoRoute(page: SettingsRoute.page),
-        AutoRoute(page: RefrigeratorRoute.page),
+        //AutoRoute(page: RefrigeratorRoute.page),
         AutoRoute(page: DetailedWeekplanRoute.page),
         AutoRoute(page: ShowRecipeRoute.page),
         AutoRoute(

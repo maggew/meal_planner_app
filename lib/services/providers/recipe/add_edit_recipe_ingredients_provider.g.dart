@@ -10,11 +10,11 @@ part of 'add_edit_recipe_ingredients_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(AddEditRecipeIngredients)
-const addEditRecipeIngredientsProvider = AddEditRecipeIngredientsFamily._();
+final addEditRecipeIngredientsProvider = AddEditRecipeIngredientsFamily._();
 
 final class AddEditRecipeIngredientsProvider extends $NotifierProvider<
     AddEditRecipeIngredients, AddEditRecipeIngredientsState> {
-  const AddEditRecipeIngredientsProvider._(
+  AddEditRecipeIngredientsProvider._(
       {required AddEditRecipeIngredientsFamily super.from,
       required List<IngredientSection>? super.argument})
       : super(
@@ -71,7 +71,7 @@ final class AddEditRecipeIngredientsFamily extends $Family
             AddEditRecipeIngredientsState,
             AddEditRecipeIngredientsState,
             List<IngredientSection>?> {
-  const AddEditRecipeIngredientsFamily._()
+  AddEditRecipeIngredientsFamily._()
       : super(
           retry: null,
           name: r'addEditRecipeIngredientsProvider',
@@ -100,9 +100,6 @@ abstract class _$AddEditRecipeIngredients
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(
-      _$args,
-    );
     final ref = this.ref
         as $Ref<AddEditRecipeIngredientsState, AddEditRecipeIngredientsState>;
     final element = ref.element as $ClassProviderElement<
@@ -111,6 +108,10 @@ abstract class _$AddEditRecipeIngredients
         AddEditRecipeIngredientsState,
         Object?,
         Object?>;
-    element.handleValue(ref, created);
+    element.handleCreate(
+        ref,
+        () => build(
+              _$args,
+            ));
   }
 }

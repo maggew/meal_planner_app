@@ -10,11 +10,11 @@ part of 'recipe_pagination_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(RecipesPagination)
-const recipesPaginationProvider = RecipesPaginationFamily._();
+final recipesPaginationProvider = RecipesPaginationFamily._();
 
 final class RecipesPaginationProvider
     extends $NotifierProvider<RecipesPagination, RecipesPaginationState> {
-  const RecipesPaginationProvider._(
+  RecipesPaginationProvider._(
       {required RecipesPaginationFamily super.from,
       required String super.argument})
       : super(
@@ -64,7 +64,7 @@ final class RecipesPaginationFamily extends $Family
     with
         $ClassFamilyOverride<RecipesPagination, RecipesPaginationState,
             RecipesPaginationState, RecipesPaginationState, String> {
-  const RecipesPaginationFamily._()
+  RecipesPaginationFamily._()
       : super(
           retry: null,
           name: r'recipesPaginationProvider',
@@ -92,9 +92,6 @@ abstract class _$RecipesPagination extends $Notifier<RecipesPaginationState> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(
-      _$args,
-    );
     final ref =
         this.ref as $Ref<RecipesPaginationState, RecipesPaginationState>;
     final element = ref.element as $ClassProviderElement<
@@ -102,6 +99,10 @@ abstract class _$RecipesPagination extends $Notifier<RecipesPaginationState> {
         RecipesPaginationState,
         Object?,
         Object?>;
-    element.handleValue(ref, created);
+    element.handleCreate(
+        ref,
+        () => build(
+              _$args,
+            ));
   }
 }

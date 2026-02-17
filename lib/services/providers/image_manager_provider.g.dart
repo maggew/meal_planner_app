@@ -10,11 +10,11 @@ part of 'image_manager_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ImageManager)
-const imageManagerProvider = ImageManagerProvider._();
+final imageManagerProvider = ImageManagerProvider._();
 
 final class ImageManagerProvider
     extends $NotifierProvider<ImageManager, CustomImages> {
-  const ImageManagerProvider._()
+  ImageManagerProvider._()
       : super(
           from: null,
           argument: null,
@@ -48,13 +48,12 @@ abstract class _$ImageManager extends $Notifier<CustomImages> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<CustomImages, CustomImages>;
     final element = ref.element as $ClassProviderElement<
         AnyNotifier<CustomImages, CustomImages>,
         CustomImages,
         Object?,
         Object?>;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

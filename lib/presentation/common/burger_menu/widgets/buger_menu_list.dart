@@ -26,7 +26,9 @@ List<Widget> getBurgerMenuItems(BuildContext context, WidgetRef ref) {
     BurgerMenuListItem(
       icon: AppIcons.snowflake,
       label: 'Gefriertruhe',
-      onTap: () => context.router.push(const RefrigeratorRoute()),
+      onTap: () {
+        //context.router.push(const RefrigeratorRoute());
+      },
     ),
     // BurgerMenuListItem(
     //   icon: AppIcons.unity,
