@@ -33,7 +33,7 @@ void main() async {
       accessToken: () async {
         final firebaseUser = FirebaseAuth.instance.currentUser;
         if (firebaseUser == null) return null;
-        return await firebaseUser.getIdToken();
+        return await firebaseUser.getIdToken(true);
       });
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

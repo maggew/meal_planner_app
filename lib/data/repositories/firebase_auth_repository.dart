@@ -50,7 +50,7 @@ class FirebaseAuthRepository implements AuthRepository {
         throw AuthException("User konnte nicht erstellt werden");
       }
 
-      final firebaseIdToken = await user.getIdToken();
+      final firebaseIdToken = await user.getIdToken(true);
 
       final supabaseResponse = await _dio.post(
         'https://esreihfibhoueesrlmxj.functions.supabase.co/bootstrap-user',
@@ -110,7 +110,7 @@ class FirebaseAuthRepository implements AuthRepository {
       }
 
       // Supabase User ID holen (wie bei Google Login)
-      final firebaseIdToken = await user.getIdToken();
+      final firebaseIdToken = await user.getIdToken(true);
       final supabaseResponse = await _dio.post(
         'https://esreihfibhoueesrlmxj.functions.supabase.co/bootstrap-user',
         options: Options(
@@ -192,7 +192,7 @@ class FirebaseAuthRepository implements AuthRepository {
         throw AuthException("Unknown error in with googleAuth");
       }
 
-      final firebaseIdToken = await user.getIdToken();
+      final firebaseIdToken = await user.getIdToken(true);
 
       final supabaseResponse = await _dio.post(
         'https://esreihfibhoueesrlmxj.functions.supabase.co/bootstrap-user',
