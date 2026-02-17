@@ -1,4 +1,5 @@
 import 'package:meal_planner/core/utils/shopping_list_input_parser.dart';
+import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/shopping_list_item.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -20,6 +21,24 @@ class ShoppingList extends _$ShoppingList {
 
     final current = state.value ?? [];
     state = AsyncData([...current, newItem]);
+  }
+
+  Future<void> addItemsFromIngredients(List<Ingredient> ingredients) async {
+    final repo = ref.read(shoppingListRepositoryProvider);
+    final newItems = <ShoppingListItem>[];
+
+    for (final ingredient in ingredients) {
+      final quantity =
+          '${ingredient.amount ?? ''} ${ingredient.unit?.displayName}'.trim();
+      final newItem = await repo.addItem(
+        ingredient.name,
+        quantity.isEmpty ? null : quantity,
+      );
+      newItems.add(newItem);
+    }
+
+    final current = state.value ?? [];
+    state = AsyncData([...current, ...newItems]);
   }
 
   Future<void> toggleItem(String itemId, bool isChecked) async {

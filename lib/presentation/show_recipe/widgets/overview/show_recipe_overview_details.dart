@@ -1,13 +1,17 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/common/display_ingredient.dart';
+import 'package:meal_planner/services/providers/shopping_list_provider.dart';
 
-class ShowRecipeOverviewDetails extends StatelessWidget {
+class ShowRecipeOverviewDetails extends ConsumerWidget {
   final Recipe recipe;
   const ShowRecipeOverviewDetails({super.key, required this.recipe});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       margin: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 10),
       padding: EdgeInsets.all(10),
@@ -26,16 +30,25 @@ class ShowRecipeOverviewDetails extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Portions
-          Text(
-            "Portionen: ${recipe.portions.toString()}",
-            style: TextStyle(
-              fontSize: 20,
-              decoration: TextDecoration.underline,
-              decorationColor: Colors.black,
-              color: Colors.transparent,
-              shadows: [Shadow(color: Colors.black, offset: Offset(0, -5))],
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Portions
+              Text(
+                "Portionen: ${recipe.portions.toString()}",
+                style: TextStyle(
+                  fontSize: 20,
+                  decoration: TextDecoration.underline,
+                  decorationColor: Colors.black,
+                  color: Colors.transparent,
+                  shadows: [Shadow(color: Colors.black, offset: Offset(0, -5))],
+                ),
+              ),
+              IconButton(
+                  onPressed: () => _showAddToShoppingListSheet(
+                      context, ref, recipe.ingredientSections),
+                  icon: Icon(Icons.add_shopping_cart)),
+            ],
           ),
           SizedBox(height: 10),
           // Sections + Ingredients
@@ -65,35 +78,91 @@ class ShowRecipeOverviewDetails extends StatelessWidget {
               ],
             );
           }),
-          // ListView.builder(
-          //     physics: NeverScrollableScrollPhysics(),
-          //     shrinkWrap: true,
-          //     itemCount: ingredientListLength,
-          //     itemBuilder: (BuildContext context, int index) {
-          //       final ingredient = recipe.ingredients[index];
-          //       return Column(
-          //         children: [
-          //           Row(
-          //             crossAxisAlignment: CrossAxisAlignment.start,
-          //             mainAxisAlignment: MainAxisAlignment.start,
-          //             children: [
-          //               SizedBox(
-          //                   width: 75,
-          //                   child: Text(
-          //                       "${ingredient.amount} ${ingredient.unit.displayName}")),
-          //               Expanded(child: Text(ingredient.name)),
-          //             ],
-          //           ),
-          //           if (index != ingredientListLength - 1) ...[
-          //             Divider(
-          //               thickness: 2,
-          //             ),
-          //           ],
-          //         ],
-          //       );
-          //     }),
         ],
       ),
     );
   }
+}
+
+void _showAddToShoppingListSheet(
+  BuildContext context,
+  WidgetRef ref,
+  List<IngredientSection> sections,
+) {
+  final selectedSections = <int>{};
+  // Wenn nur eine Sektion, direkt alle auswählen
+  if (sections.length == 1) {
+    selectedSections.add(0);
+  }
+
+  showModalBottomSheet(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setSheetState) {
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Zur Einkaufsliste hinzufügen',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                ...sections.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final section = entry.value;
+                  return CheckboxListTile(
+                    title: Text(section.title),
+                    subtitle: Text(
+                      '${section.ingredients.length} Zutaten',
+                    ),
+                    value: selectedSections.contains(index),
+                    onChanged: (checked) {
+                      setSheetState(() {
+                        if (checked == true) {
+                          selectedSections.add(index);
+                        } else {
+                          selectedSections.remove(index);
+                        }
+                      });
+                    },
+                  );
+                }),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: selectedSections.isEmpty
+                        ? null
+                        : () {
+                            final ingredients = selectedSections
+                                .expand((i) => sections[i].ingredients)
+                                .toList();
+                            ref
+                                .read(shoppingListProvider.notifier)
+                                .addItemsFromIngredients(ingredients);
+                            context.router.pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  '${ingredients.length} Zutaten zur Einkaufsliste hinzugefügt',
+                                ),
+                              ),
+                            );
+                          },
+                    child: Text(
+                      'Hinzufügen (${selectedSections.length} Sektionen)',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    },
+  );
 }
