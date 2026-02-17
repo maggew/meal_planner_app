@@ -4,6 +4,8 @@ import 'package:meal_planner/core/constants/firebase_constants.dart';
 import 'package:meal_planner/data/datasources/recipe_remote_datasource.dart';
 import 'package:meal_planner/data/model/ingredient_model.dart';
 import 'package:meal_planner/data/model/recipe_model.dart';
+import 'package:meal_planner/data/model/recipe_timer_model.dart';
+import 'package:meal_planner/domain/entities/recipe_timer.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:meal_planner/core/utils/uuid_generator.dart';
@@ -304,39 +306,36 @@ class SupabaseRecipeRepository implements RecipeRepository {
     }
   }
 
-  // @override
-  // Future<void> deleteRecipe(String recipeId) async {
-  //   try {
-  //     // Bild löschen
-  //     final recipe = await getRecipeById(recipeId);
-  //     if (recipe?.imageUrl != null && recipe!.imageUrl!.isNotEmpty) {
-  //       await _storage.deleteImage(recipe.imageUrl!);
-  //     }
-  //
-  //     // Junction-Einträge löschen
-  //     await _remote.deleteRecipeCategories(recipeId);
-  //     await _remote.deleteRecipeIngredients(recipeId);
-  //
-  //     // Recipe löschen
-  //     await _remote.deleteRecipe(recipeId);
-  //   } catch (e) {
-  //     throw RecipeDeletionException(e.toString());
-  //   }
-  // }
+  // ==================== TIMER ====================
+  @override
+  Future<List<RecipeTimer>> getTimersForRecipe(String recipeId) async {
+    try {
+      final data = await _remote.getTimersForRecipe(recipeId);
+      return data
+          .map((row) => RecipeTimerModel.fromSupabase(row).toEntity())
+          .toList();
+    } catch (e) {
+      throw RecipeTimerException('Fehler beim Laden der Timer: $e');
+    }
+  }
 
-  // ==================== PRIVATE HELPERS ====================
+  @override
+  Future<RecipeTimer> upsertTimer(RecipeTimer timer) async {
+    try {
+      final model = RecipeTimerModel.fromEntity(timer);
+      final data = await _remote.upsertTimer(model.toSupabase());
+      return RecipeTimerModel.fromSupabase(data).toEntity();
+    } catch (e) {
+      throw RecipeTimerException('Fehler beim Speichern des Timers: $e');
+    }
+  }
 
-//   Future<void> _deleteRecipeCategories(String recipeId) async {
-//     await _supabase
-//         .from(SupabaseConstants.recipeCategoriesTable)
-//         .delete()
-//         .eq(SupabaseConstants.recipeCategoryRecipeId, recipeId);
-//   }
-//
-//   Future<void> _deleteRecipeIngredients(String recipeId) async {
-//     await _supabase
-//         .from(SupabaseConstants.recipeIngredientsTable)
-//         .delete()
-//         .eq(SupabaseConstants.recipeIngredientRecipeId, recipeId);
-//   }
+  @override
+  Future<void> deleteTimer(String recipeId, int stepIndex) async {
+    try {
+      await _remote.deleteTimer(recipeId, stepIndex);
+    } catch (e) {
+      throw RecipeTimerException('Fehler beim Löschen des Timers: $e');
+    }
+  }
 }

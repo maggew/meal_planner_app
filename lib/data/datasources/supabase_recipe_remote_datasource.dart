@@ -255,4 +255,39 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
       SupabaseConstants.recipeDeletedAt: DateTime.now().toIso8601String()
     }).eq(SupabaseConstants.recipeId, recipeId);
   }
+
+  // Timer
+  @override
+  Future<List<Map<String, dynamic>>> getTimersForRecipe(String recipeId) async {
+    final response = await supabase
+        .from(SupabaseConstants.recipeTimersTable)
+        .select()
+        .eq(SupabaseConstants.recipeTimerRecipeId, recipeId);
+
+    return (response as List).cast<Map<String, dynamic>>();
+  }
+
+  @override
+  Future<Map<String, dynamic>> upsertTimer(Map<String, dynamic> data) async {
+    final response = await supabase
+        .from(SupabaseConstants.recipeTimersTable)
+        .upsert(
+          data,
+          onConflict: '${SupabaseConstants.recipeTimerRecipeId},'
+              '${SupabaseConstants.recipeTimerStepIndex}',
+        )
+        .select()
+        .single();
+
+    return response;
+  }
+
+  @override
+  Future<void> deleteTimer(String recipeId, int stepIndex) async {
+    await supabase
+        .from(SupabaseConstants.recipeTimersTable)
+        .delete()
+        .eq(SupabaseConstants.recipeTimerRecipeId, recipeId)
+        .eq(SupabaseConstants.recipeTimerStepIndex, stepIndex);
+  }
 }

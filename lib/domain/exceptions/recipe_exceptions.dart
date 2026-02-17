@@ -29,3 +29,11 @@ class RecipeDeletionException implements Exception {
   @override
   String toString() => 'Rezept konnte nicht gelöscht werden: $message';
 }
+
+class RecipeTimerException implements Exception {
+  final String message;
+  RecipeTimerException(this.message);
+
+  @override
+  String toString() => 'RecipeTimerException: $message';
+}

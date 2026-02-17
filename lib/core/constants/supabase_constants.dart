@@ -11,6 +11,7 @@ class SupabaseConstants {
   static const String categoriesTable = 'categories';
   static const String recipeCategoriesTable = 'recipe_categories';
   static const String shoppingListItemsTable = 'shopping_list_items';
+  static const String recipeTimersTable = 'recipe_timers';
 
   // Columns: Groups
   static const String groupId = 'id';
@@ -71,4 +72,11 @@ class SupabaseConstants {
   static const String shoppingListItemInformation = 'information';
   static const String shoppingListItemQuantity = 'quantity';
   static const String shoppingListItemIsChecked = 'is_checked';
+
+  // Columns: Recipe Timers
+  static const String recipeTimerId = 'id';
+  static const String recipeTimerRecipeId = 'recipe_id';
+  static const String recipeTimerStepIndex = 'step_index';
+  static const String recipeTimerName = 'timer_name';
+  static const String recipeTimerDurationSeconds = 'duration_seconds';
 }

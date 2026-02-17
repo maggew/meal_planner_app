@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:meal_planner/domain/entities/recipe.dart';
+import 'package:meal_planner/domain/entities/recipe_timer.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
 
 abstract class RecipeRepository {
@@ -24,4 +25,9 @@ abstract class RecipeRepository {
   Future<void> hardDeleteRecipe(String recipeId);
 
   Future<List<String>> getAllCategories();
+
+  // Timer logic
+  Future<List<RecipeTimer>> getTimersForRecipe(String recipeId);
+  Future<RecipeTimer> upsertTimer(RecipeTimer timer);
+  Future<void> deleteTimer(String recipeId, int stepIndex);
 }

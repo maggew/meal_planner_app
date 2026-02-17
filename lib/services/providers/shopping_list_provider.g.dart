@@ -33,7 +33,7 @@ final class ShoppingListProvider
   ShoppingList create() => ShoppingList();
 }
 
-String _$shoppingListHash() => r'3e664eda6d8e91b7c1a9c26fa54dbdd03b05d706';
+String _$shoppingListHash() => r'59671ea102d9194b41ee854f1e54d7566af4ce0b';
 
 abstract class _$ShoppingList extends $AsyncNotifier<List<ShoppingListItem>> {
   FutureOr<List<ShoppingListItem>> build();

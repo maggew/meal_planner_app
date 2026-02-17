@@ -48,6 +48,8 @@ dependencies:
   uuid: ^4.5.2
   image_cropper: ^11.0.0
   flutter_dotenv: ^6.0.0
+  flutter_local_notifications: ^20.1.0
+  audioplayers: ^6.5.1
 
 
 dev_dependencies:
@@ -91,6 +93,7 @@ flutter:
       - assets/images/shrimps.jpg
       - assets/images/pizza_1.jpg
       - assets/images/pizza_2.jpg
+      - assets/sounds/
 
   fonts:
     - family: AppIcons

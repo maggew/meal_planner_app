@@ -7,9 +7,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/theme/app_theme.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
+import 'package:meal_planner/services/notification_service.dart';
 import 'package:meal_planner/services/providers/auth_providers.dart';
 import 'package:meal_planner/services/providers/router_provider.dart';
 import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
+import 'package:meal_planner/services/timer_lifecycle_observer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:meal_planner/services/providers/shared_preferences_provider.dart';
@@ -40,6 +42,9 @@ void main() async {
   ]);
 
   final prefs = await SharedPreferences.getInstance();
+
+  await NotificationService.instance.initialize();
+  await NotificationService.instance.requestPermissions();
   runApp(
     ProviderScope(
       overrides: [
@@ -52,11 +57,31 @@ void main() async {
 
 //TODO: dart run build_runner watch --delete-conflicting-outputs
 
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> {
+  late final TimerLifecycleObserver _lifecycleObserver;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycleObserver = TimerLifecycleObserver(ref);
+    WidgetsBinding.instance.addObserver(_lifecycleObserver);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(_lifecycleObserver);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final appRouter = ref.watch(appRouterProvider);
     final themeOption =
         ref.watch(userSettingsProvider.select((s) => s.themeOption));
@@ -89,5 +114,3 @@ class MyApp extends ConsumerWidget {
     );
   }
 }
-
-// TODO: supabase policies definieren für production!

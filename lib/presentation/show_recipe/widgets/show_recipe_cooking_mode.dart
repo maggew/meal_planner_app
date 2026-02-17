@@ -47,6 +47,7 @@ class _ShowRecipeCookingModeState extends State<ShowRecipeCookingMode>
             children: List.generate(
                 instructions.length,
                 (index) => CookingModeStepWidget(
+                      recipeId: widget.recipe.id!,
                       instructionStep: instructions[index],
                       stepNumber: index + 1,
                       ingredientSections: widget.recipe.ingredientSections,
