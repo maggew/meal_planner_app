@@ -11,8 +11,8 @@ A mobile application for managing and searching recipes – built with Flutter, 
 </p>
 
 <p float="left">
-  <img src="screenshots/show_recipe.png" width="250" />
-  <img src="screenshots/show_recipe.png" width="250" />
+  <img src="screenshots/show_recipe_cooking_mode.png" width="250" />
+  <img src="screenshots/shopping_list.png" width="250" />
 </p>
 ## Motivation
 
