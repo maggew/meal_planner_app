@@ -1,18 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/domain/entities/active_timer.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooking_mode_page_buttons.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooking_mode_step_widget.dart';
+import 'package:meal_planner/services/providers/recipe/timer/active_timer_provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
-class ShowRecipeCookingMode extends StatefulWidget {
+class ShowRecipeCookingMode extends ConsumerStatefulWidget {
   final Recipe recipe;
-  const ShowRecipeCookingMode({super.key, required this.recipe});
+  final int? initialStep;
+  const ShowRecipeCookingMode({
+    super.key,
+    required this.recipe,
+    this.initialStep,
+  });
 
   @override
-  State<ShowRecipeCookingMode> createState() => _ShowRecipeCookingModeState();
+  ConsumerState<ShowRecipeCookingMode> createState() =>
+      _ShowRecipeCookingModeState();
 }
 
-class _ShowRecipeCookingModeState extends State<ShowRecipeCookingMode>
+class _ShowRecipeCookingModeState extends ConsumerState<ShowRecipeCookingMode>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late List<String> instructions;
   late TabController _tabController;
@@ -33,12 +42,35 @@ class _ShowRecipeCookingModeState extends State<ShowRecipeCookingMode>
     super.initState();
     WakelockPlus.enable();
     instructions = _parseInstructions();
-    _tabController = TabController(length: instructions.length, vsync: this);
+    _tabController = TabController(
+      length: instructions.length,
+      vsync: this,
+      initialIndex: widget.initialStep?.clamp(0, instructions.length - 1) ?? 0,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
+
+    ref.listen(activeTimerProvider, (prev, next) {
+      final recipeId = widget.recipe.id;
+      if (recipeId == null) return;
+
+      for (final entry in next.entries) {
+        final timer = entry.value;
+        if (timer.recipeId != recipeId) continue;
+        if (timer.status != TimerStatus.finished) continue;
+
+        final prevTimer = prev?[entry.key];
+        if (prevTimer?.status == TimerStatus.finished) continue;
+
+        if (timer.stepIndex < instructions.length) {
+          _tabController.animateTo(timer.stepIndex);
+        }
+      }
+    });
+
     return Stack(
       children: [
         TabBarView(

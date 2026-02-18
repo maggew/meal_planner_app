@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:meal_planner/core/constants/app_icons.dart';
 
 class ShowRecipeBottomNavigationBar extends StatelessWidget {
+  final TabController tabController;
   const ShowRecipeBottomNavigationBar({
     super.key,
+    required this.tabController,
   });
 
   @override
@@ -11,6 +13,7 @@ class ShowRecipeBottomNavigationBar extends StatelessWidget {
     return Container(
       color: Colors.lightGreen[100],
       child: TabBar(
+        controller: tabController,
         tabs: [
           Tab(icon: Icon(AppIcons.shopping_list), text: "Übersicht"),
           Tab(icon: Icon(AppIcons.dish), text: "Kochmodus"),

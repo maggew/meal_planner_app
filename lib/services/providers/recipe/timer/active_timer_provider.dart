@@ -58,6 +58,7 @@ class ActiveTimerNotifier extends _$ActiveTimerNotifier {
       title: 'Timer abgelaufen',
       body: timer.label,
       scheduledTime: timer.endTime!,
+      payload: '${timer.recipeId}:${timer.stepIndex}',
     );
   }
 
@@ -101,6 +102,7 @@ class ActiveTimerNotifier extends _$ActiveTimerNotifier {
       title: 'Timer abgelaufen',
       body: timer.label,
       scheduledTime: newEndTime,
+      payload: '${timer.recipeId}:${timer.stepIndex}',
     );
   }
 

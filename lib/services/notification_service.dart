@@ -14,6 +14,9 @@ class NotificationService {
   bool _initialized = false;
   bool _isPlaying = false;
   final AudioPlayer _audioPlayer = AudioPlayer();
+  final Map<int, Timer> _scheduledTimers = {};
+
+  void Function(String payload)? onNotificationTapped;
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -32,17 +35,26 @@ class NotificationService {
       iOS: iosSettings,
     );
 
-    await _plugin.initialize(settings: settings);
+    await _plugin.initialize(
+      settings: settings,
+      onDidReceiveNotificationResponse: _onNotificationResponse,
+    );
     _initialized = true;
   }
 
-  final Map<int, Timer> _scheduledTimers = {};
+  void _onNotificationResponse(NotificationResponse response) {
+    final payload = response.payload;
+    if (payload == null) return;
+
+    onNotificationTapped?.call(payload);
+  }
 
   Future<void> scheduleNotification({
     required int id,
     required String title,
     required String body,
     required DateTime scheduledTime,
+    required String payload,
   }) async {
     final delay = scheduledTime.difference(DateTime.now());
     if (delay.isNegative) return;
@@ -55,6 +67,7 @@ class NotificationService {
         id: id,
         title: title,
         body: body,
+        payload: payload,
         notificationDetails: const NotificationDetails(
           android: AndroidNotificationDetails(
             'timer_channel',

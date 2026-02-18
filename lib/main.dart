@@ -6,9 +6,11 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/theme/app_theme.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
+import 'package:meal_planner/presentation/router/router.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/notification_service.dart';
 import 'package:meal_planner/services/providers/auth_providers.dart';
+import 'package:meal_planner/services/providers/recipe/timer/active_timer_provider.dart';
 import 'package:meal_planner/services/providers/router_provider.dart';
 import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
 import 'package:meal_planner/services/timer_lifecycle_observer.dart';
@@ -66,12 +68,16 @@ class MyApp extends ConsumerStatefulWidget {
 
 class _MyAppState extends ConsumerState<MyApp> {
   late final TimerLifecycleObserver _lifecycleObserver;
+  late final AppRouter _appRouter;
 
   @override
   void initState() {
     super.initState();
+    _appRouter = ref.read(appRouterProvider);
     _lifecycleObserver = TimerLifecycleObserver(ref);
     WidgetsBinding.instance.addObserver(_lifecycleObserver);
+
+    NotificationService.instance.onNotificationTapped = _onTimerTapped;
   }
 
   @override
@@ -80,9 +86,24 @@ class _MyAppState extends ConsumerState<MyApp> {
     super.dispose();
   }
 
+  _onTimerTapped(String payload) {
+    final parts = payload.split(':');
+    if (parts.length != 2) return;
+    final recipeId = parts[0];
+    final stepIndex = int.tryParse(parts[1]);
+    if (stepIndex == null) return;
+
+    NotificationService.instance.stopAlarmSound();
+    ref.read(activeTimerProvider.notifier).markAsFinished(payload);
+
+    _appRouter.push(ShowRecipeRoute(
+      recipeId: recipeId,
+      initialStep: stepIndex,
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
-    final appRouter = ref.watch(appRouterProvider);
     final themeOption =
         ref.watch(userSettingsProvider.select((s) => s.themeOption));
 
@@ -92,7 +113,7 @@ class _MyAppState extends ConsumerState<MyApp> {
         final isLoggedOut = userId == null;
 
         if (wasLoggedIn && isLoggedOut) {
-          appRouter.replaceAll([const LoginRoute()]);
+          _appRouter.replaceAll([const LoginRoute()]);
         }
       });
     });
@@ -106,7 +127,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       },
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      routerConfig: appRouter.config(),
+      routerConfig: _appRouter.config(),
       builder: (context, child) => GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: child,

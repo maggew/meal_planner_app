@@ -325,12 +325,20 @@ class ShoppingListRoute extends _i19.PageRouteInfo<void> {
 class ShowRecipeRoute extends _i19.PageRouteInfo<ShowRecipeRouteArgs> {
   ShowRecipeRoute({
     _i20.Key? key,
-    required _i21.Recipe recipe,
-    required _i20.Image image,
+    _i21.Recipe? recipe,
+    _i20.Image? image,
+    String? recipeId,
+    int? initialStep,
     List<_i19.PageRouteInfo>? children,
   }) : super(
           ShowRecipeRoute.name,
-          args: ShowRecipeRouteArgs(key: key, recipe: recipe, image: image),
+          args: ShowRecipeRouteArgs(
+            key: key,
+            recipe: recipe,
+            image: image,
+            recipeId: recipeId,
+            initialStep: initialStep,
+          ),
           initialChildren: children,
         );
 
@@ -339,11 +347,15 @@ class ShowRecipeRoute extends _i19.PageRouteInfo<ShowRecipeRouteArgs> {
   static _i19.PageInfo page = _i19.PageInfo(
     name,
     builder: (data) {
-      final args = data.argsAs<ShowRecipeRouteArgs>();
+      final args = data.argsAs<ShowRecipeRouteArgs>(
+        orElse: () => const ShowRecipeRouteArgs(),
+      );
       return _i14.ShowRecipePage(
         key: args.key,
         recipe: args.recipe,
         image: args.image,
+        recipeId: args.recipeId,
+        initialStep: args.initialStep,
       );
     },
   );
@@ -352,30 +364,45 @@ class ShowRecipeRoute extends _i19.PageRouteInfo<ShowRecipeRouteArgs> {
 class ShowRecipeRouteArgs {
   const ShowRecipeRouteArgs({
     this.key,
-    required this.recipe,
-    required this.image,
+    this.recipe,
+    this.image,
+    this.recipeId,
+    this.initialStep,
   });
 
   final _i20.Key? key;
 
-  final _i21.Recipe recipe;
+  final _i21.Recipe? recipe;
 
-  final _i20.Image image;
+  final _i20.Image? image;
+
+  final String? recipeId;
+
+  final int? initialStep;
 
   @override
   String toString() {
-    return 'ShowRecipeRouteArgs{key: $key, recipe: $recipe, image: $image}';
+    return 'ShowRecipeRouteArgs{key: $key, recipe: $recipe, image: $image, recipeId: $recipeId, initialStep: $initialStep}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! ShowRecipeRouteArgs) return false;
-    return key == other.key && recipe == other.recipe && image == other.image;
+    return key == other.key &&
+        recipe == other.recipe &&
+        image == other.image &&
+        recipeId == other.recipeId &&
+        initialStep == other.initialStep;
   }
 
   @override
-  int get hashCode => key.hashCode ^ recipe.hashCode ^ image.hashCode;
+  int get hashCode =>
+      key.hashCode ^
+      recipe.hashCode ^
+      image.hashCode ^
+      recipeId.hashCode ^
+      initialStep.hashCode;
 }
 
 /// generated route for
