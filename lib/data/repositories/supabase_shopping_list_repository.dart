@@ -15,6 +15,17 @@ class SupabaseShoppingListRepository implements ShoppingListRepository {
         _groupId = groupId;
 
   @override
+  Stream<List<ShoppingListItem>> watchItems() {
+    return _supabase
+        .from(SupabaseConstants.shoppingListItemsTable)
+        .stream(primaryKey: [SupabaseConstants.shoppingListItemId])
+        .eq(SupabaseConstants.shoppingListItemGroupId, _groupId)
+        .map((data) => data
+            .map((item) => ShoppingListItemModel.fromSupabase(item).toEntity())
+            .toList());
+  }
+
+  @override
   Future<List<ShoppingListItem>> getItems() async {
     try {
       final response = await _supabase

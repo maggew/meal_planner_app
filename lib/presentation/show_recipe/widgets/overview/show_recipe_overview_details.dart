@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/common/display_ingredient.dart';
-import 'package:meal_planner/services/providers/shopping_list_provider.dart';
+import 'package:meal_planner/services/providers/shopping_list/shopping_list_provider.dart';
 
 class ShowRecipeOverviewDetails extends ConsumerWidget {
   final Recipe recipe;
@@ -142,7 +142,7 @@ void _showAddToShoppingListSheet(
                                 .expand((i) => sections[i].ingredients)
                                 .toList();
                             ref
-                                .read(shoppingListProvider.notifier)
+                                .read(shoppingListActionsProvider.notifier)
                                 .addItemsFromIngredients(ingredients);
                             context.router.pop();
                             ScaffoldMessenger.of(context).showSnackBar(

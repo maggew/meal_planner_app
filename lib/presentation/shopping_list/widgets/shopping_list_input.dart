@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/services/providers/shopping_list_provider.dart';
+import 'package:meal_planner/services/providers/shopping_list/shopping_list_provider.dart';
 
 class ShoppingListInput extends ConsumerStatefulWidget {
   const ShoppingListInput({super.key});
@@ -16,7 +16,7 @@ class _ShoppingListInputState extends ConsumerState<ShoppingListInput> {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
-    ref.read(shoppingListProvider.notifier).addItem(text);
+    ref.read(shoppingListActionsProvider.notifier).addItem(text);
     _controller.clear();
   }
 

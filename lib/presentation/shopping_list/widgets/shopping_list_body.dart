@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/shopping_list/widgets/shopping_list_input.dart';
 import 'package:meal_planner/presentation/shopping_list/widgets/shopping_list_item_tile.dart';
-import 'package:meal_planner/services/providers/shopping_list_provider.dart';
+import 'package:meal_planner/services/providers/shopping_list/shopping_list_provider.dart';
 
 class ShoppingListBody extends ConsumerWidget {
   const ShoppingListBody({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final shoppingListState = ref.watch(shoppingListProvider);
+    final shoppingListState = ref.watch(shoppingListStreamProvider);
 
     return Column(
       children: [
@@ -54,4 +54,3 @@ class ShoppingListBody extends ConsumerWidget {
     );
   }
 }
-

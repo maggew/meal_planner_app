@@ -10,9 +10,12 @@ import 'package:meal_planner/presentation/router/router.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/notification_service.dart';
 import 'package:meal_planner/services/providers/auth_providers.dart';
+import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
 import 'package:meal_planner/services/providers/recipe/timer/active_timer_provider.dart';
 import 'package:meal_planner/services/providers/router_provider.dart';
+import 'package:meal_planner/services/providers/shopping_list/shopping_list_sync_provider.dart';
 import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
+import 'package:meal_planner/services/shopping_list/shopping_list_sync_observer.dart';
 import 'package:meal_planner/services/timer_lifecycle_observer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -68,14 +71,19 @@ class MyApp extends ConsumerStatefulWidget {
 
 class _MyAppState extends ConsumerState<MyApp> {
   late final TimerLifecycleObserver _lifecycleObserver;
+  late final ShoppingListSyncObserver _shoppingListSyncObserver;
   late final AppRouter _appRouter;
 
   @override
   void initState() {
     super.initState();
     _appRouter = ref.read(appRouterProvider);
+
     _lifecycleObserver = TimerLifecycleObserver(ref);
     WidgetsBinding.instance.addObserver(_lifecycleObserver);
+
+    _shoppingListSyncObserver = ShoppingListSyncObserver(ref);
+    WidgetsBinding.instance.addObserver(_shoppingListSyncObserver);
 
     NotificationService.instance.onNotificationTapped = _onTimerTapped;
   }
@@ -83,6 +91,7 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(_lifecycleObserver);
+    WidgetsBinding.instance.removeObserver(_shoppingListSyncObserver);
     super.dispose();
   }
 
@@ -114,6 +123,15 @@ class _MyAppState extends ConsumerState<MyApp> {
 
         if (wasLoggedIn && isLoggedOut) {
           _appRouter.replaceAll([const LoginRoute()]);
+        }
+      });
+    });
+
+    ref.listen(connectivityProvider, (previous, next) {
+      next.whenData((isOnline) {
+        final wasOffline = previous?.asData?.value == false;
+        if (isOnline && wasOffline) {
+          ref.read(shoppingListSyncServiceProvider).syncPendingItems();
         }
       });
     });

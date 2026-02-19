@@ -4,6 +4,7 @@ import 'package:meal_planner/core/constants/local_storage_service.dart';
 import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/domain/exceptions/group_exceptions.dart';
+import 'package:meal_planner/services/providers/realtime_auth_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -55,6 +56,8 @@ class SessionController extends StateNotifier<SessionState> {
         final groupRepo = ref.read(groupRepositoryProvider);
         group = await groupRepo.getGroup(groupId);
       }
+
+      await ref.read(realtimeAuthServiceProvider).initialize();
 
       state = SessionState(
         userId: userId,
@@ -137,6 +140,7 @@ class SessionController extends StateNotifier<SessionState> {
   Future<void> clearSession() async {
     final storage = LocalStorageService();
     await storage.clearActiveGroup();
+    ref.read(realtimeAuthServiceProvider).dispose();
     state = const SessionState();
   }
 }

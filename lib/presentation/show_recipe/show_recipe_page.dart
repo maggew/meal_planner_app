@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
-import 'package:meal_planner/presentation/common/loading_overlay.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/show_recipe_appbar.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/show_recipe_bottom_navigation_bar.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/show_recipe_cooking_mode.dart';

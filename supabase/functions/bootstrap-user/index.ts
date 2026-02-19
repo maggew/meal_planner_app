@@ -173,6 +173,7 @@ Deno.serve(async (req) => {
       // Custom Claim trotzdem setzen (falls Token abgelaufen war oder Claim fehlte)
       await setFirebaseCustomClaims(firebaseUid, {
         supabase_uid: existingUser.id,
+        role: "authenticated",
       });
 
       return Response.json({
@@ -198,6 +199,7 @@ Deno.serve(async (req) => {
     // ─── Custom Claim setzen ───
     await setFirebaseCustomClaims(firebaseUid, {
       supabase_uid: newUser.id,
+      role: "authenticated",
     });
 
     return Response.json({

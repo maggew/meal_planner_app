@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:meal_planner/core/database/app_database.dart';
 import 'package:meal_planner/data/repositories/firebase_auth_repository.dart';
 import 'package:meal_planner/data/repositories/firebase_storage_repository.dart';
+import 'package:meal_planner/data/repositories/offline_first_shopping_list_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_group_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_recipe_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_shopping_list_repository.dart';
@@ -73,12 +75,29 @@ final userRepositoryProvider = Provider<UserRepository>((ref) {
       storage: ref.watch(storageRepositoryProvider));
 });
 
+// Database
+final appDatabaseProvider = Provider<AppDatabase>((ref) {
+  final db = AppDatabase();
+  ref.onDispose(() => db.close());
+  return db;
+});
+
+final shoppingItemDaoProvider = Provider((ref) {
+  return ref.watch(appDatabaseProvider).shoppingItemDao;
+});
+
 final shoppingListRepositoryProvider = Provider<ShoppingListRepository>((ref) {
   final session = ref.watch(sessionProvider);
+  final groupId = session.groupId ?? '';
 
-  return SupabaseShoppingListRepository(
-    supabase: ref.watch(supabaseProvider),
-    groupId: session.groupId ?? '',
+  return OfflineFirstShoppingListRepository(
+    groupId: groupId,
+    ref: ref,
+    dao: ref.watch(shoppingItemDaoProvider),
+    remote: SupabaseShoppingListRepository(
+      supabase: ref.watch(supabaseProvider),
+      groupId: session.groupId ?? '',
+    ),
   );
 });
 
@@ -91,11 +110,3 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
     storageRepository: ref.watch(storageRepositoryProvider),
   );
 });
-
-// final fridgeRepositoryProvider = Provider<FridgeRepository>((ref) {
-//   return FirebaseFridgeRepository(
-//     firestore: ref.watch(firestoreProvider),
-//     storage: ref.watch(storageProvider),
-//     getCurrentGroupId: () => ref.read(sessionProvider).groupId ?? '',
-//   );
-// });

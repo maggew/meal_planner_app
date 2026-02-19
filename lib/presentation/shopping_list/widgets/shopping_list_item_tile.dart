@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/shopping_list_item.dart';
-import 'package:meal_planner/services/providers/shopping_list_provider.dart';
+import 'package:meal_planner/services/providers/shopping_list/shopping_list_provider.dart';
 
 class ShoppingListItemTile extends ConsumerWidget {
   final ShoppingListItem item;
@@ -20,7 +20,7 @@ class ShoppingListItemTile extends ConsumerWidget {
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       onDismissed: (_) {
-        ref.read(shoppingListProvider.notifier).removeItem(item.id);
+        ref.read(shoppingListActionsProvider.notifier).removeItem(item.id);
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -30,7 +30,7 @@ class ShoppingListItemTile extends ConsumerWidget {
             borderRadius: BorderRadius.circular(12),
             onTap: () {
               ref
-                  .read(shoppingListProvider.notifier)
+                  .read(shoppingListActionsProvider.notifier)
                   .toggleItem(item.id, !item.isChecked);
             },
             child: Padding(

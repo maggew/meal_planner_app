@@ -6,71 +6,51 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'shopping_list_provider.g.dart';
 
+// Stream-Provider für die UI – reagiert automatisch auf Drift-Änderungen
 @Riverpod(keepAlive: true)
-class ShoppingList extends _$ShoppingList {
+Stream<List<ShoppingListItem>> shoppingListStream(Ref ref) {
+  final repo = ref.watch(shoppingListRepositoryProvider);
+  return repo.watchItems();
+}
+
+// Notifier nur noch für Aktionen – kein manuelles State-Management mehr
+@Riverpod(keepAlive: true)
+class ShoppingListActions extends _$ShoppingListActions {
   @override
-  FutureOr<List<ShoppingListItem>> build() async {
-    final repo = ref.read(shoppingListRepositoryProvider);
-    return await repo.getItems();
-  }
+  void build() {}
 
   Future<void> addItem(String input) async {
     final parsed = ShoppingListInputParser.parse(input);
     final repo = ref.read(shoppingListRepositoryProvider);
-    final newItem = await repo.addItem(parsed.information, parsed.quantity);
-
-    final current = state.value ?? [];
-    state = AsyncData([...current, newItem]);
+    await repo.addItem(parsed.information, parsed.quantity);
+    // kein state update nötig – Drift Stream triggert UI automatisch
   }
 
   Future<void> addItemsFromIngredients(List<Ingredient> ingredients) async {
     final repo = ref.read(shoppingListRepositoryProvider);
-    final newItems = <ShoppingListItem>[];
-
     for (final ingredient in ingredients) {
       final quantity =
           '${ingredient.amount ?? ''} ${ingredient.unit?.displayName}'.trim();
-      final newItem = await repo.addItem(
+      await repo.addItem(
         ingredient.name,
         quantity.isEmpty ? null : quantity,
       );
-      newItems.add(newItem);
     }
-
-    final current = state.value ?? [];
-    state = AsyncData([...current, ...newItems]);
   }
 
   Future<void> toggleItem(String itemId, bool isChecked) async {
     final repo = ref.read(shoppingListRepositoryProvider);
     await repo.toggleItem(itemId, isChecked);
-
-    final current = state.value ?? [];
-    state = AsyncData([
-      for (final item in current)
-        if (item.id == itemId) item.copyWith(isChecked: isChecked) else item,
-    ]);
   }
 
   Future<void> removeItem(String itemId) async {
     final repo = ref.read(shoppingListRepositoryProvider);
     await repo.removeItem(itemId);
-
-    final current = state.value ?? [];
-    state = AsyncData(current.where((item) => item.id != itemId).toList());
   }
 
   Future<void> removeCheckedItems() async {
     final repo = ref.read(shoppingListRepositoryProvider);
     await repo.removeCheckedItems();
-
-    final current = state.value ?? [];
-    state = AsyncData(current.where((item) => !item.isChecked).toList());
-  }
-
-  Future<void> refresh() async {
-    state = const AsyncLoading();
-    final repo = ref.read(shoppingListRepositoryProvider);
-    state = AsyncData(await repo.getItems());
   }
 }
+
