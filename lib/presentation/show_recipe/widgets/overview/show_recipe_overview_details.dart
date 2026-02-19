@@ -12,19 +12,12 @@ class ShowRecipeOverviewDetails extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final ColorScheme _colorScheme = Theme.of(context).colorScheme;
     return Container(
       margin: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 10),
       padding: EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 10.0,
-            spreadRadius: 0.0,
-            offset: Offset(5.0, 5.0),
-          ),
-        ],
+        color: _colorScheme.surfaceContainer,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -36,13 +29,7 @@ class ShowRecipeOverviewDetails extends ConsumerWidget {
               // Portions
               Text(
                 "Portionen: ${recipe.portions.toString()}",
-                style: TextStyle(
-                  fontSize: 20,
-                  decoration: TextDecoration.underline,
-                  decorationColor: Colors.black,
-                  color: Colors.transparent,
-                  shadows: [Shadow(color: Colors.black, offset: Offset(0, -5))],
-                ),
+                style: Theme.of(context).textTheme.titleMedium,
               ),
               IconButton(
                   onPressed: () => _showAddToShoppingListSheet(
@@ -56,8 +43,8 @@ class ShowRecipeOverviewDetails extends ConsumerWidget {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(section.title), const SizedBox(height: 8),
-                // Ingredients of section
+                Text(section.title),
+                const SizedBox(height: 8),
                 ListView.builder(
                   physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,

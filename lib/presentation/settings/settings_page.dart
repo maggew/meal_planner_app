@@ -23,18 +23,6 @@ class SettingsPage extends ConsumerWidget {
           },
           icon: Icon(Icons.chevron_left),
         ),
-        // actionsButtons: [
-        //   IconButton(
-        //     onPressed: () async {
-        //       setState(() => _isLoading = true);
-        //       final sessionNotifier = ref.read(sessionProvider.notifier);
-        //       await sessionNotifier.changeSettings(newSettings);
-        //       setState(() => _isLoading = false);
-        //       context.router.pop();
-        //     },
-        //     icon: Icon(Icons.save),
-        //   ),
-        // ],
       ),
       scaffoldBody: SettingsBody(
         settings: settings,

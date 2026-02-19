@@ -23,7 +23,7 @@ class BurgerMenuListItem extends StatelessWidget {
             onTap();
           },
         ),
-        const Divider(height: 1, thickness: 0.5),
+        const Divider(),
       ],
     );
   }

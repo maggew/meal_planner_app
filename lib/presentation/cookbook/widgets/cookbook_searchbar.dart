@@ -62,12 +62,17 @@ class _CookbookSearchbarState extends ConsumerState<CookbookSearchbar> {
                           : null,
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(30)),
+                        borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.primary),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(30)),
+                        borderSide: BorderSide(
+                            color:
+                                Theme.of(context).colorScheme.surfaceContainer),
                       ),
                       hintText: "Suche",
-                      fillColor: Colors.white70,
+                      fillColor: Theme.of(context).colorScheme.surfaceContainer,
                       filled: true,
                       contentPadding: EdgeInsets.symmetric(vertical: 0),
                     ),
@@ -99,7 +104,12 @@ class _CookbookSearchbarState extends ConsumerState<CookbookSearchbar> {
                       padding: EdgeInsets.only(top: 6, left: 16),
                       child: Text(
                         'Mindestens 3 Zeichen eingeben',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.5),
+                            ),
                       ),
                     )
                   : SizedBox.shrink(),

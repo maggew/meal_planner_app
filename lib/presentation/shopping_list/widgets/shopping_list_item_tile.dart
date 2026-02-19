@@ -10,14 +10,15 @@ class ShoppingListItemTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final ColorScheme _colorScheme = Theme.of(context).colorScheme;
     return Dismissible(
       key: ValueKey(item.id),
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 16),
-        color: Colors.red,
-        child: const Icon(Icons.delete, color: Colors.white),
+        color: _colorScheme.error,
+        child: Icon(Icons.delete, color: _colorScheme.onError),
       ),
       onDismissed: (_) {
         ref.read(shoppingListActionsProvider.notifier).removeItem(item.id);
@@ -40,29 +41,27 @@ class ShoppingListItemTile extends ConsumerWidget {
                   Icon(
                     item.isChecked ? Icons.check_circle : Icons.circle_outlined,
                     color: item.isChecked
-                        ? Colors.grey
-                        : Theme.of(context).primaryColor,
+                        ? _colorScheme.onSurface.withValues(alpha: 0.4)
+                        : _colorScheme.primary,
                   ),
                   const SizedBox(width: 12),
-                  if (item.quantity != null) ...[
-                    Text(
-                      item.quantity!,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        decoration:
-                            item.isChecked ? TextDecoration.lineThrough : null,
-                        color: item.isChecked ? Colors.grey : null,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                  ],
                   Expanded(
                     child: Text(
-                      item.information,
+                      [
+                        if (item.quantity != null) item.quantity!,
+                        item.information,
+                      ].join(' '),
                       style: TextStyle(
+                        fontWeight:
+                            item.quantity != null ? FontWeight.bold : null,
                         decoration:
                             item.isChecked ? TextDecoration.lineThrough : null,
-                        color: item.isChecked ? Colors.grey : null,
+                        color: item.isChecked
+                            ? Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.4)
+                            : null,
                       ),
                     ),
                   ),

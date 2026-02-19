@@ -21,9 +21,6 @@ class CookbookTabbar extends ConsumerWidget {
     return VerticalTabs(
       disabledChangePageFromContentView: true,
       tabsElevation: 50,
-      selectedTabBackgroundColor: Colors.lightGreen[100]!,
-      indicatorColor: Colors.pink[300]!,
-      backgroundColor: Colors.transparent,
       tabsWidth: 100,
       tabsPosition: tabsPosition,
       tabs: [

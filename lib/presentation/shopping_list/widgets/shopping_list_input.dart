@@ -34,11 +34,12 @@ class _ShoppingListInputState extends ConsumerState<ShoppingListInput> {
         controller: _controller,
         decoration: InputDecoration(
           hintText: 'z.B. 500g Mehl',
+          fillColor:
+              Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
           suffixIcon: IconButton(
             icon: const Icon(Icons.add),
             onPressed: _submit,
           ),
-          border: const OutlineInputBorder(),
         ),
         textInputAction: TextInputAction.done,
         onSubmitted: (_) => _submit(),

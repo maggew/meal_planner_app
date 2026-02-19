@@ -1,12 +1,16 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/core/constants/app_icons.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
-import 'package:meal_planner/presentation/show_recipe/widgets/show_recipe_appbar.dart';
+import 'package:meal_planner/presentation/common/categories.dart';
+import 'package:meal_planner/presentation/common/common_appbar.dart';
+import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/show_recipe_bottom_navigation_bar.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/show_recipe_cooking_mode.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/show_recipe_overview.dart';
+import 'package:meal_planner/services/providers/recipe/recipe_pagination_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 
 @RoutePage()
@@ -111,7 +115,28 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
       );
     }
     return AppBackground(
-        scaffoldAppBar: ShowRecipeAppbar(recipe: _recipe!),
+        scaffoldAppBar: CommonAppbar(
+          leading: IconButton(
+              icon: Icon(Icons.keyboard_arrow_left),
+              onPressed: () {
+                context.router.pop();
+              }),
+          title: widget.recipe!.name,
+          actionsButtons: [
+            IconButton(
+              onPressed: () => _showEditDialog(context),
+              icon: Icon(
+                Icons.edit_outlined,
+              ),
+            ),
+            IconButton(
+              onPressed: () => _showDeleteDialog(context, ref),
+              icon: Icon(
+                AppIcons.trash_bin,
+              ),
+            ),
+          ],
+        ),
         scaffoldBottomNavigationBar: ShowRecipeBottomNavigationBar(
           tabController: _tabController,
         ),
@@ -129,5 +154,80 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
             ),
           ],
         ));
+  }
+
+  Future<void> _showEditDialog(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Rezept bearbeiten'),
+        content: Text('Möchtest du "${widget.recipe!.name}" bearbeiten?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('Abbrechen'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text('Bearbeiten'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      context.router.push(AddEditRecipeRoute(existingRecipe: widget.recipe));
+    }
+  }
+
+  Future<void> _showDeleteDialog(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Rezept löschen'),
+        content: Text('Möchtest du "${widget.recipe!.name}" wirklich löschen?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('Abbrechen'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text('Löschen'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _deleteRecipe(context, ref);
+    }
+  }
+
+  Future<void> _deleteRecipe(BuildContext context, WidgetRef ref) async {
+    try {
+      final recipeRepo = ref.read(recipeRepositoryProvider);
+      await recipeRepo.deleteRecipe(widget.recipe!.id!);
+
+      // Provider für alle Kategorien invalidieren
+      for (final category in categoryNames) {
+        ref.invalidate(recipesPaginationProvider(category.toLowerCase()));
+      }
+
+      if (context.mounted) {
+        context.router.pop();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fehler beim Löschen: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

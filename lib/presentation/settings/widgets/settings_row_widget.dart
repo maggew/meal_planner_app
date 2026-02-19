@@ -8,7 +8,6 @@ class SettingsRowWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color color = Colors.red;
     return Column(
       children: [
         IntrinsicHeight(
@@ -21,18 +20,18 @@ class SettingsRowWidget extends StatelessWidget {
                   child: Text(label),
                 ),
               ),
-              VerticalDivider(width: 1, thickness: 1, color: color),
+              VerticalDivider(thickness: 1.5),
               Expanded(
                 flex: 5,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.fromLTRB(10, 10, 0, 10),
                   child: Center(child: controlWidget),
                 ),
               ),
             ],
           ),
         ),
-        Divider(height: 1, thickness: 1, color: color),
+        Divider(thickness: 1.5),
       ],
     );
   }

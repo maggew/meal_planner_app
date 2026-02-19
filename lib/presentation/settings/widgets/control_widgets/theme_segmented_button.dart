@@ -15,18 +15,19 @@ class ThemeSegmentedButton extends StatelessWidget {
     return SegmentedButton<ThemeOption>(
       segments: const [
         ButtonSegment(
-            value: ThemeOption.light,
-            label: Text('Hell'),
-            icon: Icon(Icons.light_mode)),
+          value: ThemeOption.light,
+          label: Text('Hell'),
+        ),
         ButtonSegment(
-            value: ThemeOption.system,
-            label: Text('System'),
-            icon: Icon(Icons.settings_brightness)),
+          value: ThemeOption.system,
+          label: Text('System'),
+        ),
         ButtonSegment(
-            value: ThemeOption.dark,
-            label: Text('Dunkel'),
-            icon: Icon(Icons.dark_mode)),
+          value: ThemeOption.dark,
+          label: Text('Dunkel'),
+        ),
       ],
+      showSelectedIcon: false,
       selected: {newSettings.themeOption},
       onSelectionChanged: (selection) {
         onSettingsChanged(

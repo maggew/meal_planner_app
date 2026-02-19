@@ -69,7 +69,7 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
       margin: margin,
       padding: EdgeInsets.only(top: 5),
       decoration: BoxDecoration(
-        color: Colors.lightGreen[100],
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.3),
         borderRadius: containerBorderRadius,
       ),
       child: RefreshIndicator(

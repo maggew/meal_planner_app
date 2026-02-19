@@ -13,43 +13,43 @@ class VerticalTabs extends StatefulWidget {
   final List<Tab> tabs;
   final List<Widget> contents;
   final TabPosition tabsPosition;
-  final Color indicatorColor;
+  final Color? indicatorColor;
   final bool disabledChangePageFromContentView;
   final Axis contentScrollAxis;
-  final Color selectedTabBackgroundColor;
-  final Color tabBackgroundColor;
-  final TextStyle selectedTabTextStyle;
-  final TextStyle tabTextStyle;
+  final Color? selectedTabBackgroundColor;
+  final Color? tabBackgroundColor;
+  final TextStyle? selectedTabTextStyle;
+  final TextStyle? tabTextStyle;
   final Duration changePageDuration;
   final Curve changePageCurve;
-  final Color tabsShadowColor;
+  final Color? tabsShadowColor;
   final double tabsElevation;
   final Function(int tabIndex)? onSelect;
   final Color? backgroundColor;
 
-  VerticalTabs(
-      {this.key,
-      required this.tabs,
-      required this.contents,
-      this.tabsWidth = 200,
-      this.indicatorWidth = 3,
-      this.indicatorSide = IndicatorSide.end,
-      this.initialIndex = 0,
-      this.tabsPosition = TabPosition.left,
-      this.indicatorColor = Colors.green,
-      this.disabledChangePageFromContentView = false,
-      this.contentScrollAxis = Axis.horizontal,
-      this.selectedTabBackgroundColor = const Color(0x1100ff00),
-      this.tabBackgroundColor = const Color(0xfff8f8f8),
-      this.selectedTabTextStyle = const TextStyle(color: Colors.black),
-      this.tabTextStyle = const TextStyle(color: Colors.black38),
-      this.changePageCurve = Curves.easeInOut,
-      this.changePageDuration = const Duration(milliseconds: 300),
-      this.tabsShadowColor = Colors.black54,
-      this.tabsElevation = 2.0,
-      this.onSelect,
-      this.backgroundColor})
-      : assert(tabs.length == contents.length),
+  VerticalTabs({
+    this.key,
+    required this.tabs,
+    required this.contents,
+    this.tabsWidth = 200,
+    this.indicatorWidth = 3,
+    this.indicatorSide = IndicatorSide.end,
+    this.initialIndex = 0,
+    this.tabsPosition = TabPosition.left,
+    this.indicatorColor,
+    this.disabledChangePageFromContentView = false,
+    this.contentScrollAxis = Axis.horizontal,
+    this.selectedTabBackgroundColor,
+    this.tabBackgroundColor,
+    this.selectedTabTextStyle,
+    this.tabTextStyle,
+    this.changePageCurve = Curves.easeInOut,
+    this.changePageDuration = const Duration(milliseconds: 300),
+    this.tabsShadowColor,
+    this.tabsElevation = 2.0,
+    this.onSelect,
+    this.backgroundColor,
+  })  : assert(tabs.length == contents.length),
         super(key: key);
 
   @override
@@ -60,10 +60,6 @@ class _VerticalTabsState extends State<VerticalTabs>
     with TickerProviderStateMixin {
   late int _selectedIndex;
   bool? _changePageByTapView;
-
-  //AnimationController animationController;
-  //Animation<double> animation;
-  //Animation<RelativeRect> rectAnimation;
 
   PageController pageController = PageController();
 
@@ -82,8 +78,9 @@ class _VerticalTabsState extends State<VerticalTabs>
     }
     _selectTab(widget.initialIndex);
 
-    if (widget.disabledChangePageFromContentView == true)
+    if (widget.disabledChangePageFromContentView == true) {
       pageScrollPhysics = NeverScrollableScrollPhysics();
+    }
 
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -94,14 +91,21 @@ class _VerticalTabsState extends State<VerticalTabs>
 
   @override
   Widget build(BuildContext context) {
-//    Border border = Border(
-//        right: BorderSide(
-//            width: 0.5, color: widget.dividerColor));
-//    if (widget.direction == TextDirection.rtl) {
-//      border = Border(
-//          left: BorderSide(
-//              width: 0.5, color: widget.dividerColor));
-//    }
+    final colorScheme = Theme.of(context).colorScheme;
+
+    // Theme-aware Farben mit optionalem Override
+    final effectiveIndicatorColor =
+        widget.indicatorColor ?? colorScheme.secondary;
+    final effectiveSelectedBg =
+        widget.selectedTabBackgroundColor ?? colorScheme.surfaceContainer;
+    final effectiveTabBg = widget.tabBackgroundColor ?? colorScheme.surface;
+    final effectiveShadowColor = widget.tabsShadowColor ?? Colors.transparent;
+    final effectiveBgColor = widget.backgroundColor ?? Colors.transparent;
+    final effectiveSelectedTextStyle =
+        widget.selectedTabTextStyle ?? TextStyle(color: colorScheme.onSurface);
+    final effectiveTabTextStyle = widget.tabTextStyle ??
+        TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.5));
+
     final direction = widget.tabsPosition == TabPosition.right
         ? TextDirection.rtl
         : TextDirection.ltr;
@@ -109,7 +113,7 @@ class _VerticalTabsState extends State<VerticalTabs>
     return Directionality(
       textDirection: direction,
       child: Container(
-        color: widget.backgroundColor ?? Theme.of(context).canvasColor,
+        color: effectiveBgColor,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -137,38 +141,38 @@ class _VerticalTabsState extends State<VerticalTabs>
                               child = tab.child!;
                             } else {
                               child = Container(
-                                  padding: EdgeInsets.all(10),
-                                  child: Row(
-                                    children: <Widget>[
-                                      (tab.icon != null)
-                                          ? Row(
-                                              children: <Widget>[
-                                                tab.icon!,
-                                                SizedBox(
-                                                  width: 5,
-                                                )
-                                              ],
-                                            )
-                                          : Container(),
-                                      (tab.text != null)
-                                          ? Container(
-                                              width: widget.tabsWidth - 50,
-                                              child: Text(
-                                                tab.text!,
-                                                softWrap: true,
-                                                style: _selectedIndex == index
-                                                    ? widget
-                                                        .selectedTabTextStyle
-                                                    : widget.tabTextStyle,
-                                              ))
-                                          : Container(),
-                                    ],
-                                  ));
+                                padding: EdgeInsets.all(10),
+                                child: Row(
+                                  children: <Widget>[
+                                    (tab.icon != null)
+                                        ? Row(
+                                            children: <Widget>[
+                                              tab.icon!,
+                                              SizedBox(width: 5),
+                                            ],
+                                          )
+                                        : Container(),
+                                    (tab.text != null)
+                                        ? Container(
+                                            width: widget.tabsWidth - 50,
+                                            child: Text(
+                                              tab.text!,
+                                              softWrap: true,
+                                              style: _selectedIndex == index
+                                                  ? effectiveSelectedTextStyle
+                                                  : effectiveTabTextStyle,
+                                            ),
+                                          )
+                                        : Container(),
+                                  ],
+                                ),
+                              );
                             }
 
-                            Color itemBGColor = widget.tabBackgroundColor;
-                            if (_selectedIndex == index)
-                              itemBGColor = widget.selectedTabBackgroundColor;
+                            Color itemBGColor = effectiveTabBg;
+                            if (_selectedIndex == index) {
+                              itemBGColor = effectiveSelectedBg;
+                            }
 
                             double? left, right;
                             if (widget.tabsPosition == TabPosition.left) {
@@ -234,10 +238,10 @@ class _VerticalTabsState extends State<VerticalTabs>
                                   right: right,
                                   child: ScaleTransition(
                                     child: Container(
-                                      color: widget.indicatorColor,
+                                      color: effectiveIndicatorColor,
                                     ),
                                     scale: Tween(begin: 0.0, end: 1.0).animate(
-                                      new CurvedAnimation(
+                                      CurvedAnimation(
                                         parent: animationControllers[index],
                                         curve: Curves.elasticOut,
                                       ),
@@ -250,9 +254,8 @@ class _VerticalTabsState extends State<VerticalTabs>
                         ),
                       ),
                       elevation: widget.tabsElevation,
-                      shadowColor: widget.tabsShadowColor,
+                      shadowColor: effectiveShadowColor,
                       shape: RoundedRectangleBorder(
-                        // <-- ersetze BeveledRectangleBorder()
                         borderRadius: BorderRadius.only(
                           topRight: widget.tabsPosition == TabPosition.left
                               ? const Radius.circular(8)
@@ -281,11 +284,7 @@ class _VerticalTabsState extends State<VerticalTabs>
                           setState(() {});
                         },
                         controller: pageController,
-
-                        // the number of pages
                         itemCount: widget.contents.length,
-
-                        // building pages
                         itemBuilder: (BuildContext context, int index) {
                           return widget.contents[index];
                         },
@@ -313,3 +312,4 @@ class _VerticalTabsState extends State<VerticalTabs>
     }
   }
 }
+

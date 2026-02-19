@@ -22,14 +22,28 @@ class AppBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Stack(
       fit: StackFit.expand,
       children: [
         Positioned.fill(
           child: Container(
-            color: Colors.white,
-            child: Opacity(
-              opacity: 0.7,
+            color: isDark ? Colors.grey[900] : Colors.white,
+            child: ColorFiltered(
+              colorFilter: isDark
+                  ? const ColorFilter.matrix(<double>[
+                      0.12, 0.12, 0.12, 0, 0, // Red
+                      0.14, 0.18, 0.14, 0, 0, // Green
+                      0.12, 0.12, 0.12, 0, 0, // Blue
+                      0, 0, 0, 1, 0,
+                    ])
+                  : const ColorFilter.matrix(<double>[
+                      1, 0, 0, 0, 0, // Red
+                      0, 1, 0, 0, 0, // Green
+                      0, 0, 1, 0, 0, // Blue
+                      0, 0, 0, 0.7, 0,
+                    ]),
               child: RotatedBox(
                 quarterTurns: 3,
                 child: FittedBox(
@@ -41,20 +55,13 @@ class AppBackground extends StatelessWidget {
           ),
         ),
         Scaffold(
-          appBar: (scaffoldAppBar != null) ? scaffoldAppBar : null,
-          body: (scaffoldBody != null) ? scaffoldBody : null,
+          appBar: scaffoldAppBar,
+          body: scaffoldBody,
           drawer: BurgerMenu(),
-          floatingActionButton: (scaffoldFloatingActionButton != null)
-              ? scaffoldFloatingActionButton
-              : null,
-          floatingActionButtonLocation:
-              (scaffoldFloatingActionButtonLocation != null)
-                  ? scaffoldFloatingActionButtonLocation
-                  : null,
+          floatingActionButton: scaffoldFloatingActionButton,
+          floatingActionButtonLocation: scaffoldFloatingActionButtonLocation,
           extendBodyBehindAppBar: false,
-          bottomNavigationBar: (scaffoldBottomNavigationBar != null)
-              ? scaffoldBottomNavigationBar
-              : null,
+          bottomNavigationBar: scaffoldBottomNavigationBar,
         )
       ],
     );

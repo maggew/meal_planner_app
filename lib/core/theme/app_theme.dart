@@ -1,24 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-final Color _usedLightGreen = Colors.lightGreen[100]!;
-final Color _usedGreen = Colors.green[400]!;
-final Color _usedDarkGreen = Colors.green[800]!;
-
-final Color _usedBlack = Colors.black;
-final Color _usedWhite = Colors.white;
-
-final Color _usedRed = Colors.red;
-final Color _usedLightRed = Colors.red[300]!;
-final Color _usedDarkRed = Colors.red[600]!;
-final Color _usedViolet = Colors.deepPurple;
-
-final Color _usedTransparent = Colors.transparent;
-final Color _usedGrey = Colors.grey[100]!;
-final Color _usedGrey800 = Colors.grey[800]!;
-final Color _usedGrey700 = Colors.grey[700]!;
-final Color _usedDarkGrey = Colors.grey[900]!;
-
 class AppTheme {
   static ThemeData get light => _buildTheme(brightness: Brightness.light);
   static ThemeData get dark => _buildTheme(brightness: Brightness.dark);
@@ -26,37 +8,57 @@ class AppTheme {
   static ThemeData _buildTheme({required Brightness brightness}) {
     final isDark = brightness == Brightness.dark;
 
-    // Colors
-    final backgroundColor = isDark ? _usedDarkGrey : _usedWhite;
-    final textColor = isDark ? _usedWhite : _usedBlack;
-    final cardColor = isDark ? _usedDarkGreen : _usedLightGreen;
-    final greyFill = isDark ? _usedGrey800 : _usedLightGreen;
+    // Farben
+    final primary = isDark ? Colors.green[300]! : Colors.green[400]!;
+    final onPrimary = isDark ? Colors.black : Colors.white;
+    final secondary = isDark ? Colors.orange[300]! : Colors.orange[400]!;
+    final onSecondary = isDark ? Colors.black : Colors.white;
+    final error = isDark ? Colors.red[300]! : Colors.red[400]!;
+    final onError = Colors.white;
+    final surface = isDark ? Colors.grey[900]! : Colors.white;
+    final onSurface = isDark ? Colors.white : Colors.black;
+    final surfaceContainer = isDark ? Colors.grey[850]! : Colors.grey[100]!;
+
+    final _colorScheme = ColorScheme(
+      brightness: brightness,
+      primary: primary,
+      onPrimary: onPrimary,
+      secondary: secondary,
+      onSecondary: onSecondary,
+      error: error,
+      onError: onError,
+      surface: surface,
+      onSurface: onSurface,
+      surfaceContainer: surfaceContainer,
+    );
 
     // Text Styles
     final titleLarge = TextStyle(
-      fontFamily: GoogleFonts.oswald().fontFamily,
-      fontSize: 40,
-      color: isDark ? _usedLightRed : _usedRed,
+      fontFamily: GoogleFonts.quicksand().fontFamily,
+      fontSize: 25,
+      fontWeight: FontWeight.w700,
+      color: onSurface,
     );
-    final titleMedium = titleLarge.copyWith(fontSize: 30);
-    final titleSmall = titleLarge.copyWith(fontSize: 25);
+    final titleMedium = titleLarge.copyWith(fontSize: 20);
+    final titleSmall = titleLarge.copyWith(fontSize: 17);
 
     final bodyLarge = TextStyle(
       fontFamily: GoogleFonts.quicksand().fontFamily,
-      fontSize: 18,
+      fontSize: 16,
       fontWeight: FontWeight.w500,
-      color: textColor,
+      color: onSurface,
     );
-    final bodyMedium = bodyLarge.copyWith(fontSize: 16);
-    final bodySmall = bodyLarge.copyWith(fontSize: 14);
+    final bodyMedium = bodyLarge.copyWith(fontSize: 14);
+    final bodySmall = bodyLarge.copyWith(fontSize: 12);
 
     final displayLarge = TextStyle(
-      fontFamily: GoogleFonts.aBeeZee().fontFamily,
-      fontSize: 50,
-      color: textColor,
+      fontFamily: GoogleFonts.quicksand().fontFamily,
+      fontSize: 34,
+      fontWeight: FontWeight.w300,
+      color: onSurface,
     );
-    final displayMedium = displayLarge.copyWith(fontSize: 40);
-    final displaySmall = displayLarge.copyWith(fontSize: 30);
+    final displayMedium = displayLarge.copyWith(fontSize: 28);
+    final displaySmall = displayLarge.copyWith(fontSize: 22);
 
     final _textTheme = TextTheme(
       //Used in Textfields inside the body of pages
@@ -73,77 +75,115 @@ class AppTheme {
       titleSmall: titleSmall,
     );
 
-    return ThemeData(
-      brightness: brightness,
-      scaffoldBackgroundColor: _usedTransparent,
-      appBarTheme: AppBarThemeData(
-        backgroundColor: backgroundColor,
-        scrolledUnderElevation: 0,
-        elevation: 0,
-      ),
-      tabBarTheme: TabBarThemeData(
-        labelStyle: bodyLarge,
-        labelColor: _usedViolet,
-        indicatorColor: _usedViolet,
-        unselectedLabelColor: textColor,
-        unselectedLabelStyle: bodyLarge,
-      ),
-      dropdownMenuTheme: DropdownMenuThemeData(textStyle: bodyMedium),
-      cardTheme: CardThemeData(color: cardColor),
-      checkboxTheme: CheckboxThemeData(
-        checkColor: WidgetStateProperty.all(_usedWhite),
-        fillColor: WidgetStateProperty.all(_usedGreen),
-      ),
-      textTheme: _textTheme,
-      textButtonTheme: TextButtonThemeData(
+    final _appBarTheme = AppBarThemeData(
+      backgroundColor: surface,
+      foregroundColor: onSurface,
+      scrolledUnderElevation: 0,
+      elevation: 0,
+      centerTitle: true,
+    );
+
+    final _tabBarTheme = TabBarThemeData(
+      labelStyle: bodyLarge,
+      labelColor: secondary,
+      indicatorColor: secondary,
+      unselectedLabelColor: onSurface,
+      unselectedLabelStyle: bodyLarge,
+    );
+
+    final _checkboxTheme = CheckboxThemeData(
+      checkColor: WidgetStateProperty.all(onPrimary),
+      fillColor: WidgetStateProperty.all(primary),
+    );
+
+    final _textButtonTheme = TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: textColor,
-          textStyle: TextStyle(
-            fontFamily: GoogleFonts.quicksand(
-              fontWeight: FontWeight.w500,
-            ).fontFamily,
-            fontSize: 17.5,
-          ),
-        ),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
+      foregroundColor: onSurface,
+      textStyle: bodyLarge,
+    ));
+
+    final _elevatedButtonTheme = ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: _usedGreen,
-          textStyle: bodyLarge,
-        ),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
+      backgroundColor: primary,
+      foregroundColor: onPrimary,
+      textStyle: bodyLarge,
+    ));
+
+    final _inputDecorationTheme = InputDecorationTheme(
         filled: true,
-        fillColor: greyFill,
         isDense: true,
-        prefixIconColor: textColor,
+        fillColor: surfaceContainer,
+        prefixIconColor: onSurface,
         floatingLabelBehavior: FloatingLabelBehavior.always,
         floatingLabelStyle: bodyMedium,
         labelStyle: bodyMedium,
         hintStyle: bodyMedium,
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(
-            color: _usedGrey800,
-            width: 2.5,
-          ),
+          borderSide: BorderSide(color: primary, width: 2.5),
         ),
         enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(
-            color: isDark ? _usedGrey700 : _usedWhite,
-            width: 1.5,
-          ),
+          borderSide: BorderSide(color: surfaceContainer, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: _usedRed, width: 1.5),
-        ),
-      ),
-      scrollbarTheme: ScrollbarThemeData(
+          borderSide: BorderSide(color: error, width: 1.5),
+        ));
+
+    final _scrollbarTheme = ScrollbarThemeData(
         thumbVisibility: WidgetStateProperty.all(true),
         interactive: true,
         thickness: WidgetStateProperty.all(10),
         radius: Radius.circular(10),
-        thumbColor: WidgetStateProperty.all(Colors.teal[200]),
+        thumbColor: WidgetStateProperty.all(primary.withValues(alpha: 0.5)));
+
+    final _dividerTheme = DividerThemeData(
+      color: onSurface.withValues(alpha: 0.30),
+      thickness: 0.5,
+      space: 1,
+    );
+
+    final _segmentedButtonTheme = SegmentedButtonThemeData(
+        style: ButtonStyle(
+      backgroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return primary;
+        }
+        return Colors.transparent;
+      }),
+      foregroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return onPrimary;
+        }
+        return onSurface;
+      }),
+      textStyle: WidgetStateProperty.all(bodyMedium),
+      iconSize: WidgetStateProperty.all(16),
+      padding: WidgetStateProperty.all(
+        EdgeInsets.symmetric(horizontal: 8),
       ),
+    ));
+
+    final _popupMenuTheme = PopupMenuThemeData(
+      textStyle: bodyMedium,
+      color: surfaceContainer,
+    );
+
+    return ThemeData(
+      brightness: brightness,
+      colorScheme: _colorScheme,
+      textTheme: _textTheme,
+      scaffoldBackgroundColor: Colors.transparent,
+      appBarTheme: _appBarTheme,
+      tabBarTheme: _tabBarTheme,
+      dropdownMenuTheme: DropdownMenuThemeData(textStyle: bodyMedium),
+      cardTheme: CardThemeData(color: surfaceContainer),
+      checkboxTheme: _checkboxTheme,
+      textButtonTheme: _textButtonTheme,
+      elevatedButtonTheme: _elevatedButtonTheme,
+      inputDecorationTheme: _inputDecorationTheme,
+      scrollbarTheme: _scrollbarTheme,
+      dividerTheme: _dividerTheme,
+      segmentedButtonTheme: _segmentedButtonTheme,
+      popupMenuTheme: _popupMenuTheme,
     );
   }
 }

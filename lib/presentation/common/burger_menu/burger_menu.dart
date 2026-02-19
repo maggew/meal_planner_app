@@ -17,9 +17,9 @@ class BurgerMenu extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(sessionProvider);
     final Group? group = session.group;
+    final TextTheme textTheme = Theme.of(context).textTheme;
 
     return Drawer(
-      backgroundColor: Colors.lightGreen[100],
       elevation: 20,
       width: burgerMenuWidthPercentage * MediaQuery.of(context).size.width,
       child: ListView(
@@ -35,7 +35,7 @@ class BurgerMenu extends ConsumerWidget {
               padding: EdgeInsets.symmetric(vertical: 5, horizontal: 20),
               child: Text(
                 group == null ? 'Keine Gruppe' : group.name,
-                style: const TextStyle(fontSize: 27.5),
+                style: textTheme.titleLarge,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
               ),

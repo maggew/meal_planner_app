@@ -14,7 +14,6 @@ class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.white,
       surfaceTintColor: Colors.transparent,
       toolbarHeight: 80,
       leading: leading != null
@@ -22,8 +21,6 @@ class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
           : Builder(
               builder: (context) {
                 return IconButton(
-                  style:
-                      IconButton.styleFrom(backgroundColor: Colors.transparent),
                   icon: Icon(Icons.menu), //FaIcon(FontAwesomeIcons.bars),
                   onPressed: () {
                     Scaffold.of(context).openDrawer();
@@ -31,12 +28,8 @@ class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
                 );
               },
             ),
-      foregroundColor: Colors.black,
       elevation: 0,
-      title: Text(
-        title,
-        style: Theme.of(context).textTheme.displaySmall,
-      ),
+      title: Text(title),
       centerTitle: true,
       actions: actionsButtons,
     );
