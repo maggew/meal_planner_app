@@ -15,42 +15,35 @@ class CookingModeActiveTimer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final isFinished = timer.status == TimerStatus.finished;
+    final isRunning = timer.status == TimerStatus.running;
+    final isPaused = timer.status == TimerStatus.paused;
     return Column(
       children: [
         // Countdown + Label
         Row(
           children: [
             Icon(
-              timer.status == TimerStatus.finished
-                  ? Icons.check_circle
-                  : Icons.timer,
-              color: timer.status == TimerStatus.finished
-                  ? Colors.green
-                  : Colors.deepOrange,
+              isFinished ? Icons.check_circle : Icons.timer,
+              color: isFinished ? colorScheme.primary : colorScheme.secondary,
               size: 20,
             ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 timer.label,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
+                style:
+                    textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
             Text(
-              timer.status == TimerStatus.finished
-                  ? 'Fertig!'
-                  : formatSeconds(timer.remainingSeconds),
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
+              isFinished ? 'Fertig!' : formatSeconds(timer.remainingSeconds),
+              style: textTheme.displayMedium?.copyWith(
                 fontFeatures: const [FontFeature.tabularFigures()],
-                color: timer.status == TimerStatus.finished
-                    ? Colors.green
-                    : Colors.black87,
+                color: isFinished ? colorScheme.primary : colorScheme.onSurface,
               ),
             ),
           ],
@@ -63,11 +56,9 @@ class CookingModeActiveTimer extends ConsumerWidget {
           child: LinearProgressIndicator(
             value: timer.progress,
             minHeight: 6,
-            backgroundColor: Colors.grey[200],
+            backgroundColor: colorScheme.primary.withValues(alpha: 0.2),
             valueColor: AlwaysStoppedAnimation<Color>(
-              timer.status == TimerStatus.finished
-                  ? Colors.green
-                  : Colors.deepOrange,
+              isFinished ? colorScheme.primary : colorScheme.secondary,
             ),
           ),
         ),
@@ -77,7 +68,7 @@ class CookingModeActiveTimer extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            if (timer.status == TimerStatus.running) ...[
+            if (isRunning) ...[
               TextButton.icon(
                 onPressed: () =>
                     ref.read(activeTimerProvider.notifier).pauseTimer(timerKey),
@@ -85,7 +76,7 @@ class CookingModeActiveTimer extends ConsumerWidget {
                 label: const Text('Pause'),
               ),
             ],
-            if (timer.status == TimerStatus.paused) ...[
+            if (isPaused) ...[
               TextButton.icon(
                 onPressed: () => ref
                     .read(activeTimerProvider.notifier)
@@ -94,7 +85,7 @@ class CookingModeActiveTimer extends ConsumerWidget {
                 label: const Text('Weiter'),
               ),
             ],
-            if (timer.status == TimerStatus.finished) ...[
+            if (isFinished) ...[
               TextButton.icon(
                 onPressed: () => ref
                     .read(activeTimerProvider.notifier)
@@ -103,7 +94,7 @@ class CookingModeActiveTimer extends ConsumerWidget {
                 label: const Text('Fertig'),
               ),
             ],
-            if (timer.status != TimerStatus.finished) ...[
+            if (!isFinished) ...[
               TextButton.icon(
                 onPressed: () => ref
                     .read(activeTimerProvider.notifier)

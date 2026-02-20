@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/active_timer.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooking_mode_page_buttons.dart';
@@ -71,30 +72,33 @@ class _ShowRecipeCookingModeState extends ConsumerState<ShowRecipeCookingMode>
       }
     });
 
-    return Stack(
-      children: [
-        TabBarView(
-            controller: _tabController,
-            physics: const NeverScrollableScrollPhysics(),
-            children: List.generate(
-                instructions.length,
-                (index) => CookingModeStepWidget(
-                      recipeId: widget.recipe.id!,
-                      instructionStep: instructions[index],
-                      stepNumber: index + 1,
-                      ingredientSections: widget.recipe.ingredientSections,
-                      isExpanded: isIngredientsExpanded,
-                      onExpandToggle: () => setState(() {
-                        isIngredientsExpanded = !isIngredientsExpanded;
-                      }),
-                    )).toList()),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 16,
-          child: CookingModePageButtons(tabController: _tabController),
-        ),
-      ],
+    return Padding(
+      padding: AppDimensions.screenPadding,
+      child: Stack(
+        children: [
+          TabBarView(
+              controller: _tabController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: List.generate(
+                  instructions.length,
+                  (index) => CookingModeStepWidget(
+                        recipeId: widget.recipe.id!,
+                        instructionStep: instructions[index],
+                        stepNumber: index + 1,
+                        ingredientSections: widget.recipe.ingredientSections,
+                        isExpanded: isIngredientsExpanded,
+                        onExpandToggle: () => setState(() {
+                          isIngredientsExpanded = !isIngredientsExpanded;
+                        }),
+                      )).toList()),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 16,
+            child: CookingModePageButtons(tabController: _tabController),
+          ),
+        ],
+      ),
     );
   }
 

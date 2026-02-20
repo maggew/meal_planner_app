@@ -16,7 +16,7 @@ class JoinGroupBody extends ConsumerWidget {
     final TextTheme textTheme = Theme.of(context).textTheme;
     return Center(
       child: Column(
-        mainAxisSize: MainAxisSize.max,
+        spacing: 30,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
@@ -24,34 +24,15 @@ class JoinGroupBody extends ConsumerWidget {
             style: textTheme.displayMedium,
             textAlign: TextAlign.center,
           ),
-          SizedBox(
-            height: 30,
-          ),
-          SizedBox(
-            height: 100,
-            width: 270,
-            child: TextFormField(
-              controller: groupIdController,
-              autovalidateMode: AutovalidateMode.disabled,
-              //validator: _validateGroupID,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.blueGrey,
-                    width: 1.5,
-                  ),
-                ),
-                hintText: "Gruppen-ID",
-                labelText: "Gruppen-ID",
-              ),
+          TextFormField(
+            controller: groupIdController,
+            autovalidateMode: AutovalidateMode.disabled,
+            decoration: InputDecoration(
+              hintText: "Gruppen-ID",
+              labelText: "Gruppen-ID",
             ),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              fixedSize: Size(150, 40),
-            ),
             child: Text("beitreten"),
             onPressed: () async {
               final groupId = groupIdController.text.trim();
@@ -59,11 +40,15 @@ class JoinGroupBody extends ConsumerWidget {
 
               try {
                 await ref.read(sessionProvider.notifier).joinGroup(groupId);
-                context.router.replace(const CookbookRoute());
+                if (context.mounted) {
+                  context.router.replace(const CookbookRoute());
+                }
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Gruppe nicht gefunden')),
-                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Gruppe nicht gefunden')),
+                  );
+                }
               }
             },
           ),

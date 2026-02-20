@@ -5,9 +5,10 @@ class LoginResetPasswordWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Container(
       height: 50,
-      color: Colors.red,
+      color: colorScheme.error,
       child: Center(child: Text("hier passwort zurücksetzten")),
     );
   }

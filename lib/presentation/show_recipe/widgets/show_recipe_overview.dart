@@ -30,8 +30,14 @@ class _ShowRecipeOverviewState extends State<ShowRecipeOverview>
       child: Column(
         children: [
           Hero(
-            tag: widget.recipe.name,
-            child: widget.image,
+            tag: widget.recipe.id ?? widget.recipe.name,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(24),
+                bottomRight: Radius.circular(24),
+              ),
+              child: widget.image,
+            ),
           ),
           ShowRecipeOverviewDetails(recipe: widget.recipe),
           ShowRecipeOverviewInstructions(recipe: widget.recipe),

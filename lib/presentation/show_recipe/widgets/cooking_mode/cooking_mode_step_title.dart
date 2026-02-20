@@ -21,27 +21,27 @@ class CookingModeStepTitle extends ConsumerWidget {
     final hasTimer = savedTimers.value?[stepNumber - 1] != null;
 
     return Padding(
-      padding: const EdgeInsets.only(top: 10),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Text(
-            "Schritt Nr. $stepNumber",
-            style: themeData.textTheme.displayMedium,
-          ),
-          if (!hasTimer)
-            Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: Align(
-                alignment: Alignment.centerRight,
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: SizedBox(
+        width: double.infinity,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Text(
+              stepNumber.toString(),
+              style: themeData.textTheme.displayMedium,
+            ),
+            if (!hasTimer)
+              Positioned(
+                right: 10,
                 child: IconButton(
                   onPressed: onAddTimer,
                   icon: const Icon(Icons.add_alarm, size: 22),
-                  color: Colors.deepOrange,
+                  color: themeData.colorScheme.secondary,
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

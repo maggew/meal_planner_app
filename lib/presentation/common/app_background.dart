@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/presentation/common/burger_menu/burger_menu.dart';
 
 class AppBackground extends StatelessWidget {
@@ -7,6 +8,7 @@ class AppBackground extends StatelessWidget {
   final FloatingActionButton? scaffoldFloatingActionButton;
   final FloatingActionButtonLocation? scaffoldFloatingActionButtonLocation;
   final Widget? scaffoldBottomNavigationBar;
+  final bool applyScreenPadding;
   const AppBackground({
     super.key,
     this.scaffoldAppBar,
@@ -14,6 +16,7 @@ class AppBackground extends StatelessWidget {
     this.scaffoldFloatingActionButton,
     this.scaffoldFloatingActionButtonLocation,
     this.scaffoldBottomNavigationBar,
+    this.applyScreenPadding = false,
   });
 
   static final _backgroundImage = Image.asset(
@@ -56,7 +59,10 @@ class AppBackground extends StatelessWidget {
         ),
         Scaffold(
           appBar: scaffoldAppBar,
-          body: scaffoldBody,
+          body: applyScreenPadding
+              ? Padding(
+                  padding: AppDimensions.screenPadding, child: scaffoldBody)
+              : scaffoldBody,
           drawer: BurgerMenu(),
           floatingActionButton: scaffoldFloatingActionButton,
           floatingActionButtonLocation: scaffoldFloatingActionButtonLocation,

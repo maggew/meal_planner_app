@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/active_timer.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/timer/cooking_mode_active_timer.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/timer/cooking_mode_idle_timer.dart';
@@ -10,8 +11,6 @@ import 'package:meal_planner/services/providers/recipe/timer/timer_tick_provider
 class CookingModeTimerWidget extends ConsumerStatefulWidget {
   final String recipeId;
   final int stepIndex;
-  final double pageMargin;
-  final double borderRadius;
   final bool forceShowPicker;
   final VoidCallback? onPickerClosed;
 
@@ -19,8 +18,6 @@ class CookingModeTimerWidget extends ConsumerStatefulWidget {
     super.key,
     required this.recipeId,
     required this.stepIndex,
-    required this.pageMargin,
-    required this.borderRadius,
     this.forceShowPicker = false,
     this.onPickerClosed,
   });
@@ -72,38 +69,37 @@ class _CookingModeTimerWidgetState extends ConsumerState<CookingModeTimerWidget>
       return const SizedBox.shrink();
     }
 
+    final isFinished = activeTimer?.status == TimerStatus.finished;
+
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final baseColor = colorScheme.surfaceContainer;
+
     return AnimatedBuilder(
       animation: _pulseController,
       builder: (context, child) {
-        final isFinished = activeTimer?.status == TimerStatus.finished;
         final pulseValue = _pulseController.value;
 
+        final finishedColor =
+            Color.lerp(baseColor, colorScheme.primaryContainer, pulseValue);
+
         return Container(
-          margin: EdgeInsets.symmetric(horizontal: widget.pageMargin),
           padding: const EdgeInsets.all(16),
           width: double.infinity,
           decoration: BoxDecoration(
-            color: isFinished
-                ? Color.lerp(Colors.white, Colors.green[50], pulseValue)
-                : Colors.white,
-            borderRadius: BorderRadius.circular(widget.borderRadius),
+            color: isFinished ? finishedColor : baseColor,
+            borderRadius: AppDimensions.borderRadiusAll,
             border: isFinished
                 ? Border.all(
-                    color: Colors.green
+                    color: colorScheme.primary
                         .withValues(alpha: 0.3 + (pulseValue * 0.4)),
                     width: 2,
                   )
-                : null,
-            boxShadow: [
-              BoxShadow(
-                color: isFinished
-                    ? Colors.green.withValues(alpha: 0.15 + (pulseValue * 0.15))
-                    : Colors.black26,
-                blurRadius: 10.0,
-                spreadRadius: 0.0,
-                offset: const Offset(5.0, 5.0),
-              ),
-            ],
+                : Border(
+                    left: BorderSide(
+                      color: colorScheme.primary,
+                      width: 4,
+                    ),
+                  ),
           ),
           child: child,
         );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 
 class ShowRecipeOverviewInstructions extends StatelessWidget {
@@ -7,18 +8,22 @@ class ShowRecipeOverviewInstructions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ColorScheme _colorScheme = Theme.of(context).colorScheme;
-    final TextTheme _textTheme = Theme.of(context).textTheme;
+    final instructions = recipe.instructions.trim();
+
+    if (instructions.isEmpty) return const SizedBox.shrink();
+
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: EdgeInsets.all(10),
       width: double.infinity,
       decoration: BoxDecoration(
-        color: _colorScheme.surfaceContainer,
+        color: colorScheme.surfaceContainer,
+        borderRadius: AppDimensions.borderRadiusAll,
       ),
-      child: Container(
-        margin: EdgeInsets.all(10),
-        child: Text(recipe.instructions, style: _textTheme.bodyMedium),
-      ),
+      child: Text(recipe.instructions, style: textTheme.bodyMedium),
     );
   }
 }

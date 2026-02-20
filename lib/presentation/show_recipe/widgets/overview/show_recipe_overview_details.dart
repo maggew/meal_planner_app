@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/common/display_ingredient.dart';
@@ -12,12 +13,13 @@ class ShowRecipeOverviewDetails extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ColorScheme _colorScheme = Theme.of(context).colorScheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Container(
       margin: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 10),
       padding: EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: _colorScheme.surfaceContainer,
+        color: colorScheme.surfaceContainer,
+        borderRadius: AppDimensions.borderRadiusAll,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

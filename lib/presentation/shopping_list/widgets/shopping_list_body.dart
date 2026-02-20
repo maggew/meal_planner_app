@@ -32,17 +32,18 @@ class ShoppingListBody extends ConsumerWidget {
                 children: [
                   ...unchecked.map((item) => ShoppingListItemTile(item: item)),
                   if (checked.isNotEmpty) ...[
-                    const Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Text(
-                        'Erledigt',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                    Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        child: Text('Erledigt',
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withValues(alpha: 0.5),
+                                      fontWeight: FontWeight.w600,
+                                    ))),
                     ...checked.map((item) => ShoppingListItemTile(item: item)),
                   ],
                 ],

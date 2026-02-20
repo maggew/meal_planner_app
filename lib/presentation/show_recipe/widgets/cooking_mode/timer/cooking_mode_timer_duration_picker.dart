@@ -1,47 +1,50 @@
 import 'package:flutter/material.dart';
 
 class CookingModeTimerDurationPicker extends StatelessWidget {
-  final int? savedDuration;
   final TextEditingController labelController;
   final TextEditingController minutesController;
   final TextEditingController secondsController;
   final VoidCallback onStart;
   final VoidCallback onCancel;
+  final VoidCallback onSave;
   const CookingModeTimerDurationPicker({
     super.key,
-    required this.savedDuration,
     required this.labelController,
     required this.minutesController,
     required this.secondsController,
     required this.onStart,
     required this.onCancel,
+    required this.onSave,
   });
 
   @override
   Widget build(BuildContext context) {
-    // if (savedDuration != null && inputMinutes == 0 && inputSeconds == 0) {
-    //   inputMinutes = savedDuration ~/ 60;
-    //   inputSeconds = savedDuration % 60;
-    // }
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final Color inputBorderColor = colorScheme.onSurface.withValues(alpha: 0.3);
 
+    final ButtonStyle outlineButtonStyle = OutlinedButton.styleFrom(
+      side: BorderSide(color: inputBorderColor),
+      foregroundColor: colorScheme.onSurface,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 10,
       children: [
-        const Text(
+        Text(
           'Timer einstellen',
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+          style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
-        const SizedBox(height: 12),
         TextField(
           controller: labelController,
-          decoration: const InputDecoration(
-            labelText: 'Name (optional)',
-            hintText: 'z.B. Nudeln kochen',
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          ),
+          decoration: InputDecoration(
+              labelText: 'Name (optional)',
+              hintText: 'z.B. Nudeln kochen',
+              enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                color: inputBorderColor,
+              ))),
         ),
-        const SizedBox(height: 10),
         Row(
           children: [
             SizedBox(
@@ -50,16 +53,17 @@ class CookingModeTimerDurationPicker extends StatelessWidget {
                 controller: minutesController,
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
-                decoration: const InputDecoration(
-                  labelText: 'Min',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(vertical: 8),
-                ),
+                decoration: InputDecoration(
+                    labelText: 'Min',
+                    enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                      color: inputBorderColor,
+                    ))),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8),
-              child: Text(':', style: TextStyle(fontSize: 20)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(':', style: textTheme.bodyLarge),
             ),
             SizedBox(
               width: 60,
@@ -67,22 +71,42 @@ class CookingModeTimerDurationPicker extends StatelessWidget {
                 controller: secondsController,
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
-                decoration: const InputDecoration(
-                  labelText: 'Sek',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                decoration: InputDecoration(
+                    labelText: 'Sek',
+                    enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                      color: inputBorderColor,
+                    ))),
+              ),
+            ),
+          ],
+        ),
+        Row(
+          spacing: 10,
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: onCancel,
+                style: outlineButtonStyle,
+                child: const Text('Abbrechen', overflow: TextOverflow.ellipsis),
+              ),
+            ),
+            Expanded(
+              child: OutlinedButton(
+                onPressed: onSave,
+                style: outlineButtonStyle,
+                child: const Text(
+                  'Speichern',
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ),
-            const Spacer(),
-            TextButton(
-              onPressed: onCancel,
-              child: const Text('Abbrechen'),
-            ),
-            const SizedBox(width: 4),
-            FilledButton(
-              onPressed: onStart,
-              child: const Text('Start'),
+            ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 80, maxWidth: 100),
+              child: FilledButton(
+                onPressed: onStart,
+                child: const Text('Start'),
+              ),
             ),
           ],
         ),

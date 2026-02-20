@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/core/constants/constants.dart';
+import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/presentation/common/burger_menu/widgets/buger_menu_list.dart';
 import 'package:meal_planner/presentation/common/burger_menu/widgets/burger_menu_header.dart';
@@ -21,7 +21,8 @@ class BurgerMenu extends ConsumerWidget {
 
     return Drawer(
       elevation: 20,
-      width: burgerMenuWidthPercentage * MediaQuery.of(context).size.width,
+      width: AppDimensions.burgerMenuWidthPercentage *
+          MediaQuery.of(context).size.width,
       child: ListView(
         padding: EdgeInsets.zero,
         children: [

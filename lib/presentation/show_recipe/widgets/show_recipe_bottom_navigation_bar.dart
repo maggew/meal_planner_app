@@ -10,13 +10,13 @@ class ShowRecipeBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ColorScheme _colorScheme = Theme.of(context).colorScheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Container(
-      color: _colorScheme.surface,
+      color: colorScheme.surface,
       child: TabBar(
         controller: tabController,
-        indicatorColor: _colorScheme.primary,
-        labelColor: _colorScheme.primary,
+        indicatorColor: colorScheme.primary,
+        labelColor: colorScheme.primary,
         dividerColor: Colors.transparent,
         tabs: [
           Tab(icon: Icon(AppIcons.shopping_list), text: "Übersicht"),

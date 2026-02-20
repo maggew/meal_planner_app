@@ -11,8 +11,12 @@ class AppTheme {
     // Farben
     final primary = isDark ? Colors.green[300]! : Colors.green[400]!;
     final onPrimary = isDark ? Colors.black : Colors.white;
-    final secondary = isDark ? Colors.orange[300]! : Colors.orange[400]!;
+    final primaryContainer = isDark ? Colors.green[900]! : Colors.green[100]!;
+    final secondary = isDark ? Colors.orange[600]! : Colors.orange[400]!;
     final onSecondary = isDark ? Colors.black : Colors.white;
+    final secondaryContainer =
+        isDark ? const Color(0xFF4A2800) : Colors.orange[100]!;
+    final onSecondaryContainer = isDark ? Colors.white : Colors.orange[900]!;
     final error = isDark ? Colors.red[300]! : Colors.red[400]!;
     final onError = Colors.white;
     final surface = isDark ? Colors.grey[900]! : Colors.white;
@@ -23,8 +27,11 @@ class AppTheme {
       brightness: brightness,
       primary: primary,
       onPrimary: onPrimary,
+      primaryContainer: primaryContainer,
       secondary: secondary,
       onSecondary: onSecondary,
+      secondaryContainer: secondaryContainer,
+      onSecondaryContainer: onSecondaryContainer,
       error: error,
       onError: onError,
       surface: surface,

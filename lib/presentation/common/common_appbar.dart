@@ -29,7 +29,10 @@ class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
               },
             ),
       elevation: 0,
-      title: Text(title),
+      title: Text(
+        title,
+        overflow: TextOverflow.fade,
+      ),
       centerTitle: true,
       actions: actionsButtons,
     );

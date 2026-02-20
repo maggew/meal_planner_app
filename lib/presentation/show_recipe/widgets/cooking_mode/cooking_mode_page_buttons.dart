@@ -27,6 +27,7 @@ class CookingModePageButtons extends StatelessWidget {
           ),
           CookingModeSwitchStepPageButton(
             label: "Rechts",
+            isPrimary: true,
             icon: Icons.arrow_forward_outlined,
             onPressed: () {
               (tabController.index < tabController.length - 1)

@@ -33,6 +33,7 @@ class _JoinGroupPage extends ConsumerState<JoinGroupPage> {
       children: [
         AppBackground(
             scaffoldBody: JoinGroupBody(groupIdController: groupIdController),
+            applyScreenPadding: true,
             scaffoldAppBar: AppBar(
               leading: IconButton(
                 onPressed: () {
