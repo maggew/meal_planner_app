@@ -21,21 +21,25 @@ class CookbookSortingButton extends ConsumerWidget {
       itemBuilder: (context) {
         return [
           cookbookSortingButtonItem(
+              context: context,
               option: RecipeSortOption.alphabetical,
               icon: Icons.sort_by_alpha,
               label: 'A-Z',
               current: sortOption),
           cookbookSortingButtonItem(
+              context: context,
               option: RecipeSortOption.newest,
               icon: Icons.schedule,
               label: 'Neueste',
               current: sortOption),
           cookbookSortingButtonItem(
+              context: context,
               option: RecipeSortOption.oldest,
               icon: Icons.schedule,
               label: 'Älteste',
               current: sortOption),
           cookbookSortingButtonItem(
+              context: context,
               option: RecipeSortOption.mostCooked,
               icon: Icons.favorite,
               label: 'Beliebt',

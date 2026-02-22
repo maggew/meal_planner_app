@@ -83,7 +83,7 @@ class _CookingModeTimerWidgetState extends ConsumerState<CookingModeTimerWidget>
             Color.lerp(baseColor, colorScheme.primaryContainer, pulseValue);
 
         return Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
           width: double.infinity,
           decoration: BoxDecoration(
             color: isFinished ? finishedColor : baseColor,

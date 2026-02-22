@@ -45,7 +45,7 @@ class _CookingModeIngredientsListState
             duration: AppDimensions.animationDuration,
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             decoration: BoxDecoration(
-              color: themeData.colorScheme.secondary,
+              color: themeData.colorScheme.primary,
               borderRadius: widget.isExpanded
                   ? BorderRadius.only(
                       topRight: Radius.circular(AppDimensions.borderRadius),
@@ -61,7 +61,7 @@ class _CookingModeIngredientsListState
                     child: Text(
                       "Zutaten",
                       style: themeData.textTheme.bodyLargeEmphasis?.copyWith(
-                        color: themeData.colorScheme.onSecondary,
+                        color: themeData.colorScheme.onPrimary,
                       ),
                     ),
                   ),
@@ -71,7 +71,7 @@ class _CookingModeIngredientsListState
                   duration: AppDimensions.animationDuration,
                   child: Icon(
                     Icons.expand_more,
-                    color: themeData.colorScheme.onSecondary,
+                    color: themeData.colorScheme.onPrimary,
                   ),
                 ),
               ],
@@ -89,7 +89,8 @@ class _CookingModeIngredientsListState
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                color: themeData.colorScheme.secondaryContainer,
+                color: themeData.colorScheme.primaryContainer
+                    .withValues(alpha: 0.6),
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(AppDimensions.borderRadius),
                   bottomRight: Radius.circular(AppDimensions.borderRadius),
@@ -101,23 +102,22 @@ class _CookingModeIngredientsListState
                 thumbVisibility: true,
                 child: SingleChildScrollView(
                   controller: _scrollController,
-                  padding: EdgeInsets.only(right: 6),
+                  padding: EdgeInsets.only(right: 14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: widget.ingredientSections.map((section) {
+                      bool isLastSection = section ==
+                          widget.ingredientSections[
+                              widget.ingredientSections.length - 1];
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.only(top: 12),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(section.title),
-                            const SizedBox(height: 6),
+                            //Text(section.title),
                             Text.rich(
                               TextSpan(
-                                style: themeData.textTheme.bodyMedium?.copyWith(
-                                  color: themeData
-                                      .colorScheme.onSecondaryContainer,
-                                ),
+                                style: themeData.textTheme.bodyMedium,
                                 children: section.ingredients
                                     .asMap()
                                     .entries
@@ -125,19 +125,22 @@ class _CookingModeIngredientsListState
                                   final index = entry.key;
                                   final ing = entry.value;
                                   return [
-                                    if (index != 0) const TextSpan(text: ", "),
+                                    if (index != 0)
+                                      TextSpan(
+                                        text: "  \u2022  ", // this char: •
+                                      ),
                                     ...ing.toInlineTextSpans(
                                       nameStyle: themeData
-                                          .textTheme.bodyMediumEmphasis
-                                          ?.copyWith(
-                                        color: themeData
-                                            .colorScheme.onSecondaryContainer,
-                                      ),
+                                          .textTheme.bodyMediumEmphasis,
                                     ),
                                   ];
                                 }).toList(),
                               ),
                             ),
+                            SizedBox(height: 12),
+                            if (!isLastSection) ...[
+                              Divider(),
+                            ],
                           ],
                         ),
                       );

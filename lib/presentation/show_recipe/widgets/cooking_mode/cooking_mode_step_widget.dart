@@ -33,24 +33,28 @@ class _CookingModeStepWidgetState extends State<CookingModeStepWidget> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      spacing: 10,
       children: [
         CookingModeStepTitle(
           stepNumber: widget.stepNumber,
           recipeId: widget.recipeId,
           onAddTimer: () => setState(() => _isAddingTimer = true),
         ),
+        // TODO: wenn kein timer da ist, auch keine sized boxes
+        // SizedBox(height: 10),
         CookingModeTimerWidget(
           recipeId: widget.recipeId,
           stepIndex: widget.stepNumber - 1,
           forceShowPicker: _isAddingTimer,
           onPickerClosed: () => setState(() => _isAddingTimer = false),
         ),
+        // TODO: wie oben
+        // SizedBox(height: 10),
         CookingModeIngredientsList(
           isExpanded: widget.isExpanded,
           onExpandToggle: widget.onExpandToggle,
           ingredientSections: widget.ingredientSections,
         ),
+        SizedBox(height: 10),
         Expanded(
           child: SingleChildScrollView(
             padding: EdgeInsets.only(bottom: 10),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meal_planner/presentation/common/extensions/text_theme_extensions.dart';
 
 class CookingModeTimerDurationPicker extends StatelessWidget {
   final TextEditingController labelController;
@@ -88,15 +89,22 @@ class CookingModeTimerDurationPicker extends StatelessWidget {
               child: OutlinedButton(
                 onPressed: onCancel,
                 style: outlineButtonStyle,
-                child: const Text('Abbrechen', overflow: TextOverflow.ellipsis),
+                child: Text(
+                  'Abbrechen',
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodyMediumEmphasis
+                      ?.copyWith(color: colorScheme.onSurface),
+                ),
               ),
             ),
             Expanded(
               child: OutlinedButton(
                 onPressed: onSave,
                 style: outlineButtonStyle,
-                child: const Text(
+                child: Text(
                   'Speichern',
+                  style: textTheme.bodyMediumEmphasis
+                      ?.copyWith(color: colorScheme.onSurface),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -105,7 +113,9 @@ class CookingModeTimerDurationPicker extends StatelessWidget {
               constraints: const BoxConstraints(minWidth: 80, maxWidth: 100),
               child: FilledButton(
                 onPressed: onStart,
-                child: const Text('Start'),
+                child: Text('Start',
+                    style: textTheme.bodyMediumEmphasis
+                        ?.copyWith(color: colorScheme.onPrimary)),
               ),
             ),
           ],

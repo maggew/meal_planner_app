@@ -120,7 +120,7 @@ class _CookingModeIdleTimerState extends ConsumerState<CookingModeIdleTimer> {
         IconButton(
           onPressed: () => _confirmDeleteTimer(),
           icon: const Icon(Icons.delete_outline, size: 20),
-          color: colorScheme.error,
+          color: greyAlpha,
           tooltip: 'Löschen',
         ),
       ],

@@ -18,7 +18,10 @@ class CookingModeInstructions extends StatelessWidget {
         color: themeData.colorScheme.surfaceContainer,
         borderRadius: AppDimensions.borderRadiusAll,
       ),
-      child: Text(instructionStep),
+      child: Text(
+        instructionStep,
+        style: themeData.textTheme.bodyLarge,
+      ),
     );
   }
 }

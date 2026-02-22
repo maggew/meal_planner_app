@@ -21,15 +21,16 @@ class CookingModeStepTitle extends ConsumerWidget {
     final hasTimer = savedTimers.value?[stepNumber - 1] != null;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: 20),
       child: SizedBox(
         width: double.infinity,
         child: Stack(
           alignment: Alignment.center,
           children: [
             Text(
-              stepNumber.toString(),
-              style: themeData.textTheme.displayMedium,
+              "# ${stepNumber.toString()}",
+              style: themeData.textTheme.displaySmall
+                  ?.copyWith(fontWeight: FontWeight.w600),
             ),
             if (!hasTimer)
               Positioned(

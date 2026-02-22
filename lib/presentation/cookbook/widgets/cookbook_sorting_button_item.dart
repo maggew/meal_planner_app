@@ -5,16 +5,19 @@ PopupMenuItem<RecipeSortOption> cookbookSortingButtonItem({
   required RecipeSortOption option,
   required IconData icon,
   required String label,
+  required context,
   required RecipeSortOption current,
 }) {
   return PopupMenuItem(
     value: option,
     child: ListTile(
       leading: Icon(icon),
-      title: Text(label),
+      title: Text(
+        label,
+        style: Theme.of(context).textTheme.bodyMedium,
+      ),
       trailing: current == option ? const Icon(Icons.check, size: 18) : null,
       dense: true,
     ),
   );
 }
-

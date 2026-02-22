@@ -12,7 +12,8 @@ class AppTheme {
     final primary = isDark ? Colors.green[300]! : Colors.green[400]!;
     final onPrimary = isDark ? Colors.black : Colors.white;
     final primaryContainer = isDark ? Colors.green[900]! : Colors.green[100]!;
-    final secondary = isDark ? Colors.orange[600]! : Colors.orange[400]!;
+    final onPrimaryContainer = isDark ? Colors.white : Colors.black;
+    final secondary = isDark ? Colors.orange[600]! : Colors.pink[200]!;
     final onSecondary = isDark ? Colors.black : Colors.white;
     final secondaryContainer =
         isDark ? const Color(0xFF4A2800) : Colors.orange[100]!;
@@ -111,8 +112,8 @@ class AppTheme {
 
     final _elevatedButtonTheme = ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-      backgroundColor: primary,
-      foregroundColor: onPrimary,
+      backgroundColor: primaryContainer,
+      foregroundColor: onPrimaryContainer,
       textStyle: bodyLarge,
     ));
 

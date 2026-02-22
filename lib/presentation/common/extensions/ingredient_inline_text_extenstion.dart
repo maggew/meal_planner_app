@@ -6,15 +6,21 @@ extension IngredientInlineText on Ingredient {
     final nbsp = '\u00A0';
 
     return [
+      if (unit == null && amount == null)
+        ...[
+      ] else if (unit == null) ...[
+        TextSpan(
+          text: "$amount ",
+        ),
+      ] else ...[
+        TextSpan(
+          text: "$amount${nbsp}${unit?.displayName} ",
+        ),
+      ],
       TextSpan(
-        text: "$amount${nbsp}${unit?.displayName}${nbsp}",
-      ),
-      TextSpan(
-        text: _noBreak(name),
+        text: name,
         style: nameStyle,
       ),
     ];
   }
 }
-
-String _noBreak(String value) => value.replaceAll(' ', '\u00A0');
