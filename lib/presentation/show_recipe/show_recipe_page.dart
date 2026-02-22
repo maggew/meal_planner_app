@@ -164,11 +164,11 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
         content: Text('Möchtest du "${widget.recipe!.name}" bearbeiten?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
+            onPressed: () => context.router.maybePop(false),
             child: Text('Abbrechen'),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => context.router.maybePop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: Text('Bearbeiten'),
           ),
@@ -189,11 +189,11 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
         content: Text('Möchtest du "${widget.recipe!.name}" wirklich löschen?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
+            onPressed: () => context.router.maybePop(false),
             child: Text('Abbrechen'),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => context.router.maybePop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: Text('Löschen'),
           ),

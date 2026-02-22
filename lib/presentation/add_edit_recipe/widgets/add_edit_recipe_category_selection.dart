@@ -21,12 +21,12 @@ class _AddRecipeCategorySelection
     final TextTheme textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 10,
       children: [
         Text(
           "Kategorien",
           style: Theme.of(context).textTheme.displayMedium,
         ),
-        SizedBox(height: 10),
         Wrap(
           spacing: 8,
           runSpacing: 4,

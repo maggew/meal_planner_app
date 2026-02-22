@@ -26,25 +26,23 @@ class AddEditRecipeButton extends ConsumerWidget {
   });
 
   @override
-  build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final uploadState = ref.watch(recipeUploadProvider);
+
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         uploadState.when(
           data: (_) => ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              minimumSize: Size(100, 40),
-            ),
             onPressed: () => _handleUpload(context, ref, existingRecipe),
             child: Text(
-              isEditMode ? "Rezpet updaten" : "Speichern",
+              isEditMode ? "Rezept aktualisieren" : "Speichern",
             ),
           ),
           error: (error, _) => ElevatedButton(
             style: ElevatedButton.styleFrom(
-              minimumSize: Size(100, 40),
-              backgroundColor: Colors.red,
+              backgroundColor: colorScheme.error,
             ),
             onPressed: () => _handleUpload(context, ref, existingRecipe),
             child: const Text("Erneut versuchen"),
@@ -80,7 +78,7 @@ class AddEditRecipeButton extends ConsumerWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(validation.error!),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
       return;
@@ -119,8 +117,8 @@ class AddEditRecipeButton extends ConsumerWidget {
     }
 
     final oldCategories = existingRecipe?.categories ?? [];
-    final newCategores = recipe.categories;
-    final allCategoriesToInvalidate = {...oldCategories, ...newCategores};
+    final newCategories = recipe.categories;
+    final allCategoriesToInvalidate = {...oldCategories, ...newCategories};
 
     // Neue Kategorien invalidieren
     for (final category in allCategoriesToInvalidate) {
@@ -133,7 +131,9 @@ class AddEditRecipeButton extends ConsumerWidget {
       ref: ref,
     );
 
-    context.router.replace(const CookbookRoute());
+    if (context.mounted) {
+      context.router.replace(const CookbookRoute());
+    }
   }
 
   void _resetForm({
@@ -142,7 +142,7 @@ class AddEditRecipeButton extends ConsumerWidget {
     required TextEditingController recipeInstructionsController,
   }) {
     ref.read(selectedCategoriesProvider.notifier).clear();
-    ref.read(selectedPortionsProvider.notifier).set(DEFAULT_PORTIONS);
+    ref.read(selectedPortionsProvider.notifier).set(defaultPortions);
     ref.read(imageManagerProvider.notifier).clearPhoto();
     recipeNameController.clear();
     recipeInstructionsController.clear();

@@ -92,7 +92,7 @@ class CookbookAddRecipeDialog extends ConsumerWidget {
   }) {
     return ElevatedButton(
         onPressed: () {
-          Navigator.of(context).pop();
+          context.router.pop();
           callback();
         },
         style: ElevatedButton.styleFrom(

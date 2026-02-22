@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meal_planner/core/constants/app_dimensions.dart';
 
 class AddEditRecipeSectionHeaderItem extends StatefulWidget {
   final TextEditingController titleController;
@@ -63,12 +64,15 @@ class _AddEditRecipeSectionHeaderItemState
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
     final BorderRadius borderRadius = widget.sectionHasNoIngredient
-        ? BorderRadius.circular(8)
-        : BorderRadius.vertical(top: Radius.circular(8));
+        ? AppDimensions.borderRadiusAll
+        : BorderRadius.vertical(
+            top: Radius.circular(AppDimensions.borderRadius));
+
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return AnimatedContainer(
-      duration: Duration(milliseconds: 200),
+      duration: AppDimensions.animationDuration,
       decoration: BoxDecoration(
-        color: Colors.amber,
+        color: colorScheme.secondary,
         borderRadius: borderRadius,
       ),
       child: Row(
@@ -84,7 +88,9 @@ class _AddEditRecipeSectionHeaderItemState
                 : Center(
                     child: Text(
                       widget.titleController.text,
-                      style: textTheme.bodyLarge,
+                      style: textTheme.bodyLarge?.copyWith(
+                        color: colorScheme.onSecondary,
+                      ),
                     ),
                   ),
           ),
@@ -92,18 +98,27 @@ class _AddEditRecipeSectionHeaderItemState
             IconButton(
                 key: const ValueKey("confirm"),
                 onPressed: widget.onConfirmPressed,
-                icon: Icon(Icons.check)),
+                icon: Icon(
+                  Icons.check,
+                  color: colorScheme.onSecondary,
+                )),
           ] else ...[
             if (!widget.isFirstSection) ...[
               IconButton(
                   key: const ValueKey("delete"),
                   onPressed: widget.onDeletePressed,
-                  icon: Icon(Icons.delete)),
+                  icon: Icon(
+                    Icons.delete,
+                    color: colorScheme.onSecondary,
+                  )),
             ],
             IconButton(
                 key: const ValueKey("edit"),
                 onPressed: widget.onEditPressed,
-                icon: Icon(Icons.edit)),
+                icon: Icon(
+                  Icons.edit,
+                  color: colorScheme.onSecondary,
+                )),
           ]
         ],
       ),

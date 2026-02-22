@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/flat_list_item.dart';
 import 'package:meal_planner/presentation/common/display_ingredient.dart';
 import 'package:meal_planner/services/providers/recipe/add_edit_recipe_ingredients_provider.dart';
@@ -19,15 +20,23 @@ class AddEditRecipeIngredientItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final ColorScheme colorsScheme = Theme.of(context).colorScheme;
     final BorderRadius borderRadius = isFinalItem
-        ? BorderRadius.vertical(bottom: Radius.circular(8))
+        ? BorderRadius.vertical(
+            bottom: Radius.circular(AppDimensions.borderRadius))
         : BorderRadius.zero;
-    final Border? border =
-        isFinalItem ? null : Border(bottom: BorderSide(width: 1));
+    final Border? border = isFinalItem
+        ? null
+        : Border(
+            bottom: BorderSide(
+              width: 1,
+              color: colorsScheme.onSurface.withValues(alpha: 0.3),
+            ),
+          );
     return AnimatedContainer(
-      duration: Duration(milliseconds: 200),
+      duration: AppDimensions.animationDuration,
       decoration: BoxDecoration(
-        color: Colors.blueGrey[100],
+        color: colorsScheme.surfaceContainer,
         borderRadius: borderRadius,
         border: border,
       ),
@@ -53,7 +62,10 @@ class AddEditRecipeIngredientItem extends ConsumerWidget {
                     .read(ingredientsProvider.notifier)
                     .deleteIngredient(flatIndex);
               },
-              icon: Icon(Icons.delete)),
+              icon: Icon(
+                Icons.delete,
+                color: colorsScheme.error,
+              )),
           ReorderableDragStartListener(
             index: flatIndex,
             child: const Icon(Icons.drag_handle),

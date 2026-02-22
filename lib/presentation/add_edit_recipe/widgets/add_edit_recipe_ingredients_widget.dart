@@ -28,7 +28,7 @@ class AddEditRecipeIngredientsWidget extends ConsumerWidget {
               icon: const Icon(Icons.camera_alt_outlined),
               onPressed: () {
                 ref
-                    .watch(ingredientsProvider.notifier)
+                    .read(ingredientsProvider.notifier)
                     .analyzeIngredientsFromImage(pickImageFromCamera: true);
               },
             ),
@@ -36,7 +36,7 @@ class AddEditRecipeIngredientsWidget extends ConsumerWidget {
               icon: const Icon(Icons.folder_outlined),
               onPressed: () {
                 ref
-                    .watch(ingredientsProvider.notifier)
+                    .read(ingredientsProvider.notifier)
                     .analyzeIngredientsFromImage(pickImageFromCamera: false);
               },
             ),
@@ -46,7 +46,8 @@ class AddEditRecipeIngredientsWidget extends ConsumerWidget {
         const SizedBox(height: 12),
 
         AddEditRecipeIngredientsListWidget(
-            ingredientsProvider: ingredientsProvider),
+          ingredientsProvider: ingredientsProvider,
+        ),
       ],
     );
   }

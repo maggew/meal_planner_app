@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gap/gap.dart';
+import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/form/ingredient_form_item.dart';
 
@@ -27,11 +27,13 @@ class AddEditRecipeIngredientsInputCard extends ConsumerStatefulWidget {
 class _AddEditRecipeIngredientsInputCardState
     extends ConsumerState<AddEditRecipeIngredientsInputCard> {
   late final FocusNode _nameFocusNode;
+  late final MenuController _dropdownMenuController;
 
   @override
   void initState() {
     super.initState();
     _nameFocusNode = FocusNode();
+    _dropdownMenuController = MenuController();
 
     if (widget.item.shouldRequestFocus) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -48,23 +50,28 @@ class _AddEditRecipeIngredientsInputCardState
 
   @override
   Widget build(BuildContext context) {
-    final TextTheme textTheme = Theme.of(context).textTheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final BorderRadius borderRadius = widget.isFinalItem
-        ? BorderRadius.vertical(bottom: Radius.circular(8))
+        ? BorderRadius.vertical(
+            bottom: Radius.circular(AppDimensions.borderRadius))
         : BorderRadius.zero;
-    final Border? border =
-        widget.isFinalItem ? null : Border(bottom: BorderSide(width: 1));
-    final MenuController _dropdownMenuController = MenuController();
+    final Border? border = widget.isFinalItem
+        ? null
+        : Border(
+            bottom: BorderSide(
+                color: colorScheme.onSurface.withValues(alpha: 0.3), width: 1));
+
     return AnimatedContainer(
-      duration: Duration(milliseconds: 200),
+      duration: AppDimensions.animationDuration,
       decoration: BoxDecoration(
-        color: Colors.red[100],
+        color: colorScheme.surfaceContainer,
         borderRadius: borderRadius,
         border: border,
       ),
       child: Padding(
         padding: const EdgeInsets.all(8),
         child: Column(
+          spacing: 10,
           children: [
             // ---------------- Name ----------------
             Row(
@@ -75,24 +82,21 @@ class _AddEditRecipeIngredientsInputCardState
                     focusNode: _nameFocusNode,
                     textInputAction: TextInputAction.next,
                     onSubmitted: (_) => FocusScope.of(context).nextFocus(),
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
+                    decoration: InputDecoration(
                       labelText: 'Zutat',
                       hintText: 'Zutat eingeben…',
+                      fillColor: colorScheme.surface,
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                  icon: Icon(Icons.delete, color: colorScheme.error, size: 20),
                   onPressed: widget.onDelete,
                 ),
               ],
             ),
-
-            const Gap(6),
-
-            // ---------------- Amount + Unit ----------------
             Row(
+              spacing: 10,
               children: [
                 Expanded(
                   child: TextField(
@@ -104,10 +108,10 @@ class _AddEditRecipeIngredientsInputCardState
                       // dropdownMenu opens
                       _dropdownMenuController.open();
                     },
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
+                    decoration: InputDecoration(
                       labelText: 'Menge',
                       hintText: '0',
+                      fillColor: colorScheme.surface,
                     ),
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
@@ -124,7 +128,6 @@ class _AddEditRecipeIngredientsInputCardState
                     },
                   ),
                 ),
-                const Gap(10),
                 SizedBox(
                   width: 120,
                   child: DropdownMenu<Unit?>(
@@ -137,12 +140,17 @@ class _AddEditRecipeIngredientsInputCardState
                     initialSelection: widget.item.unit,
                     onSelected: (unitSelection) =>
                         widget.onUnitChanged(unitSelection),
+                    inputDecorationTheme: InputDecorationTheme(
+                      filled: true,
+                      fillColor: colorScheme.surface,
+                    ),
                   ),
                 ),
-                const Gap(10),
                 IconButton(
                   onPressed: () => widget.onChecked(),
-                  icon: Icon(Icons.check),
+                  icon: Icon(
+                    Icons.check,
+                  ),
                 ),
               ],
             ),

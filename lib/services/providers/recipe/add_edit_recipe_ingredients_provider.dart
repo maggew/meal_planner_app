@@ -137,11 +137,14 @@ class AddEditRecipeIngredients extends _$AddEditRecipeIngredients {
     required List<FlatListItem> flatItems,
   }) {
     final oldItem = flatItems[oldIndex];
+    final isMovingDown = oldIndex < newIndex;
 
+    // safety net, that only ingredients can be moved
     if (oldItem.type != FlatListItemType.ingredient) {
       return;
     }
 
+    // ingredients cannot be moved above the first section
     if (newIndex <= 0) {
       moveIngredient(
         fromSection: oldItem.sectionIndex,
@@ -152,7 +155,8 @@ class AddEditRecipeIngredients extends _$AddEditRecipeIngredients {
       return;
     }
 
-    // Wenn ans Ende gezogen wird, füge am Ende der letzten Section ein
+    // ingredient was moved to the bottom of the list an has to be
+    // moved above the buttons
     if (newIndex >= flatItems.length) {
       final lastSection = state.sections.length - 1;
       final lastItemIndex = state.sections[lastSection].items.length;
@@ -167,67 +171,51 @@ class AddEditRecipeIngredients extends _$AddEditRecipeIngredients {
 
     int adjustedNewIndex = newIndex;
 
-    if (oldIndex < newIndex) {
+    // adjustment to reference the correct item
+    if (isMovingDown) {
       adjustedNewIndex -= 1;
     }
 
     final newItem = flatItems[adjustedNewIndex];
 
-    if (newItem.type == FlatListItemType.ingredient) {
-      int targetItemIndex = newItem.itemIndex!;
+    int fromSection = oldItem.sectionIndex;
+    int toSection = newItem.sectionIndex;
+    int fromItem = oldItem.itemIndex!;
+    int toItem = 0;
+    // check the type of the drag target
+    switch (newItem.type) {
+      case FlatListItemType.ingredient:
+        int targetItemIndex = newItem.itemIndex!;
 
-      if (oldItem.sectionIndex == newItem.sectionIndex && oldIndex < newIndex) {
-      } else if (oldItem.sectionIndex != newItem.sectionIndex &&
-          oldIndex < newIndex) {
-        targetItemIndex = newItem.itemIndex! + 1;
-      }
-
-      moveIngredient(
-        fromSection: oldItem.sectionIndex,
-        fromItem: oldItem.itemIndex!,
-        toSection: newItem.sectionIndex,
-        toItem: targetItemIndex,
-      );
-      return;
-    }
-
-    if (newItem.type == FlatListItemType.header) {
-      if (oldIndex < newIndex) {
-        moveIngredient(
-          fromSection: oldItem.sectionIndex,
-          fromItem: oldItem.itemIndex!,
-          toSection: newItem.sectionIndex,
-          toItem: 0,
-        );
-      } else {
-        if (newItem.sectionIndex > 0) {
-          final prevSection = newItem.sectionIndex - 1;
-          final lastItemIndex = state.sections[prevSection].items.length;
-          moveIngredient(
-            fromSection: oldItem.sectionIndex,
-            fromItem: oldItem.itemIndex!,
-            toSection: prevSection,
-            toItem: lastItemIndex,
-          );
+        if (isMovingDown) {
+          targetItemIndex++;
         }
-      }
-      return;
+
+        toItem = targetItemIndex;
+        break;
+
+      case FlatListItemType.header:
+        if (isMovingDown) {
+          toItem = 0;
+        } else {
+          if (newItem.sectionIndex > 0) {
+            toSection = newItem.sectionIndex - 1;
+            toItem = state.sections[toSection].items.length;
+          }
+        }
+        break;
+      case FlatListItemType.addButton:
+        toSection = newItem.sectionIndex;
+        toItem = state.sections[toSection].items.length;
+        break;
     }
 
-    if (newItem.type == FlatListItemType.addButton) {
-      final targetSection = newItem.sectionIndex;
-      final lastItemIndex = state.sections[targetSection].items.length;
-
-      moveIngredient(
-        fromSection: oldItem.sectionIndex,
-        fromItem: oldItem.itemIndex!,
-        toSection: targetSection,
-        toItem: lastItemIndex,
-      );
-      return;
-    }
-
-    print('No valid target found, aborting');
+    moveIngredient(
+      fromSection: fromSection,
+      fromItem: fromItem,
+      toSection: toSection,
+      toItem: toItem,
+    );
   }
 
   void moveIngredient({

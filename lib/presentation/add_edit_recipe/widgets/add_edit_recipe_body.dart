@@ -56,66 +56,25 @@ class _AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      padding: const EdgeInsets.only(top: 20, bottom: 100),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+        spacing: 25,
         children: [
-          // ------------------------------------------------------------
-          // Rezeptname
-          // ------------------------------------------------------------
           AddEditRecipeRecipeNameTextformfield(
             recipeNameController: _recipeNameController,
           ),
-
-          const SizedBox(height: 20),
-
-          // ------------------------------------------------------------
-          // Kategorien
-          // ------------------------------------------------------------
           AddEditRecipeCategorySelection(),
-
-          const SizedBox(height: 30),
-
-          // ------------------------------------------------------------
-          // Portionen
-          // ------------------------------------------------------------
           AddEditRecipePortionSelection(),
-
-          const SizedBox(height: 30),
-
-          // ------------------------------------------------------------
-          // Zutaten + Sections
-          // ------------------------------------------------------------
-          // AddEditRecipeIngredientsBlock(
-          //     ingredientsProvider: ingredientsProvider),
           AddEditRecipeIngredientsWidget(
             ingredientsProvider: ingredientsProvider,
           ),
-
-          const SizedBox(height: 30),
-
-          // ------------------------------------------------------------
-          // Anleitung
-          // ------------------------------------------------------------
           AddEditRecipeInstructions(
             recipeInstructionsController: _recipeInstructionsController,
           ),
-
-          const SizedBox(height: 30),
-
-          // ------------------------------------------------------------
-          // Bild
-          // ------------------------------------------------------------
           AddEditRecipePicture(
             existingImageUrl: widget.existingRecipe?.imageUrl,
           ),
-
-          const SizedBox(height: 50),
-
-          // ------------------------------------------------------------
-          // Speichern / Aktualisieren
-          // ------------------------------------------------------------
           AddEditRecipeButton(
             recipeNameController: _recipeNameController,
             recipeInstructionsController: _recipeInstructionsController,
@@ -123,8 +82,6 @@ class _AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
             ingredientsProvider: ingredientsProvider,
             isEditMode: widget.existingRecipe != null,
           ),
-
-          const SizedBox(height: 100),
         ],
       ),
     );

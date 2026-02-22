@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_icons.dart';
@@ -38,7 +40,9 @@ class _AddRecipePictureState extends ConsumerState<AddEditRecipePicture> {
       _pictureNameController.text = '';
     }
 
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Column(
+      spacing: 10,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -49,13 +53,11 @@ class _AddRecipePictureState extends ConsumerState<AddEditRecipePicture> {
           "(optional)",
           style: textTheme.displaySmall,
         ),
-        SizedBox(height: 15),
         FittedBox(
           child: Row(
             children: [
               SizedBox(
                 width: 270,
-                height: 50,
                 child: TextFormField(
                   controller: _pictureNameController,
                   textAlign: TextAlign.start,
@@ -70,22 +72,13 @@ class _AddRecipePictureState extends ConsumerState<AddEditRecipePicture> {
                   enabled: true,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Colors.white30,
-                    hintMaxLines: 2,
-                    hintStyle: TextStyle(color: Colors.black),
+                    fillColor: colorScheme.surfaceContainer,
                     enabledBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Colors.blueGrey, width: 1.5),
+                      borderSide: BorderSide(
+                        color: colorScheme.onSurface.withValues(alpha: 0.3),
+                      ),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Colors.blueGrey, width: 1.5),
-                    ),
-                    border: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Colors.blueGrey, width: 1.5),
-                    ),
-                    suffixIcon: Icon(AppIcons.upload, size: 25),
+                    suffixIcon: const Icon(AppIcons.upload, size: 25),
                   ),
                 ),
               ),
@@ -108,7 +101,7 @@ class _AddRecipePictureState extends ConsumerState<AddEditRecipePicture> {
     );
   }
 
-  Widget _buildImagePreview(file) {
+  Widget _buildImagePreview(File? file) {
     final newImage = file;
     final existingUrl = widget.existingImageUrl;
 

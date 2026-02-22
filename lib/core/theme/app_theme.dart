@@ -174,6 +174,20 @@ class AppTheme {
       color: surfaceContainer,
     );
 
+    final _chipTheme = ChipThemeData(
+      backgroundColor: surfaceContainer,
+      selectedColor: primary,
+      checkmarkColor: onPrimary,
+      labelStyle: bodyMedium,
+    );
+
+    final _dropdownMenuTheme = DropdownMenuThemeData(
+      textStyle: bodyMedium,
+      menuStyle: MenuStyle(
+        backgroundColor: WidgetStateProperty.all(surfaceContainer),
+      ),
+    );
+
     return ThemeData(
       brightness: brightness,
       colorScheme: _colorScheme,
@@ -181,7 +195,7 @@ class AppTheme {
       scaffoldBackgroundColor: Colors.transparent,
       appBarTheme: _appBarTheme,
       tabBarTheme: _tabBarTheme,
-      dropdownMenuTheme: DropdownMenuThemeData(textStyle: bodyMedium),
+      dropdownMenuTheme: _dropdownMenuTheme,
       cardTheme: CardThemeData(color: surfaceContainer),
       checkboxTheme: _checkboxTheme,
       textButtonTheme: _textButtonTheme,
@@ -191,6 +205,7 @@ class AppTheme {
       dividerTheme: _dividerTheme,
       segmentedButtonTheme: _segmentedButtonTheme,
       popupMenuTheme: _popupMenuTheme,
+      chipTheme: _chipTheme,
     );
   }
 }

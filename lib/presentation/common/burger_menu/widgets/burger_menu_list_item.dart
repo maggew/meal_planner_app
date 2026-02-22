@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
 class BurgerMenuListItem extends StatelessWidget {
@@ -19,7 +20,7 @@ class BurgerMenuListItem extends StatelessWidget {
           title: Text(label),
           leading: Icon(icon),
           onTap: () {
-            Navigator.of(context).pop();
+            context.router.pop();
             onTap();
           },
         ),

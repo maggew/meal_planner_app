@@ -1,6 +1,6 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gap/gap.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/form/ingredient_form_item.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/flat_list_item.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/ingredients/add_edit_recipe_ingredient_item.dart';
@@ -37,9 +37,10 @@ class AddEditRecipeIngredientsListWidget extends ConsumerWidget {
     }
     final int listLength = flatItems.length;
 
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Card(
       elevation: 0,
-      color: Colors.amber[100],
+      color: colorScheme.secondaryContainer,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -55,7 +56,7 @@ class AddEditRecipeIngredientsListWidget extends ConsumerWidget {
                   builder: (context, child) {
                     return Material(
                       elevation: 8,
-                      color: Colors.white.withValues(alpha: 0.9),
+                      color: colorScheme.surface,
                       borderRadius: BorderRadius.circular(8),
                       child: child,
                     );
@@ -118,13 +119,6 @@ class AddEditRecipeIngredientsListWidget extends ConsumerWidget {
                           ref
                               .read(ingredientsProvider.notifier)
                               .confirmIngredient(index);
-                          // TODO: may use or maybe not
-                          // // open new ingredient input field if at end of list
-                          // if (isFinalItem) {
-                          //   ref
-                          //       .read(ingredientsProvider.notifier)
-                          //       .addIngredient(itemData.sectionIndex);
-                          // }
                         },
                         onUnitChanged: (unit) {
                           ref
@@ -148,9 +142,9 @@ class AddEditRecipeIngredientsListWidget extends ConsumerWidget {
                       dense: true,
                       title: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
+                        spacing: 10,
                         children: [
-                          Icon(Icons.add, color: Colors.green),
-                          Gap(10),
+                          Icon(Icons.add, color: colorScheme.primary),
                           Text('Zutat hinzufügen'),
                         ],
                       ),
@@ -193,13 +187,13 @@ Future<void> _handleDeletePressed(
           'Möchtest du wirklich die Sektion löschen? \nDie Zutaten werden nach oben verschoben!'),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context, false),
+          onPressed: () => context.router.maybePop(false),
           child: const Text('Abbrechen'),
         ),
         FilledButton(
-          onPressed: () => Navigator.pop(context, true),
+          onPressed: () => context.router.maybePop(true),
           style: FilledButton.styleFrom(
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
           child: const Text('Löschen'),
         ),

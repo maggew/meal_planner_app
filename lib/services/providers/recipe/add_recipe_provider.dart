@@ -5,8 +5,8 @@ import 'package:meal_planner/domain/enums/unit.dart';
 
 part 'add_recipe_provider.g.dart';
 
-final int DEFAULT_PORTIONS = 4;
-final Unit DEFAULT_UNIT = Unit.GRAMM;
+final int defaultPortions = 4;
+final Unit defaultUnit = Unit.GRAMM;
 
 @Riverpod(keepAlive: true)
 class SelectedCategories extends _$SelectedCategories {
@@ -31,7 +31,7 @@ class SelectedCategories extends _$SelectedCategories {
 @Riverpod(keepAlive: true)
 class SelectedPortions extends _$SelectedPortions {
   @override
-  int build() => DEFAULT_PORTIONS;
+  int build() => defaultPortions;
 
   void set(int portions) => state = portions;
 }

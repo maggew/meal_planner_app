@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gap/gap.dart';
+import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/presentation/common/loading_overlay.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_analysis_provider.dart';
@@ -19,6 +19,8 @@ class AddEditRecipeInstructions extends ConsumerStatefulWidget {
 class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     ref.listen(recipeAnalysisProvider, (previous, next) {
       final data = next.data;
       if (data != null && data.instructions != null && data != previous?.data) {
@@ -26,7 +28,7 @@ class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('✓ Anleitung erfolgreich analysiert!'),
-            backgroundColor: Colors.green,
+            backgroundColor: colorScheme.primary,
           ),
         );
       }
@@ -46,15 +48,16 @@ class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
     final isAnalyzing =
         analysisState.isLoading && analysisState.isLoadingInstructions;
     return Column(
+      spacing: 10,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          spacing: 10,
           children: [
             Text(
               "Anleitung",
               style: Theme.of(context).textTheme.displayMedium,
             ),
-            Gap(10),
             IconButton(
               onPressed: () {
                 ref.read(imageManagerProvider.notifier).pickImageFromCamera(
@@ -62,7 +65,6 @@ class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
               },
               icon: Icon(Icons.camera_alt_outlined),
             ),
-            Gap(10),
             IconButton(
               onPressed: () {
                 ref.read(imageManagerProvider.notifier).pickImageFromGallery(
@@ -72,43 +74,25 @@ class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
             ),
           ],
         ),
-        SizedBox(height: 10),
         LoadingOverlay(
           isLoading: isAnalyzing,
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.blueGrey, width: 1.5),
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(3)),
-            ),
-            width: MediaQuery.of(context).size.width,
-            height: 300,
-            child: TextFormField(
-              controller: widget.recipeInstructionsController,
-              decoration: InputDecoration(
-                errorStyle: Theme.of(context).textTheme.bodyLarge,
-                filled: true,
-                fillColor: Colors.white,
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.transparent,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.transparent,
-                  ),
-                ),
-                border: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.transparent,
-                  ),
-                ),
-                hintText: 'Hier ist Platz für die Kochanweisungen...',
+          child: TextFormField(
+            controller: widget.recipeInstructionsController,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: colorScheme.surfaceContainer,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: AppDimensions.borderRadiusAll,
+                borderSide: BorderSide.none,
               ),
-              keyboardType: TextInputType.multiline,
-              maxLines: null,
+              focusedBorder: OutlineInputBorder(
+                borderRadius: AppDimensions.borderRadiusAll,
+                borderSide: BorderSide(color: colorScheme.primary, width: 2.5),
+              ),
+              hintText: 'Hier ist Platz für die Kochanweisungen...',
             ),
+            keyboardType: TextInputType.multiline,
+            maxLines: null,
           ),
         ),
       ],

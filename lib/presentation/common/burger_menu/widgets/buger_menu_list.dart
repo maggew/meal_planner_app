@@ -58,12 +58,12 @@ Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
       content: const Text('Möchtest du dich wirklich ausloggen?'),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(dialogContext),
+          onPressed: () => context.router.pop(dialogContext),
           child: const Text('Abbrechen'),
         ),
         FilledButton(
           onPressed: () {
-            Navigator.pop(dialogContext);
+            context.router.pop(dialogContext);
             authController.logout();
           },
           style: FilledButton.styleFrom(

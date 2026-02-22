@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:meal_planner/domain/entities/group.dart';
@@ -38,7 +39,7 @@ class BurgerMenuHeader extends StatelessWidget {
             right: 0,
             child: IconButton(
               icon: const Icon(Icons.keyboard_arrow_left),
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => context.router.pop(),
             ),
           ),
         ],

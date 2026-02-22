@@ -11,35 +11,23 @@ class AddEditRecipeRecipeNameTextformfield extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 10,
       children: [
         Text(
           "Rezeptname",
           style: Theme.of(context).textTheme.displayMedium,
         ),
-        SizedBox(height: 10),
         SizedBox(
           width: 270,
-          height: 90,
           child: TextFormField(
             controller: recipeNameController,
             validator: _validateRecipeName,
             autovalidateMode: AutovalidateMode.disabled,
             decoration: InputDecoration(
-              errorStyle: Theme.of(context).textTheme.bodyLarge,
               labelText: "Rezeptname",
-              filled: true,
-              fillColor: Colors.white,
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: Colors.blueGrey,
-                  width: 1.5,
-                ),
-              ),
-              border: OutlineInputBorder(),
               hintText: 'Rezeptname',
             ),
             keyboardType: TextInputType.text,
-            onChanged: (value) {},
           ),
         )
       ],

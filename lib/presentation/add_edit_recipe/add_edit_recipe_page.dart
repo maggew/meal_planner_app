@@ -1,10 +1,9 @@
-import 'dart:core';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_body.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
+import 'package:meal_planner/presentation/common/common_appbar.dart';
 
 @RoutePage()
 class AddEditRecipePage extends StatelessWidget {
@@ -16,20 +15,16 @@ class AddEditRecipePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isEditMode = existingRecipe != null;
     return AppBackground(
-      scaffoldAppBar: AppBar(
+      applyScreenPadding: true,
+      scaffoldAppBar: CommonAppbar(
         leading: IconButton(
-            style: IconButton.styleFrom(backgroundColor: Colors.transparent),
             icon: Icon(
               Icons.keyboard_arrow_left,
-              color: Colors.black,
             ),
             onPressed: () {
               context.router.pop();
             }),
-        title: Text(
-          isEditMode ? "Rezept bearbeiten" : "Neues Rezept erstellen",
-          style: Theme.of(context).textTheme.displaySmall,
-        ),
+        title: isEditMode ? "Rezept bearbeiten" : "Neues Rezept erstellen",
       ),
       scaffoldBody: AddEditRecipeBody(existingRecipe: existingRecipe),
     );
