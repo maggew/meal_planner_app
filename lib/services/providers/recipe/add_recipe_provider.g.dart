@@ -91,7 +91,7 @@ final class SelectedPortionsProvider
   }
 }
 
-String _$selectedPortionsHash() => r'98afdce00f38b49603c9670a8cffff346e9e493a';
+String _$selectedPortionsHash() => r'06029878c0924dd50c7dbca20db0c3951ee6c287';
 
 abstract class _$SelectedPortions extends $Notifier<int> {
   int build();

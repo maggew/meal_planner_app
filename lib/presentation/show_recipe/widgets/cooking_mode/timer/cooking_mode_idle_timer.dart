@@ -103,6 +103,17 @@ class _CookingModeIdleTimerState extends ConsumerState<CookingModeIdleTimer> {
           ),
         ),
         IconButton(
+          onPressed: () => ref.read(activeTimerProvider.notifier).startTimer(
+                recipeId: widget.recipeId,
+                stepIndex: widget.stepIndex,
+                label: widget.saved?.timerName ??
+                    'Schritt ${widget.stepIndex + 1}',
+                durationSeconds: 60,
+                savedDurationSeconds: widget.saved?.durationSeconds,
+              ),
+          icon: Icon(Icons.more_time, size: 22),
+        ),
+        IconButton(
           onPressed: () => _startWithDuration(
             saved.durationSeconds,
             saved.timerName.isNotEmpty ? saved.timerName : null,

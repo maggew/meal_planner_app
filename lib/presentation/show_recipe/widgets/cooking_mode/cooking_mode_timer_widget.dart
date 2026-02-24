@@ -84,6 +84,7 @@ class _CookingModeTimerWidgetState extends ConsumerState<CookingModeTimerWidget>
 
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+          margin: const EdgeInsets.only(top: 10),
           width: double.infinity,
           decoration: BoxDecoration(
             color: isFinished ? finishedColor : baseColor,
@@ -104,15 +105,23 @@ class _CookingModeTimerWidgetState extends ConsumerState<CookingModeTimerWidget>
           child: child,
         );
       },
-      child: activeTimer != null
-          ? CookingModeActiveTimer(timer: activeTimer, timerKey: _timerKey)
-          : CookingModeIdleTimer(
-              forceShowPicker: widget.forceShowPicker,
-              stepIndex: widget.stepIndex,
-              recipeId: widget.recipeId,
-              saved: savedTimers.value?[widget.stepIndex],
-              onPickerClosed: widget.onPickerClosed,
-            ),
+      child: AnimatedSwitcher(
+        duration: AppDimensions.animationDuration,
+        child: activeTimer != null
+            ? CookingModeActiveTimer(
+                key: const ValueKey('active'),
+                timer: activeTimer,
+                timerKey: _timerKey,
+              )
+            : CookingModeIdleTimer(
+                key: const ValueKey('idle'),
+                forceShowPicker: widget.forceShowPicker,
+                stepIndex: widget.stepIndex,
+                recipeId: widget.recipeId,
+                saved: savedTimers.value?[widget.stepIndex],
+                onPickerClosed: widget.onPickerClosed,
+              ),
+      ),
     );
   }
 }

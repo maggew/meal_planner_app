@@ -8,6 +8,8 @@ class NotificationService {
   static NotificationService get instance => _instance;
   NotificationService._();
 
+  static const int _ongoingNotificationId = 99999;
+
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
@@ -73,8 +75,9 @@ class NotificationService {
             'timer_channel',
             'Koch-Timer',
             channelDescription: 'Benachrichtigungen für Koch-Timer',
-            importance: Importance.high,
+            importance: Importance.max,
             priority: Priority.high,
+            fullScreenIntent: true,
           ),
           iOS: DarwinNotificationDetails(
             presentAlert: true,
@@ -111,5 +114,35 @@ class NotificationService {
   Future<void> stopAlarmSound() async {
     _isPlaying = false;
     await _audioPlayer.stop();
+  }
+
+  Future<void> showOngoingTimerNotification(List<String> timerLines) async {
+    await _plugin.show(
+      id: _ongoingNotificationId,
+      title: 'Timer läuft (${timerLines.length})',
+      body: timerLines.first,
+      notificationDetails: NotificationDetails(
+        android: AndroidNotificationDetails(
+          'timer_ongoing_channel',
+          'Laufende Timer',
+          channelDescription: 'Zeigt laufende Koch-Timer an',
+          importance: Importance.low,
+          priority: Priority.low,
+          ongoing: true,
+          autoCancel: false,
+          showWhen: false,
+          onlyAlertOnce: true,
+          styleInformation: InboxStyleInformation(
+            timerLines,
+            contentTitle: 'Timer läuft (${timerLines.length})',
+            summaryText: '${timerLines.length} aktive Timer',
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> cancelOngoingTimerNotification() async {
+    await _plugin.cancel(id: _ongoingNotificationId);
   }
 }

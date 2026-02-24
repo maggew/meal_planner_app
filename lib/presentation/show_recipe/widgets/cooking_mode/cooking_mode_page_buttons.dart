@@ -59,8 +59,6 @@ class _CookingModePageButtonsState extends State<CookingModePageButtons> {
                       widget.tabController.index++;
                     })
                   : print("last page!");
-              print("currentIndex: ${widget.tabController.index}");
-              //TODO: print durch animation ersetzten
             },
             iconAfter: true,
           ),

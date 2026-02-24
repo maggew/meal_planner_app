@@ -1,28 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/presentation/common/extensions/ingredient_inline_text_extenstion.dart';
 import 'package:meal_planner/presentation/common/extensions/text_theme_extensions.dart';
+import 'package:meal_planner/services/providers/recipe/timer/recipe_timer_provider.dart';
 
-class CookingModeIngredientsList extends StatefulWidget {
+class CookingModeIngredientsList extends ConsumerStatefulWidget {
   final List<IngredientSection> ingredientSections;
   final VoidCallback onExpandToggle;
   final bool isExpanded;
+  final String recipeId;
+  final int stepNumber;
+  final VoidCallback onAddTimer;
 
   const CookingModeIngredientsList({
     super.key,
     required this.ingredientSections,
     required this.isExpanded,
     required this.onExpandToggle,
+    required this.recipeId,
+    required this.stepNumber,
+    required this.onAddTimer,
   });
 
   @override
-  State<CookingModeIngredientsList> createState() =>
+  ConsumerState<CookingModeIngredientsList> createState() =>
       _CookingModeIngredientsListState();
 }
 
 class _CookingModeIngredientsListState
-    extends State<CookingModeIngredientsList> {
+    extends ConsumerState<CookingModeIngredientsList> {
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -34,49 +42,72 @@ class _CookingModeIngredientsListState
   @override
   Widget build(BuildContext context) {
     final ThemeData themeData = Theme.of(context);
+    final savedTimers = ref.watch(recipeTimersProvider(widget.recipeId));
+    final hasTimer = savedTimers.value?[widget.stepNumber] != null;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         // Toggle-Button
-        GestureDetector(
-          onTap: widget.onExpandToggle,
-          child: AnimatedContainer(
-            duration: AppDimensions.animationDuration,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: BoxDecoration(
-              color: themeData.colorScheme.primary,
-              borderRadius: widget.isExpanded
-                  ? BorderRadius.only(
-                      topRight: Radius.circular(AppDimensions.borderRadius),
-                      topLeft: Radius.circular(AppDimensions.borderRadius),
-                    )
-                  : BorderRadius.circular(AppDimensions.borderRadius),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      "Zutaten",
-                      style: themeData.textTheme.bodyLargeEmphasis?.copyWith(
+        Stack(
+          children: [
+            GestureDetector(
+              onTap: widget.onExpandToggle,
+              child: AnimatedContainer(
+                duration: AppDimensions.animationDuration,
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                decoration: BoxDecoration(
+                  color: themeData.colorScheme.primary,
+                  borderRadius: widget.isExpanded
+                      ? BorderRadius.only(
+                          topRight: Radius.circular(AppDimensions.borderRadius),
+                          topLeft: Radius.circular(AppDimensions.borderRadius),
+                        )
+                      : BorderRadius.circular(AppDimensions.borderRadius),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          "Zutaten",
+                          style:
+                              themeData.textTheme.bodyLargeEmphasis?.copyWith(
+                            color: themeData.colorScheme.onPrimary,
+                          ),
+                        ),
+                      ),
+                    ),
+                    AnimatedRotation(
+                      turns: widget.isExpanded ? 0.5 : 0,
+                      duration: AppDimensions.animationDuration,
+                      child: Icon(
+                        Icons.expand_more,
                         color: themeData.colorScheme.onPrimary,
                       ),
                     ),
-                  ),
+                  ],
                 ),
-                AnimatedRotation(
-                  turns: widget.isExpanded ? 0.5 : 0,
-                  duration: AppDimensions.animationDuration,
-                  child: Icon(
-                    Icons.expand_more,
-                    color: themeData.colorScheme.onPrimary,
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
+            Positioned(
+              left: 10,
+              top: 0,
+              bottom: 0,
+              child: AnimatedSwitcher(
+                duration: AppDimensions.animationDuration,
+                child: hasTimer
+                    ? const SizedBox.shrink(key: ValueKey('empty'))
+                    : IconButton(
+                        key: const ValueKey('timer'),
+                        onPressed: widget.onAddTimer,
+                        icon: const Icon(Icons.add_alarm, size: 22),
+                        color: themeData.colorScheme.onPrimary,
+                      ),
+              ),
+            ),
+          ],
         ),
 
         // Expandierbarer Inhalt mit MaxHeight
@@ -96,7 +127,7 @@ class _CookingModeIngredientsListState
                   bottomRight: Radius.circular(AppDimensions.borderRadius),
                 ),
               ),
-              padding: EdgeInsets.all(10),
+              padding: EdgeInsets.symmetric(horizontal: 10),
               child: Scrollbar(
                 controller: _scrollController,
                 thumbVisibility: true,

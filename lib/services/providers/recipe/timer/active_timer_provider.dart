@@ -196,4 +196,51 @@ class ActiveTimerNotifier extends _$ActiveTimerNotifier {
       ref.invalidate(recipeTimersProvider(timer.recipeId));
     } catch (_) {}
   }
+
+  void addMinute(String key) {
+    final timer = state[key];
+    if (timer == null) return;
+
+    const addSeconds = 60;
+
+    switch (timer.status) {
+      case TimerStatus.running:
+        final newEndTime = timer.endTime!.add(Duration(seconds: addSeconds));
+        state = {
+          ...state,
+          key: timer.copyWith(
+            totalSeconds: timer.totalSeconds + addSeconds,
+            endTime: newEndTime,
+          ),
+        };
+        NotificationService.instance.cancelNotification(timer.notificationId);
+        NotificationService.instance.scheduleNotification(
+          id: timer.notificationId,
+          title: 'Timer abgelaufen',
+          body: timer.label,
+          scheduledTime: newEndTime,
+          payload: '${timer.recipeId}:${timer.stepIndex}',
+        );
+
+      case TimerStatus.paused:
+        state = {
+          ...state,
+          key: timer.copyWith(
+            totalSeconds: timer.totalSeconds + addSeconds,
+            pausedRemainingSeconds:
+                (timer.pausedRemainingSeconds ?? 0) + addSeconds,
+          ),
+        };
+
+      case TimerStatus.finished:
+        NotificationService.instance.stopAlarmSound();
+        startTimer(
+          recipeId: timer.recipeId,
+          stepIndex: timer.stepIndex,
+          label: timer.label,
+          durationSeconds: addSeconds,
+          savedDurationSeconds: timer.savedDurationSeconds,
+        );
+    }
+  }
 }

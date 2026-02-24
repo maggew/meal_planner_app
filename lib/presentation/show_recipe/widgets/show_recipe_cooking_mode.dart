@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/active_timer.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
+import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooking_mode_ingredients_list.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooking_mode_page_buttons.dart';
+import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooking_mode_step_indicator.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooking_mode_step_widget.dart';
 import 'package:meal_planner/services/providers/recipe/timer/active_timer_provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -27,6 +29,7 @@ class _ShowRecipeCookingModeState extends ConsumerState<ShowRecipeCookingMode>
   late List<String> instructions;
   late TabController _tabController;
   bool isIngredientsExpanded = false;
+  int? _addingTimerForStep;
 
   @override
   bool get wantKeepAlive => true;
@@ -77,21 +80,49 @@ class _ShowRecipeCookingModeState extends ConsumerState<ShowRecipeCookingMode>
       padding: AppDimensions.screenPadding,
       child: Stack(
         children: [
-          TabBarView(
-              controller: _tabController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: List.generate(
-                  instructions.length,
-                  (index) => CookingModeStepWidget(
-                        recipeId: widget.recipe.id!,
-                        instructionStep: instructions[index],
-                        stepNumber: index + 1,
-                        ingredientSections: widget.recipe.ingredientSections,
-                        isExpanded: isIngredientsExpanded,
-                        onExpandToggle: () => setState(() {
-                          isIngredientsExpanded = !isIngredientsExpanded;
-                        }),
-                      )).toList()),
+          Column(
+            children: [
+              AnimatedBuilder(
+                animation: _tabController,
+                builder: (context, _) => Column(
+                  children: [
+                    CookingModeStepIndicator(
+                      totalSteps: instructions.length,
+                      currentStep: _tabController.index,
+                      onStepTapped: (index) => _tabController.animateTo(index),
+                    ),
+                    CookingModeIngredientsList(
+                      isExpanded: isIngredientsExpanded,
+                      onExpandToggle: () => setState(() {
+                        isIngredientsExpanded = !isIngredientsExpanded;
+                      }),
+                      ingredientSections: widget.recipe.ingredientSections,
+                      recipeId: widget.recipe.id!,
+                      stepNumber: _tabController.index,
+                      onAddTimer: () => setState(
+                          () => _addingTimerForStep = _tabController.index),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: TabBarView(
+                    controller: _tabController,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: List.generate(
+                        instructions.length,
+                        (index) => CookingModeStepWidget(
+                              recipeId: widget.recipe.id!,
+                              instructionStep: instructions[index],
+                              stepNumber: index,
+                              totalSteps: _tabController.length,
+                              isAddingTimer: _addingTimerForStep == index,
+                              onTimerPickerClosed: () =>
+                                  setState(() => _addingTimerForStep = null),
+                            )).toList()),
+              ),
+            ],
+          ),
           Positioned(
             left: 0,
             right: 0,

@@ -121,19 +121,35 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
               onPressed: () {
                 context.router.pop();
               }),
-          title: widget.recipe!.name,
+          title: _recipe!.name,
           actionsButtons: [
-            IconButton(
-              onPressed: () => _showEditDialog(context),
-              icon: Icon(
-                Icons.edit_outlined,
-              ),
-            ),
-            IconButton(
-              onPressed: () => _showDeleteDialog(context, ref),
-              icon: Icon(
-                AppIcons.trash_bin,
-              ),
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                switch (value) {
+                  case 'edit':
+                    _showEditDialog(context);
+                  case 'delete':
+                    _showDeleteDialog(context, ref);
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'edit',
+                  child: ListTile(
+                    leading: Icon(Icons.edit_outlined),
+                    title: Text('Bearbeiten'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: ListTile(
+                    leading: Icon(AppIcons.trash_bin),
+                    title: Text('Löschen'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -161,7 +177,7 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Rezept bearbeiten'),
-        content: Text('Möchtest du "${widget.recipe!.name}" bearbeiten?'),
+        content: Text('Möchtest du "${_recipe!.name}" bearbeiten?'),
         actions: [
           TextButton(
             onPressed: () => context.router.maybePop(false),
@@ -177,7 +193,7 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
     );
 
     if (confirmed == true && context.mounted) {
-      context.router.push(AddEditRecipeRoute(existingRecipe: widget.recipe));
+      context.router.push(AddEditRecipeRoute(existingRecipe: _recipe));
     }
   }
 
@@ -186,7 +202,7 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Rezept löschen'),
-        content: Text('Möchtest du "${widget.recipe!.name}" wirklich löschen?'),
+        content: Text('Möchtest du "${_recipe!.name}" wirklich löschen?'),
         actions: [
           TextButton(
             onPressed: () => context.router.maybePop(false),
@@ -209,7 +225,7 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
   Future<void> _deleteRecipe(BuildContext context, WidgetRef ref) async {
     try {
       final recipeRepo = ref.read(recipeRepositoryProvider);
-      await recipeRepo.deleteRecipe(widget.recipe!.id!);
+      await recipeRepo.deleteRecipe(_recipe!.id!);
 
       // Provider für alle Kategorien invalidieren
       for (final category in categoryNames) {
