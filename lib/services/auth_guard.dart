@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/core/constants/local_storage_service.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
@@ -22,32 +23,53 @@ class AuthGuard extends AutoRouteGuard {
       return;
     }
 
-    final userRepo = ref.read(userRepositoryProvider);
-    final user = await userRepo.getUserByFirebaseUid(firebaseUid);
+    final storage = LocalStorageService();
 
-    if (user == null) {
+    // Supabase-UserId holen: erst online versuchen, dann Cache
+    String? supabaseUserId;
+    try {
+      final userRepo = ref.read(userRepositoryProvider);
+      final user = await userRepo.getUserByFirebaseUid(firebaseUid);
+      if (user != null) {
+        supabaseUserId = user.id;
+        await storage.saveSupabaseUserId(user.id);
+      }
+    } catch (_) {
+      // Netzwerkfehler: gecachte ID verwenden
+    }
+    // Fallback: wenn getUserByFirebaseUid null zurückgab (Fehler intern schluckt),
+    // aus Cache laden
+    supabaseUserId ??= await storage.loadSupabaseUserId();
+
+    if (supabaseUserId == null) {
       router.replace(const LoginRoute());
       return;
     }
 
     final currentSession = ref.read(sessionProvider);
-    if (currentSession.userId != user.id || currentSession.group == null) {
-      await ref.read(sessionProvider.notifier).loadSession(user.id);
+    if (currentSession.userId != supabaseUserId ||
+        currentSession.group == null) {
+      await ref.read(sessionProvider.notifier).loadSession(supabaseUserId);
     }
 
     final session = ref.read(sessionProvider);
 
     if (session.groupId == null || session.groupId!.isEmpty) {
-      final groupRepo = ref.read(groupRepositoryProvider);
-      final groups = await groupRepo.getUserGroups(user.id);
-
-      if (groups.isEmpty) {
+      // Offline: keine Gruppenabfrage möglich → direkt zur Gruppenauswahl
+      try {
+        final groupRepo = ref.read(groupRepositoryProvider);
+        final groups = await groupRepo.getUserGroups(supabaseUserId);
+        if (groups.isEmpty) {
+          router.replace(const GroupOnboardingRoute());
+        } else {
+          router.replace(GroupsRoute());
+        }
+      } catch (_) {
         router.replace(const GroupOnboardingRoute());
-      } else {
-        router.replace(GroupsRoute());
       }
       return;
     }
+
     resolver.next(true);
   }
 }

@@ -47,31 +47,35 @@ class SessionController extends StateNotifier<SessionState> {
   Future<void> loadSession(String userId) async {
     state = state.copyWith(isLoading: true, userId: userId);
 
-    try {
-      final storage = LocalStorageService();
-      final groupId = await storage.loadActiveGroup();
+    final storage = LocalStorageService();
+    final groupId = await storage.loadActiveGroup();
 
-      Group? group;
-      if (groupId != null) {
+    Group? group;
+    if (groupId != null) {
+      try {
         final groupRepo = ref.read(groupRepositoryProvider);
         group = await groupRepo.getGroup(groupId);
+        if (group != null) {
+          await storage.saveGroup(group);
+        }
+      } catch (_) {
+        // Offline: gecachte Gruppe laden
+        group = await storage.loadGroup();
       }
-
-      await ref.read(realtimeAuthServiceProvider).initialize();
-
-      state = SessionState(
-        userId: userId,
-        groupId: groupId,
-        group: group,
-        isLoading: false,
-      );
-    } catch (e) {
-      state = SessionState(
-        userId: userId,
-        isLoading: false,
-      );
-      rethrow;
     }
+
+    try {
+      await ref.read(realtimeAuthServiceProvider).initialize();
+    } catch (_) {
+      // Offline: Token-Refresh ignorieren, Session trotzdem setzen
+    }
+
+    state = SessionState(
+      userId: userId,
+      groupId: groupId,
+      group: group,
+      isLoading: false,
+    );
   }
 
   Future<void> joinGroup(String groupId) async {
@@ -140,6 +144,7 @@ class SessionController extends StateNotifier<SessionState> {
   Future<void> clearSession() async {
     final storage = LocalStorageService();
     await storage.clearActiveGroup();
+    await storage.clearGroup();
     ref.read(realtimeAuthServiceProvider).dispose();
     state = const SessionState();
   }

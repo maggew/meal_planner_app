@@ -9,7 +9,7 @@ class RealtimeAuthService {
   Future<void> initialize() async {
     // Einmalig Token setzen
     final firebaseUser = FirebaseAuth.instance.currentUser;
-    final token = await firebaseUser?.getIdToken(true);
+    final token = await firebaseUser?.getIdToken();
     if (token != null) {
       Supabase.instance.client.realtime.setAuth(token);
     }
