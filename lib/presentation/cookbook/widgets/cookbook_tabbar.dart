@@ -39,7 +39,7 @@ class CookbookTabbar extends ConsumerWidget {
               children: [
                 SizedBox(height: 8),
                 Image(
-                  image: AssetImage("assets/images/caticorn.png"),
+                  image: AssetImage("assets/images/Rosi.png"),
                   height: 40,
                 ),
                 SizedBox(height: 8),

@@ -78,7 +78,7 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
   }
 
   Image _buildImage(Recipe recipe) {
-    final fallback = Image.asset('assets/images/caticorn.png', fit: BoxFit.cover);
+    final fallback = Image.asset('assets/images/Rosi.png', fit: BoxFit.cover);
     return (recipe.imageUrl == null || recipe.imageUrl!.isEmpty)
         ? fallback
         : Image.network(

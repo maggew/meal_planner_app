@@ -11,7 +11,7 @@ class WelcomeBody extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Image(
-            image: AssetImage('assets/images/caticorn.png'),
+            image: AssetImage('assets/images/Rosi.png'),
             height: 100,
           ),
           const SizedBox(height: 35),

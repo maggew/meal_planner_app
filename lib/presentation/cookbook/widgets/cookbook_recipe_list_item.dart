@@ -13,7 +13,7 @@ class CookbookRecipeListItem extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
 
-    final fallback = Image.asset('assets/images/caticorn.png', fit: BoxFit.cover);
+    final fallback = Image.asset('assets/images/Rosi.png', fit: BoxFit.cover);
     final recipeImage = (recipe.imageUrl == null ||
             recipe.imageUrl!.isEmpty ||
             recipe.imageUrl == 'assets/images/default_pic_2.jpg')
