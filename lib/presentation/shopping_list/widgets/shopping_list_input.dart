@@ -11,6 +11,7 @@ class ShoppingListInput extends ConsumerStatefulWidget {
 
 class _ShoppingListInputState extends ConsumerState<ShoppingListInput> {
   final _controller = TextEditingController();
+  final _focusNode = FocusNode();
 
   void _submit() {
     final text = _controller.text.trim();
@@ -18,11 +19,13 @@ class _ShoppingListInputState extends ConsumerState<ShoppingListInput> {
 
     ref.read(shoppingListActionsProvider.notifier).addItem(text);
     _controller.clear();
+    _focusNode.requestFocus();
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -32,6 +35,7 @@ class _ShoppingListInputState extends ConsumerState<ShoppingListInput> {
       padding: const EdgeInsets.all(16),
       child: TextField(
         controller: _controller,
+        focusNode: _focusNode,
         decoration: InputDecoration(
           hintText: 'z.B. 500g Mehl',
           fillColor:

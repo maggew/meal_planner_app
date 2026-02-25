@@ -1,0 +1,34 @@
+# Secrets & Credentials
+.env
+.env.*
+**/google-services.json
+**/GoogleService-Info.plist
+**/*keystore*
+**/*jks
+key.properties
+
+# Firebase/Supabase Config mit Secrets
+firebase_options.dart
+
+# Build Outputs (unnötig groß, kein Nutzen für Claude)
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Generated Code (wird eh neu generiert)
+**/*.g.dart
+**/*.freezed.dart
+**/*.gr.dart
+
+# Dependencies
+.packages
+pubspec.lock
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -13,7 +13,6 @@ class ShoppingListBody extends ConsumerWidget {
 
     return Column(
       children: [
-        const ShoppingListInput(),
         Expanded(
           child: shoppingListState.when(
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -28,29 +27,57 @@ class ShoppingListBody extends ConsumerWidget {
               final unchecked = items.where((i) => !i.isChecked).toList();
               final checked = items.where((i) => i.isChecked).toList();
 
-              return ListView(
-                children: [
-                  ...unchecked.map((item) => ShoppingListItemTile(item: item)),
+              return CustomScrollView(
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.all(12),
+                    sliver: SliverGrid.count(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                      children: unchecked
+                          .map((item) => ShoppingListItemTile(
+                              key: ValueKey(item.id), item: item))
+                          .toList(),
+                    ),
+                  ),
                   if (checked.isNotEmpty) ...[
-                    Padding(
+                    SliverToBoxAdapter(
+                      child: Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 8),
-                        child: Text('Erledigt',
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface
-                                          .withValues(alpha: 0.5),
-                                      fontWeight: FontWeight.w600,
-                                    ))),
-                    ...checked.map((item) => ShoppingListItemTile(item: item)),
+                        child: Text(
+                          'Erledigt',
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.5),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                      ),
+                    ),
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                      sliver: SliverGrid.count(
+                        crossAxisCount: 3,
+                        crossAxisSpacing: 8,
+                        mainAxisSpacing: 8,
+                        children: checked
+                            .map((item) => ShoppingListItemTile(
+                                key: ValueKey(item.id), item: item))
+                            .toList(),
+                      ),
+                    ),
                   ],
                 ],
               );
             },
           ),
         ),
+        const ShoppingListInput(),
       ],
     );
   }
