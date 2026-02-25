@@ -79,4 +79,15 @@ class SupabaseConstants {
   static const String recipeTimerStepIndex = 'step_index';
   static const String recipeTimerName = 'timer_name';
   static const String recipeTimerDurationSeconds = 'duration_seconds';
+
+  // Tables: Meal Plan
+  static const String mealPlanEntriesTable = 'meal_plan_entries';
+
+  // Columns: Meal Plan Entries
+  static const String mealPlanEntryId = 'id';
+  static const String mealPlanEntryGroupId = 'group_id';
+  static const String mealPlanEntryRecipeId = 'recipe_id';
+  static const String mealPlanEntryDate = 'date';
+  static const String mealPlanEntryMealType = 'meal_type';
+  static const String mealPlanEntryUpdatedAt = 'updated_at';
 }

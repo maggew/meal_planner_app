@@ -140,7 +140,7 @@ class DetailedWeekplanRoute extends _i19.PageRouteInfo<void> {
   static _i19.PageInfo page = _i19.PageInfo(
     name,
     builder: (data) {
-      return _i4.DetailedWeekplanPage();
+      return const _i4.DetailedWeekplanPage();
     },
   );
 }

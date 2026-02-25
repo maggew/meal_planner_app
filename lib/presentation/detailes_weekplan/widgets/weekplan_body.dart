@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/detailes_weekplan/widgets/weekplan_calendar.dart';
 import 'package:meal_planner/presentation/detailes_weekplan/widgets/weekplan_day_meals_section.dart';
+import 'package:meal_planner/services/providers/meal_plan/meal_plan_sync_provider.dart';
 
-class WeekplanBody extends StatefulWidget {
+class WeekplanBody extends ConsumerStatefulWidget {
   const WeekplanBody({super.key});
 
   @override
-  State<WeekplanBody> createState() => _WeekplanBodyState();
+  ConsumerState<WeekplanBody> createState() => _WeekplanBodyState();
 }
 
-class _WeekplanBodyState extends State<WeekplanBody> {
+class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
   late DateTime _focusedMonth;
   late DateTime _selectedDay;
 
@@ -29,15 +31,21 @@ class _WeekplanBodyState extends State<WeekplanBody> {
   }
 
   void _onPreviousMonth() {
-    setState(() {
-      _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month - 1, 1);
-    });
+    final newMonth =
+        DateTime(_focusedMonth.year, _focusedMonth.month - 1, 1);
+    setState(() => _focusedMonth = newMonth);
+    ref
+        .read(mealPlanSyncServiceProvider)
+        .sync(newMonth.year, newMonth.month);
   }
 
   void _onNextMonth() {
-    setState(() {
-      _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month + 1, 1);
-    });
+    final newMonth =
+        DateTime(_focusedMonth.year, _focusedMonth.month + 1, 1);
+    setState(() => _focusedMonth = newMonth);
+    ref
+        .read(mealPlanSyncServiceProvider)
+        .sync(newMonth.year, newMonth.month);
   }
 
   @override

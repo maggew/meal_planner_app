@@ -1058,18 +1058,455 @@ class LocalRecipesCompanion extends UpdateCompanion<LocalRecipe> {
   }
 }
 
+class $LocalMealPlanEntriesTable extends LocalMealPlanEntries
+    with TableInfo<$LocalMealPlanEntriesTable, LocalMealPlanEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LocalMealPlanEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _localIdMeta =
+      const VerificationMeta('localId');
+  @override
+  late final GeneratedColumn<String> localId = GeneratedColumn<String>(
+      'local_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _remoteIdMeta =
+      const VerificationMeta('remoteId');
+  @override
+  late final GeneratedColumn<String> remoteId = GeneratedColumn<String>(
+      'remote_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _groupIdMeta =
+      const VerificationMeta('groupId');
+  @override
+  late final GeneratedColumn<String> groupId = GeneratedColumn<String>(
+      'group_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _recipeIdMeta =
+      const VerificationMeta('recipeId');
+  @override
+  late final GeneratedColumn<String> recipeId = GeneratedColumn<String>(
+      'recipe_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<String> date = GeneratedColumn<String>(
+      'date', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _mealTypeMeta =
+      const VerificationMeta('mealType');
+  @override
+  late final GeneratedColumn<String> mealType = GeneratedColumn<String>(
+      'meal_type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _syncStatusMeta =
+      const VerificationMeta('syncStatus');
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+      'sync_status', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('pendingCreate'));
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [
+        localId,
+        remoteId,
+        groupId,
+        recipeId,
+        date,
+        mealType,
+        syncStatus,
+        updatedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'local_meal_plan_entries';
+  @override
+  VerificationContext validateIntegrity(Insertable<LocalMealPlanEntry> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('local_id')) {
+      context.handle(_localIdMeta,
+          localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta));
+    } else if (isInserting) {
+      context.missing(_localIdMeta);
+    }
+    if (data.containsKey('remote_id')) {
+      context.handle(_remoteIdMeta,
+          remoteId.isAcceptableOrUnknown(data['remote_id']!, _remoteIdMeta));
+    }
+    if (data.containsKey('group_id')) {
+      context.handle(_groupIdMeta,
+          groupId.isAcceptableOrUnknown(data['group_id']!, _groupIdMeta));
+    } else if (isInserting) {
+      context.missing(_groupIdMeta);
+    }
+    if (data.containsKey('recipe_id')) {
+      context.handle(_recipeIdMeta,
+          recipeId.isAcceptableOrUnknown(data['recipe_id']!, _recipeIdMeta));
+    } else if (isInserting) {
+      context.missing(_recipeIdMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+          _dateMeta, date.isAcceptableOrUnknown(data['date']!, _dateMeta));
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('meal_type')) {
+      context.handle(_mealTypeMeta,
+          mealType.isAcceptableOrUnknown(data['meal_type']!, _mealTypeMeta));
+    } else if (isInserting) {
+      context.missing(_mealTypeMeta);
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+          _syncStatusMeta,
+          syncStatus.isAcceptableOrUnknown(
+              data['sync_status']!, _syncStatusMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {localId};
+  @override
+  LocalMealPlanEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LocalMealPlanEntry(
+      localId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}local_id'])!,
+      remoteId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}remote_id']),
+      groupId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}group_id'])!,
+      recipeId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}recipe_id'])!,
+      date: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}date'])!,
+      mealType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}meal_type'])!,
+      syncStatus: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sync_status'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $LocalMealPlanEntriesTable createAlias(String alias) {
+    return $LocalMealPlanEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class LocalMealPlanEntry extends DataClass
+    implements Insertable<LocalMealPlanEntry> {
+  final String localId;
+  final String? remoteId;
+  final String groupId;
+  final String recipeId;
+  final String date;
+  final String mealType;
+  final String syncStatus;
+  final DateTime updatedAt;
+  const LocalMealPlanEntry(
+      {required this.localId,
+      this.remoteId,
+      required this.groupId,
+      required this.recipeId,
+      required this.date,
+      required this.mealType,
+      required this.syncStatus,
+      required this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['local_id'] = Variable<String>(localId);
+    if (!nullToAbsent || remoteId != null) {
+      map['remote_id'] = Variable<String>(remoteId);
+    }
+    map['group_id'] = Variable<String>(groupId);
+    map['recipe_id'] = Variable<String>(recipeId);
+    map['date'] = Variable<String>(date);
+    map['meal_type'] = Variable<String>(mealType);
+    map['sync_status'] = Variable<String>(syncStatus);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  LocalMealPlanEntriesCompanion toCompanion(bool nullToAbsent) {
+    return LocalMealPlanEntriesCompanion(
+      localId: Value(localId),
+      remoteId: remoteId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteId),
+      groupId: Value(groupId),
+      recipeId: Value(recipeId),
+      date: Value(date),
+      mealType: Value(mealType),
+      syncStatus: Value(syncStatus),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory LocalMealPlanEntry.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LocalMealPlanEntry(
+      localId: serializer.fromJson<String>(json['localId']),
+      remoteId: serializer.fromJson<String?>(json['remoteId']),
+      groupId: serializer.fromJson<String>(json['groupId']),
+      recipeId: serializer.fromJson<String>(json['recipeId']),
+      date: serializer.fromJson<String>(json['date']),
+      mealType: serializer.fromJson<String>(json['mealType']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'localId': serializer.toJson<String>(localId),
+      'remoteId': serializer.toJson<String?>(remoteId),
+      'groupId': serializer.toJson<String>(groupId),
+      'recipeId': serializer.toJson<String>(recipeId),
+      'date': serializer.toJson<String>(date),
+      'mealType': serializer.toJson<String>(mealType),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  LocalMealPlanEntry copyWith(
+          {String? localId,
+          Value<String?> remoteId = const Value.absent(),
+          String? groupId,
+          String? recipeId,
+          String? date,
+          String? mealType,
+          String? syncStatus,
+          DateTime? updatedAt}) =>
+      LocalMealPlanEntry(
+        localId: localId ?? this.localId,
+        remoteId: remoteId.present ? remoteId.value : this.remoteId,
+        groupId: groupId ?? this.groupId,
+        recipeId: recipeId ?? this.recipeId,
+        date: date ?? this.date,
+        mealType: mealType ?? this.mealType,
+        syncStatus: syncStatus ?? this.syncStatus,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+  LocalMealPlanEntry copyWithCompanion(LocalMealPlanEntriesCompanion data) {
+    return LocalMealPlanEntry(
+      localId: data.localId.present ? data.localId.value : this.localId,
+      remoteId: data.remoteId.present ? data.remoteId.value : this.remoteId,
+      groupId: data.groupId.present ? data.groupId.value : this.groupId,
+      recipeId: data.recipeId.present ? data.recipeId.value : this.recipeId,
+      date: data.date.present ? data.date.value : this.date,
+      mealType: data.mealType.present ? data.mealType.value : this.mealType,
+      syncStatus:
+          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalMealPlanEntry(')
+          ..write('localId: $localId, ')
+          ..write('remoteId: $remoteId, ')
+          ..write('groupId: $groupId, ')
+          ..write('recipeId: $recipeId, ')
+          ..write('date: $date, ')
+          ..write('mealType: $mealType, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(localId, remoteId, groupId, recipeId, date,
+      mealType, syncStatus, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LocalMealPlanEntry &&
+          other.localId == this.localId &&
+          other.remoteId == this.remoteId &&
+          other.groupId == this.groupId &&
+          other.recipeId == this.recipeId &&
+          other.date == this.date &&
+          other.mealType == this.mealType &&
+          other.syncStatus == this.syncStatus &&
+          other.updatedAt == this.updatedAt);
+}
+
+class LocalMealPlanEntriesCompanion
+    extends UpdateCompanion<LocalMealPlanEntry> {
+  final Value<String> localId;
+  final Value<String?> remoteId;
+  final Value<String> groupId;
+  final Value<String> recipeId;
+  final Value<String> date;
+  final Value<String> mealType;
+  final Value<String> syncStatus;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const LocalMealPlanEntriesCompanion({
+    this.localId = const Value.absent(),
+    this.remoteId = const Value.absent(),
+    this.groupId = const Value.absent(),
+    this.recipeId = const Value.absent(),
+    this.date = const Value.absent(),
+    this.mealType = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LocalMealPlanEntriesCompanion.insert({
+    required String localId,
+    this.remoteId = const Value.absent(),
+    required String groupId,
+    required String recipeId,
+    required String date,
+    required String mealType,
+    this.syncStatus = const Value.absent(),
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  })  : localId = Value(localId),
+        groupId = Value(groupId),
+        recipeId = Value(recipeId),
+        date = Value(date),
+        mealType = Value(mealType),
+        updatedAt = Value(updatedAt);
+  static Insertable<LocalMealPlanEntry> custom({
+    Expression<String>? localId,
+    Expression<String>? remoteId,
+    Expression<String>? groupId,
+    Expression<String>? recipeId,
+    Expression<String>? date,
+    Expression<String>? mealType,
+    Expression<String>? syncStatus,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (localId != null) 'local_id': localId,
+      if (remoteId != null) 'remote_id': remoteId,
+      if (groupId != null) 'group_id': groupId,
+      if (recipeId != null) 'recipe_id': recipeId,
+      if (date != null) 'date': date,
+      if (mealType != null) 'meal_type': mealType,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LocalMealPlanEntriesCompanion copyWith(
+      {Value<String>? localId,
+      Value<String?>? remoteId,
+      Value<String>? groupId,
+      Value<String>? recipeId,
+      Value<String>? date,
+      Value<String>? mealType,
+      Value<String>? syncStatus,
+      Value<DateTime>? updatedAt,
+      Value<int>? rowid}) {
+    return LocalMealPlanEntriesCompanion(
+      localId: localId ?? this.localId,
+      remoteId: remoteId ?? this.remoteId,
+      groupId: groupId ?? this.groupId,
+      recipeId: recipeId ?? this.recipeId,
+      date: date ?? this.date,
+      mealType: mealType ?? this.mealType,
+      syncStatus: syncStatus ?? this.syncStatus,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (localId.present) {
+      map['local_id'] = Variable<String>(localId.value);
+    }
+    if (remoteId.present) {
+      map['remote_id'] = Variable<String>(remoteId.value);
+    }
+    if (groupId.present) {
+      map['group_id'] = Variable<String>(groupId.value);
+    }
+    if (recipeId.present) {
+      map['recipe_id'] = Variable<String>(recipeId.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<String>(date.value);
+    }
+    if (mealType.present) {
+      map['meal_type'] = Variable<String>(mealType.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalMealPlanEntriesCompanion(')
+          ..write('localId: $localId, ')
+          ..write('remoteId: $remoteId, ')
+          ..write('groupId: $groupId, ')
+          ..write('recipeId: $recipeId, ')
+          ..write('date: $date, ')
+          ..write('mealType: $mealType, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $LocalShoppingItemsTable localShoppingItems =
       $LocalShoppingItemsTable(this);
   late final $LocalRecipesTable localRecipes = $LocalRecipesTable(this);
+  late final $LocalMealPlanEntriesTable localMealPlanEntries =
+      $LocalMealPlanEntriesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [localShoppingItems, localRecipes];
+      [localShoppingItems, localRecipes, localMealPlanEntries];
 }
 
 typedef $$LocalShoppingItemsTableCreateCompanionBuilder
@@ -1575,6 +2012,230 @@ typedef $$LocalRecipesTableProcessedTableManager = ProcessedTableManager<
     ),
     LocalRecipe,
     PrefetchHooks Function()>;
+typedef $$LocalMealPlanEntriesTableCreateCompanionBuilder
+    = LocalMealPlanEntriesCompanion Function({
+  required String localId,
+  Value<String?> remoteId,
+  required String groupId,
+  required String recipeId,
+  required String date,
+  required String mealType,
+  Value<String> syncStatus,
+  required DateTime updatedAt,
+  Value<int> rowid,
+});
+typedef $$LocalMealPlanEntriesTableUpdateCompanionBuilder
+    = LocalMealPlanEntriesCompanion Function({
+  Value<String> localId,
+  Value<String?> remoteId,
+  Value<String> groupId,
+  Value<String> recipeId,
+  Value<String> date,
+  Value<String> mealType,
+  Value<String> syncStatus,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+
+class $$LocalMealPlanEntriesTableFilterComposer
+    extends Composer<_$AppDatabase, $LocalMealPlanEntriesTable> {
+  $$LocalMealPlanEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get remoteId => $composableBuilder(
+      column: $table.remoteId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get groupId => $composableBuilder(
+      column: $table.groupId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get recipeId => $composableBuilder(
+      column: $table.recipeId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get date => $composableBuilder(
+      column: $table.date, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get mealType => $composableBuilder(
+      column: $table.mealType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$LocalMealPlanEntriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $LocalMealPlanEntriesTable> {
+  $$LocalMealPlanEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get localId => $composableBuilder(
+      column: $table.localId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get remoteId => $composableBuilder(
+      column: $table.remoteId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get groupId => $composableBuilder(
+      column: $table.groupId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get recipeId => $composableBuilder(
+      column: $table.recipeId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get date => $composableBuilder(
+      column: $table.date, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get mealType => $composableBuilder(
+      column: $table.mealType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$LocalMealPlanEntriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LocalMealPlanEntriesTable> {
+  $$LocalMealPlanEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
+
+  GeneratedColumn<String> get remoteId =>
+      $composableBuilder(column: $table.remoteId, builder: (column) => column);
+
+  GeneratedColumn<String> get groupId =>
+      $composableBuilder(column: $table.groupId, builder: (column) => column);
+
+  GeneratedColumn<String> get recipeId =>
+      $composableBuilder(column: $table.recipeId, builder: (column) => column);
+
+  GeneratedColumn<String> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<String> get mealType =>
+      $composableBuilder(column: $table.mealType, builder: (column) => column);
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$LocalMealPlanEntriesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $LocalMealPlanEntriesTable,
+    LocalMealPlanEntry,
+    $$LocalMealPlanEntriesTableFilterComposer,
+    $$LocalMealPlanEntriesTableOrderingComposer,
+    $$LocalMealPlanEntriesTableAnnotationComposer,
+    $$LocalMealPlanEntriesTableCreateCompanionBuilder,
+    $$LocalMealPlanEntriesTableUpdateCompanionBuilder,
+    (
+      LocalMealPlanEntry,
+      BaseReferences<_$AppDatabase, $LocalMealPlanEntriesTable,
+          LocalMealPlanEntry>
+    ),
+    LocalMealPlanEntry,
+    PrefetchHooks Function()> {
+  $$LocalMealPlanEntriesTableTableManager(
+      _$AppDatabase db, $LocalMealPlanEntriesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LocalMealPlanEntriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LocalMealPlanEntriesTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LocalMealPlanEntriesTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> localId = const Value.absent(),
+            Value<String?> remoteId = const Value.absent(),
+            Value<String> groupId = const Value.absent(),
+            Value<String> recipeId = const Value.absent(),
+            Value<String> date = const Value.absent(),
+            Value<String> mealType = const Value.absent(),
+            Value<String> syncStatus = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              LocalMealPlanEntriesCompanion(
+            localId: localId,
+            remoteId: remoteId,
+            groupId: groupId,
+            recipeId: recipeId,
+            date: date,
+            mealType: mealType,
+            syncStatus: syncStatus,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String localId,
+            Value<String?> remoteId = const Value.absent(),
+            required String groupId,
+            required String recipeId,
+            required String date,
+            required String mealType,
+            Value<String> syncStatus = const Value.absent(),
+            required DateTime updatedAt,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              LocalMealPlanEntriesCompanion.insert(
+            localId: localId,
+            remoteId: remoteId,
+            groupId: groupId,
+            recipeId: recipeId,
+            date: date,
+            mealType: mealType,
+            syncStatus: syncStatus,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$LocalMealPlanEntriesTableProcessedTableManager
+    = ProcessedTableManager<
+        _$AppDatabase,
+        $LocalMealPlanEntriesTable,
+        LocalMealPlanEntry,
+        $$LocalMealPlanEntriesTableFilterComposer,
+        $$LocalMealPlanEntriesTableOrderingComposer,
+        $$LocalMealPlanEntriesTableAnnotationComposer,
+        $$LocalMealPlanEntriesTableCreateCompanionBuilder,
+        $$LocalMealPlanEntriesTableUpdateCompanionBuilder,
+        (
+          LocalMealPlanEntry,
+          BaseReferences<_$AppDatabase, $LocalMealPlanEntriesTable,
+              LocalMealPlanEntry>
+        ),
+        LocalMealPlanEntry,
+        PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1583,4 +2244,6 @@ class $AppDatabaseManager {
       $$LocalShoppingItemsTableTableManager(_db, _db.localShoppingItems);
   $$LocalRecipesTableTableManager get localRecipes =>
       $$LocalRecipesTableTableManager(_db, _db.localRecipes);
+  $$LocalMealPlanEntriesTableTableManager get localMealPlanEntries =>
+      $$LocalMealPlanEntriesTableTableManager(_db, _db.localMealPlanEntries);
 }
