@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/shopping_list_item.dart';
 import 'package:meal_planner/services/providers/shopping_list/shopping_list_provider.dart';
@@ -59,43 +60,39 @@ class _ShoppingListItemTileState extends ConsumerState<ShoppingListItemTile>
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: _handleTap,
-          onLongPress: () {
-            ref
-                .read(shoppingListActionsProvider.notifier)
-                .removeItem(widget.item.id);
-          },
           child: Padding(
             padding: const EdgeInsets.all(8),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                Icon(
-                  widget.item.isChecked
-                      ? Icons.check_circle
-                      : Icons.circle_outlined,
-                  color: widget.item.isChecked
-                      ? colorScheme.onSurface.withValues(alpha: 0.4)
-                      : colorScheme.primary,
-                ),
-                const SizedBox(height: 6),
                 Text(
-                  [
-                    if (widget.item.quantity != null) widget.item.quantity!,
-                    widget.item.information,
-                  ].join(' '),
-                  textAlign: TextAlign.center,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight:
-                        widget.item.quantity != null ? FontWeight.bold : null,
-                    decoration: widget.item.isChecked
-                        ? TextDecoration.lineThrough
-                        : null,
-                    color: widget.item.isChecked
-                        ? colorScheme.onSurface.withValues(alpha: 0.4)
-                        : null,
+                  widget.item.information[0],
+                  style: GoogleFonts.frederickaTheGreat(
+                      fontSize: 50,
+                      color: widget.item.isChecked
+                          ? colorScheme.onSurface.withValues(alpha: 0.4)
+                          : null),
+                ),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 10,
+                  child: Text(
+                    [
+                      if (widget.item.quantity != null) widget.item.quantity!,
+                      widget.item.information,
+                    ].join(' '),
+                    textAlign: TextAlign.center,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight:
+                          widget.item.quantity != null ? FontWeight.bold : null,
+                      color: widget.item.isChecked
+                          ? colorScheme.onSurface.withValues(alpha: 0.4)
+                          : null,
+                    ),
                   ),
                 ),
               ],
