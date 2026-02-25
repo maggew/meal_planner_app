@@ -8,6 +8,7 @@ class MealPlanEntryModel {
   final String recipeId;
   final String date; // 'yyyy-MM-dd'
   final String mealType; // 'breakfast' | 'lunch' | 'dinner'
+  final String? cookId;
 
   const MealPlanEntryModel({
     required this.id,
@@ -15,6 +16,7 @@ class MealPlanEntryModel {
     required this.recipeId,
     required this.date,
     required this.mealType,
+    this.cookId,
   });
 
   factory MealPlanEntryModel.fromSupabase(Map<String, dynamic> data) {
@@ -24,6 +26,7 @@ class MealPlanEntryModel {
       recipeId: data[SupabaseConstants.mealPlanEntryRecipeId] as String,
       date: data[SupabaseConstants.mealPlanEntryDate] as String,
       mealType: data[SupabaseConstants.mealPlanEntryMealType] as String,
+      cookId: data[SupabaseConstants.mealPlanEntryCookId] as String?,
     );
   }
 
@@ -40,6 +43,7 @@ class MealPlanEntryModel {
         int.parse(parts[2]),
       ),
       mealType: MealType.fromValue(mealType),
+      cookId: cookId,
     );
   }
 }

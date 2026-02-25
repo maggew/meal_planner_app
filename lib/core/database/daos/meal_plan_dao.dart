@@ -72,6 +72,15 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
     ));
   }
 
+  Future<void> updateCookId(String localId, String? cookId) {
+    return (update(localMealPlanEntries)
+          ..where((t) => t.localId.equals(localId)))
+        .write(LocalMealPlanEntriesCompanion(
+      cookId: Value(cookId),
+      syncStatus: const Value('pendingUpdate'),
+    ));
+  }
+
   Future<void> hardDeleteEntry(String localId) {
     return (delete(localMealPlanEntries)
           ..where((t) => t.localId.equals(localId)))

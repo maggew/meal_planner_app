@@ -32,7 +32,8 @@ class RecipeCacheDao extends DatabaseAccessor<AppDatabase>
   Stream<List<LocalRecipe>> watchRecipesByGroup(String groupId) {
     return (select(localRecipes)
           ..where((t) => t.groupId.equals(groupId))
-          ..where((t) => t.isDeleted.equals(false)))
+          ..where((t) => t.isDeleted.equals(false))
+          ..orderBy([(t) => OrderingTerm(expression: t.name)]))
         .watch();
   }
 

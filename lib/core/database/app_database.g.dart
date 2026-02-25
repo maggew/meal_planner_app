@@ -1099,6 +1099,11 @@ class $LocalMealPlanEntriesTable extends LocalMealPlanEntries
   late final GeneratedColumn<String> mealType = GeneratedColumn<String>(
       'meal_type', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _cookIdMeta = const VerificationMeta('cookId');
+  @override
+  late final GeneratedColumn<String> cookId = GeneratedColumn<String>(
+      'cook_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _syncStatusMeta =
       const VerificationMeta('syncStatus');
   @override
@@ -1121,6 +1126,7 @@ class $LocalMealPlanEntriesTable extends LocalMealPlanEntries
         recipeId,
         date,
         mealType,
+        cookId,
         syncStatus,
         updatedAt
       ];
@@ -1168,6 +1174,10 @@ class $LocalMealPlanEntriesTable extends LocalMealPlanEntries
     } else if (isInserting) {
       context.missing(_mealTypeMeta);
     }
+    if (data.containsKey('cook_id')) {
+      context.handle(_cookIdMeta,
+          cookId.isAcceptableOrUnknown(data['cook_id']!, _cookIdMeta));
+    }
     if (data.containsKey('sync_status')) {
       context.handle(
           _syncStatusMeta,
@@ -1201,6 +1211,8 @@ class $LocalMealPlanEntriesTable extends LocalMealPlanEntries
           .read(DriftSqlType.string, data['${effectivePrefix}date'])!,
       mealType: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}meal_type'])!,
+      cookId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}cook_id']),
       syncStatus: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}sync_status'])!,
       updatedAt: attachedDatabase.typeMapping
@@ -1222,6 +1234,7 @@ class LocalMealPlanEntry extends DataClass
   final String recipeId;
   final String date;
   final String mealType;
+  final String? cookId;
   final String syncStatus;
   final DateTime updatedAt;
   const LocalMealPlanEntry(
@@ -1231,6 +1244,7 @@ class LocalMealPlanEntry extends DataClass
       required this.recipeId,
       required this.date,
       required this.mealType,
+      this.cookId,
       required this.syncStatus,
       required this.updatedAt});
   @override
@@ -1244,6 +1258,9 @@ class LocalMealPlanEntry extends DataClass
     map['recipe_id'] = Variable<String>(recipeId);
     map['date'] = Variable<String>(date);
     map['meal_type'] = Variable<String>(mealType);
+    if (!nullToAbsent || cookId != null) {
+      map['cook_id'] = Variable<String>(cookId);
+    }
     map['sync_status'] = Variable<String>(syncStatus);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -1259,6 +1276,8 @@ class LocalMealPlanEntry extends DataClass
       recipeId: Value(recipeId),
       date: Value(date),
       mealType: Value(mealType),
+      cookId:
+          cookId == null && nullToAbsent ? const Value.absent() : Value(cookId),
       syncStatus: Value(syncStatus),
       updatedAt: Value(updatedAt),
     );
@@ -1274,6 +1293,7 @@ class LocalMealPlanEntry extends DataClass
       recipeId: serializer.fromJson<String>(json['recipeId']),
       date: serializer.fromJson<String>(json['date']),
       mealType: serializer.fromJson<String>(json['mealType']),
+      cookId: serializer.fromJson<String?>(json['cookId']),
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -1288,6 +1308,7 @@ class LocalMealPlanEntry extends DataClass
       'recipeId': serializer.toJson<String>(recipeId),
       'date': serializer.toJson<String>(date),
       'mealType': serializer.toJson<String>(mealType),
+      'cookId': serializer.toJson<String?>(cookId),
       'syncStatus': serializer.toJson<String>(syncStatus),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -1300,6 +1321,7 @@ class LocalMealPlanEntry extends DataClass
           String? recipeId,
           String? date,
           String? mealType,
+          Value<String?> cookId = const Value.absent(),
           String? syncStatus,
           DateTime? updatedAt}) =>
       LocalMealPlanEntry(
@@ -1309,6 +1331,7 @@ class LocalMealPlanEntry extends DataClass
         recipeId: recipeId ?? this.recipeId,
         date: date ?? this.date,
         mealType: mealType ?? this.mealType,
+        cookId: cookId.present ? cookId.value : this.cookId,
         syncStatus: syncStatus ?? this.syncStatus,
         updatedAt: updatedAt ?? this.updatedAt,
       );
@@ -1320,6 +1343,7 @@ class LocalMealPlanEntry extends DataClass
       recipeId: data.recipeId.present ? data.recipeId.value : this.recipeId,
       date: data.date.present ? data.date.value : this.date,
       mealType: data.mealType.present ? data.mealType.value : this.mealType,
+      cookId: data.cookId.present ? data.cookId.value : this.cookId,
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -1335,6 +1359,7 @@ class LocalMealPlanEntry extends DataClass
           ..write('recipeId: $recipeId, ')
           ..write('date: $date, ')
           ..write('mealType: $mealType, ')
+          ..write('cookId: $cookId, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1343,7 +1368,7 @@ class LocalMealPlanEntry extends DataClass
 
   @override
   int get hashCode => Object.hash(localId, remoteId, groupId, recipeId, date,
-      mealType, syncStatus, updatedAt);
+      mealType, cookId, syncStatus, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1354,6 +1379,7 @@ class LocalMealPlanEntry extends DataClass
           other.recipeId == this.recipeId &&
           other.date == this.date &&
           other.mealType == this.mealType &&
+          other.cookId == this.cookId &&
           other.syncStatus == this.syncStatus &&
           other.updatedAt == this.updatedAt);
 }
@@ -1366,6 +1392,7 @@ class LocalMealPlanEntriesCompanion
   final Value<String> recipeId;
   final Value<String> date;
   final Value<String> mealType;
+  final Value<String?> cookId;
   final Value<String> syncStatus;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -1376,6 +1403,7 @@ class LocalMealPlanEntriesCompanion
     this.recipeId = const Value.absent(),
     this.date = const Value.absent(),
     this.mealType = const Value.absent(),
+    this.cookId = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1387,6 +1415,7 @@ class LocalMealPlanEntriesCompanion
     required String recipeId,
     required String date,
     required String mealType,
+    this.cookId = const Value.absent(),
     this.syncStatus = const Value.absent(),
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -1403,6 +1432,7 @@ class LocalMealPlanEntriesCompanion
     Expression<String>? recipeId,
     Expression<String>? date,
     Expression<String>? mealType,
+    Expression<String>? cookId,
     Expression<String>? syncStatus,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -1414,6 +1444,7 @@ class LocalMealPlanEntriesCompanion
       if (recipeId != null) 'recipe_id': recipeId,
       if (date != null) 'date': date,
       if (mealType != null) 'meal_type': mealType,
+      if (cookId != null) 'cook_id': cookId,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -1427,6 +1458,7 @@ class LocalMealPlanEntriesCompanion
       Value<String>? recipeId,
       Value<String>? date,
       Value<String>? mealType,
+      Value<String?>? cookId,
       Value<String>? syncStatus,
       Value<DateTime>? updatedAt,
       Value<int>? rowid}) {
@@ -1437,6 +1469,7 @@ class LocalMealPlanEntriesCompanion
       recipeId: recipeId ?? this.recipeId,
       date: date ?? this.date,
       mealType: mealType ?? this.mealType,
+      cookId: cookId ?? this.cookId,
       syncStatus: syncStatus ?? this.syncStatus,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -1464,6 +1497,9 @@ class LocalMealPlanEntriesCompanion
     if (mealType.present) {
       map['meal_type'] = Variable<String>(mealType.value);
     }
+    if (cookId.present) {
+      map['cook_id'] = Variable<String>(cookId.value);
+    }
     if (syncStatus.present) {
       map['sync_status'] = Variable<String>(syncStatus.value);
     }
@@ -1485,6 +1521,7 @@ class LocalMealPlanEntriesCompanion
           ..write('recipeId: $recipeId, ')
           ..write('date: $date, ')
           ..write('mealType: $mealType, ')
+          ..write('cookId: $cookId, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -2020,6 +2057,7 @@ typedef $$LocalMealPlanEntriesTableCreateCompanionBuilder
   required String recipeId,
   required String date,
   required String mealType,
+  Value<String?> cookId,
   Value<String> syncStatus,
   required DateTime updatedAt,
   Value<int> rowid,
@@ -2032,6 +2070,7 @@ typedef $$LocalMealPlanEntriesTableUpdateCompanionBuilder
   Value<String> recipeId,
   Value<String> date,
   Value<String> mealType,
+  Value<String?> cookId,
   Value<String> syncStatus,
   Value<DateTime> updatedAt,
   Value<int> rowid,
@@ -2063,6 +2102,9 @@ class $$LocalMealPlanEntriesTableFilterComposer
 
   ColumnFilters<String> get mealType => $composableBuilder(
       column: $table.mealType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get cookId => $composableBuilder(
+      column: $table.cookId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get syncStatus => $composableBuilder(
       column: $table.syncStatus, builder: (column) => ColumnFilters(column));
@@ -2098,6 +2140,9 @@ class $$LocalMealPlanEntriesTableOrderingComposer
   ColumnOrderings<String> get mealType => $composableBuilder(
       column: $table.mealType, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get cookId => $composableBuilder(
+      column: $table.cookId, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get syncStatus => $composableBuilder(
       column: $table.syncStatus, builder: (column) => ColumnOrderings(column));
 
@@ -2131,6 +2176,9 @@ class $$LocalMealPlanEntriesTableAnnotationComposer
 
   GeneratedColumn<String> get mealType =>
       $composableBuilder(column: $table.mealType, builder: (column) => column);
+
+  GeneratedColumn<String> get cookId =>
+      $composableBuilder(column: $table.cookId, builder: (column) => column);
 
   GeneratedColumn<String> get syncStatus => $composableBuilder(
       column: $table.syncStatus, builder: (column) => column);
@@ -2175,6 +2223,7 @@ class $$LocalMealPlanEntriesTableTableManager extends RootTableManager<
             Value<String> recipeId = const Value.absent(),
             Value<String> date = const Value.absent(),
             Value<String> mealType = const Value.absent(),
+            Value<String?> cookId = const Value.absent(),
             Value<String> syncStatus = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -2186,6 +2235,7 @@ class $$LocalMealPlanEntriesTableTableManager extends RootTableManager<
             recipeId: recipeId,
             date: date,
             mealType: mealType,
+            cookId: cookId,
             syncStatus: syncStatus,
             updatedAt: updatedAt,
             rowid: rowid,
@@ -2197,6 +2247,7 @@ class $$LocalMealPlanEntriesTableTableManager extends RootTableManager<
             required String recipeId,
             required String date,
             required String mealType,
+            Value<String?> cookId = const Value.absent(),
             Value<String> syncStatus = const Value.absent(),
             required DateTime updatedAt,
             Value<int> rowid = const Value.absent(),
@@ -2208,6 +2259,7 @@ class $$LocalMealPlanEntriesTableTableManager extends RootTableManager<
             recipeId: recipeId,
             date: date,
             mealType: mealType,
+            cookId: cookId,
             syncStatus: syncStatus,
             updatedAt: updatedAt,
             rowid: rowid,

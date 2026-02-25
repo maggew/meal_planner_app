@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/core/database/app_database.dart';
@@ -65,6 +66,8 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
               SupabaseConstants.mealPlanEntryRecipeId: recipeId,
               SupabaseConstants.mealPlanEntryDate: dateStr,
               SupabaseConstants.mealPlanEntryMealType: mealType.value,
+              SupabaseConstants.mealPlanEntryCookId: null,
+              SupabaseConstants.mealPlanEntryUpdatedAt: now.toIso8601String(),
             })
             .select()
             .single();
@@ -72,8 +75,30 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
         final remoteId =
             response[SupabaseConstants.mealPlanEntryId] as String;
         await _dao.updateSyncStatus(localId, 'synced', remoteId: remoteId);
-      } catch (_) {
+      } catch (e) {
+        debugPrint('[MealPlan] Supabase insert fehlgeschlagen: $e');
         // bleibt pendingCreate – SyncService holt es nach
+      }
+    }
+  }
+
+  @override
+  Future<void> setCook(String localId, String? cookId) async {
+    await _dao.updateCookId(localId, cookId);
+
+    final entry = await _dao.getEntryByLocalId(localId);
+    if (entry == null || entry.remoteId == null) return;
+
+    if (_isOnline) {
+      try {
+        await _supabase
+            .from(SupabaseConstants.mealPlanEntriesTable)
+            .update({SupabaseConstants.mealPlanEntryCookId: cookId})
+            .eq(SupabaseConstants.mealPlanEntryId, entry.remoteId!);
+        await _dao.updateSyncStatus(localId, 'synced',
+            remoteId: entry.remoteId);
+      } catch (e) {
+        debugPrint('[MealPlan] setCook Supabase fehlgeschlagen: $e');
       }
     }
   }
@@ -113,6 +138,7 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
         int.parse(parts[2]),
       ),
       mealType: MealType.fromValue(row.mealType),
+      cookId: row.cookId,
     );
   }
 

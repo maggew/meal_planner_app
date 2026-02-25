@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/core/database/app_database.dart';
 import 'package:meal_planner/core/database/daos/meal_plan_dao.dart';
@@ -32,6 +33,8 @@ class MealPlanSyncService {
                   SupabaseConstants.mealPlanEntryRecipeId: entry.recipeId,
                   SupabaseConstants.mealPlanEntryDate: entry.date,
                   SupabaseConstants.mealPlanEntryMealType: entry.mealType,
+                  SupabaseConstants.mealPlanEntryUpdatedAt:
+                      entry.updatedAt.toIso8601String(),
                 })
                 .select()
                 .single();
@@ -39,6 +42,16 @@ class MealPlanSyncService {
                 response[SupabaseConstants.mealPlanEntryId] as String;
             await _dao.updateSyncStatus(entry.localId, 'synced',
                 remoteId: remoteId);
+
+          case 'pendingUpdate':
+            if (entry.remoteId != null) {
+              await _supabase
+                  .from(SupabaseConstants.mealPlanEntriesTable)
+                  .update({SupabaseConstants.mealPlanEntryCookId: entry.cookId})
+                  .eq(SupabaseConstants.mealPlanEntryId, entry.remoteId!);
+              await _dao.updateSyncStatus(entry.localId, 'synced',
+                  remoteId: entry.remoteId);
+            }
 
           case 'pendingDelete':
             if (entry.remoteId != null) {
@@ -49,7 +62,8 @@ class MealPlanSyncService {
             }
             await _dao.hardDeleteEntry(entry.localId);
         }
-      } catch (_) {
+      } catch (e) {
+        debugPrint('[MealPlanSync] Fehler bei ${entry.localId}: $e');
         continue;
       }
     }
@@ -78,6 +92,7 @@ class MealPlanSyncService {
               recipeId: Value(model.recipeId),
               date: Value(model.date),
               mealType: Value(model.mealType),
+              cookId: Value(model.cookId),
               syncStatus: const Value('synced'),
               updatedAt: Value(DateTime.now()),
             );

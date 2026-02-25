@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/presentation/detailes_weekplan/widgets/weekplan_calendar.dart';
-import 'package:meal_planner/presentation/detailes_weekplan/widgets/weekplan_day_meals_section.dart';
+import 'package:meal_planner/presentation/detailes_weekplan/widgets/weekplan_week_list.dart';
+import 'package:meal_planner/presentation/detailes_weekplan/widgets/weekplan_week_strip.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_sync_provider.dart';
 
 class WeekplanBody extends ConsumerStatefulWidget {
@@ -12,40 +12,36 @@ class WeekplanBody extends ConsumerStatefulWidget {
 }
 
 class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
-  late DateTime _focusedMonth;
-  late DateTime _selectedDay;
+  late DateTime _weekStart; // always a Monday
 
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
-    _selectedDay = now;
-    _focusedMonth = DateTime(now.year, now.month, 1);
+    _weekStart = _mondayOf(DateTime.now());
   }
 
-  void _onDaySelected(DateTime day) {
-    setState(() {
-      _selectedDay = day;
-      _focusedMonth = DateTime(day.year, day.month, 1);
-    });
+  static DateTime _mondayOf(DateTime date) =>
+      date.subtract(Duration(days: date.weekday - 1));
+
+  void _onPreviousWeek() {
+    final newWeekStart = _weekStart.subtract(const Duration(days: 7));
+    setState(() => _weekStart = newWeekStart);
+    _syncForWeek(newWeekStart);
   }
 
-  void _onPreviousMonth() {
-    final newMonth =
-        DateTime(_focusedMonth.year, _focusedMonth.month - 1, 1);
-    setState(() => _focusedMonth = newMonth);
-    ref
-        .read(mealPlanSyncServiceProvider)
-        .sync(newMonth.year, newMonth.month);
+  void _onNextWeek() {
+    final newWeekStart = _weekStart.add(const Duration(days: 7));
+    setState(() => _weekStart = newWeekStart);
+    _syncForWeek(newWeekStart);
   }
 
-  void _onNextMonth() {
-    final newMonth =
-        DateTime(_focusedMonth.year, _focusedMonth.month + 1, 1);
-    setState(() => _focusedMonth = newMonth);
-    ref
-        .read(mealPlanSyncServiceProvider)
-        .sync(newMonth.year, newMonth.month);
+  void _syncForWeek(DateTime weekStart) {
+    final sync = ref.read(mealPlanSyncServiceProvider);
+    sync.sync(weekStart.year, weekStart.month);
+    final weekEnd = weekStart.add(const Duration(days: 6));
+    if (weekEnd.month != weekStart.month) {
+      sync.sync(weekEnd.year, weekEnd.month);
+    }
   }
 
   @override
@@ -54,14 +50,12 @@ class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          WeekplanCalendar(
-            focusedMonth: _focusedMonth,
-            selectedDay: _selectedDay,
-            onDaySelected: _onDaySelected,
-            onPreviousMonth: _onPreviousMonth,
-            onNextMonth: _onNextMonth,
+          WeekplanWeekStrip(
+            weekStart: _weekStart,
+            onPreviousWeek: _onPreviousWeek,
+            onNextWeek: _onNextWeek,
           ),
-          WeekplanDayMealsSection(selectedDay: _selectedDay),
+          WeekplanWeekList(weekStart: _weekStart),
           const SizedBox(height: 24),
         ],
       ),

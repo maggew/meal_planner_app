@@ -11,4 +11,6 @@ abstract class MealPlanRepository {
   });
 
   Future<void> removeEntry(String localId);
+
+  Future<void> setCook(String localId, String? cookId);
 }

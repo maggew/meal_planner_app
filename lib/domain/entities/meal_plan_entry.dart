@@ -7,6 +7,7 @@ class MealPlanEntry {
   final String recipeId;
   final DateTime date;
   final MealType mealType;
+  final String? cookId;
 
   const MealPlanEntry({
     required this.id,
@@ -15,5 +16,6 @@ class MealPlanEntry {
     required this.recipeId,
     required this.date,
     required this.mealType,
+    this.cookId,
   });
 }

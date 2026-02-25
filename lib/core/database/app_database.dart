@@ -14,7 +14,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -24,6 +24,10 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 3) {
             await migrator.createTable(localMealPlanEntries);
+          }
+          if (from < 4) {
+            await migrator.addColumn(
+                localMealPlanEntries, localMealPlanEntries.cookId);
           }
         },
       );
