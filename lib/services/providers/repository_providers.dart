@@ -6,6 +6,7 @@ import 'package:meal_planner/data/repositories/firebase_auth_repository.dart';
 import 'package:meal_planner/data/repositories/firebase_storage_repository.dart';
 import 'package:meal_planner/data/repositories/offline_first_shopping_list_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_group_repository.dart';
+import 'package:meal_planner/data/repositories/cached_recipe_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_recipe_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_shopping_list_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_user_repository.dart';
@@ -53,12 +54,20 @@ final recipeRemoteDatasourceProvider = Provider<RecipeRemoteDatasource>((ref) {
 // Recipe Repository - nutzt die GroupId aus dem State
 final recipeRepositoryProvider = Provider<RecipeRepository>((ref) {
   final session = ref.watch(sessionProvider);
+  final groupId = session.groupId ?? '';
 
-  return SupabaseRecipeRepository(
+  final supabaseRepo = SupabaseRecipeRepository(
     supabase: ref.watch(supabaseProvider),
     storage: ref.watch(storageRepositoryProvider),
     remote: ref.watch(recipeRemoteDatasourceProvider),
-    groupId: session.groupId ?? '',
+    groupId: groupId,
+  );
+
+  return CachedRecipeRepository(
+    remote: supabaseRepo,
+    dao: ref.watch(recipeCacheDaoProvider),
+    groupId: groupId,
+    ref: ref,
   );
 });
 
@@ -84,6 +93,10 @@ final appDatabaseProvider = Provider<AppDatabase>((ref) {
 
 final shoppingItemDaoProvider = Provider((ref) {
   return ref.watch(appDatabaseProvider).shoppingItemDao;
+});
+
+final recipeCacheDaoProvider = Provider((ref) {
+  return ref.watch(appDatabaseProvider).recipeCacheDao;
 });
 
 final shoppingListRepositoryProvider = Provider<ShoppingListRepository>((ref) {

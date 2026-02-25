@@ -13,11 +13,20 @@ class CookbookRecipeListItem extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
 
+    final fallback = Image.asset('assets/images/caticorn.png', fit: BoxFit.cover);
     final recipeImage = (recipe.imageUrl == null ||
             recipe.imageUrl!.isEmpty ||
             recipe.imageUrl == 'assets/images/default_pic_2.jpg')
-        ? Image.asset('assets/images/caticorn.png', fit: BoxFit.cover)
-        : Image.network(recipe.imageUrl!, fit: BoxFit.cover);
+        ? fallback
+        : Image.network(
+            recipe.imageUrl!,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+            },
+            errorBuilder: (_, __, ___) => fallback,
+          );
 
     return GestureDetector(
       onTap: () {
@@ -49,11 +58,10 @@ class CookbookRecipeListItem extends StatelessWidget {
                     tag: recipe.name,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image(
+                      child: SizedBox(
                         width: 100,
                         height: 80,
-                        fit: BoxFit.cover,
-                        image: recipeImage.image,
+                        child: recipeImage,
                       ),
                     ),
                   ),

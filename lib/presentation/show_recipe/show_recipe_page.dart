@@ -78,9 +78,18 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
   }
 
   Image _buildImage(Recipe recipe) {
+    final fallback = Image.asset('assets/images/caticorn.png', fit: BoxFit.cover);
     return (recipe.imageUrl == null || recipe.imageUrl!.isEmpty)
-        ? Image.asset('assets/images/caticorn.png', fit: BoxFit.cover)
-        : Image.network(recipe.imageUrl!, fit: BoxFit.cover);
+        ? fallback
+        : Image.network(
+            recipe.imageUrl!,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+            },
+            errorBuilder: (_, __, ___) => fallback,
+          );
   }
 
   @override
