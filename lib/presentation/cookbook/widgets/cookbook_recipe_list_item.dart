@@ -3,6 +3,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
+import 'package:meal_planner/presentation/common/plan_recipe_sheet.dart';
 
 class CookbookRecipeListItem extends StatelessWidget {
   final Recipe recipe;
@@ -33,6 +34,16 @@ class CookbookRecipeListItem extends StatelessWidget {
         context.router
             .push(ShowRecipeRoute(recipe: recipe, image: recipeImage));
       },
+      onLongPress: recipe.id == null
+          ? null
+          : () => showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => PlanRecipeSheet(
+                  recipeId: recipe.id!,
+                  recipeName: recipe.name,
+                ),
+              ),
       child: Container(
         height: 100,
         margin: EdgeInsets.fromLTRB(10, 5, 10, 5),

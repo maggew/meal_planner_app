@@ -43,9 +43,9 @@ class _CookingModePageButtonsState extends State<CookingModePageButtons> {
                     label: "Zurück",
                     icon: Icons.arrow_back_outlined,
                     onPressed: () {
-                      setState(() {
-                        widget.tabController.index--;
-                      });
+                      if (widget.tabController.index > 0) {
+                        setState(() => widget.tabController.index--);
+                      }
                     },
                   ),
           ),
@@ -54,11 +54,10 @@ class _CookingModePageButtonsState extends State<CookingModePageButtons> {
             label: isLastPage ? "Fertig" : "Weiter",
             icon: isLastPage ? Icons.check : Icons.arrow_forward_outlined,
             onPressed: () {
-              (widget.tabController.index < widget.tabController.length - 1)
-                  ? setState(() {
-                      widget.tabController.index++;
-                    })
-                  : print("last page!");
+              if (widget.tabController.index <
+                  widget.tabController.length - 1) {
+                setState(() => widget.tabController.index++);
+              }
             },
             iconAfter: true,
           ),

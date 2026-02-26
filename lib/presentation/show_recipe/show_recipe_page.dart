@@ -10,7 +10,7 @@ import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/show_recipe_bottom_navigation_bar.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/show_recipe_cooking_mode.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/show_recipe_overview.dart';
-import 'package:meal_planner/presentation/show_recipe/widgets/plan_recipe_sheet.dart';
+import 'package:meal_planner/presentation/common/plan_recipe_sheet.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_pagination_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 
