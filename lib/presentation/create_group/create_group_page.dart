@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
 import 'package:meal_planner/presentation/create_group/widgets/create_group_body.dart';
+import 'package:meal_planner/services/providers/image_manager_provider.dart';
 
 @RoutePage()
 class CreateGroupPage extends ConsumerStatefulWidget {
@@ -31,6 +32,15 @@ class _CreateGroupPageState extends ConsumerState<CreateGroupPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(imageManagerProvider, (prev, next) {
+      if (next.error != null && next.error != prev?.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error!)),
+        );
+        ref.read(imageManagerProvider.notifier).clearError();
+      }
+    });
+
     final TextTheme textTheme = Theme.of(context).textTheme;
     return Stack(
       children: [

@@ -33,8 +33,6 @@ class ShowUserNoGroupsFound extends StatelessWidget {
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () {
-              print(
-                  "================ gruppen müssen noch übergeben werden ============");
               context.router.push(GroupsRoute());
             },
             icon: const Icon(AppIcons.plus_1),

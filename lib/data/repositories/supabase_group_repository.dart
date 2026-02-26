@@ -69,13 +69,10 @@ class SupabaseGroupRepository implements GroupRepository {
 
       return GroupModel.fromSupabase(response);
     } on PostgrestException catch (e) {
-      print("throwing postgrestexception");
       throw GroupNotFoundException("Datenbankfehler: $e");
     } on SocketException {
-      print("throwing socketexception");
       throw GroupNotFoundException("Keine Internetverbindung");
     } catch (e) {
-      print("throwing exception");
       throw GroupNotFoundException("Unbekannter Fehler: $e");
     }
   }

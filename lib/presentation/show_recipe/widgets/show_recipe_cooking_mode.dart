@@ -51,7 +51,6 @@ class _ShowRecipeCookingModeState extends ConsumerState<ShowRecipeCookingMode>
       vsync: this,
       initialIndex: widget.initialStep?.clamp(0, instructions.length - 1) ?? 0,
     );
-    print("tabController.length: ${_tabController.length}");
   }
 
   @override

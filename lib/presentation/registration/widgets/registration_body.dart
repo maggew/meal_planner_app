@@ -67,6 +67,13 @@ class _RegistrationBodyState extends ConsumerState<RegistrationBody> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(imageManagerProvider, (prev, next) {
+      if (next.error != null && next.error != prev?.error) {
+        _showError(next.error!);
+        ref.read(imageManagerProvider.notifier).clearError();
+      }
+    });
+
     ref.listen<AsyncValue<void>>(authControllerProvider, (prev, next) {
       next.when(
         loading: () {

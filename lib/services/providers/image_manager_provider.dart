@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -13,17 +14,20 @@ class CustomImages {
   final File? ingredientsImage;
   final File? instructionsImage;
   final File? photo;
+  final String? error;
 
   const CustomImages({
     this.ingredientsImage,
     this.instructionsImage,
     this.photo,
+    this.error,
   });
 
   CustomImages copyWith({
     File? Function()? ingredientsImage,
     File? Function()? instructionsImage,
     File? Function()? photo,
+    String? Function()? error,
   }) {
     return CustomImages(
       ingredientsImage:
@@ -32,6 +36,7 @@ class CustomImages {
           ? instructionsImage()
           : this.instructionsImage,
       photo: photo != null ? photo() : this.photo,
+      error: error != null ? error() : this.error,
     );
   }
 }
@@ -45,6 +50,8 @@ class ImageManager extends _$ImageManager {
 
   Future<void> pickImageFromCamera(
       {required AnalysisImageType imageType}) async {
+    // Vorherigen Fehler zurücksetzen
+    state = state.copyWith(error: () => null);
     try {
       final image = await _imagePicker.pickImage(
         source: ImageSource.camera,
@@ -58,12 +65,16 @@ class ImageManager extends _$ImageManager {
         }
       }
     } catch (e) {
-      print('Error picking image from camera: $e');
+      debugPrint('Error picking image from camera: $e');
+      state = state.copyWith(
+          error: () => 'Kamera konnte nicht geöffnet werden');
     }
   }
 
   Future<void> pickImageFromGallery(
       {required AnalysisImageType imageType}) async {
+    // Vorherigen Fehler zurücksetzen
+    state = state.copyWith(error: () => null);
     try {
       final result = await FilePicker.platform.pickFiles(allowMultiple: false);
       if (result != null && result.files.single.path != null) {
@@ -74,8 +85,14 @@ class ImageManager extends _$ImageManager {
         }
       }
     } catch (e) {
-      print('Error picking image from gallery: $e');
+      debugPrint('Error picking image from gallery: $e');
+      state = state.copyWith(
+          error: () => 'Bild konnte nicht geladen werden');
     }
+  }
+
+  void clearError() {
+    state = state.copyWith(error: () => null);
   }
 
   void _setImage(File file, AnalysisImageType imageType) {

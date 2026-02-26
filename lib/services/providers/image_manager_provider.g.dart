@@ -41,7 +41,7 @@ final class ImageManagerProvider
   }
 }
 
-String _$imageManagerHash() => r'408123c43b47c61f5217f83615d6d823c7df669a';
+String _$imageManagerHash() => r'5a36ef1aa2e791c0dbe45586d2fa60072e346cb7';
 
 abstract class _$ImageManager extends $Notifier<CustomImages> {
   CustomImages build();

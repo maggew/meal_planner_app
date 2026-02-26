@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:meal_planner/core/database/app_database.dart';
 import 'package:meal_planner/core/database/daos/shopping_item_dao.dart';
 import 'package:meal_planner/data/repositories/supabase_shopping_list_repository.dart';
@@ -39,6 +40,7 @@ class ShoppingListSyncService {
             await _dao.hardDeleteItem(item.localId);
         }
       } catch (e) {
+        debugPrint('Shopping-Sync fehlgeschlagen für Item ${item.localId}: $e');
         continue;
       }
     }
@@ -63,7 +65,7 @@ class ShoppingListSyncService {
 
       await _dao.replaceAllSynced(_groupId, companions);
     } catch (e) {
-      // Pull fehlgeschlagen – lokale Daten bleiben erhalten
+      debugPrint('Shopping-Pull fehlgeschlagen: $e');
     }
   }
 

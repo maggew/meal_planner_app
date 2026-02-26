@@ -166,7 +166,13 @@ class _CookingModeIdleTimerState extends ConsumerState<CookingModeIdleTimer> {
         timerName: input.name ?? '',
       ));
       ref.invalidate(recipeTimersProvider(widget.recipeId));
-    } catch (_) {}
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Timer konnte nicht gespeichert werden')),
+        );
+      }
+    }
     _onCancelPicker();
   }
 
@@ -226,6 +232,12 @@ class _CookingModeIdleTimerState extends ConsumerState<CookingModeIdleTimer> {
       final repo = ref.read(recipeRepositoryProvider);
       await repo.deleteTimer(widget.recipeId, widget.stepIndex);
       ref.invalidate(recipeTimersProvider(widget.recipeId));
-    } catch (_) {}
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Timer konnte nicht gelöscht werden')),
+        );
+      }
+    }
   }
 }

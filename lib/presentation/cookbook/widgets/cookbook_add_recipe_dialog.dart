@@ -31,10 +31,7 @@ class CookbookAddRecipeDialog extends ConsumerWidget {
               text: "Datei",
               icon: Icon(AppIcons.file),
               callback: () {
-                // ref
-                //     .read(imageManagerProvider.notifier)
-                //     .pickImageFromGallery(isAnalysisImage: isAnalysisImage);
-                print("button not implemented!");
+                // TODO: Rezept aus Datei importieren
               },
             ),
             _addRecipeButton(
@@ -42,15 +39,8 @@ class CookbookAddRecipeDialog extends ConsumerWidget {
               text: "Foto",
               //TODO: search better camera icon
               icon: Icon(Icons.camera_alt_outlined),
-              callback: () async {
-                //final router = context.router;
-
-                // await ref
-                //     .read(imageManagerProvider.notifier)
-                //     .pickImageFromCamera(isAnalysisImage: isAnalysisImage);
-
-                //router.push(const AddRecipeRoute());
-                print("button not implemented!");
+              callback: () {
+                // TODO: Rezept aus Foto erstellen
               },
             ),
           ],
@@ -72,9 +62,8 @@ class CookbookAddRecipeDialog extends ConsumerWidget {
               text: "URL",
               icon: Icon(Icons.satellite),
               //TODO: search better link icon
-              callback: () async {
-                print("muss noch implementiert werden");
-                //TODO: must be implemented
+              callback: () {
+                // TODO: Rezept aus URL importieren
               },
             ),
           ],

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
 import 'package:meal_planner/presentation/edit_group/widgets/edit_group_body.dart';
+import 'package:meal_planner/services/providers/image_manager_provider.dart';
 
 @RoutePage()
 class EditGroupPage extends ConsumerStatefulWidget {
@@ -32,6 +33,15 @@ class _EditGroupPageState extends ConsumerState<EditGroupPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(imageManagerProvider, (prev, next) {
+      if (next.error != null && next.error != prev?.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error!)),
+        );
+        ref.read(imageManagerProvider.notifier).clearError();
+      }
+    });
+
     final TextTheme textTheme = Theme.of(context).textTheme;
     return AppBackground(
       scaffoldAppBar: AppBar(

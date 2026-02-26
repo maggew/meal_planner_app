@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:meal_planner/core/constants/firebase_constants.dart';
@@ -72,7 +73,7 @@ class FirebaseAuthRepository implements AuthRepository {
           await _userRepository.updateUserImage(
               uid: supabaseUserId, imageUrl: imageUrl);
         } catch (e) {
-          print('Profilbild konnte nicht gespeichert werden: $e');
+          debugPrint('Profilbild konnte nicht gespeichert werden: $e');
         }
       }
 
@@ -214,7 +215,7 @@ class FirebaseAuthRepository implements AuthRepository {
           await _userRepository.updateUserImage(
               uid: supabaseUserId, imageUrl: imageUrl);
         } catch (e) {
-          print('Google-Profilbild konnte nicht gespeichert werden: $e');
+          debugPrint('Google-Profilbild konnte nicht gespeichert werden: $e');
         }
       }
       return supabaseUserId;
@@ -224,8 +225,7 @@ class FirebaseAuthRepository implements AuthRepository {
       }
       rethrow;
     } catch (e) {
-      print(e);
-      throw AuthException("Unknown error in with googleAuth");
+      throw AuthException("Unknown error in with googleAuth: $e");
     }
   }
 }

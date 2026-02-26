@@ -67,7 +67,6 @@ class CreateGroupCreateButton extends ConsumerWidget {
           }
         } catch (e) {
           if (context.mounted) {
-            print("Fehler: $e");
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text("Fehler: $e"),
               duration: Duration(seconds: 3),

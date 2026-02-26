@@ -27,9 +27,14 @@ class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
         widget.recipeInstructionsController.text += data.instructions!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✓ Anleitung erfolgreich analysiert!'),
+            content: Text('Anleitung erfolgreich analysiert'),
             backgroundColor: colorScheme.primary,
           ),
+        );
+      }
+      if (next.error != null && next.error != previous?.error && !next.isLoadingIngredients) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Analyse fehlgeschlagen')),
         );
       }
     });

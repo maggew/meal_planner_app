@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:meal_planner/domain/repositories/storage_repository.dart';
 
 class FirebaseStorageRepository implements StorageRepository {
@@ -25,8 +26,7 @@ class FirebaseStorageRepository implements StorageRepository {
       final ref = storage.refFromURL(imageUrl);
       await ref.delete();
     } catch (e) {
-      print("error in storage...");
-      // Image existiert nicht mehr
+      debugPrint('Bild konnte nicht gelöscht werden: $e');
     }
   }
 }

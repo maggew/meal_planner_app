@@ -25,9 +25,7 @@ class ProfileGroupsList extends ConsumerWidget {
               children: groups
                   .map((group) => GestureDetector(
                         onTap: () {
-                          print("${group.name} pressed....");
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("Routing fehlt")));
+                          // TODO: Navigation zur Gruppendetailseite
                         },
                         child: SizedBox(
                           height: 50,

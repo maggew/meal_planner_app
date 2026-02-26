@@ -24,12 +24,10 @@ class CreateGroupPickImage extends ConsumerWidget {
                 ref.read(imageManagerProvider.notifier);
             await imageManagerNotifier.pickImageFromGallery(
                 imageType: AnalysisImageType.photo);
-            print("=============================");
-            final _imageManager = ref.read(imageManagerProvider);
-            print(_imageManager.photo!.path);
-            //TODO: aktualisiert noch nicht den state
-            imagePathController.text = _imageManager.photo!.path;
-            print("=============================");
+            final imageManager = ref.read(imageManagerProvider);
+            if (imageManager.photo != null) {
+              imagePathController.text = imageManager.photo!.path;
+            }
           },
           decoration: InputDecoration(
             suffixIcon: Icon(

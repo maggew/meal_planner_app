@@ -60,7 +60,7 @@ class _GroupsPageState extends ConsumerState<GroupsPage> {
                       ? Text("")
                       : IconButton(
                           onPressed: () {
-                            print("text");
+                            context.router.maybePop();
                           },
                           icon: Icon(Icons.chevron_left)),
                   centerTitle: true,

@@ -215,7 +215,7 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
     );
 
     if (confirmed == true && context.mounted) {
-      context.router.push(AddEditRecipeRoute(existingRecipe: _recipe));
+      context.router.root.push(AddEditRecipeRoute(existingRecipe: _recipe));
     }
   }
 

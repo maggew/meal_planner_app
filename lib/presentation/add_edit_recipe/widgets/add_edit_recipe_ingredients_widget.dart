@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/ingredients/add_edit_recipe_ingredients_list_widget.dart';
 import 'package:meal_planner/services/providers/recipe/add_edit_recipe_ingredients_provider.dart';
+import 'package:meal_planner/services/providers/recipe/recipe_analysis_provider.dart';
 
 class AddEditRecipeIngredientsWidget extends ConsumerWidget {
   final AddEditRecipeIngredientsProvider ingredientsProvider;
@@ -12,6 +13,14 @@ class AddEditRecipeIngredientsWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(recipeAnalysisProvider, (previous, next) {
+      if (next.error != null && next.error != previous?.error && !next.isLoadingInstructions) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Zutaten-Analyse fehlgeschlagen')),
+        );
+      }
+    });
+
     final TextTheme textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

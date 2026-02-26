@@ -8,6 +8,7 @@ import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recip
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_picture.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_portion_selection.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_recipe_name_textformfield.dart';
+import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_edit_recipe_ingredients_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
 
@@ -55,6 +56,15 @@ class _AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(imageManagerProvider, (prev, next) {
+      if (next.error != null && next.error != prev?.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error!)),
+        );
+        ref.read(imageManagerProvider.notifier).clearError();
+      }
+    });
+
     return SingleChildScrollView(
       padding: const EdgeInsets.only(top: 20, bottom: 100),
       child: Column(

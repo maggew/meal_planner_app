@@ -68,8 +68,7 @@ class AddEditRecipeProcessImage extends ConsumerWidget {
                   backgroundColor: Colors.black54,
                 ),
                 onPressed: () {
-                  //ref.read(imageManagerProvider.notifier).clearAnalysisImage();
-                  print("button not implemented!");
+                  // TODO: Bild entfernen
                 },
               ),
             ),

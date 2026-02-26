@@ -41,25 +41,38 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     setState(() {
       _isLoading = true;
     });
-    final userProfile = ref.read(userProfileProvider).value;
-    // only update if changes are made
-    if (_nameController.text != userProfile!.name || _pickedImage != null) {
-      final session = ref.read(sessionProvider);
-      final userRepo = ref.read(userRepositoryProvider);
-      await userRepo.updateUserProfile(
-        userId: session.userId!,
-        image: _pickedImage,
-        name: _nameController.text,
-      );
-      ref.invalidate(userProfileProvider);
-      await ref.read(userProfileProvider.future);
-    }
+    try {
+      final userProfile = ref.read(userProfileProvider).value;
+      // only update if changes are made
+      if (_nameController.text != userProfile!.name || _pickedImage != null) {
+        final session = ref.read(sessionProvider);
+        final userRepo = ref.read(userRepositoryProvider);
+        await userRepo.updateUserProfile(
+          userId: session.userId!,
+          image: _pickedImage,
+          name: _nameController.text,
+        );
+        ref.invalidate(userProfileProvider);
+        await ref.read(userProfileProvider.future);
+      }
 
-    setState(() {
-      _isEditing = false;
-      _pickedImage = null;
-      _isLoading = false;
-    });
+      setState(() {
+        _isEditing = false;
+        _pickedImage = null;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Profil konnte nicht gespeichert werden')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   void _endEditing() {
@@ -120,14 +133,25 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     }
 
     final imageManager = ref.read(imageManagerProvider);
-    setState(() {
-      _pickedImage = imageManager.photo;
-    });
+    if (mounted) {
+      setState(() {
+        _pickedImage = imageManager.photo;
+      });
+    }
     imageManagerNotifier.clearPhoto();
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(imageManagerProvider, (prev, next) {
+      if (next.error != null && next.error != prev?.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error!)),
+        );
+        ref.read(imageManagerProvider.notifier).clearError();
+      }
+    });
+
     return AppBackground(
       scaffoldAppBar:
           CommonAppbar(title: "Profil", actionsButtons: _actionButtons),
