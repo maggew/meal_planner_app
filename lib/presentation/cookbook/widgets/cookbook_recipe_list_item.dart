@@ -31,7 +31,7 @@ class CookbookRecipeListItem extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        context.router
+        context.router.root
             .push(ShowRecipeRoute(recipe: recipe, image: recipeImage));
       },
       onLongPress: recipe.id == null

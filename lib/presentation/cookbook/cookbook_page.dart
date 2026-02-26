@@ -17,7 +17,7 @@ class CookbookPage extends StatelessWidget {
         title: "Kochbuch",
         actionsButtons: [
           IconButton(
-            onPressed: () => context.router.push(AddEditRecipeRoute()),
+            onPressed: () => context.router.root.push(AddEditRecipeRoute()),
             icon: Icon(
               AppIcons.plus_1,
               size: 35,

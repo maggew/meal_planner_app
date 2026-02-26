@@ -16,13 +16,6 @@ class AppRouter extends RootStackRouter {
           initial: true,
         ),
 
-        /// Geschützter Einstieg
-        AutoRoute(
-          path: '/',
-          page: CookbookRoute.page,
-          guards: [authGuard],
-        ),
-
         /// Öffentlich
         AutoRoute(page: LoginRoute.page),
         AutoRoute(page: RegistrationRoute.page),
@@ -36,21 +29,31 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: ShowSingleGroupRoute.page),
         AutoRoute(page: EditGroupRoute.page),
 
-        /// App
-        AutoRoute(page: ProfileRoute.page),
-        AutoRoute(page: ShoppingListRoute.page),
+        /// Shell (geschützter Einstieg mit Bottom Navigation)
+        AutoRoute(
+          path: '/',
+          page: ShellRoute.page,
+          guards: [authGuard],
+          children: [
+            AutoRoute(page: DetailedWeekplanRoute.page),
+            AutoRoute(page: CookbookRoute.page),
+            AutoRoute(page: ShoppingListRoute.page),
+            AutoRoute(page: ProfileRoute.page),
+          ],
+        ),
+
+        /// Sub-Pages (Root-Level — außerhalb der Shell)
         AutoRoute(page: SettingsRoute.page),
-        //AutoRoute(page: RefrigeratorRoute.page),
-        AutoRoute(page: DetailedWeekplanRoute.page),
         AutoRoute(page: ShowRecipeRoute.page),
         AutoRoute(
-            page: AddEditRecipeRoute.page,
-            type: RouteType.custom(
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) => child,
-              duration: Duration(milliseconds: 50),
-              reverseDuration: Duration(milliseconds: 50),
-            )),
+          page: AddEditRecipeRoute.page,
+          type: RouteType.custom(
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) => child,
+            duration: const Duration(milliseconds: 50),
+            reverseDuration: const Duration(milliseconds: 50),
+          ),
+        ),
         AutoRoute(page: ZoomPictureRoute.page),
       ];
 }

@@ -227,7 +227,7 @@ class _MealRow extends ConsumerWidget {
     return GestureDetector(
       onTap: () {
         if (entry.recipeId != null) {
-          context.router.push(ShowRecipeRoute(recipeId: entry.recipeId!));
+          context.router.root.push(ShowRecipeRoute(recipeId: entry.recipeId!));
         }
       },
       onLongPress: () {

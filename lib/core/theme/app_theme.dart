@@ -104,6 +104,10 @@ class AppTheme {
       centerTitle: true,
     );
 
+    final _navigationBarTheme = NavigationBarThemeData(
+      backgroundColor: surface,
+    );
+
     final _tabBarTheme = TabBarThemeData(
       labelStyle: bodyLarge,
       labelColor: secondary,
@@ -208,6 +212,7 @@ class AppTheme {
       textTheme: _textTheme,
       scaffoldBackgroundColor: Colors.transparent,
       appBarTheme: _appBarTheme,
+      navigationBarTheme: _navigationBarTheme,
       tabBarTheme: _tabBarTheme,
       dropdownMenuTheme: _dropdownMenuTheme,
       cardTheme: CardThemeData(color: surfaceContainer),

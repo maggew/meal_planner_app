@@ -120,7 +120,7 @@ class WeekplanMealCard extends ConsumerWidget {
     return GestureDetector(
       onTap: entry != null && entry!.recipeId != null
           ? () => context.router
-              .push(ShowRecipeRoute(recipeId: entry!.recipeId!))
+              .root.push(ShowRecipeRoute(recipeId: entry!.recipeId!))
           : null,
       onLongPress: entry != null
           ? () => _openEditPicker(context, ref, displayName)

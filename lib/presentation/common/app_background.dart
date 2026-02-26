@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
-import 'package:meal_planner/presentation/common/burger_menu/burger_menu.dart';
 
 class AppBackground extends StatelessWidget {
   final PreferredSizeWidget? scaffoldAppBar;
@@ -63,7 +62,6 @@ class AppBackground extends StatelessWidget {
               ? Padding(
                   padding: AppDimensions.screenPadding, child: scaffoldBody)
               : scaffoldBody,
-          drawer: BurgerMenu(),
           floatingActionButton: scaffoldFloatingActionButton,
           floatingActionButtonLocation: scaffoldFloatingActionButtonLocation,
           extendBodyBehindAppBar: false,

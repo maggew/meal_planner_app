@@ -3,11 +3,13 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/core/constants/app_icons.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
 import 'package:meal_planner/presentation/common/common_appbar.dart';
 import 'package:meal_planner/presentation/common/loading_overlay.dart';
 import 'package:meal_planner/presentation/profile/widgets/profile_body.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
+import 'package:meal_planner/services/providers/auth_providers.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
@@ -80,6 +82,33 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     super.dispose();
   }
 
+  Future<void> _handleLogout() async {
+    final authController = ref.read(authControllerProvider.notifier);
+    showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Ausloggen'),
+        content: const Text('Möchtest du dich wirklich ausloggen?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Abbrechen'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              authController.logout();
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('Ausloggen'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _pickImage({required bool pickFromCamera}) async {
     final imageManagerNotifier = ref.read(imageManagerProvider.notifier);
     if (pickFromCamera) {
@@ -132,9 +161,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     }
     return [
       IconButton(
+        key: ValueKey("logout"),
+        onPressed: _handleLogout,
+        icon: Icon(AppIcons.logout),
+      ),
+      IconButton(
         key: ValueKey("settings"),
         onPressed: () {
-          context.router.push(const SettingsRoute());
+          context.router.root.push(const SettingsRoute());
         },
         icon: Icon(Icons.settings),
       ),

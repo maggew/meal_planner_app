@@ -16,18 +16,7 @@ class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       surfaceTintColor: Colors.transparent,
       toolbarHeight: 80,
-      leading: leading != null
-          ? leading
-          : Builder(
-              builder: (context) {
-                return IconButton(
-                  icon: Icon(Icons.menu), //FaIcon(FontAwesomeIcons.bars),
-                  onPressed: () {
-                    Scaffold.of(context).openDrawer();
-                  },
-                );
-              },
-            ),
+      leading: leading,
       elevation: 0,
       title: Text(
         title,
