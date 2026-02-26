@@ -68,6 +68,15 @@ class AppTheme {
     final displayMedium = displayLarge.copyWith(fontSize: 28);
     final displaySmall = displayLarge.copyWith(fontSize: 22);
 
+    final labelLarge = TextStyle(
+      fontFamily: GoogleFonts.quicksand().fontFamily,
+      fontSize: 14,
+      fontWeight: FontWeight.w700,
+      color: onSurface,
+    );
+    final labelMedium = labelLarge.copyWith(fontSize: 12);
+    final labelSmall = labelLarge.copyWith(fontSize: 11, fontWeight: FontWeight.w600);
+
     final _textTheme = TextTheme(
       //Used in Textfields inside the body of pages
       bodyLarge: bodyLarge,
@@ -81,6 +90,10 @@ class AppTheme {
       titleLarge: titleLarge,
       titleMedium: titleMedium,
       titleSmall: titleSmall,
+
+      labelLarge: labelLarge,
+      labelMedium: labelMedium,
+      labelSmall: labelSmall,
     );
 
     final _appBarTheme = AppBarThemeData(

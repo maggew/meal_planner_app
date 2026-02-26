@@ -25,12 +25,30 @@ class MealPlanActionsNotifier {
   Future<void> addEntry({
     required DateTime date,
     required MealType mealType,
-    required String recipeId,
+    String? recipeId,
+    String? customName,
+    String? cookId,
   }) async {
     await _ref.read(mealPlanRepositoryProvider).addEntry(
           date: date,
           mealType: mealType,
           recipeId: recipeId,
+          customName: customName,
+          cookId: cookId,
+        );
+  }
+
+  Future<void> updateEntry(
+    String localId, {
+    String? recipeId,
+    String? customName,
+    String? cookId,
+  }) async {
+    await _ref.read(mealPlanRepositoryProvider).updateEntry(
+          localId,
+          recipeId: recipeId,
+          customName: customName,
+          cookId: cookId,
         );
   }
 
@@ -43,9 +61,11 @@ class MealPlanActionsNotifier {
   }
 }
 
-// Recipe name lookup from local cache – auto-disposes when not watched
+// Recipe name lookup from local cache – auto-disposes when not watched.
+// Pass a non-empty recipeId; returns null if recipe not found.
 final recipeNameProvider =
     FutureProvider.autoDispose.family<String?, String>((ref, recipeId) async {
+  if (recipeId.isEmpty) return null;
   final dao = ref.watch(recipeCacheDaoProvider);
   final recipe = await dao.getRecipeById(recipeId);
   return recipe?.name;

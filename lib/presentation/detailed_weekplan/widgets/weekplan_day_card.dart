@@ -1,13 +1,13 @@
 import 'dart:ui';
 
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/meal_plan_entry.dart';
 import 'package:meal_planner/domain/enums/meal_type.dart';
-import 'package:meal_planner/presentation/detailes_weekplan/widgets/weekplan_cook_picker.dart';
-import 'package:meal_planner/presentation/detailes_weekplan/widgets/weekplan_recipe_picker.dart';
+import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_recipe_picker.dart';
+import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_provider.dart';
 
 class WeekplanDayCard extends ConsumerWidget {
@@ -23,16 +23,18 @@ class WeekplanDayCard extends ConsumerWidget {
     MealType.dinner: Icons.nights_stay_outlined,
   };
 
-  void _openPicker(BuildContext context, WidgetRef ref, MealType mealType) {
+  void _openAddPicker(BuildContext context, WidgetRef ref, MealType mealType) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (_) => WeekplanRecipePicker(
-        onSelected: (recipeId) {
+        onSelected: (recipeId, customName, cookId) {
           ref.read(mealPlanActionsProvider).addEntry(
                 date: date,
                 mealType: mealType,
                 recipeId: recipeId,
+                customName: customName,
+                cookId: cookId,
               );
         },
       ),
@@ -62,7 +64,7 @@ class WeekplanDayCard extends ConsumerWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
-            padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+            padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
             decoration: BoxDecoration(
               color: isDark
                   ? colorScheme.surface.withValues(alpha: 0.3)
@@ -81,7 +83,7 @@ class WeekplanDayCard extends ConsumerWidget {
                   children: [
                     Text(
                       '$dayLabel, ${date.day}.${date.month}.',
-                      style: textTheme.labelMedium?.copyWith(
+                      style: textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: isToday
                             ? colorScheme.primary
@@ -93,26 +95,28 @@ class WeekplanDayCard extends ConsumerWidget {
                       ...MealType.values.map(
                         (type) => _CompactAddButton(
                           icon: _mealIcons[type]!,
-                          onTap: () => _openPicker(context, ref, type),
+                          onTap: () =>
+                              _openAddPicker(context, ref, type),
                         ),
                       ),
                   ],
                 ),
                 if (hasAnyEntry) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   ...MealType.values.map((type) {
                     final entry =
                         entries.where((e) => e.mealType == type).firstOrNull;
                     if (entry != null) {
                       return _MealRow(
                         entry: entry,
-                        mealType: type,
                         icon: _mealIcons[type]!,
+                        date: date,
                       );
                     } else {
                       return _EmptySlotRow(
                         icon: _mealIcons[type]!,
-                        onTap: () => _openPicker(context, ref, type),
+                        onTap: () =>
+                            _openAddPicker(context, ref, type),
                       );
                     }
                   }),
@@ -158,13 +162,15 @@ class _EmptySlotRow extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(6),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
         child: Row(
           children: [
-            Icon(icon, size: 15,
+            Icon(icon,
+                size: 15,
                 color: colorScheme.onSurface.withValues(alpha: 0.25)),
             const SizedBox(width: 8),
-            Icon(Icons.add, size: 14,
+            Icon(Icons.add,
+                size: 14,
                 color: colorScheme.onSurface.withValues(alpha: 0.25)),
           ],
         ),
@@ -175,25 +181,38 @@ class _EmptySlotRow extends StatelessWidget {
 
 class _MealRow extends ConsumerWidget {
   final MealPlanEntry entry;
-  final MealType mealType;
   final IconData icon;
+  final DateTime date;
 
   const _MealRow({
     required this.entry,
-    required this.mealType,
     required this.icon,
+    required this.date,
   });
 
-  void _openCookPicker(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
+  Future<void> _showDeleteDialog(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      isScrollControlled: true,
-      builder: (_) => WeekplanCookPicker(
-        currentCookId: entry.cookId,
-        onSelected: (userId) =>
-            ref.read(mealPlanActionsProvider).setCook(entry.id, userId),
+      builder: (ctx) => AlertDialog(
+        title: const Text('Eintrag löschen'),
+        content: const Text('Diesen Eintrag wirklich entfernen?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Abbrechen'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(
+                foregroundColor: Theme.of(ctx).colorScheme.error),
+            child: const Text('Löschen'),
+          ),
+        ],
       ),
     );
+    if (confirmed == true && context.mounted) {
+      ref.read(mealPlanActionsProvider).removeEntry(entry.id);
+    }
   }
 
   @override
@@ -201,78 +220,72 @@ class _MealRow extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final nameAsync = ref.watch(recipeNameProvider(entry.recipeId));
-    final recipeName = nameAsync.value;
+    final String? displayName;
+    if (entry.recipeId != null) {
+      final nameAsync = ref.watch(recipeNameProvider(entry.recipeId!));
+      displayName = nameAsync.value;
+    } else {
+      displayName = entry.customName;
+    }
 
-    final cookAsync =
-        entry.cookId != null ? ref.watch(cookUserProvider(entry.cookId!)) : null;
-    final cook = cookAsync?.value;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        children: [
-          Icon(icon, size: 15, color: colorScheme.primary),
-          const SizedBox(width: 8),
-          Text(
-            '${mealType.displayName}  ',
-            style: textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: colorScheme.primary,
-            ),
+    return GestureDetector(
+      onTap: () {
+        if (entry.recipeId != null) {
+          context.router.push(ShowRecipeRoute(recipeId: entry.recipeId!));
+        }
+      },
+      onLongPress: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (_) => WeekplanRecipePicker(
+            initialLabel: displayName,
+            initialRecipeId: entry.recipeId,
+            initialCustomName: entry.customName,
+            initialCookId: entry.cookId,
+            onSelected: (recipeId, customName, cookId) {
+              ref.read(mealPlanActionsProvider).updateEntry(
+                    entry.id,
+                    recipeId: recipeId,
+                    customName: customName,
+                    cookId: cookId,
+                  );
+            },
           ),
-          Expanded(
-            child: Text(
-              recipeName ?? '…',
-              style: textTheme.bodySmall,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 1),
+              child: Icon(icon, size: 16, color: colorScheme.primary),
             ),
-          ),
-          const SizedBox(width: 6),
-          GestureDetector(
-            onTap: () => _openCookPicker(context, ref),
-            child: CircleAvatar(
-              radius: 12,
-              backgroundColor: colorScheme.primaryContainer,
-              backgroundImage: cook?.imageUrl != null
-                  ? CachedNetworkImageProvider(cook!.imageUrl!)
-                  : null,
-              child: cook == null
-                  ? Icon(
-                      entry.cookId != null
-                          ? Icons.hourglass_empty
-                          : Icons.person_add_outlined,
-                      size: 13,
-                      color: colorScheme.onPrimaryContainer,
-                    )
-                  : (cook.imageUrl == null
-                      ? Text(
-                          cook.name.isNotEmpty
-                              ? cook.name[0].toUpperCase()
-                              : '?',
-                          style: textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onPrimaryContainer,
-                            fontSize: 10,
-                          ),
-                        )
-                      : null),
-            ),
-          ),
-          const SizedBox(width: 2),
-          GestureDetector(
-            onTap: () =>
-                ref.read(mealPlanActionsProvider).removeEntry(entry.id),
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: Icon(
-                Icons.close,
-                size: 15,
-                color: colorScheme.onSurface.withValues(alpha: 0.4),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                displayName ?? '…',
+                style: textTheme.bodyMedium,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-          ),
-        ],
+            const SizedBox(width: 4),
+            GestureDetector(
+              onTap: () => _showDeleteDialog(context, ref),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Icon(
+                  Icons.close,
+                  size: 15,
+                  color: colorScheme.onSurface.withValues(alpha: 0.4),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

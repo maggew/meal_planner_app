@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:meal_planner/presentation/detailes_weekplan/widgets/weekplan_day_card.dart';
+import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_day_card.dart';
 
 class WeekplanWeekList extends StatelessWidget {
   final DateTime weekStart;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/presentation/detailes_weekplan/widgets/weekplan_week_list.dart';
-import 'package:meal_planner/presentation/detailes_weekplan/widgets/weekplan_week_strip.dart';
+import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_week_list.dart';
+import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_week_strip.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_sync_provider.dart';
 
 class WeekplanBody extends ConsumerStatefulWidget {
@@ -47,7 +47,9 @@ class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      child: Column(
+      child: Padding(
+        padding: EdgeInsets.only(bottom: 24),
+        child:Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           WeekplanWeekStrip(
@@ -56,8 +58,8 @@ class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
             onNextWeek: _onNextWeek,
           ),
           WeekplanWeekList(weekStart: _weekStart),
-          const SizedBox(height: 24),
         ],
+      ),
       ),
     );
   }

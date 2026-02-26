@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
 import 'package:meal_planner/presentation/common/common_appbar.dart';
-import 'package:meal_planner/presentation/detailes_weekplan/widgets/weekplan_body.dart';
+import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_body.dart';
 import 'package:meal_planner/services/meal_plan/meal_plan_realtime_service.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_realtime_provider.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_sync_provider.dart';

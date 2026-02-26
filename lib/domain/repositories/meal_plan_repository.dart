@@ -7,7 +7,16 @@ abstract class MealPlanRepository {
   Future<void> addEntry({
     required DateTime date,
     required MealType mealType,
-    required String recipeId,
+    String? recipeId,
+    String? customName,
+    String? cookId,
+  });
+
+  Future<void> updateEntry(
+    String localId, {
+    String? recipeId,
+    String? customName,
+    String? cookId,
   });
 
   Future<void> removeEntry(String localId);

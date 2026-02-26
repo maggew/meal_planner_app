@@ -18,7 +18,7 @@ import 'package:meal_planner/presentation/add_edit_recipe/add_edit_recipe_page.d
 import 'package:meal_planner/presentation/cookbook/cookbook_page.dart' as _i2;
 import 'package:meal_planner/presentation/create_group/create_group_page.dart'
     as _i3;
-import 'package:meal_planner/presentation/detailes_weekplan/detailed_weekplan_page.dart'
+import 'package:meal_planner/presentation/detailed_weekplan/detailed_weekplan_page.dart'
     as _i4;
 import 'package:meal_planner/presentation/edit_group/edit_group_page.dart'
     as _i5;

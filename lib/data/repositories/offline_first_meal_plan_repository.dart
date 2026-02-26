@@ -41,18 +41,21 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
   Future<void> addEntry({
     required DateTime date,
     required MealType mealType,
-    required String recipeId,
+    String? recipeId,
+    String? customName,
+    String? cookId,
   }) async {
     final localId = _uuid.v4();
     final dateStr = _dateToString(date);
     final now = DateTime.now();
-
     await _dao.upsertEntry(LocalMealPlanEntriesCompanion(
       localId: Value(localId),
       groupId: Value(_groupId),
-      recipeId: Value(recipeId),
+      recipeId: Value(recipeId ?? ''),
+      customName: Value(customName),
       date: Value(dateStr),
       mealType: Value(mealType.value),
+      cookId: Value(cookId),
       syncStatus: const Value('pendingCreate'),
       updatedAt: Value(now),
     ));
@@ -64,9 +67,10 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
             .insert({
               SupabaseConstants.mealPlanEntryGroupId: _groupId,
               SupabaseConstants.mealPlanEntryRecipeId: recipeId,
+              SupabaseConstants.mealPlanEntryCustomName: customName,
               SupabaseConstants.mealPlanEntryDate: dateStr,
               SupabaseConstants.mealPlanEntryMealType: mealType.value,
-              SupabaseConstants.mealPlanEntryCookId: null,
+              SupabaseConstants.mealPlanEntryCookId: cookId,
               SupabaseConstants.mealPlanEntryUpdatedAt: now.toIso8601String(),
             })
             .select()
@@ -78,6 +82,44 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
       } catch (e) {
         debugPrint('[MealPlan] Supabase insert fehlgeschlagen: $e');
         // bleibt pendingCreate – SyncService holt es nach
+      }
+    }
+  }
+
+  @override
+  Future<void> updateEntry(
+    String localId, {
+    String? recipeId,
+    String? customName,
+    String? cookId,
+  }) async {
+    final existing = await _dao.getEntryByLocalId(localId);
+    if (existing == null) return;
+
+    await _dao.updateEntry(
+      localId,
+      recipeId: recipeId ?? '',
+      customName: customName,
+      cookId: cookId,
+      keepPendingCreate: existing.remoteId == null,
+    );
+
+    if (_isOnline && existing.remoteId != null) {
+      try {
+        final now = DateTime.now();
+        await _supabase
+            .from(SupabaseConstants.mealPlanEntriesTable)
+            .update({
+              SupabaseConstants.mealPlanEntryRecipeId: recipeId,
+              SupabaseConstants.mealPlanEntryCustomName: customName,
+              SupabaseConstants.mealPlanEntryCookId: cookId,
+              SupabaseConstants.mealPlanEntryUpdatedAt: now.toIso8601String(),
+            })
+            .eq(SupabaseConstants.mealPlanEntryId, existing.remoteId!);
+        await _dao.updateSyncStatus(localId, 'synced',
+            remoteId: existing.remoteId);
+      } catch (e) {
+        debugPrint('[MealPlan] updateEntry Supabase fehlgeschlagen: $e');
       }
     }
   }
@@ -131,7 +173,8 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
       id: row.localId,
       remoteId: row.remoteId,
       groupId: row.groupId,
-      recipeId: row.recipeId,
+      recipeId: row.recipeId.isEmpty ? null : row.recipeId,
+      customName: row.customName,
       date: DateTime(
         int.parse(parts[0]),
         int.parse(parts[1]),

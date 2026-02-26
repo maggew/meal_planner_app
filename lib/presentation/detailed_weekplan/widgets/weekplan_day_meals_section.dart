@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/enums/meal_type.dart';
-import 'package:meal_planner/presentation/detailes_weekplan/widgets/weekplan_meal_card.dart';
+import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_meal_card.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_provider.dart';
 
 class WeekplanDayMealsSection extends ConsumerWidget {

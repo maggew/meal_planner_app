@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:meal_planner/core/constants/app_dimensions.dart';
 
 class WeekplanWeekStrip extends StatelessWidget {
   final DateTime weekStart; // always a Monday
@@ -16,8 +15,18 @@ class WeekplanWeekStrip extends StatelessWidget {
   static const _weekdayShort = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
   static const _monthNames = [
-    'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
-    'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember',
+    'Januar',
+    'Februar',
+    'März',
+    'April',
+    'Mai',
+    'Juni',
+    'Juli',
+    'August',
+    'September',
+    'Oktober',
+    'November',
+    'Dezember',
   ];
 
   String _monthLabel() {

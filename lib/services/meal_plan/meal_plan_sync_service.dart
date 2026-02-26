@@ -30,7 +30,9 @@ class MealPlanSyncService {
                 .from(SupabaseConstants.mealPlanEntriesTable)
                 .insert({
                   SupabaseConstants.mealPlanEntryGroupId: _groupId,
-                  SupabaseConstants.mealPlanEntryRecipeId: entry.recipeId,
+                  SupabaseConstants.mealPlanEntryRecipeId:
+                      entry.recipeId.isEmpty ? null : entry.recipeId,
+                  SupabaseConstants.mealPlanEntryCustomName: entry.customName,
                   SupabaseConstants.mealPlanEntryDate: entry.date,
                   SupabaseConstants.mealPlanEntryMealType: entry.mealType,
                   SupabaseConstants.mealPlanEntryUpdatedAt:
@@ -47,7 +49,14 @@ class MealPlanSyncService {
             if (entry.remoteId != null) {
               await _supabase
                   .from(SupabaseConstants.mealPlanEntriesTable)
-                  .update({SupabaseConstants.mealPlanEntryCookId: entry.cookId})
+                  .update({
+                    SupabaseConstants.mealPlanEntryRecipeId:
+                        entry.recipeId.isEmpty ? null : entry.recipeId,
+                    SupabaseConstants.mealPlanEntryCustomName: entry.customName,
+                    SupabaseConstants.mealPlanEntryCookId: entry.cookId,
+                    SupabaseConstants.mealPlanEntryUpdatedAt:
+                        entry.updatedAt.toIso8601String(),
+                  })
                   .eq(SupabaseConstants.mealPlanEntryId, entry.remoteId!);
               await _dao.updateSyncStatus(entry.localId, 'synced',
                   remoteId: entry.remoteId);
@@ -89,7 +98,8 @@ class MealPlanSyncService {
               localId: Value(model.id),
               remoteId: Value(model.id),
               groupId: Value(_groupId),
-              recipeId: Value(model.recipeId),
+              recipeId: Value(model.recipeId ?? ''),
+              customName: Value(model.customName),
               date: Value(model.date),
               mealType: Value(model.mealType),
               cookId: Value(model.cookId),

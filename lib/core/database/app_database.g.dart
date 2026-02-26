@@ -1088,6 +1088,12 @@ class $LocalMealPlanEntriesTable extends LocalMealPlanEntries
   late final GeneratedColumn<String> recipeId = GeneratedColumn<String>(
       'recipe_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _customNameMeta =
+      const VerificationMeta('customName');
+  @override
+  late final GeneratedColumn<String> customName = GeneratedColumn<String>(
+      'custom_name', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _dateMeta = const VerificationMeta('date');
   @override
   late final GeneratedColumn<String> date = GeneratedColumn<String>(
@@ -1124,6 +1130,7 @@ class $LocalMealPlanEntriesTable extends LocalMealPlanEntries
         remoteId,
         groupId,
         recipeId,
+        customName,
         date,
         mealType,
         cookId,
@@ -1161,6 +1168,12 @@ class $LocalMealPlanEntriesTable extends LocalMealPlanEntries
           recipeId.isAcceptableOrUnknown(data['recipe_id']!, _recipeIdMeta));
     } else if (isInserting) {
       context.missing(_recipeIdMeta);
+    }
+    if (data.containsKey('custom_name')) {
+      context.handle(
+          _customNameMeta,
+          customName.isAcceptableOrUnknown(
+              data['custom_name']!, _customNameMeta));
     }
     if (data.containsKey('date')) {
       context.handle(
@@ -1207,6 +1220,8 @@ class $LocalMealPlanEntriesTable extends LocalMealPlanEntries
           .read(DriftSqlType.string, data['${effectivePrefix}group_id'])!,
       recipeId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}recipe_id'])!,
+      customName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}custom_name']),
       date: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}date'])!,
       mealType: attachedDatabase.typeMapping
@@ -1232,6 +1247,7 @@ class LocalMealPlanEntry extends DataClass
   final String? remoteId;
   final String groupId;
   final String recipeId;
+  final String? customName;
   final String date;
   final String mealType;
   final String? cookId;
@@ -1242,6 +1258,7 @@ class LocalMealPlanEntry extends DataClass
       this.remoteId,
       required this.groupId,
       required this.recipeId,
+      this.customName,
       required this.date,
       required this.mealType,
       this.cookId,
@@ -1256,6 +1273,9 @@ class LocalMealPlanEntry extends DataClass
     }
     map['group_id'] = Variable<String>(groupId);
     map['recipe_id'] = Variable<String>(recipeId);
+    if (!nullToAbsent || customName != null) {
+      map['custom_name'] = Variable<String>(customName);
+    }
     map['date'] = Variable<String>(date);
     map['meal_type'] = Variable<String>(mealType);
     if (!nullToAbsent || cookId != null) {
@@ -1274,6 +1294,9 @@ class LocalMealPlanEntry extends DataClass
           : Value(remoteId),
       groupId: Value(groupId),
       recipeId: Value(recipeId),
+      customName: customName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(customName),
       date: Value(date),
       mealType: Value(mealType),
       cookId:
@@ -1291,6 +1314,7 @@ class LocalMealPlanEntry extends DataClass
       remoteId: serializer.fromJson<String?>(json['remoteId']),
       groupId: serializer.fromJson<String>(json['groupId']),
       recipeId: serializer.fromJson<String>(json['recipeId']),
+      customName: serializer.fromJson<String?>(json['customName']),
       date: serializer.fromJson<String>(json['date']),
       mealType: serializer.fromJson<String>(json['mealType']),
       cookId: serializer.fromJson<String?>(json['cookId']),
@@ -1306,6 +1330,7 @@ class LocalMealPlanEntry extends DataClass
       'remoteId': serializer.toJson<String?>(remoteId),
       'groupId': serializer.toJson<String>(groupId),
       'recipeId': serializer.toJson<String>(recipeId),
+      'customName': serializer.toJson<String?>(customName),
       'date': serializer.toJson<String>(date),
       'mealType': serializer.toJson<String>(mealType),
       'cookId': serializer.toJson<String?>(cookId),
@@ -1319,6 +1344,7 @@ class LocalMealPlanEntry extends DataClass
           Value<String?> remoteId = const Value.absent(),
           String? groupId,
           String? recipeId,
+          Value<String?> customName = const Value.absent(),
           String? date,
           String? mealType,
           Value<String?> cookId = const Value.absent(),
@@ -1329,6 +1355,7 @@ class LocalMealPlanEntry extends DataClass
         remoteId: remoteId.present ? remoteId.value : this.remoteId,
         groupId: groupId ?? this.groupId,
         recipeId: recipeId ?? this.recipeId,
+        customName: customName.present ? customName.value : this.customName,
         date: date ?? this.date,
         mealType: mealType ?? this.mealType,
         cookId: cookId.present ? cookId.value : this.cookId,
@@ -1341,6 +1368,8 @@ class LocalMealPlanEntry extends DataClass
       remoteId: data.remoteId.present ? data.remoteId.value : this.remoteId,
       groupId: data.groupId.present ? data.groupId.value : this.groupId,
       recipeId: data.recipeId.present ? data.recipeId.value : this.recipeId,
+      customName:
+          data.customName.present ? data.customName.value : this.customName,
       date: data.date.present ? data.date.value : this.date,
       mealType: data.mealType.present ? data.mealType.value : this.mealType,
       cookId: data.cookId.present ? data.cookId.value : this.cookId,
@@ -1357,6 +1386,7 @@ class LocalMealPlanEntry extends DataClass
           ..write('remoteId: $remoteId, ')
           ..write('groupId: $groupId, ')
           ..write('recipeId: $recipeId, ')
+          ..write('customName: $customName, ')
           ..write('date: $date, ')
           ..write('mealType: $mealType, ')
           ..write('cookId: $cookId, ')
@@ -1367,8 +1397,8 @@ class LocalMealPlanEntry extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(localId, remoteId, groupId, recipeId, date,
-      mealType, cookId, syncStatus, updatedAt);
+  int get hashCode => Object.hash(localId, remoteId, groupId, recipeId,
+      customName, date, mealType, cookId, syncStatus, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1377,6 +1407,7 @@ class LocalMealPlanEntry extends DataClass
           other.remoteId == this.remoteId &&
           other.groupId == this.groupId &&
           other.recipeId == this.recipeId &&
+          other.customName == this.customName &&
           other.date == this.date &&
           other.mealType == this.mealType &&
           other.cookId == this.cookId &&
@@ -1390,6 +1421,7 @@ class LocalMealPlanEntriesCompanion
   final Value<String?> remoteId;
   final Value<String> groupId;
   final Value<String> recipeId;
+  final Value<String?> customName;
   final Value<String> date;
   final Value<String> mealType;
   final Value<String?> cookId;
@@ -1401,6 +1433,7 @@ class LocalMealPlanEntriesCompanion
     this.remoteId = const Value.absent(),
     this.groupId = const Value.absent(),
     this.recipeId = const Value.absent(),
+    this.customName = const Value.absent(),
     this.date = const Value.absent(),
     this.mealType = const Value.absent(),
     this.cookId = const Value.absent(),
@@ -1413,6 +1446,7 @@ class LocalMealPlanEntriesCompanion
     this.remoteId = const Value.absent(),
     required String groupId,
     required String recipeId,
+    this.customName = const Value.absent(),
     required String date,
     required String mealType,
     this.cookId = const Value.absent(),
@@ -1430,6 +1464,7 @@ class LocalMealPlanEntriesCompanion
     Expression<String>? remoteId,
     Expression<String>? groupId,
     Expression<String>? recipeId,
+    Expression<String>? customName,
     Expression<String>? date,
     Expression<String>? mealType,
     Expression<String>? cookId,
@@ -1442,6 +1477,7 @@ class LocalMealPlanEntriesCompanion
       if (remoteId != null) 'remote_id': remoteId,
       if (groupId != null) 'group_id': groupId,
       if (recipeId != null) 'recipe_id': recipeId,
+      if (customName != null) 'custom_name': customName,
       if (date != null) 'date': date,
       if (mealType != null) 'meal_type': mealType,
       if (cookId != null) 'cook_id': cookId,
@@ -1456,6 +1492,7 @@ class LocalMealPlanEntriesCompanion
       Value<String?>? remoteId,
       Value<String>? groupId,
       Value<String>? recipeId,
+      Value<String?>? customName,
       Value<String>? date,
       Value<String>? mealType,
       Value<String?>? cookId,
@@ -1467,6 +1504,7 @@ class LocalMealPlanEntriesCompanion
       remoteId: remoteId ?? this.remoteId,
       groupId: groupId ?? this.groupId,
       recipeId: recipeId ?? this.recipeId,
+      customName: customName ?? this.customName,
       date: date ?? this.date,
       mealType: mealType ?? this.mealType,
       cookId: cookId ?? this.cookId,
@@ -1490,6 +1528,9 @@ class LocalMealPlanEntriesCompanion
     }
     if (recipeId.present) {
       map['recipe_id'] = Variable<String>(recipeId.value);
+    }
+    if (customName.present) {
+      map['custom_name'] = Variable<String>(customName.value);
     }
     if (date.present) {
       map['date'] = Variable<String>(date.value);
@@ -1519,6 +1560,7 @@ class LocalMealPlanEntriesCompanion
           ..write('remoteId: $remoteId, ')
           ..write('groupId: $groupId, ')
           ..write('recipeId: $recipeId, ')
+          ..write('customName: $customName, ')
           ..write('date: $date, ')
           ..write('mealType: $mealType, ')
           ..write('cookId: $cookId, ')
@@ -2055,6 +2097,7 @@ typedef $$LocalMealPlanEntriesTableCreateCompanionBuilder
   Value<String?> remoteId,
   required String groupId,
   required String recipeId,
+  Value<String?> customName,
   required String date,
   required String mealType,
   Value<String?> cookId,
@@ -2068,6 +2111,7 @@ typedef $$LocalMealPlanEntriesTableUpdateCompanionBuilder
   Value<String?> remoteId,
   Value<String> groupId,
   Value<String> recipeId,
+  Value<String?> customName,
   Value<String> date,
   Value<String> mealType,
   Value<String?> cookId,
@@ -2096,6 +2140,9 @@ class $$LocalMealPlanEntriesTableFilterComposer
 
   ColumnFilters<String> get recipeId => $composableBuilder(
       column: $table.recipeId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get customName => $composableBuilder(
+      column: $table.customName, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get date => $composableBuilder(
       column: $table.date, builder: (column) => ColumnFilters(column));
@@ -2134,6 +2181,9 @@ class $$LocalMealPlanEntriesTableOrderingComposer
   ColumnOrderings<String> get recipeId => $composableBuilder(
       column: $table.recipeId, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get customName => $composableBuilder(
+      column: $table.customName, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get date => $composableBuilder(
       column: $table.date, builder: (column) => ColumnOrderings(column));
 
@@ -2170,6 +2220,9 @@ class $$LocalMealPlanEntriesTableAnnotationComposer
 
   GeneratedColumn<String> get recipeId =>
       $composableBuilder(column: $table.recipeId, builder: (column) => column);
+
+  GeneratedColumn<String> get customName => $composableBuilder(
+      column: $table.customName, builder: (column) => column);
 
   GeneratedColumn<String> get date =>
       $composableBuilder(column: $table.date, builder: (column) => column);
@@ -2221,6 +2274,7 @@ class $$LocalMealPlanEntriesTableTableManager extends RootTableManager<
             Value<String?> remoteId = const Value.absent(),
             Value<String> groupId = const Value.absent(),
             Value<String> recipeId = const Value.absent(),
+            Value<String?> customName = const Value.absent(),
             Value<String> date = const Value.absent(),
             Value<String> mealType = const Value.absent(),
             Value<String?> cookId = const Value.absent(),
@@ -2233,6 +2287,7 @@ class $$LocalMealPlanEntriesTableTableManager extends RootTableManager<
             remoteId: remoteId,
             groupId: groupId,
             recipeId: recipeId,
+            customName: customName,
             date: date,
             mealType: mealType,
             cookId: cookId,
@@ -2245,6 +2300,7 @@ class $$LocalMealPlanEntriesTableTableManager extends RootTableManager<
             Value<String?> remoteId = const Value.absent(),
             required String groupId,
             required String recipeId,
+            Value<String?> customName = const Value.absent(),
             required String date,
             required String mealType,
             Value<String?> cookId = const Value.absent(),
@@ -2257,6 +2313,7 @@ class $$LocalMealPlanEntriesTableTableManager extends RootTableManager<
             remoteId: remoteId,
             groupId: groupId,
             recipeId: recipeId,
+            customName: customName,
             date: date,
             mealType: mealType,
             cookId: cookId,
