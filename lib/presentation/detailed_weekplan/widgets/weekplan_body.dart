@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_week_list.dart';
 import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_week_strip.dart';
+import 'package:meal_planner/services/providers/meal_plan/meal_plan_provider.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_sync_provider.dart';
 
 class WeekplanBody extends ConsumerStatefulWidget {
@@ -18,13 +19,22 @@ class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
   final _scrollController = ScrollController();
   final _todayKey = GlobalKey();
   final _contentKey = GlobalKey();
+  bool _hasScrolledToToday = false;
 
   @override
   void initState() {
     super.initState();
     _weekStart = _mondayOf(DateTime.now());
+    // Fallback: if all streams are already cached, scroll after layout
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToToday());
+      if (_hasScrolledToToday) return;
+      final days = List.generate(7, (i) => _weekStart.add(Duration(days: i)));
+      final allReady =
+          days.every((d) => ref.read(mealPlanStreamProvider(d)).hasValue);
+      if (allReady) {
+        _hasScrolledToToday = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToToday());
+      }
     });
   }
 
@@ -84,6 +94,22 @@ class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final screenHeight = MediaQuery.of(context).size.height;
+
+    // Scroll to today once all day-streams have emitted their first value.
+    // This handles the case where Drift data loads after the initial layout.
+    final days = List.generate(7, (i) => _weekStart.add(Duration(days: i)));
+    for (final day in days) {
+      ref.listen(mealPlanStreamProvider(day), (_, __) {
+        if (_hasScrolledToToday) return;
+        final allReady =
+            days.every((d) => ref.read(mealPlanStreamProvider(d)).hasValue);
+        if (allReady) {
+          _hasScrolledToToday = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToToday());
+        }
+      });
+    }
+
     return Column(
       children: [
         ClipRect(

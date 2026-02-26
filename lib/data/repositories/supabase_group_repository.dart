@@ -85,7 +85,7 @@ class SupabaseGroupRepository implements GroupRepository {
     try {
       final response = await _supabase
           .from(SupabaseConstants.groupMembersTable)
-          .select('users(id, name)')
+          .select('users(id, name, image_url)')
           .eq(SupabaseConstants.memberGroupId, groupId);
 
       if (response.isEmpty) {

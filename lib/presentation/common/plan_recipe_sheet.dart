@@ -1,8 +1,12 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
+import 'package:meal_planner/domain/entities/user.dart';
 import 'package:meal_planner/domain/enums/meal_type.dart';
+import 'package:meal_planner/services/providers/groups/group_members_provider.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_provider.dart';
+import 'package:meal_planner/services/providers/session_provider.dart';
 
 class PlanRecipeSheet extends ConsumerStatefulWidget {
   final String recipeId;
@@ -21,6 +25,7 @@ class PlanRecipeSheet extends ConsumerStatefulWidget {
 class _PlanRecipeSheetState extends ConsumerState<PlanRecipeSheet> {
   DateTime _selectedDate = DateTime.now();
   MealType? _selectedMealType;
+  String? _selectedCookId;
 
   static const _weekdayLong = [
     'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag',
@@ -91,13 +96,14 @@ class _PlanRecipeSheetState extends ConsumerState<PlanRecipeSheet> {
       await ref.read(mealPlanActionsProvider).updateEntry(
             existing.id,
             recipeId: widget.recipeId,
-            cookId: existing.cookId,
+            cookId: _selectedCookId,
           );
     } else {
       await ref.read(mealPlanActionsProvider).addEntry(
             date: _selectedDate,
             mealType: _selectedMealType!,
             recipeId: widget.recipeId,
+            cookId: _selectedCookId,
           );
     }
 
@@ -108,6 +114,8 @@ class _PlanRecipeSheetState extends ConsumerState<PlanRecipeSheet> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final groupId = ref.watch(sessionProvider).groupId ?? '';
+    final membersAsync = ref.watch(groupMembersProvider(groupId));
 
     // Keep the stream alive while the sheet is open so _submit can read it
     ref.watch(mealPlanStreamProvider(_selectedDate));
@@ -189,6 +197,41 @@ class _PlanRecipeSheetState extends ConsumerState<PlanRecipeSheet> {
               onSelectionChanged: (set) =>
                   setState(() => _selectedMealType = set.firstOrNull),
             ),
+            const SizedBox(height: 20),
+
+            // Cook selector
+            Text('Koch', style: textTheme.labelMedium),
+            const SizedBox(height: 10),
+            membersAsync.when(
+              data: (members) => Scrollbar(
+                thumbVisibility: true,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    children: members
+                        .map((user) => Padding(
+                              padding: const EdgeInsets.only(right: 14),
+                              child: _CookChip(
+                                user: user,
+                                isSelected: user.id == _selectedCookId,
+                                onTap: () => setState(() {
+                                  _selectedCookId = user.id == _selectedCookId
+                                      ? null
+                                      : user.id;
+                                }),
+                              ),
+                            ))
+                        .toList(),
+                  ),
+                ),
+              ),
+              loading: () => const SizedBox(
+                height: 60,
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (_, __) => const SizedBox.shrink(),
+            ),
             const SizedBox(height: 28),
 
             // Submit
@@ -198,6 +241,65 @@ class _PlanRecipeSheetState extends ConsumerState<PlanRecipeSheet> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _CookChip extends StatelessWidget {
+  final User user;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _CookChip({
+    required this.user,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: isSelected
+                  ? Border.all(color: colorScheme.primary, width: 2.5)
+                  : Border.all(color: Colors.transparent, width: 2.5),
+            ),
+            child: CircleAvatar(
+              radius: 22,
+              backgroundColor: colorScheme.primaryContainer,
+              backgroundImage: user.imageUrl != null
+                  ? CachedNetworkImageProvider(user.imageUrl!)
+                  : null,
+              child: user.imageUrl == null
+                  ? Text(
+                      user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                      style: textTheme.labelMedium
+                          ?.copyWith(color: colorScheme.onPrimaryContainer),
+                    )
+                  : null,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            user.name,
+            style: textTheme.labelSmall?.copyWith(
+              color: isSelected
+                  ? colorScheme.primary
+                  : colorScheme.onSurface.withValues(alpha: 0.7),
+              fontWeight:
+                  isSelected ? FontWeight.w700 : FontWeight.normal,
+            ),
+          ),
+        ],
       ),
     );
   }

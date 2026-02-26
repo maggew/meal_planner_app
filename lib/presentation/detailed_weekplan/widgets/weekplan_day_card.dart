@@ -160,11 +160,11 @@ class _EmptySlotRow extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(6),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 5),
         child: Row(
           children: [
             Icon(icon,
-                size: 15, color: colorScheme.onSurface.withValues(alpha: 0.25)),
+                size: 16, color: colorScheme.onSurface.withValues(alpha: 0.25)),
             const SizedBox(width: 8),
             Icon(Icons.add,
                 size: 14, color: colorScheme.onSurface.withValues(alpha: 0.25)),
@@ -253,12 +253,13 @@ class _MealRow extends ConsumerWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 5),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 1),
-              child: Icon(icon, size: 16, color: colorScheme.primary),
-            ),
+            Icon(icon, size: 16, color: colorScheme.primary),
+            if (entry.cookId != null) ...[
+              const SizedBox(width: 6),
+              _CookAvatar(cookId: entry.cookId!),
+            ],
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -283,6 +284,33 @@ class _MealRow extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _CookAvatar extends ConsumerWidget {
+  final String cookId;
+  const _CookAvatar({required this.cookId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final user = ref.watch(cookUserProvider(cookId)).value;
+    return CircleAvatar(
+      radius: 9,
+      backgroundColor: colorScheme.primaryContainer,
+      backgroundImage:
+          user?.imageUrl != null ? NetworkImage(user!.imageUrl!) : null,
+      child: user?.imageUrl == null
+          ? Text(
+              user?.name.isNotEmpty == true ? user!.name[0].toUpperCase() : '?',
+              style: TextStyle(
+                fontSize: 9,
+                color: colorScheme.onPrimaryContainer,
+                fontWeight: FontWeight.w700,
+              ),
+            )
+          : null,
     );
   }
 }
