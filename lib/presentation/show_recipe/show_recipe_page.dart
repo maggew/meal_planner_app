@@ -10,6 +10,7 @@ import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/show_recipe_bottom_navigation_bar.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/show_recipe_cooking_mode.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/show_recipe_overview.dart';
+import 'package:meal_planner/presentation/show_recipe/widgets/plan_recipe_sheet.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_pagination_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 
@@ -132,6 +133,18 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
               }),
           title: _recipe!.name,
           actionsButtons: [
+            IconButton(
+              icon: const Icon(Icons.calendar_month_outlined),
+              tooltip: 'Zum Wochenplan',
+              onPressed: () => showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => PlanRecipeSheet(
+                  recipeId: _recipe!.id!,
+                  recipeName: _recipe!.name,
+                ),
+              ),
+            ),
             PopupMenuButton<String>(
               onSelected: (value) {
                 switch (value) {

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_week_list.dart';
@@ -13,11 +15,44 @@ class WeekplanBody extends ConsumerStatefulWidget {
 
 class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
   late DateTime _weekStart; // always a Monday
+  final _scrollController = ScrollController();
+  final _todayKey = GlobalKey();
+  final _contentKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
     _weekStart = _mondayOf(DateTime.now());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToToday());
+    });
+  }
+
+  void _scrollToToday() {
+    if (!_scrollController.hasClients) return;
+    final todayCtx = _todayKey.currentContext;
+    if (todayCtx == null) return;
+    final contentCtx = _contentKey.currentContext;
+    if (contentCtx == null) return;
+    final todayBox = todayCtx.findRenderObject() as RenderBox?;
+    if (todayBox == null) return;
+    final contentBox = contentCtx.findRenderObject() as RenderBox?;
+    if (contentBox == null) return;
+    // Distance from content top to today's card top = exact jumpTo target
+    final todayInContent =
+        contentBox.globalToLocal(todayBox.localToGlobal(Offset.zero));
+    _scrollController.jumpTo(
+      todayInContent.dy.clamp(
+        _scrollController.position.minScrollExtent,
+        _scrollController.position.maxScrollExtent,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   static DateTime _mondayOf(DateTime date) =>
@@ -46,21 +81,43 @@ class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: EdgeInsets.only(bottom: 24),
-        child:Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          WeekplanWeekStrip(
-            weekStart: _weekStart,
-            onPreviousWeek: _onPreviousWeek,
-            onNextWeek: _onNextWeek,
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenHeight = MediaQuery.of(context).size.height;
+    return Column(
+      children: [
+        ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
+              color: isDark
+                  ? colorScheme.surface.withValues(alpha: 0.55)
+                  : colorScheme.surface.withValues(alpha: 0.80),
+              child: WeekplanWeekStrip(
+                weekStart: _weekStart,
+                onPreviousWeek: _onPreviousWeek,
+                onNextWeek: _onNextWeek,
+              ),
+            ),
           ),
-          WeekplanWeekList(weekStart: _weekStart),
-        ],
-      ),
-      ),
+        ),
+        Expanded(
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            child: Column(
+              key: _contentKey,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                WeekplanWeekList(
+                  weekStart: _weekStart,
+                  todayKey: _todayKey,
+                ),
+                SizedBox(height: screenHeight * 0.7),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

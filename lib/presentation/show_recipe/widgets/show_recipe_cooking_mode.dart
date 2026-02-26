@@ -127,7 +127,11 @@ class _ShowRecipeCookingModeState extends ConsumerState<ShowRecipeCookingMode>
             left: 0,
             right: 0,
             bottom: 16,
-            child: CookingModePageButtons(tabController: _tabController),
+            child: AnimatedBuilder(
+              animation: _tabController,
+              builder: (context, _) =>
+                  CookingModePageButtons(tabController: _tabController),
+            ),
           ),
         ],
       ),

@@ -68,11 +68,14 @@ class _SummaryRow extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final nameAsync = entry != null
-        ? ref.watch(recipeNameProvider(entry!.recipeId))
-        : const AsyncData<String?>(null);
-
-    final recipeName = nameAsync.value;
+    final String? recipeName;
+    if (entry == null) {
+      recipeName = null;
+    } else if (entry!.recipeId != null) {
+      recipeName = ref.watch(recipeNameProvider(entry!.recipeId!)).value;
+    } else {
+      recipeName = entry!.customName;
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),

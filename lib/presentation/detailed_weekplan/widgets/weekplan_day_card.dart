@@ -72,7 +72,7 @@ class WeekplanDayCard extends ConsumerWidget {
               borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
               border: Border.all(
                 color: isToday
-                    ? colorScheme.primary.withValues(alpha: 0.5)
+                    ? colorScheme.secondary
                     : colorScheme.onSurface.withValues(alpha: 0.1),
               ),
             ),
@@ -95,8 +95,7 @@ class WeekplanDayCard extends ConsumerWidget {
                       ...MealType.values.map(
                         (type) => _CompactAddButton(
                           icon: _mealIcons[type]!,
-                          onTap: () =>
-                              _openAddPicker(context, ref, type),
+                          onTap: () => _openAddPicker(context, ref, type),
                         ),
                       ),
                   ],
@@ -115,8 +114,7 @@ class WeekplanDayCard extends ConsumerWidget {
                     } else {
                       return _EmptySlotRow(
                         icon: _mealIcons[type]!,
-                        onTap: () =>
-                            _openAddPicker(context, ref, type),
+                        onTap: () => _openAddPicker(context, ref, type),
                       );
                     }
                   }),
@@ -166,12 +164,10 @@ class _EmptySlotRow extends StatelessWidget {
         child: Row(
           children: [
             Icon(icon,
-                size: 15,
-                color: colorScheme.onSurface.withValues(alpha: 0.25)),
+                size: 15, color: colorScheme.onSurface.withValues(alpha: 0.25)),
             const SizedBox(width: 8),
             Icon(Icons.add,
-                size: 14,
-                color: colorScheme.onSurface.withValues(alpha: 0.25)),
+                size: 14, color: colorScheme.onSurface.withValues(alpha: 0.25)),
           ],
         ),
       ),
