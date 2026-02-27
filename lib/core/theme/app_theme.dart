@@ -23,6 +23,7 @@ class AppTheme {
     final surface = isDark ? Colors.grey[900]! : Colors.white;
     final onSurface = isDark ? Colors.white : Colors.black;
     final surfaceContainer = isDark ? Colors.grey[850]! : Colors.grey[100]!;
+    final surfaceContainerHigh = isDark ? Colors.grey[800]! : Colors.grey[200]!;
 
     final _colorScheme = ColorScheme(
       brightness: brightness,
@@ -38,6 +39,7 @@ class AppTheme {
       surface: surface,
       onSurface: onSurface,
       surfaceContainer: surfaceContainer,
+      surfaceContainerHigh: surfaceContainerHigh,
     );
 
     // Text Styles
@@ -105,7 +107,14 @@ class AppTheme {
     );
 
     final _navigationBarTheme = NavigationBarThemeData(
-      backgroundColor: surface,
+      backgroundColor: surfaceContainerHigh,
+      indicatorColor: Colors.transparent,
+      iconTheme: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return IconThemeData(color: secondary);
+        }
+        return IconThemeData(color: onSurface.withValues(alpha: 0.6));
+      }),
     );
 
     final _tabBarTheme = TabBarThemeData(

@@ -8,13 +8,20 @@ class CookbookCategoryTab extends Tab {
     required this.name,
     required this.iconWidget,
   }) : super(
-          child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(height: 8),
                 iconWidget,
-                Text(_editCategoryNameForCookbookTabbar(name)),
-                SizedBox(height: 8),
+                const SizedBox(height: 2),
+                Text(
+                  _editCategoryNameForCookbookTabbar(name),
+                  style: const TextStyle(fontSize: 9),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
@@ -22,10 +29,7 @@ class CookbookCategoryTab extends Tab {
 }
 
 String _editCategoryNameForCookbookTabbar(String name) {
-  if (name == "Saucen, Dips") {
-    return "Saucen,\nDips";
-  } else if (name == "Hauptgerichte") {
-    return "Haupt-\ngerichte";
-  }
+  if (name == "Hauptgerichte") return "Hauptger.";
+  if (name == "Saucen, Dips") return "Saucen";
   return name;
 }

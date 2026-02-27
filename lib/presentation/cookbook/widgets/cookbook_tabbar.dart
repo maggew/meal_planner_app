@@ -20,8 +20,7 @@ class CookbookTabbar extends ConsumerWidget {
 
     return VerticalTabs(
       disabledChangePageFromContentView: true,
-      tabsElevation: 50,
-      tabsWidth: 100,
+      tabsWidth: 70,
       tabsPosition: tabsPosition,
       tabs: [
         ...categoryNames.map(

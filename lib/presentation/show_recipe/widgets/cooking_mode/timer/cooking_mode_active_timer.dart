@@ -68,10 +68,15 @@ class CookingModeActiveTimer extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            IconButton(
+            TextButton(
               onPressed: () =>
                   ref.read(activeTimerProvider.notifier).addMinute(timerKey),
-              icon: const Icon(Icons.more_time, size: 22),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text('+1 Min'),
             ),
             if (isRunning) ...[
               TextButton.icon(

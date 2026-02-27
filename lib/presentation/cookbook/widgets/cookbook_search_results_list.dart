@@ -21,12 +21,28 @@ class CookbookSearchResultsList extends ConsumerWidget {
 
     if (recipes.isEmpty) {
       return Center(
-        child: Text('Keine Rezepte gefunden'),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search_off_rounded,
+              size: 48,
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Keine Rezepte gefunden',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
+            ),
+          ],
+        ),
       );
     }
 
     return Container(
-      color: Colors.lightGreen[100],
+      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.3),
       padding: const EdgeInsets.only(top: 5, left: 5),
       child: ListView.builder(
         itemCount: recipes.length,

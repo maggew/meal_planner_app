@@ -102,7 +102,7 @@ class _CookingModeIdleTimerState extends ConsumerState<CookingModeIdleTimer> {
             ],
           ),
         ),
-        IconButton(
+        TextButton(
           onPressed: () => ref.read(activeTimerProvider.notifier).startTimer(
                 recipeId: widget.recipeId,
                 stepIndex: widget.stepIndex,
@@ -111,7 +111,12 @@ class _CookingModeIdleTimerState extends ConsumerState<CookingModeIdleTimer> {
                 durationSeconds: 60,
                 savedDurationSeconds: widget.saved?.durationSeconds,
               ),
-          icon: Icon(Icons.more_time, size: 22),
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: const Text('+1 Min'),
         ),
         IconButton(
           onPressed: () => _startWithDuration(

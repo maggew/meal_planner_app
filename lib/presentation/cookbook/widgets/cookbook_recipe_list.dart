@@ -102,10 +102,25 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
     } else if (recipes.isEmpty && !isLoading) {
       final message = isSearching
           ? "Keine Rezepte gefunden"
-          : "Keine Rezepte in dieser Kategorie!";
+          : "Noch keine Rezepte in\ndieser Kategorie";
+      final icon = isSearching ? Icons.search_off_rounded : Icons.restaurant_menu_rounded;
       return _alwaysScrollableListView(children: [
-        SizedBox(height: 100),
-        Center(child: Text(message)),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+        Icon(
+          icon,
+          size: 48,
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+        ),
+        const SizedBox(height: 12),
+        Center(
+          child: Text(
+            message,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                ),
+          ),
+        ),
       ]);
     } else if (error != null && recipes.isEmpty) {
       return _alwaysScrollableListView(children: [
