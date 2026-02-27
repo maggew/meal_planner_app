@@ -40,6 +40,11 @@ class ShoppingListActions extends _$ShoppingListActions {
     }
   }
 
+  Future<void> updateItem(String itemId, String information, String? quantity) async {
+    final repo = ref.read(shoppingListRepositoryProvider);
+    await repo.updateItem(itemId, information, quantity);
+  }
+
   Future<void> toggleItem(String itemId, bool isChecked) async {
     final repo = ref.read(shoppingListRepositoryProvider);
     await repo.toggleItem(itemId, isChecked);

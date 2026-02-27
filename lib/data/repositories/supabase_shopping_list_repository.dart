@@ -64,6 +64,20 @@ class SupabaseShoppingListRepository implements ShoppingListRepository {
   }
 
   @override
+  Future<void> updateItem(String itemId, String information, String? quantity) async {
+    try {
+      await _supabase
+          .from(SupabaseConstants.shoppingListItemsTable)
+          .update({
+            SupabaseConstants.shoppingListItemInformation: information,
+            SupabaseConstants.shoppingListItemQuantity: quantity,
+          }).eq(SupabaseConstants.shoppingListItemId, itemId);
+    } catch (e) {
+      throw Exception('Fehler beim Aktualisieren: $e');
+    }
+  }
+
+  @override
   Future<void> toggleItem(String itemId, bool isChecked) async {
     try {
       await _supabase

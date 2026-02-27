@@ -4,6 +4,7 @@ abstract class ShoppingListRepository {
   Stream<List<ShoppingListItem>> watchItems();
   Future<List<ShoppingListItem>> getItems();
   Future<ShoppingListItem> addItem(String information, String? quantity);
+  Future<void> updateItem(String itemId, String information, String? quantity);
   Future<void> toggleItem(String itemId, bool isChecked);
   Future<void> removeItem(String itemId);
   Future<void> removeCheckedItems();

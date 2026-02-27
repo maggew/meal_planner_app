@@ -54,6 +54,82 @@ class _ShoppingListItemTileState extends ConsumerState<ShoppingListItemTile>
         .toggleItem(widget.item.id, !widget.item.isChecked);
   }
 
+  Future<void> _handleEdit() async {
+    final item = widget.item;
+    final nameController = TextEditingController(text: item.information);
+    final quantityController = TextEditingController(
+      text: _hasQuantity ? item.quantity! : '',
+    );
+
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppDimensions.borderRadius),
+        ),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: AppDimensions.screenMargin,
+            right: AppDimensions.screenMargin,
+            top: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Eintrag bearbeiten',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: nameController,
+                autofocus: true,
+                decoration: const InputDecoration(labelText: 'Name'),
+                textCapitalization: TextCapitalization.sentences,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: quantityController,
+                decoration: const InputDecoration(labelText: 'Menge'),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Abbrechen'),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text('Speichern'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (result == true && mounted && nameController.text.trim().isNotEmpty) {
+      final newName = nameController.text.trim();
+      final newQuantity = quantityController.text.trim();
+      ref.read(shoppingListActionsProvider.notifier).updateItem(
+            item.id,
+            newName,
+            newQuantity.isEmpty ? null : newQuantity,
+          );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -65,6 +141,7 @@ class _ShoppingListItemTileState extends ConsumerState<ShoppingListItemTile>
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: _handleTap,
+          onLongPress: _handleEdit,
           child: Padding(
             padding: const EdgeInsets.all(8),
             child: Column(
@@ -80,17 +157,22 @@ class _ShoppingListItemTileState extends ConsumerState<ShoppingListItemTile>
                             : null),
                   ),
                 ),
-                Text(
-                  [
-                    if (_hasQuantity) widget.item.quantity!,
-                    widget.item.information,
-                  ].join(' '),
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      if (_hasQuantity)
+                        TextSpan(
+                          text: '${widget.item.quantity!} ',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      TextSpan(text: widget.item.information),
+                    ],
+                  ),
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 12,
-                    fontWeight: _hasQuantity ? FontWeight.bold : null,
                     color: widget.item.isChecked
                         ? colorScheme.onSurface.withValues(alpha: 0.4)
                         : null,

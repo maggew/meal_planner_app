@@ -81,7 +81,7 @@ final class ShoppingListActionsProvider
 }
 
 String _$shoppingListActionsHash() =>
-    r'3f839fc5906dfa51556a44e59592f527b0ec3902';
+    r'069110f4d56a569b1248683125ba431dfeebc0ef';
 
 abstract class _$ShoppingListActions extends $Notifier<void> {
   void build();
