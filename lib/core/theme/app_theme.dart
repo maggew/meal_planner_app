@@ -127,7 +127,13 @@ class AppTheme {
 
     final _checkboxTheme = CheckboxThemeData(
       checkColor: WidgetStateProperty.all(onPrimary),
-      fillColor: WidgetStateProperty.all(primary),
+      fillColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return primary;
+        }
+        return surface;
+      }),
+      side: BorderSide(color: surfaceContainerHigh, width: 1.5),
     );
 
     final _textButtonTheme = TextButtonThemeData(

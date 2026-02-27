@@ -78,77 +78,211 @@ void _showAddToShoppingListSheet(
   WidgetRef ref,
   List<IngredientSection> sections,
 ) {
-  final selectedSections = <int>{};
-  // Wenn nur eine Sektion, direkt alle auswählen
-  if (sections.length == 1) {
-    selectedSections.add(0);
+  // Track selected ingredients by section index + ingredient index
+  final selected = <int, Set<int>>{};
+  for (int s = 0; s < sections.length; s++) {
+    selected[s] = <int>{};
   }
 
   showModalBottomSheet(
     context: context,
+    isScrollControlled: true,
     builder: (context) {
       return StatefulBuilder(
         builder: (context, setSheetState) {
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Zur Einkaufsliste hinzufügen',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                ...sections.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final section = entry.value;
-                  return CheckboxListTile(
-                    title: Text(section.title),
-                    subtitle: Text(
-                      '${section.ingredients.length} Zutaten',
+          final totalSelected =
+              selected.values.fold<int>(0, (sum, s) => sum + s.length);
+
+          return DraggableScrollableSheet(
+            initialChildSize: 0.6,
+            minChildSize: 0.3,
+            maxChildSize: 0.85,
+            expand: false,
+            builder: (context, scrollController) {
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Zur Einkaufsliste hinzufügen',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
-                    value: selectedSections.contains(index),
-                    onChanged: (checked) {
-                      setSheetState(() {
-                        if (checked == true) {
-                          selectedSections.add(index);
-                        } else {
-                          selectedSections.remove(index);
-                        }
-                      });
-                    },
-                  );
-                }),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: selectedSections.isEmpty
-                        ? null
-                        : () {
-                            final ingredients = selectedSections
-                                .expand((i) => sections[i].ingredients)
-                                .toList();
-                            ref
-                                .read(shoppingListActionsProvider.notifier)
-                                .addItemsFromIngredients(ingredients);
-                            context.router.pop();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  '${ingredients.length} Zutaten zur Einkaufsliste hinzugefügt',
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: ListView.builder(
+                        controller: scrollController,
+                        itemCount: sections.length,
+                        itemBuilder: (context, sectionIndex) {
+                          final section = sections[sectionIndex];
+                          final sectionSelected =
+                              selected[sectionIndex] ?? <int>{};
+                          final allSelected = sectionSelected.length ==
+                              section.ingredients.length;
+                          final noneSelected = sectionSelected.isEmpty;
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Section header — tap to toggle all
+                              InkWell(
+                                onTap: () {
+                                  setSheetState(() {
+                                    if (allSelected) {
+                                      selected[sectionIndex] = {};
+                                    } else {
+                                      selected[sectionIndex] = Set<int>.from(
+                                        List.generate(
+                                            section.ingredients.length,
+                                            (i) => i),
+                                      );
+                                    }
+                                  });
+                                },
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                  child: Row(
+                                    children: [
+                                      Checkbox(
+                                        value: allSelected
+                                            ? true
+                                            : noneSelected
+                                                ? false
+                                                : null,
+                                        tristate: true,
+                                        onChanged: (_) {
+                                          setSheetState(() {
+                                            if (allSelected) {
+                                              selected[sectionIndex] = {};
+                                            } else {
+                                              selected[sectionIndex] =
+                                                  Set<int>.from(
+                                                List.generate(
+                                                    section.ingredients.length,
+                                                    (i) => i),
+                                              );
+                                            }
+                                          });
+                                        },
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          section.title,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleSmall,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            );
-                          },
-                    child: Text(
-                      'Hinzufügen (${selectedSections.length} Sektionen)',
+                              // Individual ingredients
+                              ...section.ingredients
+                                  .asMap()
+                                  .entries
+                                  .map((entry) {
+                                final ingredientIndex = entry.key;
+                                final ingredient = entry.value;
+                                final isSelected = sectionSelected
+                                    .contains(ingredientIndex);
+
+                                return InkWell(
+                                  onTap: () {
+                                    setSheetState(() {
+                                      if (isSelected) {
+                                        selected[sectionIndex]!
+                                            .remove(ingredientIndex);
+                                      } else {
+                                        selected[sectionIndex]!
+                                            .add(ingredientIndex);
+                                      }
+                                    });
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(left: 32),
+                                    child: Row(
+                                      children: [
+                                        Checkbox(
+                                          visualDensity: VisualDensity.compact,
+                                          materialTapTargetSize:
+                                              MaterialTapTargetSize.shrinkWrap,
+                                          value: isSelected,
+                                          onChanged: (checked) {
+                                            setSheetState(() {
+                                              if (checked == true) {
+                                                selected[sectionIndex]!
+                                                    .add(ingredientIndex);
+                                              } else {
+                                                selected[sectionIndex]!
+                                                    .remove(ingredientIndex);
+                                              }
+                                            });
+                                          },
+                                        ),
+                                        SizedBox(
+                                          width: 65,
+                                          child: Text(
+                                            '${ingredient.amount ?? ''} ${ingredient.unit?.displayName ?? ''}'
+                                                .trim(),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium,
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: Text(ingredient.name),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }),
+                              if (sectionIndex < sections.length - 1)
+                                const Divider(height: 16),
+                            ],
+                          );
+                        },
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: totalSelected == 0
+                            ? null
+                            : () {
+                                final ingredients = <Ingredient>[];
+                                for (final entry in selected.entries) {
+                                  for (final i in entry.value) {
+                                    ingredients
+                                        .add(sections[entry.key].ingredients[i]);
+                                  }
+                                }
+                                ref
+                                    .read(shoppingListActionsProvider.notifier)
+                                    .addItemsFromIngredients(ingredients);
+                                context.router.pop();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      '${ingredients.length} Zutaten zur Einkaufsliste hinzugefügt',
+                                    ),
+                                  ),
+                                );
+                              },
+                        child: Text(
+                          'Hinzufügen ($totalSelected Zutaten)',
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              );
+            },
           );
         },
       );

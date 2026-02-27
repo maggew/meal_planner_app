@@ -36,6 +36,11 @@ class _ShoppingListItemTileState extends ConsumerState<ShoppingListItemTile>
     super.dispose();
   }
 
+  bool get _hasQuantity =>
+      widget.item.quantity != null &&
+      widget.item.quantity!.isNotEmpty &&
+      widget.item.quantity != 'null';
+
   Future<void> _handleTap() async {
     // Exit: quick shrink before state change
     await _controller.animateTo(
@@ -62,37 +67,33 @@ class _ShoppingListItemTileState extends ConsumerState<ShoppingListItemTile>
           onTap: _handleTap,
           child: Padding(
             padding: const EdgeInsets.all(8),
-            child: Stack(
-              alignment: Alignment.center,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  widget.item.information[0],
-                  style: GoogleFonts.frederickaTheGreat(
-                      fontSize: 50,
-                      color: widget.item.isChecked
-                          ? colorScheme.onSurface.withValues(alpha: 0.4)
-                          : null),
-                ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 10,
+                Flexible(
                   child: Text(
-                    [
-                      if (widget.item.quantity != null) widget.item.quantity!,
-                      widget.item.information,
-                    ].join(' '),
-                    textAlign: TextAlign.center,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight:
-                          widget.item.quantity != null ? FontWeight.bold : null,
-                      color: widget.item.isChecked
-                          ? colorScheme.onSurface.withValues(alpha: 0.4)
-                          : null,
-                    ),
+                    widget.item.information[0],
+                    style: GoogleFonts.frederickaTheGreat(
+                        fontSize: 50,
+                        color: widget.item.isChecked
+                            ? colorScheme.onSurface.withValues(alpha: 0.4)
+                            : null),
+                  ),
+                ),
+                Text(
+                  [
+                    if (_hasQuantity) widget.item.quantity!,
+                    widget.item.information,
+                  ].join(' '),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: _hasQuantity ? FontWeight.bold : null,
+                    color: widget.item.isChecked
+                        ? colorScheme.onSurface.withValues(alpha: 0.4)
+                        : null,
                   ),
                 ),
               ],
