@@ -2,7 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:meal_planner/domain/entities/group.dart';
-import 'package:meal_planner/presentation/common/placerholder_image.dart';
+import 'package:meal_planner/presentation/common/placeholder_image.dart';
 
 class BurgerMenuHeader extends StatelessWidget {
   final Group? group;
@@ -31,9 +31,9 @@ class BurgerMenuHeader extends StatelessWidget {
                     fit: boxFit,
                     placeholder: (_, __) =>
                         Center(child: const CircularProgressIndicator()),
-                    errorWidget: (_, __, ___) => PlacerholderImage(),
+                    errorWidget: (_, __, ___) => PlaceholderImage(),
                   )
-                : PlacerholderImage(),
+                : PlaceholderImage(),
           ),
           Positioned(
             right: 0,

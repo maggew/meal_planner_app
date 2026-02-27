@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class PlacerholderImage extends StatelessWidget {
-  const PlacerholderImage({super.key});
+class PlaceholderImage extends StatelessWidget {
+  const PlaceholderImage({super.key});
 
   @override
   Widget build(BuildContext context) {

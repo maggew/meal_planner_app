@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/presentation/add_edit_recipe/form/ingredient_section_form.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/form/ingredient_section_form.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
 

@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/presentation/add_edit_recipe/form/ingredient_form_item.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/form/ingredient_form_item.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_instructions.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/flat_list_item.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/ingredients/add_edit_recipe_ingredient_item.dart';

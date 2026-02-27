@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:meal_planner/presentation/common/placerholder_image.dart';
+import 'package:meal_planner/presentation/common/placeholder_image.dart';
 
 class ShowSingleGroupImage extends StatelessWidget {
   final String imageUrl;
@@ -15,9 +15,9 @@ class ShowSingleGroupImage extends StatelessWidget {
             fit: BoxFit.cover,
             placeholder: (_, __) =>
                 Center(child: const CircularProgressIndicator()),
-            errorWidget: (_, __, ___) => const PlacerholderImage(),
+            errorWidget: (_, __, ___) => const PlaceholderImage(),
           )
-        : const PlacerholderImage();
+        : const PlaceholderImage();
     return ConstrainedBox(
       constraints: BoxConstraints(maxHeight: 300),
       child: image,

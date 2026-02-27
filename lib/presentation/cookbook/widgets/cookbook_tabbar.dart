@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/enums/tab_position.dart';
-import 'package:meal_planner/presentation/common/categories.dart';
-import 'package:meal_planner/presentation/common/vertical_tabbar.dart';
+import 'package:meal_planner/core/constants/categories.dart';
+import 'package:meal_planner/presentation/cookbook/widgets/vertical_tabbar.dart';
 import 'package:meal_planner/presentation/cookbook/widgets/cookbook_category_tab.dart';
 import 'package:meal_planner/presentation/cookbook/widgets/cookbook_recipe_list.dart';
 import 'package:meal_planner/services/providers/user/user_settings_provider.dart';

@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/domain/entities/user.dart';
-import 'package:meal_planner/presentation/common/placerholder_image.dart';
+import 'package:meal_planner/presentation/common/placeholder_image.dart';
 
 class ShowSingleGroupMemberList extends StatelessWidget {
   final AsyncValue<List<User>> membersAsync;
@@ -33,9 +33,9 @@ class ShowSingleGroupMemberList extends StatelessWidget {
                     fit: BoxFit.cover,
                     placeholder: (_, __) =>
                         Center(child: const CircularProgressIndicator()),
-                    errorWidget: (_, __, ___) => const PlacerholderImage(),
+                    errorWidget: (_, __, ___) => const PlaceholderImage(),
                   )
-                : const PlacerholderImage();
+                : const PlaceholderImage();
 
             return Card(
               margin: EdgeInsets.symmetric(horizontal: 20, vertical: 5),

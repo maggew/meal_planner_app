@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/presentation/common/categories.dart';
+import 'package:meal_planner/core/constants/categories.dart';
 import 'package:meal_planner/presentation/cookbook/widgets/cookbook_recipe_list_item.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_search_provider.dart';
 

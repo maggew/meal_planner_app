@@ -2,7 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
-import 'package:meal_planner/presentation/common/plan_recipe_sheet.dart';
+import 'package:meal_planner/presentation/detailed_weekplan/widgets/plan_recipe_sheet.dart';
 import 'package:meal_planner/presentation/common/glass_card.dart';
 
 class CookbookRecipeListItem extends StatelessWidget {

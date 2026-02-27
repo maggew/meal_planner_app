@@ -1,8 +1,8 @@
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
-import 'package:meal_planner/presentation/add_edit_recipe/form/ingredient_form_item.dart';
-import 'package:meal_planner/presentation/add_edit_recipe/form/ingredient_section_form.dart';
-import 'package:meal_planner/presentation/add_edit_recipe/state/ingredients_state.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/form/ingredient_form_item.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/form/ingredient_section_form.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/state/ingredients_state.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/flat_list_item.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_analysis_provider.dart';

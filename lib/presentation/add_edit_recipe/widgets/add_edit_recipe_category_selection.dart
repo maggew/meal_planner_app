@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/presentation/common/categories.dart';
+import 'package:meal_planner/core/constants/categories.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
 
 class AddEditRecipeCategorySelection extends ConsumerStatefulWidget {

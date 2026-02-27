@@ -1,5 +1,5 @@
-import 'package:meal_planner/presentation/add_edit_recipe/form/ingredient_form_item.dart';
-import 'package:meal_planner/presentation/add_edit_recipe/form/ingredient_section_form.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/form/ingredient_form_item.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/form/ingredient_section_form.dart';
 
 enum FlatListItemType { header, ingredient, addButton }
 

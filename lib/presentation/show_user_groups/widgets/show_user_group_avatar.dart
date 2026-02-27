@@ -2,7 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:meal_planner/domain/entities/group.dart';
-import 'package:meal_planner/presentation/common/placerholder_image.dart';
+import 'package:meal_planner/presentation/common/placeholder_image.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 
 class ShowUserGroupAvatar extends StatelessWidget {
@@ -27,9 +27,9 @@ class ShowUserGroupAvatar extends StatelessWidget {
             height: avatarDiameter,
             placeholder: (_, __) =>
                 Center(child: const CircularProgressIndicator()),
-            errorWidget: (_, __, ___) => const PlacerholderImage(),
+            errorWidget: (_, __, ___) => const PlaceholderImage(),
           )
-        : const PlacerholderImage();
+        : const PlaceholderImage();
 
     return GestureDetector(
       onTap: () {

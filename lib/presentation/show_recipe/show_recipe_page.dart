@@ -4,13 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_icons.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
-import 'package:meal_planner/presentation/common/categories.dart';
+import 'package:meal_planner/core/constants/categories.dart';
 import 'package:meal_planner/presentation/common/common_appbar.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/show_recipe_bottom_navigation_bar.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/show_recipe_cooking_mode.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/show_recipe_overview.dart';
-import 'package:meal_planner/presentation/common/plan_recipe_sheet.dart';
+import 'package:meal_planner/presentation/detailed_weekplan/widgets/plan_recipe_sheet.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_pagination_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 

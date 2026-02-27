@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
-import 'package:meal_planner/presentation/add_edit_recipe/form/ingredient_form_item.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/form/ingredient_form_item.dart';
 
 class AddEditRecipeIngredientsInputCard extends ConsumerStatefulWidget {
   final IngredientFormItem item;
