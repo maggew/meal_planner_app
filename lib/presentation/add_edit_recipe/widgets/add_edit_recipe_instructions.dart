@@ -5,6 +5,10 @@ import 'package:meal_planner/presentation/common/loading_overlay.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_analysis_provider.dart';
 
+// Wird vom Section-Delete-Flow gesetzt, um einen Tastatur-Flash zu verhindern.
+// Wenn true, kann das Instructions-TextField keinen Fokus erhalten.
+final excludeInstructionsFocusNotifier = ValueNotifier<bool>(false);
+
 class AddEditRecipeInstructions extends ConsumerStatefulWidget {
   final TextEditingController recipeInstructionsController;
   const AddEditRecipeInstructions({
@@ -17,6 +21,26 @@ class AddEditRecipeInstructions extends ConsumerStatefulWidget {
 }
 
 class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
+  late final FocusNode _focusNode;
+
+  void _onExcludeChanged() {
+    _focusNode.canRequestFocus = !excludeInstructionsFocusNotifier.value;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+    excludeInstructionsFocusNotifier.addListener(_onExcludeChanged);
+  }
+
+  @override
+  void dispose() {
+    excludeInstructionsFocusNotifier.removeListener(_onExcludeChanged);
+    _focusNode.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
@@ -91,6 +115,7 @@ class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
         LoadingOverlay(
           isLoading: isAnalyzing,
           child: TextFormField(
+            focusNode: _focusNode,
             controller: widget.recipeInstructionsController,
             decoration: InputDecoration(
               filled: true,

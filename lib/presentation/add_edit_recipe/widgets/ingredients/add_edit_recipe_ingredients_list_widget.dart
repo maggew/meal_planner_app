@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/form/ingredient_form_item.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_instructions.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/flat_list_item.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/ingredients/add_edit_recipe_ingredient_item.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/ingredients/add_edit_recipe_ingredients_input_card.dart';
@@ -174,6 +175,10 @@ Future<void> _handleDeletePressed(
   AddEditRecipeIngredientsProvider ingredientsProvider,
   int sectionIndex,
 ) async {
+  // canRequestFocus = false auf dem Instructions-FocusNode setzen (synchron),
+  // damit Flutter beim Dialog-Close den Fokus dort nicht wiederherstellen kann.
+  excludeInstructionsFocusNotifier.value = true;
+
   // 1. Bestätigungsdialog abholen
   final confirmed = await showDialog<bool>(
     context: context,
@@ -200,4 +205,9 @@ Future<void> _handleDeletePressed(
   if (confirmed == true) {
     ref.read(ingredientsProvider.notifier).removeSection(sectionIndex);
   }
+
+  // Nach Ablauf der Dialog-Pop-Animation zurücksetzen (~300ms).
+  Future.delayed(const Duration(milliseconds: 350), () {
+    excludeInstructionsFocusNotifier.value = false;
+  });
 }
