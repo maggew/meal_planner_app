@@ -13,11 +13,11 @@ class AppTheme {
     final onPrimary = isDark ? Colors.black : Colors.white;
     final primaryContainer = isDark ? Colors.green[900]! : Colors.green[100]!;
     final onPrimaryContainer = isDark ? Colors.white : Colors.black;
-    final secondary = isDark ? Colors.orange[600]! : Colors.pink[200]!;
+    final secondary = isDark ? Colors.orange[800]! : Colors.pink[200]!;
     final onSecondary = isDark ? Colors.black : Colors.white;
     final secondaryContainer =
         isDark ? const Color(0xFF4A2800) : Colors.orange[100]!;
-    final onSecondaryContainer = isDark ? Colors.white : Colors.orange[900]!;
+    final onSecondaryContainer = isDark ? Colors.white : Colors.black;
     final error = isDark ? Colors.red[300]! : Colors.red[400]!;
     final onError = Colors.white;
     final surface = isDark ? Colors.grey[900]! : Colors.white;

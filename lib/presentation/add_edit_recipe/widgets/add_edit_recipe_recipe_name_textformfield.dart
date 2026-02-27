@@ -15,21 +15,18 @@ class AddEditRecipeRecipeNameTextformfield extends StatelessWidget {
       children: [
         Text(
           "Rezeptname",
-          style: Theme.of(context).textTheme.displayMedium,
+          style: Theme.of(context).textTheme.titleLarge,
         ),
-        SizedBox(
-          width: 270,
-          child: TextFormField(
-            controller: recipeNameController,
-            validator: _validateRecipeName,
-            autovalidateMode: AutovalidateMode.disabled,
-            decoration: InputDecoration(
-              labelText: "Rezeptname",
-              hintText: 'Rezeptname',
-            ),
-            keyboardType: TextInputType.text,
+        TextFormField(
+          controller: recipeNameController,
+          validator: _validateRecipeName,
+          autovalidateMode: AutovalidateMode.disabled,
+          decoration: InputDecoration(
+            labelText: "Rezeptname",
+            hintText: 'Rezeptname',
           ),
-        )
+          keyboardType: TextInputType.text,
+        ),
       ],
     );
   }

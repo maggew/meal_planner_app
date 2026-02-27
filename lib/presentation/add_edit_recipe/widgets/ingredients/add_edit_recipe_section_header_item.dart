@@ -63,16 +63,17 @@ class _AddEditRecipeSectionHeaderItemState
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     final BorderRadius borderRadius = widget.sectionHasNoIngredient
         ? AppDimensions.borderRadiusAll
         : BorderRadius.vertical(
             top: Radius.circular(AppDimensions.borderRadius));
 
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return AnimatedContainer(
       duration: AppDimensions.animationDuration,
       decoration: BoxDecoration(
-        color: colorScheme.secondary,
+        color: colorScheme.secondaryContainer,
         borderRadius: borderRadius,
       ),
       child: Row(
@@ -89,7 +90,7 @@ class _AddEditRecipeSectionHeaderItemState
                     child: Text(
                       widget.titleController.text,
                       style: textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSecondary,
+                        color: colorScheme.onSecondaryContainer,
                       ),
                     ),
                   ),
@@ -98,27 +99,18 @@ class _AddEditRecipeSectionHeaderItemState
             IconButton(
                 key: const ValueKey("confirm"),
                 onPressed: widget.onConfirmPressed,
-                icon: Icon(
-                  Icons.check,
-                  color: colorScheme.onSecondary,
-                )),
+                icon: Icon(Icons.check, color: colorScheme.onSecondaryContainer)),
           ] else ...[
             if (!widget.isFirstSection) ...[
               IconButton(
                   key: const ValueKey("delete"),
                   onPressed: widget.onDeletePressed,
-                  icon: Icon(
-                    Icons.delete,
-                    color: colorScheme.onSecondary,
-                  )),
+                  icon: Icon(Icons.delete, color: colorScheme.onSecondaryContainer)),
             ],
             IconButton(
                 key: const ValueKey("edit"),
                 onPressed: widget.onEditPressed,
-                icon: Icon(
-                  Icons.edit,
-                  color: colorScheme.onSecondary,
-                )),
+                icon: Icon(Icons.edit, color: colorScheme.onSecondaryContainer)),
           ]
         ],
       ),

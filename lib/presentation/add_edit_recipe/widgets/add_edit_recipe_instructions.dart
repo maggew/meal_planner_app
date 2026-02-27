@@ -61,7 +61,7 @@ class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
           children: [
             Text(
               "Anleitung",
-              style: Theme.of(context).textTheme.displayMedium,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             IconButton(
               onPressed: () {
@@ -76,6 +76,15 @@ class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
                     imageType: AnalysisImageType.instructions);
               },
               icon: Icon(Icons.folder_outlined),
+            ),
+            Tooltip(
+              message: "📷 Kamera: Anleitung direkt scannen\n🗂 Galerie: Bild aus Galerie auswählen",
+              triggerMode: TooltipTriggerMode.tap,
+              showDuration: Duration(seconds: 4),
+              child: Padding(
+                padding: EdgeInsets.all(8),
+                child: Icon(Icons.help_outline, size: 20),
+              ),
             ),
           ],
         ),

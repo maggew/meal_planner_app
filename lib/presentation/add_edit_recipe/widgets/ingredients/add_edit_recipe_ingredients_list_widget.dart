@@ -38,12 +38,9 @@ class AddEditRecipeIngredientsListWidget extends ConsumerWidget {
     final int listLength = flatItems.length;
 
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    return Card(
-      elevation: 0,
-      color: colorScheme.secondaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
           children: [
             ReorderableListView.builder(
               shrinkWrap: true,
@@ -158,7 +155,7 @@ class AddEditRecipeIngredientsListWidget extends ConsumerWidget {
               },
             ),
             SizedBox(height: 10),
-            OutlinedButton.icon(
+            TextButton.icon(
               onPressed: () {
                 ref.read(ingredientsProvider.notifier).addSection();
               },
@@ -167,8 +164,7 @@ class AddEditRecipeIngredientsListWidget extends ConsumerWidget {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 }
 

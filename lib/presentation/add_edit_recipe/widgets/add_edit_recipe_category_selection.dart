@@ -25,7 +25,7 @@ class _AddRecipeCategorySelection
       children: [
         Text(
           "Kategorien",
-          style: Theme.of(context).textTheme.displayMedium,
+          style: Theme.of(context).textTheme.titleLarge,
         ),
         Wrap(
           spacing: 8,

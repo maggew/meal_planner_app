@@ -30,7 +30,7 @@ class AddEditRecipeIngredientsWidget extends ConsumerWidget {
           children: [
             Text(
               'Zutaten',
-              style: textTheme.displayMedium,
+              style: textTheme.titleLarge,
             ),
             const SizedBox(width: 12),
             IconButton(
@@ -48,6 +48,15 @@ class AddEditRecipeIngredientsWidget extends ConsumerWidget {
                     .read(ingredientsProvider.notifier)
                     .analyzeIngredientsFromImage(pickImageFromCamera: false);
               },
+            ),
+            Tooltip(
+              message: "📷 Kamera: Zutaten direkt scannen\n🗂 Galerie: Bild aus Galerie auswählen",
+              triggerMode: TooltipTriggerMode.tap,
+              showDuration: Duration(seconds: 4),
+              child: Padding(
+                padding: EdgeInsets.all(8),
+                child: Icon(Icons.help_outline, size: 20),
+              ),
             ),
           ],
         ),

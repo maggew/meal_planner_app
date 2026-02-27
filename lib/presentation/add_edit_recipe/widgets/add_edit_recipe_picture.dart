@@ -2,11 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/core/constants/app_icons.dart';
+import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 
-class AddEditRecipePicture extends ConsumerStatefulWidget {
-  final String? existingImageUrl; // ← Neu
+class AddEditRecipePicture extends ConsumerWidget {
+  final String? existingImageUrl;
 
   const AddEditRecipePicture({
     super.key,
@@ -14,120 +14,66 @@ class AddEditRecipePicture extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<AddEditRecipePicture> createState() => _AddRecipePictureState();
-}
-
-class _AddRecipePictureState extends ConsumerState<AddEditRecipePicture> {
-  final TextEditingController _pictureNameController = TextEditingController();
-
-  @override
-  void dispose() {
-    _pictureNameController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final images = ref.watch(imageManagerProvider);
     final newImage = images.photo;
     final TextTheme textTheme = Theme.of(context).textTheme;
-
-    if (newImage != null && newImage.path.isNotEmpty) {
-      _pictureNameController.text = newImage.path.split('/').last;
-    } else if (widget.existingImageUrl != null) {
-      _pictureNameController.text = 'Aktuelles Bild';
-    } else {
-      _pictureNameController.text = '';
-    }
-
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       spacing: 10,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "Rezeptfoto",
-          style: textTheme.displayMedium,
+          style: textTheme.titleLarge,
         ),
         Text(
           "(optional)",
-          style: textTheme.displaySmall,
+          style: textTheme.bodySmall,
         ),
-        FittedBox(
-          child: Row(
-            children: [
-              SizedBox(
-                width: 270,
-                child: TextFormField(
-                  controller: _pictureNameController,
-                  textAlign: TextAlign.start,
-                  textAlignVertical: TextAlignVertical.center,
-                  onTap: () async {
-                    ref
-                        .read(imageManagerProvider.notifier)
-                        .pickImageFromGallery(
-                            imageType: AnalysisImageType.photo);
-                  },
-                  readOnly: true,
-                  enabled: true,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: colorScheme.surfaceContainer,
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: colorScheme.onSurface.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    suffixIcon: const Icon(AppIcons.upload, size: 25),
-                  ),
-                ),
-              ),
-              SizedBox(width: 20),
-              IconButton(
-                onPressed: () {
-                  ref
-                      .read(imageManagerProvider.notifier)
-                      .pickImageFromCamera(imageType: AnalysisImageType.photo);
-                },
-                icon: Icon(Icons.camera_alt_outlined),
-              ),
-            ],
-          ),
+        _buildImageArea(context, ref, newImage, colorScheme),
+        TextButton.icon(
+          onPressed: () {
+            ref
+                .read(imageManagerProvider.notifier)
+                .pickImageFromCamera(imageType: AnalysisImageType.photo);
+          },
+          icon: const Icon(Icons.camera_alt_outlined),
+          label: const Text("Kamera"),
         ),
-        SizedBox(height: 15),
-        // Bild-Preview
-        _buildImagePreview(newImage),
       ],
     );
   }
 
-  Widget _buildImagePreview(File? file) {
-    final newImage = file;
-    final existingUrl = widget.existingImageUrl;
-
+  Widget _buildImageArea(
+    BuildContext context,
+    WidgetRef ref,
+    File? newImage,
+    ColorScheme colorScheme,
+  ) {
     if (newImage != null) {
       return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
         child: Image.file(
           newImage,
-          height: 150,
-          width: 150,
+          height: 140,
+          width: double.infinity,
           fit: BoxFit.cover,
         ),
       );
-    } else if (existingUrl != null) {
+    } else if (existingImageUrl != null) {
       return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
         child: Image.network(
-          existingUrl,
-          height: 150,
-          width: 150,
+          existingImageUrl!,
+          height: 140,
+          width: double.infinity,
           fit: BoxFit.cover,
           loadingBuilder: (context, child, loadingProgress) {
             if (loadingProgress == null) return child;
             return SizedBox(
-              height: 150,
-              width: 150,
+              height: 140,
               child: Center(child: CircularProgressIndicator()),
             );
           },
@@ -135,6 +81,39 @@ class _AddRecipePictureState extends ConsumerState<AddEditRecipePicture> {
       );
     }
 
-    return SizedBox.shrink();
+    return GestureDetector(
+      onTap: () {
+        ref
+            .read(imageManagerProvider.notifier)
+            .pickImageFromGallery(imageType: AnalysisImageType.photo);
+      },
+      child: Container(
+        height: 80,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
+          border: Border.all(
+            color: colorScheme.onSurface.withValues(alpha: 0.25),
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 8,
+          children: [
+            Icon(
+              Icons.add_photo_alternate_outlined,
+              size: 28,
+              color: colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+            Text(
+              "Foto aus Galerie wählen",
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

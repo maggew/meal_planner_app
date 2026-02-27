@@ -24,12 +24,12 @@ class _AddRecipePortionSelection
     final selectedPortions = ref.watch(selectedPortionsProvider);
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Row(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: MainAxisSize.max,
       spacing: 10,
       children: [
         Text(
           "Portionen: ",
-          style: Theme.of(context).textTheme.displayMedium,
+          style: Theme.of(context).textTheme.titleLarge,
         ),
         SizedBox(
           width: 100,
