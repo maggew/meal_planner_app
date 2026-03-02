@@ -17,6 +17,7 @@ class MockSupabaseRecipeRepository extends Mock
 class MockRecipeCacheDao extends Mock implements RecipeCacheDao {}
 
 class _LocalRecipesCompanionFake extends Fake
+
     implements LocalRecipesCompanion {}
 
 // ==================== Hilfsmethoden ====================
