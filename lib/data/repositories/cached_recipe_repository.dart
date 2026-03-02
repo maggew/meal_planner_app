@@ -12,6 +12,7 @@ import 'package:meal_planner/domain/repositories/recipe_repository.dart';
 import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
 
 const Duration _staleDuration = Duration(minutes: 5);
+const int _fullSyncLimit = 2000;
 
 class CachedRecipeRepository implements RecipeRepository {
   final SupabaseRecipeRepository _remote;
@@ -86,6 +87,24 @@ class CachedRecipeRepository implements RecipeRepository {
   }) async {
     if (_isOnline) {
       try {
+        // Full sync: no category filter + first page → fetch all and atomically
+        // replace the group cache so remote-deleted recipes are purged locally.
+        if (category.isEmpty && offset == 0) {
+          final allRecipes = await _remote.getRecipesByCategory(
+            category: category,
+            offset: 0,
+            limit: _fullSyncLimit,
+            sortOption: sortOption,
+            isDeleted: isDeleted,
+          );
+
+          // Atomically replace cache in background
+          _replaceGroupCache(allRecipes);
+
+          return allRecipes.take(limit).toList();
+        }
+
+        // Paginated or filtered fetch — additive cache update
         final recipes = await _remote.getRecipesByCategory(
           category: category,
           offset: offset,
@@ -311,6 +330,19 @@ class CachedRecipeRepository implements RecipeRepository {
   Future<void> _cacheRecipeList(List<Recipe> recipes) async {
     for (final recipe in recipes) {
       await _cacheRecipe(recipe, []);
+    }
+  }
+
+  Future<void> _replaceGroupCache(List<Recipe> recipes) async {
+    try {
+      final companions = recipes
+          .where((r) => r.id != null)
+          .map((r) => RecipeCacheConverter.toCompanion(r,
+              groupId: _groupId, timers: []))
+          .toList();
+      await _dao.replaceAllForGroup(_groupId, companions);
+    } catch (e) {
+      log('Failed to replace group cache for $_groupId', error: e);
     }
   }
 
