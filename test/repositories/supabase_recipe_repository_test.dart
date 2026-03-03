@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meal_planner/data/model/recipe_model.dart';
+import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/domain/exceptions/recipe_exceptions.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:meal_planner/data/repositories/supabase_recipe_repository.dart';
@@ -33,7 +34,6 @@ void main() {
       storage: storage,
       remote: remote,
       groupId: 'group-1',
-      userId: 'user-1',
     );
 
     registerFallbackValue(File("dummyFile"));
@@ -154,10 +154,20 @@ void main() {
       when(() => remote.getRecipesByCategory(
             category: 'pasta',
             groupId: 'group-1',
+            isDeleted: false,
+            limit: 20,
+            offset: 0,
+            sortOption: RecipeSortOption.alphabetical,
           )).thenAnswer((_) async => fakeResponse);
 
       // act
-      final result = await repository.getRecipesByCategory('pasta');
+      final result = await repository.getRecipesByCategory(
+        category: 'pasta',
+        limit: 20,
+        offset: 0,
+        sortOption: RecipeSortOption.alphabetical,
+        isDeleted: false,
+      );
 
       // assert
       expect(result.length, 2);
@@ -170,10 +180,20 @@ void main() {
       when(() => remote.getRecipesByCategory(
             category: 'pasta',
             groupId: 'group-1',
+            isDeleted: false,
+            limit: 20,
+            offset: 0,
+            sortOption: RecipeSortOption.alphabetical,
           )).thenAnswer((_) async => []);
 
       // act
-      final result = await repository.getRecipesByCategory('pasta');
+      final result = await repository.getRecipesByCategory(
+        category: 'pasta',
+        limit: 20,
+        offset: 0,
+        sortOption: RecipeSortOption.alphabetical,
+        isDeleted: false,
+      );
 
       // assert
       expect(result, isEmpty);
@@ -184,11 +204,21 @@ void main() {
       when(() => remote.getRecipesByCategory(
             category: 'pasta',
             groupId: 'group-1',
+            isDeleted: false,
+            limit: 20,
+            offset: 0,
+            sortOption: RecipeSortOption.alphabetical,
           )).thenThrow(Exception('boom'));
 
       // act & assert
       expect(
-        repository.getRecipesByCategory('pasta'),
+        repository.getRecipesByCategory(
+          category: 'pasta',
+          limit: 20,
+          offset: 0,
+          sortOption: RecipeSortOption.alphabetical,
+          isDeleted: false,
+        ),
         throwsA(isA<RecipeNotFoundException>()),
       );
     });
@@ -263,8 +293,32 @@ void main() {
     });
   });
 
-  group('deleteRecipe', () {
-    test('deletes recipe and image when image exists', () async {
+  group('deleteRecipe (soft delete)', () {
+    test('calls softDeleteRecipe on datasource', () async {
+      // arrange
+      when(() => remote.softDeleteRecipe('r1')).thenAnswer((_) async {});
+
+      // act
+      await repository.deleteRecipe('r1');
+
+      // assert
+      verify(() => remote.softDeleteRecipe('r1')).called(1);
+    });
+
+    test('throws RecipeDeletionException on error', () async {
+      // arrange
+      when(() => remote.softDeleteRecipe('r1')).thenThrow(Exception('boom'));
+
+      // act & assert
+      expect(
+        repository.deleteRecipe('r1'),
+        throwsA(isA<RecipeDeletionException>()),
+      );
+    });
+  });
+
+  group('hardDeleteRecipe', () {
+    test('deletes recipe, image, categories and ingredients', () async {
       // arrange
       when(() => remote.getRecipeById(
             recipeId: 'r1',
@@ -278,19 +332,43 @@ void main() {
           });
 
       when(() => storage.deleteImage('image.png')).thenAnswer((_) async {});
-
       when(() => remote.deleteRecipeCategories('r1')).thenAnswer((_) async {});
       when(() => remote.deleteRecipeIngredients('r1')).thenAnswer((_) async {});
-      when(() => remote.deleteRecipe('r1')).thenAnswer((_) async {});
+      when(() => remote.hardDeleteRecipe('r1')).thenAnswer((_) async {});
 
       // act
-      await repository.deleteRecipe('r1');
+      await repository.hardDeleteRecipe('r1');
 
       // assert
       verify(() => storage.deleteImage('image.png')).called(1);
       verify(() => remote.deleteRecipeCategories('r1')).called(1);
       verify(() => remote.deleteRecipeIngredients('r1')).called(1);
-      verify(() => remote.deleteRecipe('r1')).called(1);
+      verify(() => remote.hardDeleteRecipe('r1')).called(1);
+    });
+
+    test('skips image deletion when recipe has no image', () async {
+      // arrange
+      when(() => remote.getRecipeById(
+            recipeId: 'r1',
+            groupId: 'group-1',
+          )).thenAnswer((_) async => {
+            'id': 'r1',
+            'name': 'Pasta',
+            'recipe_categories': [],
+            'recipe_ingredients': [],
+            'image_url': null,
+          });
+
+      when(() => remote.deleteRecipeCategories('r1')).thenAnswer((_) async {});
+      when(() => remote.deleteRecipeIngredients('r1')).thenAnswer((_) async {});
+      when(() => remote.hardDeleteRecipe('r1')).thenAnswer((_) async {});
+
+      // act
+      await repository.hardDeleteRecipe('r1');
+
+      // assert
+      verifyNever(() => storage.deleteImage(any()));
+      verify(() => remote.hardDeleteRecipe('r1')).called(1);
     });
 
     test('throws RecipeDeletionException on error', () async {
@@ -302,12 +380,11 @@ void main() {
 
       when(() => remote.deleteRecipeCategories('r1')).thenAnswer((_) async {});
       when(() => remote.deleteRecipeIngredients('r1')).thenAnswer((_) async {});
-      when(() => remote.deleteRecipe('r1'))
-          .thenAnswer((_) async => Future.error(Exception('boom')));
+      when(() => remote.hardDeleteRecipe('r1')).thenThrow(Exception('boom'));
 
       // act & assert
       expect(
-        repository.deleteRecipe('r1'),
+        repository.hardDeleteRecipe('r1'),
         throwsA(isA<RecipeDeletionException>()),
       );
     });
@@ -477,7 +554,7 @@ void main() {
           recipeId: any(named: "recipeId"),
           model: any<RecipeModel>(named: "model"),
           groupId: any(named: "groupId"),
-          userId: any(named: "userId"),
+          createdBy: any(named: "createdBy"),
           imageUrl: any(named: "imageUrl"))).thenAnswer((_) async {});
       when(() => remote.saveRecipeCategories(
           recipeId: any(named: "recipeId"),
@@ -486,7 +563,7 @@ void main() {
           recipeId: any(named: "recipeId"),
           ingredients: any(named: "ingredients"))).thenAnswer((_) async {});
       // act
-      final result = await repository.saveRecipe(recipe, null);
+      final result = await repository.saveRecipe(recipe, null, 'user-1');
 
       // assert
       expect(result, isNotEmpty);
@@ -495,7 +572,7 @@ void main() {
             recipeId: any(named: 'recipeId'),
             model: any<RecipeModel>(named: 'model'),
             groupId: any(named: 'groupId'),
-            userId: any(named: 'userId'),
+            createdBy: any(named: 'createdBy'),
             imageUrl: null,
           )).called(1);
       verify(() => remote.saveRecipeCategories(
@@ -523,7 +600,7 @@ void main() {
           recipeId: any(named: "recipeId"),
           model: any<RecipeModel>(named: "model"),
           groupId: any(named: "groupId"),
-          userId: any(named: "userId"),
+          createdBy: any(named: "createdBy"),
           imageUrl: any(named: "imageUrl"))).thenAnswer((_) async {});
       when(() => remote.saveRecipeCategories(
           recipeId: any(named: "recipeId"),
@@ -534,7 +611,8 @@ void main() {
       when(() => storage.uploadImage(any<File>(), any()))
           .thenAnswer((_) async => "imageUrl");
       // act
-      final result = await repository.saveRecipe(recipe, File("dummy"));
+      final result =
+          await repository.saveRecipe(recipe, File("dummy"), 'user-1');
 
       // assert
       expect(result, isNotEmpty);
@@ -543,7 +621,7 @@ void main() {
             recipeId: any(named: 'recipeId'),
             model: any<RecipeModel>(named: 'model'),
             groupId: any(named: 'groupId'),
-            userId: any(named: 'userId'),
+            createdBy: any(named: 'createdBy'),
             imageUrl: any(named: "imageUrl"),
           )).called(1);
       verify(() => remote.saveRecipeCategories(
@@ -571,13 +649,13 @@ void main() {
               recipeId: any(named: "recipeId"),
               model: any<RecipeModel>(named: "model"),
               groupId: any(named: "groupId"),
-              userId: any(named: "userId"),
+              createdBy: any(named: "createdBy"),
               imageUrl: any(named: "imageUrl")))
           .thenThrow(RecipeCreationException("boom"));
 
       // act && assert
       expect(
-        repository.saveRecipe(recipe, null),
+        repository.saveRecipe(recipe, null, 'user-1'),
         throwsA(isA<RecipeCreationException>()),
       );
     });
