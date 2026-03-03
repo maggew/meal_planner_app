@@ -4,6 +4,7 @@ import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/meal_plan_entry.dart';
 import 'package:meal_planner/domain/enums/meal_type.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_provider.dart';
+import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
 
 class WeekplanDaySummaryCard extends ConsumerWidget {
   final DateTime selectedDay;
@@ -28,6 +29,7 @@ class WeekplanDaySummaryCard extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final entriesAsync = ref.watch(mealPlanStreamProvider(selectedDay));
+    final mealSlots = ref.watch(userSettingsProvider).defaultMealSlots;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
@@ -42,7 +44,7 @@ class WeekplanDaySummaryCard extends ConsumerWidget {
           children: [
             Text(_formatDay(selectedDay), style: textTheme.titleSmall),
             const SizedBox(height: 8),
-            ...MealType.values.map(
+            ...mealSlots.map(
               (type) => _SummaryRow(
                 type: type,
                 entry: entries.where((e) => e.mealType == type).firstOrNull,

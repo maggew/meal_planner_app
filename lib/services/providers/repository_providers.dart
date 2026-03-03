@@ -6,12 +6,14 @@ import 'package:meal_planner/data/repositories/firebase_auth_repository.dart';
 import 'package:meal_planner/data/repositories/firebase_storage_repository.dart';
 import 'package:meal_planner/data/repositories/offline_first_meal_plan_repository.dart';
 import 'package:meal_planner/data/repositories/offline_first_shopping_list_repository.dart';
+import 'package:meal_planner/data/repositories/supabase_group_category_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_group_repository.dart';
 import 'package:meal_planner/data/repositories/cached_recipe_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_recipe_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_shopping_list_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_user_repository.dart';
 import 'package:meal_planner/domain/repositories/auth_repository.dart';
+import 'package:meal_planner/domain/repositories/group_category_repository.dart';
 import 'package:meal_planner/domain/repositories/group_repository.dart';
 import 'package:meal_planner/domain/repositories/meal_plan_repository.dart';
 import 'package:meal_planner/domain/repositories/recipe_repository.dart';
@@ -137,5 +139,11 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
     userRepository: ref.watch(userRepositoryProvider),
     dio: ref.watch(dioProvider),
     storageRepository: ref.watch(storageRepositoryProvider),
+  );
+});
+
+final groupCategoryRepositoryProvider = Provider<GroupCategoryRepository>((ref) {
+  return SupabaseGroupCategoryRepository(
+    supabase: ref.watch(supabaseProvider),
   );
 });

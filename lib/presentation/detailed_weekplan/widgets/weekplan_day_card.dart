@@ -9,6 +9,7 @@ import 'package:meal_planner/domain/enums/meal_type.dart';
 import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_recipe_picker.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_provider.dart';
+import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
 
 class WeekplanDayCard extends ConsumerWidget {
   final DateTime date;
@@ -53,7 +54,8 @@ class WeekplanDayCard extends ConsumerWidget {
 
     final entriesAsync = ref.watch(mealPlanStreamProvider(date));
     final entries = entriesAsync.value ?? [];
-    final hasAnyEntry = entries.isNotEmpty;
+    final mealSlots = ref.watch(userSettingsProvider).defaultMealSlots;
+    final hasAnyEntry = entries.any((e) => mealSlots.contains(e.mealType));
 
     final dayLabel = _weekdayShort[date.weekday - 1];
 
@@ -92,7 +94,7 @@ class WeekplanDayCard extends ConsumerWidget {
                     ),
                     const Spacer(),
                     if (!hasAnyEntry)
-                      ...MealType.values.map(
+                      ...mealSlots.map(
                         (type) => _CompactAddButton(
                           icon: _mealIcons[type]!,
                           onTap: () => _openAddPicker(context, ref, type),
@@ -102,7 +104,7 @@ class WeekplanDayCard extends ConsumerWidget {
                 ),
                 if (hasAnyEntry) ...[
                   const SizedBox(height: 10),
-                  ...MealType.values.map((type) {
+                  ...mealSlots.map((type) {
                     final entry =
                         entries.where((e) => e.mealType == type).firstOrNull;
                     if (entry != null) {

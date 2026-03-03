@@ -54,9 +54,8 @@ class SupabaseRecipeRepository implements RecipeRepository {
       );
 
       // 3. Categories speichern
-      //await _saveCategories(recipeId, recipe.categories);
       await _remote.saveRecipeCategories(
-          recipeId: recipeId, categories: recipe.categories);
+          recipeId: recipeId, categories: recipe.categories, groupId: _groupId);
 
       final List<IngredientModel> ingredientModels = [];
       for (final section in recipe.ingredientSections) {
@@ -161,16 +160,16 @@ class SupabaseRecipeRepository implements RecipeRepository {
   }
 
   @override
-  Future<List<Recipe>> getRecipesByCategory({
-    required String category,
+  Future<List<Recipe>> getRecipesByCategoryId({
+    required String categoryId,
     required int limit,
     required int offset,
     required RecipeSortOption sortOption,
     required bool isDeleted,
   }) async {
     try {
-      final data = await _remote.getRecipesByCategory(
-        category: category,
+      final data = await _remote.getRecipesByCategoryId(
+        categoryId: categoryId,
         groupId: _groupId,
         isDeleted: isDeleted,
         limit: limit,
@@ -185,7 +184,7 @@ class SupabaseRecipeRepository implements RecipeRepository {
     } catch (e, stackTrace) {
       log("Error fetching recipes by category",
           error: e, stackTrace: stackTrace);
-      throw RecipeNotFoundException('Kategorie: $category');
+      throw RecipeNotFoundException('Kategorie: $categoryId');
     }
   }
 
@@ -208,7 +207,7 @@ class SupabaseRecipeRepository implements RecipeRepository {
   @override
   Future<List<String>> getAllCategories() async {
     try {
-      return await _remote.getAllCategories();
+      return await _remote.getAllCategories(groupId: _groupId);
     } catch (e) {
       return [];
     }
@@ -242,7 +241,7 @@ class SupabaseRecipeRepository implements RecipeRepository {
       await _remote.deleteRecipeIngredients(recipeId);
 
       await _remote.saveRecipeCategories(
-          recipeId: recipeId, categories: recipe.categories);
+          recipeId: recipeId, categories: recipe.categories, groupId: _groupId);
 
       final List<IngredientModel> ingredientModels = [];
 

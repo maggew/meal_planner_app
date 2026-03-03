@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/core/constants/categories.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
+import 'package:meal_planner/services/providers/groups/group_category_provider.dart';
 
 class AddEditRecipeCategorySelection extends ConsumerStatefulWidget {
   const AddEditRecipeCategorySelection({
@@ -18,7 +18,9 @@ class _AddRecipeCategorySelection
   @override
   Widget build(BuildContext context) {
     final selectedCategories = ref.watch(selectedCategoriesProvider);
+    final categoriesAsync = ref.watch(groupCategoriesProvider);
     final TextTheme textTheme = Theme.of(context).textTheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 10,
@@ -27,25 +29,26 @@ class _AddRecipeCategorySelection
           "Kategorien",
           style: Theme.of(context).textTheme.titleLarge,
         ),
-        Wrap(
-          spacing: 8,
-          runSpacing: 4,
-          children: categoryNames
-              .map((category) => FilterChip(
-                    labelStyle: textTheme.bodyMedium,
-                    label: Text(category),
-                    selected:
-                        selectedCategories.contains(category.toLowerCase()),
-                    onSelected: (_) {
-                      // unfocus textformfield
-                      FocusScope.of(context).unfocus();
-                      // toggle filterchip
-                      ref
-                          .read(selectedCategoriesProvider.notifier)
-                          .toggle(category.toLowerCase());
-                    },
-                  ))
-              .toList(),
+        categoriesAsync.when(
+          loading: () => const CircularProgressIndicator(),
+          error: (e, _) => const SizedBox.shrink(),
+          data: (categories) => Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: categories
+                .map((category) => FilterChip(
+                      labelStyle: textTheme.bodyMedium,
+                      label: Text(category.name),
+                      selected: selectedCategories.contains(category.name),
+                      onSelected: (_) {
+                        FocusScope.of(context).unfocus();
+                        ref
+                            .read(selectedCategoriesProvider.notifier)
+                            .toggle(category.name);
+                      },
+                    ))
+                .toList(),
+          ),
         ),
       ],
     );

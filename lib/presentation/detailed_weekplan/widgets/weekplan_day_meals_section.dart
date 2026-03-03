@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/domain/enums/meal_type.dart';
 import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_meal_card.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_provider.dart';
+import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
 
 class WeekplanDayMealsSection extends ConsumerWidget {
   final DateTime selectedDay;
@@ -12,10 +12,11 @@ class WeekplanDayMealsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entriesAsync = ref.watch(mealPlanStreamProvider(selectedDay));
+    final settings = ref.watch(userSettingsProvider);
 
     return entriesAsync.when(
       data: (entries) => Column(
-        children: MealType.values.map((type) {
+        children: settings.defaultMealSlots.map((type) {
           final entry =
               entries.where((e) => e.mealType == type).firstOrNull;
           return WeekplanMealCard(

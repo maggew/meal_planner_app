@@ -41,11 +41,11 @@ class RecipesPaginationState {
 
 @Riverpod(keepAlive: true)
 class RecipesPagination extends _$RecipesPagination {
-  String? _currentCategory;
+  String? _currentCategoryId;
   RecipeSortOption _currentSort = UserSettings.defaultSettings.recipeSortOption;
 
-  RecipesPaginationState build(String category) {
-    _currentCategory = category;
+  RecipesPaginationState build(String categoryId) {
+    _currentCategoryId = categoryId;
     _currentSort =
         ref.watch(userSettingsProvider.select((s) => s.recipeSortOption));
 
@@ -68,8 +68,8 @@ class RecipesPagination extends _$RecipesPagination {
 
       final offset = state.recipes.length;
 
-      newRecipes = await recipeRepo.getRecipesByCategory(
-        category: _currentCategory!,
+      newRecipes = await recipeRepo.getRecipesByCategoryId(
+        categoryId: _currentCategoryId!,
         offset: offset,
         limit: recipesPerPage,
         sortOption: _currentSort,
@@ -98,8 +98,8 @@ class RecipesPagination extends _$RecipesPagination {
     try {
       final recipeRepo = ref.read(recipeRepositoryProvider);
 
-      final recipes = await recipeRepo.getRecipesByCategory(
-        category: _currentCategory!,
+      final recipes = await recipeRepo.getRecipesByCategoryId(
+        categoryId: _currentCategoryId!,
         offset: 0,
         limit: recipesPerPage,
         sortOption: _currentSort,

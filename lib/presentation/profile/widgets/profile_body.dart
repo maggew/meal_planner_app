@@ -1,26 +1,11 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/profile/widgets/profile_groups_list.dart';
-import 'package:meal_planner/presentation/profile/widgets/profile_name_widget.dart';
 import 'package:meal_planner/presentation/profile/widgets/profile_picture.dart';
 import 'package:meal_planner/services/providers/user/user_profile_provider.dart';
 
 class ProfileBody extends ConsumerWidget {
-  final bool isEditing;
-  final TextEditingController nameController;
-  final File? pickedImage;
-  final VoidCallback onPickFromCamera;
-  final VoidCallback onPickFromGallery;
-  const ProfileBody({
-    super.key,
-    required this.isEditing,
-    required this.nameController,
-    required this.pickedImage,
-    required this.onPickFromCamera,
-    required this.onPickFromGallery,
-  });
+  const ProfileBody({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,18 +25,14 @@ class ProfileBody extends ConsumerWidget {
               children: [
                 ProfilePicture(
                   imageUrl: userProfile.imageUrl,
-                  isEditing: isEditing,
-                  pickedImage: pickedImage,
-                  onPickFromCamera: onPickFromCamera,
-                  onPickFromGallery: onPickFromGallery,
+                  isEditing: false,
+                  pickedImage: null,
+                  onPickFromCamera: () {},
+                  onPickFromGallery: () {},
                 ),
-                ProfileNameWidget(
-                  nameController: nameController,
-                  isEditing: isEditing,
-                  userProfile: userProfile,
-                ),
+                Text(userProfile.name),
                 Text(userProfile.email),
-                ProfileGroupsList(),
+                const ProfileGroupsList(),
               ],
             ),
           );

@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_icons.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
-import 'package:meal_planner/core/constants/categories.dart';
 import 'package:meal_planner/presentation/common/common_appbar.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
+import 'package:meal_planner/services/providers/groups/group_category_provider.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/show_recipe_bottom_navigation_bar.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/show_recipe_cooking_mode.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/show_recipe_overview.dart';
@@ -87,7 +87,8 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
             fit: BoxFit.cover,
             loadingBuilder: (context, child, loadingProgress) {
               if (loadingProgress == null) return child;
-              return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+              return const Center(
+                  child: CircularProgressIndicator(strokeWidth: 2));
             },
             errorBuilder: (_, __, ___) => fallback,
           );
@@ -250,8 +251,9 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
       await recipeRepo.deleteRecipe(_recipe!.id!);
 
       // Provider für alle Kategorien invalidieren
-      for (final category in categoryNames) {
-        ref.invalidate(recipesPaginationProvider(category.toLowerCase()));
+      final categories = ref.read(groupCategoriesProvider).asData?.value ?? [];
+      for (final category in categories) {
+        ref.invalidate(recipesPaginationProvider(category.name));
       }
 
       if (context.mounted) {

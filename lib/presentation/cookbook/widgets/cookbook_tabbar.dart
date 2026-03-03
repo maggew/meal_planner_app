@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/domain/enums/tab_position.dart';
 import 'package:meal_planner/core/constants/categories.dart';
+import 'package:meal_planner/domain/enums/tab_position.dart';
 import 'package:meal_planner/presentation/cookbook/widgets/vertical_tabbar.dart';
 import 'package:meal_planner/presentation/cookbook/widgets/cookbook_category_tab.dart';
 import 'package:meal_planner/presentation/cookbook/widgets/cookbook_recipe_list.dart';
+import 'package:meal_planner/services/providers/groups/group_category_provider.dart';
 import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
 
 class CookbookTabbar extends ConsumerWidget {
@@ -12,54 +13,61 @@ class CookbookTabbar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final allCategories = categoryNames.map((c) => c.toLowerCase()).toList();
-
+    final categoriesAsync = ref.watch(groupCategoriesProvider);
     final tabsPosition =
         ref.watch(userSettingsProvider.select((s) => s.tabPosition));
     final tabsLeft = tabsPosition == TabPosition.left;
 
-    return VerticalTabs(
-      disabledChangePageFromContentView: true,
-      tabsWidth: 70,
-      tabsPosition: tabsPosition,
-      tabs: [
-        ...categoryNames.map(
-          (category) => CookbookCategoryTab(
-            name: category,
-            iconWidget: Icon(
-              getCategoryIconData(category),
-              size: 30,
-            ),
-          ),
-        ),
-        Tab(
-          child: Center(
-            child: Column(
-              children: [
-                SizedBox(height: 8),
-                Image(
-                  image: AssetImage("assets/images/Rosi.png"),
-                  height: 40,
+    return categoriesAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('Fehler: $e')),
+      data: (categories) {
+        final allCategories = categories.map((c) => c.name).toList();
+
+        return VerticalTabs(
+          disabledChangePageFromContentView: true,
+          tabsWidth: 70,
+          tabsPosition: tabsPosition,
+          tabs: [
+            ...categories.map(
+              (category) => CookbookCategoryTab(
+                name: category.name,
+                iconWidget: Icon(
+                  getCategoryIconData(category.name),
+                  size: 30,
                 ),
-                SizedBox(height: 8),
-              ],
+              ),
             ),
-          ),
-        )
-      ],
-      contents: [
-        ...categoryNames.map(
-          (category) => CookbookRecipeList(
-              category: category,
-              allCategories: allCategories,
-              tabsLeft: tabsLeft),
-        ),
-        Container(
-          child: Center(
-            child: Text("Hier kommt noch was"),
-          ),
-        ),
-      ],
+            Tab(
+              child: Center(
+                child: Column(
+                  children: [
+                    SizedBox(height: 8),
+                    Image(
+                      image: AssetImage("assets/images/Rosi.png"),
+                      height: 40,
+                    ),
+                    SizedBox(height: 8),
+                  ],
+                ),
+              ),
+            )
+          ],
+          contents: [
+            ...categories.map(
+              (category) => CookbookRecipeList(
+                  categoryId: category.id,
+                  allCategories: allCategories,
+                  tabsLeft: tabsLeft),
+            ),
+            Container(
+              child: Center(
+                child: Text("Hier kommt noch was"),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

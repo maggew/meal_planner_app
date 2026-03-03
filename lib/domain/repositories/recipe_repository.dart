@@ -6,8 +6,8 @@ import 'package:meal_planner/domain/entities/user_settings.dart';
 abstract class RecipeRepository {
   Future<String> saveRecipe(Recipe recipe, File? image, String createdBy);
 
-  Future<List<Recipe>> getRecipesByCategory({
-    required String category,
+  Future<List<Recipe>> getRecipesByCategoryId({
+    required String categoryId,
     required int offset,
     required int limit,
     required RecipeSortOption sortOption,

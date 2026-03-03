@@ -1,69 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:meal_planner/core/constants/app_icons.dart';
 
-List<String> categoryNames = [
-  "Suppen",
-  "Salate",
-  "Saucen, Dips",
-  "Hauptgerichte",
-  "Desserts",
-  "Gebäck",
-  "Sonstiges",
+/// Default-Kategorien für neue Gruppen (lowercase, so wie in Supabase gespeichert)
+const List<String> defaultCategoryNames = [
+  "suppen",
+  "salate",
+  "saucen, dips",
+  "hauptgerichte",
+  "desserts",
+  "gebäck",
+  "sonstiges",
 ];
 
-final Map<String, String> mapGermanCategoryToEnglishCategory = {
-  "Suppen": "soups",
-  "Salate": "salads",
-  "Saucen, Dips": "sauces_dips",
-  "Hauptgerichte": "mainDishes",
-  "Desserts": "desserts",
-  "Gebäck": "bakery",
-  "Sonstiges": "others",
-};
-
-final Map<String, String> mapEnglishCategoryToGermanCategory = {
-  for (final entry in mapGermanCategoryToEnglishCategory.entries)
-    entry.value: entry.key
-};
-
-String getCategoryNameEnglish(String categoryName) {
-  switch (categoryName) {
-    case "Suppen":
-      return "soups";
-    case "Salate":
-      return "salads";
-    case "Saucen, Dips":
-      return "sauces_dips";
-    case "Hauptgerichte":
-      return "mainDishes";
-    case "Desserts":
-      return "desserts";
-    case "Gebäck":
-      return "bakery";
-    case "Sonstiges":
-      return "others";
-    default:
-      return "error";
-  }
-}
-
 IconData getCategoryIconData(String categoryName) {
-  switch (categoryName) {
-    case "Suppen":
+  switch (categoryName.toLowerCase()) {
+    case "suppen":
       return AppIcons.soup;
-    case "Salate":
+    case "salate":
       return AppIcons.salad;
-    case "Saucen, Dips":
+    case "saucen, dips":
       return AppIcons.soup;
-    case "Hauptgerichte":
+    case "hauptgerichte":
       return AppIcons.pizza;
-    case "Desserts":
+    case "desserts":
       return AppIcons.ice_cream_cone;
-    case "Gebäck":
+    case "gebäck":
       return AppIcons.wedding_cake;
-    case "Sonstiges":
+    case "sonstiges":
       return AppIcons.dish;
     default:
-      return AppIcons.settings;
+      return AppIcons.dish;
   }
 }

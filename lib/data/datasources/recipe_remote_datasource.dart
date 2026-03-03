@@ -9,10 +9,10 @@ abstract class RecipeRemoteDatasource {
     required String groupId,
   });
 
-  Future<List<String>> getAllCategories();
+  Future<List<String>> getAllCategories({required String groupId});
 
-  Future<List<Map<String, dynamic>>> getRecipesByCategory({
-    required String category,
+  Future<List<Map<String, dynamic>>> getRecipesByCategoryId({
+    required String categoryId,
     required String groupId,
     required bool isDeleted,
     required int limit,
@@ -48,9 +48,13 @@ abstract class RecipeRemoteDatasource {
   Future<void> saveRecipeCategories({
     required String recipeId,
     required List<String> categories,
+    required String groupId,
   });
 
-  Future<String> upsertCategory({required String name});
+  Future<String> upsertCategory({
+    required String name,
+    required String groupId,
+  });
 
   Future<void> saveRecipeIngredients({
     required String recipeId,

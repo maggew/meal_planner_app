@@ -78,8 +78,8 @@ class CachedRecipeRepository implements RecipeRepository {
   }
 
   @override
-  Future<List<Recipe>> getRecipesByCategory({
-    required String category,
+  Future<List<Recipe>> getRecipesByCategoryId({
+    required String categoryId,
     required int offset,
     required int limit,
     required RecipeSortOption sortOption,
@@ -89,9 +89,9 @@ class CachedRecipeRepository implements RecipeRepository {
       try {
         // Full sync: no category filter + first page → fetch all and atomically
         // replace the group cache so remote-deleted recipes are purged locally.
-        if (category.isEmpty && offset == 0) {
-          final allRecipes = await _remote.getRecipesByCategory(
-            category: category,
+        if (categoryId.isEmpty && offset == 0) {
+          final allRecipes = await _remote.getRecipesByCategoryId(
+            categoryId: categoryId,
             offset: 0,
             limit: _fullSyncLimit,
             sortOption: sortOption,
@@ -105,8 +105,8 @@ class CachedRecipeRepository implements RecipeRepository {
         }
 
         // Paginated or filtered fetch — additive cache update
-        final recipes = await _remote.getRecipesByCategory(
-          category: category,
+        final recipes = await _remote.getRecipesByCategoryId(
+          categoryId: categoryId,
           offset: offset,
           limit: limit,
           sortOption: sortOption,
@@ -120,7 +120,7 @@ class CachedRecipeRepository implements RecipeRepository {
       } catch (e) {
         log('Supabase fetch failed, falling back to cache', error: e);
         return _getFromCacheFiltered(
-          category: category,
+          category: categoryId,
           isDeleted: isDeleted,
           offset: offset,
           limit: limit,
@@ -131,7 +131,7 @@ class CachedRecipeRepository implements RecipeRepository {
 
     // Offline — serve from cache
     return _getFromCacheFiltered(
-      category: category,
+      category: categoryId,
       isDeleted: isDeleted,
       offset: offset,
       limit: limit,

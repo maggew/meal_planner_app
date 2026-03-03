@@ -16,20 +16,14 @@ class CookbookCategoryTab extends Tab {
                 iconWidget,
                 const SizedBox(height: 2),
                 Text(
-                  _editCategoryNameForCookbookTabbar(name),
+                  name,
                   style: const TextStyle(fontSize: 9),
                   textAlign: TextAlign.center,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
         );
-}
-
-String _editCategoryNameForCookbookTabbar(String name) {
-  if (name == "Hauptgerichte") return "Hauptger.";
-  if (name == "Saucen, Dips") return "Saucen";
-  return name;
 }

@@ -8,12 +8,12 @@ import 'package:meal_planner/services/providers/recipe/recipe_pagination_provide
 import 'package:meal_planner/services/providers/recipe/recipe_search_provider.dart';
 
 class CookbookRecipeList extends ConsumerStatefulWidget {
-  final String category;
+  final String categoryId;
   final List<String> allCategories;
   final bool tabsLeft;
 
   const CookbookRecipeList({
-    required this.category,
+    required this.categoryId,
     required this.allCategories,
     required this.tabsLeft,
     super.key,
@@ -25,13 +25,13 @@ class CookbookRecipeList extends ConsumerStatefulWidget {
 
 class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
   final ScrollController _scrollController = ScrollController();
-  late final String category;
+  late final String categoryId;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    category = widget.category.toLowerCase();
+    categoryId = widget.categoryId;
   }
 
   @override
@@ -43,18 +43,18 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      ref.read(recipesPaginationProvider(category).notifier).loadMore();
+      ref.read(recipesPaginationProvider(categoryId).notifier).loadMore();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final paginationState = ref.watch(recipesPaginationProvider(category));
+    final paginationState = ref.watch(recipesPaginationProvider(categoryId));
     final isSearching = ref.watch(isSearchActiveProvider);
 
     final recipes = ref.watch(
       filteredRecipesProvider(
-        category: category,
+        category: categoryId,
         allCategories: widget.allCategories,
       ),
     );
@@ -74,7 +74,7 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
       ),
       child: RefreshIndicator(
         onRefresh: () async {
-          ref.read(recipesPaginationProvider(category).notifier).refresh();
+          ref.read(recipesPaginationProvider(categoryId).notifier).refresh();
         },
         child: _buildContent(
           recipes: recipes,
@@ -103,7 +103,9 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
       final message = isSearching
           ? "Keine Rezepte gefunden"
           : "Noch keine Rezepte in\ndieser Kategorie";
-      final icon = isSearching ? Icons.search_off_rounded : Icons.restaurant_menu_rounded;
+      final icon = isSearching
+          ? Icons.search_off_rounded
+          : Icons.restaurant_menu_rounded;
       return _alwaysScrollableListView(children: [
         SizedBox(height: MediaQuery.of(context).size.height * 0.2),
         Icon(
@@ -117,7 +119,10 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
             message,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.5),
                 ),
           ),
         ),
@@ -134,7 +139,7 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
               ElevatedButton(
                 onPressed: () {
                   ref
-                      .read(recipesPaginationProvider(category).notifier)
+                      .read(recipesPaginationProvider(categoryId).notifier)
                       .refresh();
                 },
                 child: const Text('Erneut versuchen'),

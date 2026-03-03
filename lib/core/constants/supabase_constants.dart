@@ -61,6 +61,8 @@ class SupabaseConstants {
   // Columns: Categories
   static const String categoryId = 'id';
   static const String categoryName = 'name';
+  static const String categoryGroupId = 'group_id';
+  static const String categorySortOrder = 'sort_order';
 
   // Columns: Recipe Categories
   static const String recipeCategoryRecipeId = 'recipe_id';

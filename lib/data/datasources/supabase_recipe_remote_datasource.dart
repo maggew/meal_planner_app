@@ -18,7 +18,7 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
         .from(SupabaseConstants.recipesTable)
         .select('''
           *,
-          recipe_categories(categories(name)),
+          recipe_categories(categories(id, name)),
           recipe_ingredients(amount, unit, ingredients(name))
         ''')
         .eq(SupabaseConstants.recipeId, recipeId)
@@ -29,11 +29,12 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
   }
 
   @override
-  Future<List<String>> getAllCategories() async {
+  Future<List<String>> getAllCategories({required String groupId}) async {
     final response = await supabase
         .from(SupabaseConstants.categoriesTable)
         .select(SupabaseConstants.categoryName)
-        .order(SupabaseConstants.categoryName);
+        .eq(SupabaseConstants.categoryGroupId, groupId)
+        .order(SupabaseConstants.categorySortOrder);
 
     return (response as List)
         .map((data) => data[SupabaseConstants.categoryName] as String)
@@ -41,8 +42,8 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getRecipesByCategory({
-    required String category,
+  Future<List<Map<String, dynamic>>> getRecipesByCategoryId({
+    required String categoryId,
     required String groupId,
     required bool isDeleted,
     required int limit,
@@ -57,7 +58,7 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
         recipe_ingredients(amount, unit, sort_order, group_name, ingredients(name))
       ''')
         .eq(SupabaseConstants.recipeGroupId, groupId)
-        .eq('recipe_categories.categories.name', category.toLowerCase())
+        .eq('recipe_categories.category_id', categoryId)
         .filter(
           SupabaseConstants.recipeDeletedAt,
           isDeleted ? 'not.is' : 'is',
@@ -159,11 +160,15 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
   }
 
   @override
-  Future<void> saveRecipeCategories(
-      {required String recipeId, required List<String> categories}) async {
+  Future<void> saveRecipeCategories({
+    required String recipeId,
+    required List<String> categories,
+    required String groupId,
+  }) async {
     for (final categoryName in categories) {
       try {
-        final categoryId = await upsertCategory(name: categoryName);
+        final categoryId =
+            await upsertCategory(name: categoryName, groupId: groupId);
         await supabase.from(SupabaseConstants.recipeCategoriesTable).insert({
           SupabaseConstants.recipeCategoryRecipeId: recipeId,
           SupabaseConstants.recipeCategoryCategoryId: categoryId,
@@ -174,11 +179,16 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
     }
   }
 
-  Future<String> upsertCategory({required String name}) async {
+  @override
+  Future<String> upsertCategory({
+    required String name,
+    required String groupId,
+  }) async {
     final existing = await supabase
         .from(SupabaseConstants.categoriesTable)
         .select(SupabaseConstants.categoryId)
         .eq(SupabaseConstants.categoryName, name.toLowerCase())
+        .eq(SupabaseConstants.categoryGroupId, groupId)
         .maybeSingle();
 
     if (existing != null) {
@@ -190,6 +200,7 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
     await supabase.from(SupabaseConstants.categoriesTable).insert({
       SupabaseConstants.categoryId: categoryId,
       SupabaseConstants.categoryName: name.toLowerCase(),
+      SupabaseConstants.categoryGroupId: groupId,
     });
 
     return categoryId;
