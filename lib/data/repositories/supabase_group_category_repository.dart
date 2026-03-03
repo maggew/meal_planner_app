@@ -45,7 +45,7 @@ class SupabaseGroupCategoryRepository implements GroupCategoryRepository {
     final model = GroupCategoryModel(
       id: id,
       groupId: groupId,
-      name: name.toLowerCase(),
+      name: name,
       sortOrder: nextSortOrder,
     );
 

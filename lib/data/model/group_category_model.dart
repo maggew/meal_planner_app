@@ -27,7 +27,7 @@ class GroupCategoryModel {
     return {
       SupabaseConstants.categoryId: id,
       SupabaseConstants.categoryGroupId: groupId,
-      SupabaseConstants.categoryName: name.toLowerCase(),
+      SupabaseConstants.categoryName: name,
       SupabaseConstants.categorySortOrder: sortOrder,
     };
   }

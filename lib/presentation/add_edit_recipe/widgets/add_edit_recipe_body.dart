@@ -48,9 +48,9 @@ class _AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
         // Kategorie-Namen → IDs konvertieren für robuste Auswahl (unabhängig von Umbenennungen)
         final allCategories = ref.read(groupCategoriesProvider).value ?? [];
         final existingNames =
-            widget.existingRecipe!.categories.map((n) => n.toLowerCase()).toSet();
+            widget.existingRecipe!.categories.map((n) => n).toSet();
         final categoryIds = allCategories
-            .where((c) => existingNames.contains(c.name.toLowerCase()))
+            .where((c) => existingNames.contains(c.name))
             .map((c) => c.id)
             .toList();
         ref.read(selectedCategoriesProvider.notifier).set(categoryIds);

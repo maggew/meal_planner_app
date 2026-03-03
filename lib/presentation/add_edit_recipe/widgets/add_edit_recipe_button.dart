@@ -130,7 +130,7 @@ class AddEditRecipeButton extends ConsumerWidget {
 
     // Neue Kategorien invalidieren
     for (final category in allCategoriesToInvalidate) {
-      ref.invalidate(recipesPaginationProvider(category.toLowerCase()));
+      ref.invalidate(recipesPaginationProvider(category));
     }
 
     _resetForm(
