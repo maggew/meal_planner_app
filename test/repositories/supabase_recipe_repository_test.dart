@@ -105,7 +105,7 @@ void main() {
     test("return categories from datasource", () async {
       // arrange
       List<String> expectedList = ['dessert', 'pasta'];
-      when(() => remote.getAllCategories())
+      when(() => remote.getAllCategories(groupId: any(named: 'groupId')))
           .thenAnswer((_) async => expectedList);
 
       // act
@@ -117,7 +117,7 @@ void main() {
 
     test("returns empty list when datasource throws", () async {
       //arrange
-      when(() => remote.getAllCategories()).thenThrow(Exception("boom"));
+      when(() => remote.getAllCategories(groupId: any(named: 'groupId'))).thenThrow(Exception("boom"));
 
       // act
       final result = await repository.getAllCategories();
@@ -127,7 +127,7 @@ void main() {
     });
   });
 
-  group('getRecipesByCategory', () {
+  group('getRecipesByCategoryId', () {
     test('returns mapped recipes when datasource returns data', () async {
       // arrange
       final fakeResponse = [
@@ -151,8 +151,8 @@ void main() {
         },
       ];
 
-      when(() => remote.getRecipesByCategory(
-            category: 'pasta',
+      when(() => remote.getRecipesByCategoryId(
+            categoryId: 'cat-1',
             groupId: 'group-1',
             isDeleted: false,
             limit: 20,
@@ -161,8 +161,8 @@ void main() {
           )).thenAnswer((_) async => fakeResponse);
 
       // act
-      final result = await repository.getRecipesByCategory(
-        category: 'pasta',
+      final result = await repository.getRecipesByCategoryId(
+        categoryId: 'cat-1',
         limit: 20,
         offset: 0,
         sortOption: RecipeSortOption.alphabetical,
@@ -177,8 +177,8 @@ void main() {
 
     test('returns empty list when datasource returns empty list', () async {
       // arrange
-      when(() => remote.getRecipesByCategory(
-            category: 'pasta',
+      when(() => remote.getRecipesByCategoryId(
+            categoryId: 'cat-1',
             groupId: 'group-1',
             isDeleted: false,
             limit: 20,
@@ -187,8 +187,8 @@ void main() {
           )).thenAnswer((_) async => []);
 
       // act
-      final result = await repository.getRecipesByCategory(
-        category: 'pasta',
+      final result = await repository.getRecipesByCategoryId(
+        categoryId: 'cat-1',
         limit: 20,
         offset: 0,
         sortOption: RecipeSortOption.alphabetical,
@@ -201,8 +201,8 @@ void main() {
 
     test('throws RecipeNotFoundException when datasource throws', () async {
       // arrange
-      when(() => remote.getRecipesByCategory(
-            category: 'pasta',
+      when(() => remote.getRecipesByCategoryId(
+            categoryId: 'cat-1',
             groupId: 'group-1',
             isDeleted: false,
             limit: 20,
@@ -212,8 +212,8 @@ void main() {
 
       // act & assert
       expect(
-        repository.getRecipesByCategory(
-          category: 'pasta',
+        repository.getRecipesByCategoryId(
+          categoryId: 'cat-1',
           limit: 20,
           offset: 0,
           sortOption: RecipeSortOption.alphabetical,
@@ -421,6 +421,7 @@ void main() {
       when(() => remote.saveRecipeCategories(
             recipeId: 'r1',
             categories: any(named: 'categories'),
+            groupId: any(named: 'groupId'),
           )).thenAnswer((_) async {});
 
       when(() => remote.saveRecipeIngredients(
@@ -445,6 +446,7 @@ void main() {
       verify(() => remote.saveRecipeCategories(
             recipeId: 'r1',
             categories: any(named: 'categories'),
+            groupId: any(named: 'groupId'),
           )).called(1);
 
       verify(() => remote.saveRecipeIngredients(
@@ -469,6 +471,7 @@ void main() {
       when(() => remote.saveRecipeCategories(
             recipeId: 'r1',
             categories: any(named: 'categories'),
+            groupId: any(named: 'groupId'),
           )).thenAnswer((_) async => callOrder.add('save'));
 
       when(() => remote.saveRecipeIngredients(
@@ -513,6 +516,7 @@ void main() {
       when(() => remote.saveRecipeCategories(
             recipeId: 'r1',
             categories: any(named: 'categories'),
+            groupId: any(named: 'groupId'),
           )).thenAnswer((_) async {});
       when(() => remote.saveRecipeIngredients(
             recipeId: 'r1',
@@ -530,6 +534,7 @@ void main() {
       verify(() => remote.saveRecipeCategories(
             recipeId: 'r1',
             categories: any(named: 'categories'),
+            groupId: any(named: 'groupId'),
           )).called(1);
       verify(() => remote.saveRecipeIngredients(
             recipeId: 'r1',
@@ -558,7 +563,8 @@ void main() {
           imageUrl: any(named: "imageUrl"))).thenAnswer((_) async {});
       when(() => remote.saveRecipeCategories(
           recipeId: any(named: "recipeId"),
-          categories: any(named: "categories"))).thenAnswer((_) async {});
+          categories: any(named: "categories"),
+          groupId: any(named: "groupId"))).thenAnswer((_) async {});
       when(() => remote.saveRecipeIngredients(
           recipeId: any(named: "recipeId"),
           ingredients: any(named: "ingredients"))).thenAnswer((_) async {});
@@ -578,6 +584,7 @@ void main() {
       verify(() => remote.saveRecipeCategories(
             recipeId: any(named: 'recipeId'),
             categories: any(named: 'categories'),
+            groupId: any(named: 'groupId'),
           )).called(1);
       verify(() => remote.saveRecipeIngredients(
             recipeId: any(named: 'recipeId'),
@@ -604,7 +611,8 @@ void main() {
           imageUrl: any(named: "imageUrl"))).thenAnswer((_) async {});
       when(() => remote.saveRecipeCategories(
           recipeId: any(named: "recipeId"),
-          categories: any(named: "categories"))).thenAnswer((_) async {});
+          categories: any(named: "categories"),
+          groupId: any(named: "groupId"))).thenAnswer((_) async {});
       when(() => remote.saveRecipeIngredients(
           recipeId: any(named: "recipeId"),
           ingredients: any(named: "ingredients"))).thenAnswer((_) async {});
@@ -627,6 +635,7 @@ void main() {
       verify(() => remote.saveRecipeCategories(
             recipeId: any(named: 'recipeId'),
             categories: any(named: 'categories'),
+            groupId: any(named: 'groupId'),
           )).called(1);
       verify(() => remote.saveRecipeIngredients(
             recipeId: any(named: 'recipeId'),

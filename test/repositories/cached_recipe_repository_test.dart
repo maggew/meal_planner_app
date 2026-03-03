@@ -81,8 +81,8 @@ void main() {
             isDeleted: any(named: 'isDeleted'),
           )).thenAnswer((_) async => []);
 
-      await repo.getRecipesByCategory(
-        category: '',
+      await repo.getRecipesByCategoryId(
+        categoryId: '',
         offset: 0,
         limit: 20,
         sortOption: RecipeSortOption.alphabetical,
@@ -107,8 +107,8 @@ void main() {
             isDeleted: any(named: 'isDeleted'),
           )).thenAnswer((_) async => []);
 
-      await repo.getRecipesByCategory(
-        category: '',
+      await repo.getRecipesByCategoryId(
+        categoryId: '',
         offset: 0,
         limit: 20,
         sortOption: RecipeSortOption.alphabetical,
@@ -176,8 +176,8 @@ void main() {
             isDeleted: any(named: 'isDeleted'),
           )).thenAnswer((_) async => []);
 
-      await repo.getRecipesByCategory(
-        category: '',
+      await repo.getRecipesByCategoryId(
+        categoryId: '',
         offset: 0,
         limit: 20,
         sortOption: RecipeSortOption.alphabetical,
@@ -206,8 +206,8 @@ void main() {
     test('getRecipesByCategory online: Remote-Aufruf, kein getRecipesByGroup',
         () async {
       final repo = _buildRepo(groupId: 'gruppe-1');
-      when(() => mockRemote.getRecipesByCategory(
-            category: any(named: 'category'),
+      when(() => mockRemote.getRecipesByCategoryId(
+            categoryId: any(named: 'categoryId'),
             offset: any(named: 'offset'),
             limit: any(named: 'limit'),
             sortOption: any(named: 'sortOption'),
@@ -216,16 +216,16 @@ void main() {
       when(() => mockDao.replaceAllForGroup(any(), any()))
           .thenAnswer((_) async {});
 
-      await repo.getRecipesByCategory(
-        category: '',
+      await repo.getRecipesByCategoryId(
+        categoryId: '',
         offset: 0,
         limit: 20,
         sortOption: RecipeSortOption.alphabetical,
         isDeleted: false,
       );
 
-      verify(() => mockRemote.getRecipesByCategory(
-            category: any(named: 'category'),
+      verify(() => mockRemote.getRecipesByCategoryId(
+            categoryId: any(named: 'categoryId'),
             offset: any(named: 'offset'),
             limit: any(named: 'limit'),
             sortOption: any(named: 'sortOption'),
@@ -264,8 +264,8 @@ void main() {
       final repo = _buildRepo(groupId: 'gruppe-1');
       final recipe = _fakeRecipe();
 
-      when(() => mockRemote.getRecipesByCategory(
-            category: any(named: 'category'),
+      when(() => mockRemote.getRecipesByCategoryId(
+            categoryId: any(named: 'categoryId'),
             offset: any(named: 'offset'),
             limit: any(named: 'limit'),
             sortOption: any(named: 'sortOption'),
@@ -274,8 +274,8 @@ void main() {
       when(() => mockDao.replaceAllForGroup(any(), any()))
           .thenAnswer((_) async {});
 
-      await repo.getRecipesByCategory(
-        category: '',
+      await repo.getRecipesByCategoryId(
+        categoryId: '',
         offset: 0,
         limit: 20,
         sortOption: RecipeSortOption.alphabetical,
@@ -293,8 +293,8 @@ void main() {
         () async {
       final repo = _buildRepo(groupId: 'gruppe-1');
 
-      when(() => mockRemote.getRecipesByCategory(
-            category: any(named: 'category'),
+      when(() => mockRemote.getRecipesByCategoryId(
+            categoryId: any(named: 'categoryId'),
             offset: any(named: 'offset'),
             limit: any(named: 'limit'),
             sortOption: any(named: 'sortOption'),
@@ -307,8 +307,8 @@ void main() {
             isDeleted: any(named: 'isDeleted'),
           )).thenAnswer((_) async => []);
 
-      await repo.getRecipesByCategory(
-        category: '',
+      await repo.getRecipesByCategoryId(
+        categoryId: '',
         offset: 0,
         limit: 20,
         sortOption: RecipeSortOption.alphabetical,
@@ -336,8 +336,8 @@ void main() {
       // Remote gibt nur noch 1 Rezept zurück — ein anderes wurde zwischenzeitlich gelöscht
       final remaining = _fakeRecipe(id: 'r1', name: 'Pasta');
 
-      when(() => mockRemote.getRecipesByCategory(
-            category: any(named: 'category'),
+      when(() => mockRemote.getRecipesByCategoryId(
+            categoryId: any(named: 'categoryId'),
             offset: any(named: 'offset'),
             limit: any(named: 'limit'),
             sortOption: any(named: 'sortOption'),
@@ -346,8 +346,8 @@ void main() {
       when(() => mockDao.replaceAllForGroup(any(), any()))
           .thenAnswer((_) async {});
 
-      await repo.getRecipesByCategory(
-        category: '',
+      await repo.getRecipesByCategoryId(
+        categoryId: '',
         offset: 0,
         limit: 20,
         sortOption: RecipeSortOption.alphabetical,
@@ -368,8 +368,8 @@ void main() {
       final repo = _buildRepo(groupId: 'gruppe-1');
       final recipe = _fakeRecipe(id: 'r2', name: 'Pizza');
 
-      when(() => mockRemote.getRecipesByCategory(
-            category: any(named: 'category'),
+      when(() => mockRemote.getRecipesByCategoryId(
+            categoryId: any(named: 'categoryId'),
             offset: any(named: 'offset'),
             limit: any(named: 'limit'),
             sortOption: any(named: 'sortOption'),
@@ -377,8 +377,8 @@ void main() {
           )).thenAnswer((_) async => [recipe]);
       when(() => mockDao.upsertRecipe(any())).thenAnswer((_) async {});
 
-      await repo.getRecipesByCategory(
-        category: '',
+      await repo.getRecipesByCategoryId(
+        categoryId: '',
         offset: 20,
         limit: 20,
         sortOption: RecipeSortOption.alphabetical,
