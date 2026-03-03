@@ -53,7 +53,7 @@ class CategoryManagementSection extends ConsumerWidget {
             itemCount: categories.length,
             onReorder: isOnline
                 ? (oldIndex, newIndex) =>
-                    _onReorder(ref, categories, oldIndex, newIndex)
+                    _onReorder(context, ref, categories, oldIndex, newIndex)
                 : (_, __) {},
             itemBuilder: (context, index) => _CategoryTile(
               key: ValueKey(categories[index].id),
@@ -73,13 +73,24 @@ class CategoryManagementSection extends ConsumerWidget {
     );
   }
 
-  void _onReorder(WidgetRef ref, List<GroupCategory> categories, int oldIndex,
-      int newIndex) {
+  Future<void> _onReorder(BuildContext context, WidgetRef ref,
+      List<GroupCategory> categories, int oldIndex, int newIndex) async {
     if (newIndex > oldIndex) newIndex -= 1;
     final newList = [...categories];
     final item = newList.removeAt(oldIndex);
     newList.insert(newIndex, item);
-    ref.read(groupCategoriesProvider.notifier).reorderCategories(newList);
+    try {
+      await ref
+          .read(groupCategoriesProvider.notifier)
+          .reorderCategories(newList);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Reihenfolge konnte nicht gespeichert werden: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _showAddDialog(BuildContext context, WidgetRef ref) async {
@@ -145,8 +156,7 @@ class _CategoryTile extends ConsumerWidget {
               index: index,
               child: const Icon(Icons.drag_handle_outlined),
             )
-          : const Icon(Icons.drag_handle_outlined,
-              color: Colors.transparent),
+          : const Icon(Icons.drag_handle_outlined, color: Colors.transparent),
       trailing: isOnline
           ? Row(
               mainAxisSize: MainAxisSize.min,

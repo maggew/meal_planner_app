@@ -52,13 +52,21 @@ class GroupCategories extends _$GroupCategories {
   }
 
   Future<void> reorderCategories(List<GroupCategory> orderedCategories) async {
-    // Sofort lokal aktualisieren → kein Flicker, keine Loading-State
-    state = AsyncData(orderedCategories);
-
-    // Im Hintergrund in Supabase persistieren
     final repo = ref.read(groupCategoryRepositoryProvider);
-    for (int i = 0; i < orderedCategories.length; i++) {
-      await repo.updateCategory(orderedCategories[i].id, sortOrder: i);
+
+    final updated = [
+      for (int i = 0; i < orderedCategories.length; i++)
+        orderedCategories[i].copyWith(sortOrder: i),
+    ];
+
+    // Optimistic UI
+    state = AsyncData(updated);
+
+    try {
+      await repo.updateSortOrders(updated); // ← EIN Call
+    } catch (_) {
+      ref.invalidateSelf();
+      rethrow;
     }
   }
 }

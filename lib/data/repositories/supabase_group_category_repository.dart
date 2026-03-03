@@ -70,10 +70,32 @@ class SupabaseGroupCategoryRepository implements GroupCategoryRepository {
       data[SupabaseConstants.categorySortOrder] = sortOrder;
     if (data.isEmpty) return;
 
-    await _supabase
+    final response = await _supabase
         .from(SupabaseConstants.categoriesTable)
         .update(data)
-        .eq(SupabaseConstants.categoryId, categoryId);
+        .eq(SupabaseConstants.categoryId, categoryId)
+        .select();
+
+    if ((response as List).isEmpty) {
+      throw Exception(
+        'updateCategory: keine Zeile aktualisiert für id=$categoryId — RLS-Policy blockiert?',
+      );
+    }
+  }
+
+  Future<void> updateSortOrders(List<GroupCategory> categories) async {
+    final data = categories
+        .map((c) => {
+              'id': c.id,
+              'group_id': c.groupId,
+              'sort_order': c.sortOrder,
+            })
+        .toList();
+
+    await _supabase.from(SupabaseConstants.categoriesTable).upsert(
+          data,
+          onConflict: 'id',
+        );
   }
 
   @override

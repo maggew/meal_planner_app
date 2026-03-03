@@ -20,16 +20,16 @@ class GroupSettingsNotifier extends Notifier<GroupSettings> {
     }
   }
 
-  void _save() {
+  Future<void> _save() async {
     final prefs = ref.read(sharedPreferencesProvider);
     final groupId = ref.read(sessionProvider).groupId;
     if (groupId == null) return;
-    prefs.setString('group_settings_$groupId', jsonEncode(state.toJson()));
+    await prefs.setString('group_settings_$groupId', jsonEncode(state.toJson()));
   }
 
-  void update(GroupSettings newSettings) {
+  Future<void> update(GroupSettings newSettings) async {
     state = newSettings;
-    _save();
+    await _save();
   }
 }
 
