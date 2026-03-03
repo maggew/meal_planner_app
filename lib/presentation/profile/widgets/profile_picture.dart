@@ -5,16 +5,17 @@ import 'package:flutter/material.dart';
 class ProfilePicture extends StatelessWidget {
   final String? imageUrl;
   final bool isEditing;
-  final VoidCallback onPickFromCamera;
-  final VoidCallback onPickFromGallery;
   final File? pickedImage;
+  final VoidCallback? onPickFromCamera;
+  final VoidCallback? onPickFromGallery;
+
   const ProfilePicture({
     super.key,
     required this.imageUrl,
-    required this.isEditing,
-    required this.onPickFromCamera,
-    required this.onPickFromGallery,
-    required this.pickedImage,
+    this.isEditing = false,
+    this.pickedImage,
+    this.onPickFromCamera,
+    this.onPickFromGallery,
   });
 
   @override
@@ -23,10 +24,11 @@ class ProfilePicture extends StatelessWidget {
     if (pickedImage != null) {
       backgroundImage = FileImage(pickedImage!);
     } else if (imageUrl != null) {
-      backgroundImage = NetworkImage(imageUrl!);
+      backgroundImage = NetworkImage(imageUrl!) as ImageProvider;
     } else {
       backgroundImage = const AssetImage('assets/default_pic.jpg');
     }
+
     return Stack(
       alignment: Alignment.bottomRight,
       children: [
@@ -34,9 +36,7 @@ class ProfilePicture extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 150, maxHeight: 150),
           child: AspectRatio(
             aspectRatio: 1,
-            child: CircleAvatar(
-              backgroundImage: backgroundImage,
-            ),
+            child: CircleAvatar(backgroundImage: backgroundImage),
           ),
         ),
         if (isEditing) ...[
