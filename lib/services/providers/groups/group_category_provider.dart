@@ -1,5 +1,3 @@
-import 'package:meal_planner/core/constants/categories.dart';
-import 'package:meal_planner/data/repositories/supabase_group_category_repository.dart';
 import 'package:meal_planner/domain/entities/group_category.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
@@ -21,37 +19,7 @@ class GroupCategories extends _$GroupCategories {
     if (groupId == null || !_uuidRegex.hasMatch(groupId)) return [];
 
     final repo = ref.watch(groupCategoryRepositoryProvider);
-    final categories = await repo.getCategories(groupId);
-
-    // Neue Gruppe ohne Kategorien: Default-Kategorien anlegen
-    if (categories.isEmpty) {
-
-      return _createDefaultCategories(groupId, repo);
-
-    }
-
-
-    return categories;
-  }
-
-  Future<List<GroupCategory>> _createDefaultCategories(
-    String groupId,
-    dynamic repo,
-  ) async {
-    final created = <GroupCategory>[];
-    for (int i = 0; i < defaultCategoryNames.length; i++) {
-      try {
-        final category =
-
-            await repo.addCategory(groupId, defaultCategoryNames[i]);
-        created.add(category);
-      } catch (_) {
-        // Kategorie existiert ggf. schon — ignorieren
-      }
-    }
-    // Nach dem Anlegen nochmal laden um sort_order korrekt zu haben
-    final repo2 = ref.read(groupCategoryRepositoryProvider);
-    return repo2.getCategories(groupId);
+    return repo.getCategories(groupId);
   }
 
   Future<void> addCategory(String name) async {
@@ -81,5 +49,16 @@ class GroupCategories extends _$GroupCategories {
     final repo = ref.read(groupCategoryRepositoryProvider);
     await repo.updateCategory(categoryId, sortOrder: newOrder);
     ref.invalidateSelf();
+  }
+
+  Future<void> reorderCategories(List<GroupCategory> orderedCategories) async {
+    // Sofort lokal aktualisieren → kein Flicker, keine Loading-State
+    state = AsyncData(orderedCategories);
+
+    // Im Hintergrund in Supabase persistieren
+    final repo = ref.read(groupCategoryRepositoryProvider);
+    for (int i = 0; i < orderedCategories.length; i++) {
+      await repo.updateCategory(orderedCategories[i].id, sortOrder: i);
+    }
   }
 }

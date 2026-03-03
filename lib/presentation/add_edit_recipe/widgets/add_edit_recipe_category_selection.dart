@@ -39,12 +39,12 @@ class _AddRecipeCategorySelection
                 .map((category) => FilterChip(
                       labelStyle: textTheme.bodyMedium,
                       label: Text(category.name),
-                      selected: selectedCategories.contains(category.name),
+                      selected: selectedCategories.contains(category.id),
                       onSelected: (_) {
                         FocusScope.of(context).unfocus();
                         ref
                             .read(selectedCategoriesProvider.notifier)
-                            .toggle(category.name);
+                            .toggle(category.id);
                       },
                     ))
                 .toList(),

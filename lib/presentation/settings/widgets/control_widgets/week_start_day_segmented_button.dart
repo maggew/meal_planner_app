@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:meal_planner/domain/entities/user_settings.dart';
+import 'package:meal_planner/domain/entities/group_settings.dart';
 import 'package:meal_planner/domain/enums/week_start_day.dart';
 
 class WeekStartDaySegmentedButton extends StatelessWidget {
-  final UserSettings newSettings;
-  final ValueChanged<UserSettings> onSettingsChanged;
+  final GroupSettings groupSettings;
+  final ValueChanged<GroupSettings> onGroupSettingsChanged;
 
   const WeekStartDaySegmentedButton({
     super.key,
-    required this.newSettings,
-    required this.onSettingsChanged,
+    required this.groupSettings,
+    required this.onGroupSettingsChanged,
   });
 
   @override
@@ -20,9 +20,9 @@ class WeekStartDaySegmentedButton extends StatelessWidget {
         ButtonSegment(value: WeekStartDay.sunday, label: Text('Sonntag')),
       ],
       showSelectedIcon: false,
-      selected: {newSettings.weekStartDay},
+      selected: {groupSettings.weekStartDay},
       onSelectionChanged: (s) =>
-          onSettingsChanged(newSettings.copyWith(weekStartDay: s.first)),
+          onGroupSettingsChanged(groupSettings.copyWith(weekStartDay: s.first)),
     );
   }
 }

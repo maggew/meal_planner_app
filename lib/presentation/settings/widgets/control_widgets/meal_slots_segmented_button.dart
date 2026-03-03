@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:meal_planner/domain/entities/user_settings.dart';
+import 'package:meal_planner/domain/entities/group_settings.dart';
 import 'package:meal_planner/domain/enums/meal_type.dart';
 
 class MealSlotsSegmentedButton extends StatelessWidget {
-  final UserSettings newSettings;
-  final ValueChanged<UserSettings> onSettingsChanged;
+  final GroupSettings groupSettings;
+  final ValueChanged<GroupSettings> onGroupSettingsChanged;
 
   const MealSlotsSegmentedButton({
     super.key,
-    required this.newSettings,
-    required this.onSettingsChanged,
+    required this.groupSettings,
+    required this.onGroupSettingsChanged,
   });
 
   @override
@@ -31,10 +31,11 @@ class MealSlotsSegmentedButton extends StatelessWidget {
           icon: Icon(Icons.nights_stay_outlined),
         ),
       ],
-      selected: newSettings.defaultMealSlots.toSet(),
+      selected: groupSettings.defaultMealSlots.toSet(),
       onSelectionChanged: (s) {
-        if (s.isEmpty) return; // at least one slot must remain active
-        onSettingsChanged(newSettings.copyWith(defaultMealSlots: s.toList()));
+        if (s.isEmpty) return;
+        onGroupSettingsChanged(
+            groupSettings.copyWith(defaultMealSlots: s.toList()));
       },
     );
   }

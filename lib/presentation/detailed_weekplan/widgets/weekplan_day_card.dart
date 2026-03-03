@@ -9,7 +9,7 @@ import 'package:meal_planner/domain/enums/meal_type.dart';
 import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_recipe_picker.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_provider.dart';
-import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
+import 'package:meal_planner/services/providers/user/group_settings_provider.dart';
 
 class WeekplanDayCard extends ConsumerWidget {
   final DateTime date;
@@ -54,7 +54,7 @@ class WeekplanDayCard extends ConsumerWidget {
 
     final entriesAsync = ref.watch(mealPlanStreamProvider(date));
     final entries = entriesAsync.value ?? [];
-    final mealSlots = ref.watch(userSettingsProvider).defaultMealSlots;
+    final mealSlots = ref.watch(groupSettingsProvider).defaultMealSlots;
     final hasAnyEntry = entries.any((e) => mealSlots.contains(e.mealType));
 
     final dayLabel = _weekdayShort[date.weekday - 1];

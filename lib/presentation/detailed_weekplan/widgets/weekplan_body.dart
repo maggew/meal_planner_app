@@ -7,7 +7,8 @@ import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_wee
 import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_week_strip.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_provider.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_sync_provider.dart';
-import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
+import 'package:meal_planner/domain/entities/group_settings.dart';
+import 'package:meal_planner/services/providers/user/group_settings_provider.dart';
 
 class WeekplanBody extends ConsumerStatefulWidget {
   const WeekplanBody({super.key});
@@ -26,7 +27,7 @@ class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
   @override
   void initState() {
     super.initState();
-    final weekStartDay = ref.read(userSettingsProvider).weekStartDay;
+    final weekStartDay = ref.read(groupSettingsProvider).weekStartDay;
     _weekStart = _weekStartOf(DateTime.now(), weekStartDay);
     // Fallback: if all streams are already cached, scroll after layout
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -102,7 +103,7 @@ class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     // React to weekStartDay changes mid-session
-    ref.listen(userSettingsProvider, (previous, next) {
+    ref.listen<GroupSettings>(groupSettingsProvider, (previous, next) {
       if (previous?.weekStartDay != next.weekStartDay) {
         setState(() {
           _weekStart = _weekStartOf(DateTime.now(), next.weekStartDay);

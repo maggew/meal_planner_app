@@ -34,12 +34,19 @@ class SupabaseGroupCategoryRepository implements GroupCategoryRepository {
 
   @override
   Future<GroupCategory> addCategory(String groupId, String name) async {
+    // sort_order = aktuelle Anzahl Kategorien → neue Kategorie ans Ende
+    final existing = await _supabase
+        .from(SupabaseConstants.categoriesTable)
+        .select(SupabaseConstants.categoryId)
+        .eq(SupabaseConstants.categoryGroupId, groupId);
+    final nextSortOrder = (existing as List).length;
+
     final id = generateUuid();
     final model = GroupCategoryModel(
       id: id,
       groupId: groupId,
       name: name.toLowerCase(),
-      sortOrder: 0,
+      sortOrder: nextSortOrder,
     );
 
     final response = await _supabase

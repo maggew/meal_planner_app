@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/core/constants/categories.dart';
 import 'package:meal_planner/core/constants/firebase_constants.dart';
 import 'package:meal_planner/core/utils/uuid_generator.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
@@ -56,6 +57,16 @@ class CreateGroupCreateButton extends ConsumerWidget {
             imageUrl,
             creatorUserId,
           );
+
+          // Default-Kategorien für neue Gruppe anlegen
+          final categoryRepo = ref.read(groupCategoryRepositoryProvider);
+          for (final name in defaultCategoryNames) {
+            try {
+              await categoryRepo.addCategory(groupId, name);
+            } catch (_) {
+              // Kategorie existiert ggf. schon — ignorieren
+            }
+          }
 
           ref.read(imageManagerProvider.notifier).clearPhoto();
 

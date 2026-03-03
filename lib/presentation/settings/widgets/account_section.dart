@@ -6,6 +6,7 @@ import 'package:meal_planner/presentation/common/loading_overlay.dart';
 import 'package:meal_planner/presentation/profile/widgets/profile_name_widget.dart';
 import 'package:meal_planner/presentation/profile/widgets/profile_picture.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
+import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
 import 'package:meal_planner/services/providers/user/user_profile_provider.dart';
@@ -112,6 +113,7 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
     });
 
     final userAsync = ref.watch(userProfileProvider);
+    final isOnline = ref.watch(isOnlineProvider);
 
     return userAsync.when(
       data: (userProfile) {
@@ -129,24 +131,35 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
               ),
               ProfilePicture(
                 imageUrl: userProfile.imageUrl,
-                isEditing: _isEditing,
+                isEditing: _isEditing && isOnline,
                 pickedImage: _pickedImage,
                 onPickFromCamera: () => _pickImage(pickFromCamera: true),
                 onPickFromGallery: () => _pickImage(pickFromCamera: false),
               ),
               ProfileNameWidget(
                 nameController: _nameController,
-                isEditing: _isEditing,
+                isEditing: _isEditing && isOnline,
                 userProfile: userProfile,
               ),
               Text(userProfile.email),
-              if (!_isEditing)
+              if (!_isEditing || !isOnline) ...[
                 OutlinedButton.icon(
-                  onPressed: _startEditing,
-                  icon: const Icon(Icons.edit, size: 16),
+                  onPressed: isOnline ? _startEditing : null,
+                  icon: Icon(isOnline ? Icons.edit : Icons.cloud_off_outlined,
+                      size: 16),
                   label: const Text('Bearbeiten'),
-                )
-              else
+                ),
+                if (!isOnline)
+                  Text(
+                    'Nur online bearbeitbar',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.4),
+                        ),
+                  ),
+              ] else
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   spacing: 12,

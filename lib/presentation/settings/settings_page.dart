@@ -5,7 +5,6 @@ import 'package:meal_planner/presentation/common/app_background.dart';
 import 'package:meal_planner/presentation/common/common_appbar.dart';
 import 'package:meal_planner/presentation/settings/widgets/settings_body.dart';
 import 'package:meal_planner/services/providers/auth_providers.dart';
-import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
 
 @RoutePage()
 class SettingsPage extends ConsumerWidget {
@@ -13,8 +12,6 @@ class SettingsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(userSettingsProvider);
-
     void handleLogout() {
       final authController = ref.read(authControllerProvider.notifier);
       showDialog<bool>(
@@ -48,13 +45,7 @@ class SettingsPage extends ConsumerWidget {
           icon: const Icon(Icons.chevron_left),
         ),
       ),
-      scaffoldBody: SettingsBody(
-        settings: settings,
-        onSettingsChanged: (updated) {
-          ref.read(userSettingsProvider.notifier).update(updated);
-        },
-        onLogout: handleLogout,
-      ),
+      scaffoldBody: SettingsBody(onLogout: handleLogout),
     );
   }
 }

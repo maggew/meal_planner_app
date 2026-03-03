@@ -10,6 +10,7 @@ import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recip
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_portion_selection.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_recipe_name_textformfield.dart';
 import 'package:meal_planner/presentation/common/glass_card.dart';
+import 'package:meal_planner/services/providers/groups/group_category_provider.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_edit_recipe_ingredients_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
@@ -44,10 +45,15 @@ class _AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
     );
     if (widget.existingRecipe != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // setting initial categories
-        ref
-            .read(selectedCategoriesProvider.notifier)
-            .set(widget.existingRecipe!.categories);
+        // Kategorie-Namen → IDs konvertieren für robuste Auswahl (unabhängig von Umbenennungen)
+        final allCategories = ref.read(groupCategoriesProvider).value ?? [];
+        final existingNames =
+            widget.existingRecipe!.categories.map((n) => n.toLowerCase()).toSet();
+        final categoryIds = allCategories
+            .where((c) => existingNames.contains(c.name.toLowerCase()))
+            .map((c) => c.id)
+            .toList();
+        ref.read(selectedCategoriesProvider.notifier).set(categoryIds);
         // setting intial portions
         ref
             .read(selectedPortionsProvider.notifier)

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/data/repositories/supabase_group_category_repository.dart';
 import 'package:meal_planner/domain/entities/group_category.dart';
 import 'package:meal_planner/services/providers/groups/group_category_provider.dart';
+import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
 
 class CategoryManagementSection extends ConsumerWidget {
   const CategoryManagementSection({super.key});
@@ -10,6 +11,7 @@ class CategoryManagementSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final categoriesAsync = ref.watch(groupCategoriesProvider);
+    final isOnline = ref.watch(isOnlineProvider);
 
     return categoriesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -21,19 +23,63 @@ class CategoryManagementSection extends ConsumerWidget {
             'Kategorien',
             style: Theme.of(context).textTheme.titleMedium,
           ),
+          if (!isOnline) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(Icons.cloud_off_outlined,
+                    size: 14,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.4)),
+                const SizedBox(width: 6),
+                Text(
+                  'Nur online bearbeitbar',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.4),
+                      ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 8),
-          ...categories.map(
-            (category) => _CategoryTile(category: category),
+          ReorderableListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: categories.length,
+            onReorder: isOnline
+                ? (oldIndex, newIndex) =>
+                    _onReorder(ref, categories, oldIndex, newIndex)
+                : (_, __) {},
+            itemBuilder: (context, index) => _CategoryTile(
+              key: ValueKey(categories[index].id),
+              category: categories[index],
+              index: index,
+              isOnline: isOnline,
+            ),
           ),
-          const SizedBox(height: 8),
-          TextButton.icon(
-            icon: const Icon(Icons.add),
-            label: const Text('Neue Kategorie'),
-            onPressed: () => _showAddDialog(context, ref),
-          ),
+          if (isOnline)
+            TextButton.icon(
+              icon: const Icon(Icons.add),
+              label: const Text('Neue Kategorie'),
+              onPressed: () => _showAddDialog(context, ref),
+            ),
         ],
       ),
     );
+  }
+
+  void _onReorder(WidgetRef ref, List<GroupCategory> categories, int oldIndex,
+      int newIndex) {
+    if (newIndex > oldIndex) newIndex -= 1;
+    final newList = [...categories];
+    final item = newList.removeAt(oldIndex);
+    newList.insert(newIndex, item);
+    ref.read(groupCategoriesProvider.notifier).reorderCategories(newList);
   }
 
   Future<void> _showAddDialog(BuildContext context, WidgetRef ref) async {
@@ -79,29 +125,45 @@ class CategoryManagementSection extends ConsumerWidget {
 
 class _CategoryTile extends ConsumerWidget {
   final GroupCategory category;
+  final int index;
+  final bool isOnline;
 
-  const _CategoryTile({required this.category});
+  const _CategoryTile({
+    super.key,
+    required this.category,
+    required this.index,
+    required this.isOnline,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       title: Text(category.name),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.edit_outlined),
-            tooltip: 'Umbenennen',
-            onPressed: () => _showRenameDialog(context, ref),
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            tooltip: 'Löschen',
-            onPressed: () => _showDeleteDialog(context, ref),
-          ),
-        ],
-      ),
+      leading: isOnline
+          ? ReorderableDragStartListener(
+              index: index,
+              child: const Icon(Icons.drag_handle_outlined),
+            )
+          : const Icon(Icons.drag_handle_outlined,
+              color: Colors.transparent),
+      trailing: isOnline
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  tooltip: 'Umbenennen',
+                  onPressed: () => _showRenameDialog(context, ref),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: 'Löschen',
+                  onPressed: () => _showDeleteDialog(context, ref),
+                ),
+              ],
+            )
+          : null,
     );
   }
 

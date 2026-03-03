@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
+import 'package:meal_planner/services/providers/groups/group_category_provider.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_edit_recipe_ingredients_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
@@ -61,7 +62,14 @@ class AddEditRecipeButton extends ConsumerWidget {
 
   Future<void> _handleUpload(
       BuildContext context, WidgetRef ref, Recipe? existingRecipe) async {
-    final selectedCategories = ref.read(selectedCategoriesProvider);
+    // Provider speichert IDs → in Namen für Recipe-Entity und Cache-Invalidierung umwandeln
+    final selectedCategoryIds = ref.read(selectedCategoriesProvider);
+    final allGroupCategories = ref.read(groupCategoriesProvider).value ?? [];
+    final selectedCategories = allGroupCategories
+        .where((c) => selectedCategoryIds.contains(c.id))
+        .map((c) => c.name)
+        .toList();
+
     final selectedPortions = ref.read(selectedPortionsProvider);
     final ingredientState = ref.read(ingredientsProvider);
 
