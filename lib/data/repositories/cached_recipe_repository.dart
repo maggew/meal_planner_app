@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/database/converters/recipe_cache_converter.dart';
 import 'package:meal_planner/core/database/daos/recipe_cache_dao.dart';
+import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:meal_planner/data/repositories/supabase_recipe_repository.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/domain/entities/recipe_timer.dart';
@@ -229,6 +230,11 @@ class CachedRecipeRepository implements RecipeRepository {
 
   @override
   Future<void> deleteRecipe(String recipeId) async {
+    final cached = await _dao.getRecipeById(recipeId);
+    if (cached != null) {
+      final mealPlanDao = _ref.read(mealPlanDaoProvider);
+      await mealPlanDao.detachRecipeEntries(recipeId, cached.name);
+    }
     await _remote.deleteRecipe(recipeId);
     await _dao.deleteRecipe(recipeId);
   }

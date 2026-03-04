@@ -91,6 +91,7 @@ class SupabaseTrashRepository implements TrashRepository {
 
       await _remote.deleteRecipeCategories(recipeId);
       await _remote.deleteRecipeIngredients(recipeId);
+      await _remote.deleteTimersForRecipe(recipeId);
       await _remote.hardDeleteRecipe(recipeId);
       await _dao.deleteRecipe(recipeId);
     } catch (e) {

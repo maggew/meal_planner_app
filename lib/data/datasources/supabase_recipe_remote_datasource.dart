@@ -322,4 +322,12 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
         .eq(SupabaseConstants.recipeTimerRecipeId, recipeId)
         .eq(SupabaseConstants.recipeTimerStepIndex, stepIndex);
   }
+
+  @override
+  Future<void> deleteTimersForRecipe(String recipeId) async {
+    await supabase
+        .from(SupabaseConstants.recipeTimersTable)
+        .delete()
+        .eq(SupabaseConstants.recipeTimerRecipeId, recipeId);
+  }
 }

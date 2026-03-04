@@ -100,6 +100,33 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
     ));
   }
 
+  /// Converts all meal plan entries that reference [recipeId] to free-text
+  /// entries, preserving [recipeName] as [customName].
+  /// Keeps syncStatus 'pendingCreate' for unsynced entries; sets
+  /// 'pendingUpdate' for everything else so the sync pushes the change.
+  Future<void> detachRecipeEntries(String recipeId, String recipeName) {
+    return transaction(() async {
+      await (update(localMealPlanEntries)
+            ..where((t) => t.recipeId.equals(recipeId))
+            ..where((t) => t.syncStatus.equals('pendingCreate').not()))
+          .write(LocalMealPlanEntriesCompanion(
+        recipeId: const Value(''),
+        customName: Value(recipeName),
+        syncStatus: const Value('pendingUpdate'),
+        updatedAt: Value(DateTime.now()),
+      ));
+
+      await (update(localMealPlanEntries)
+            ..where((t) => t.recipeId.equals(recipeId))
+            ..where((t) => t.syncStatus.equals('pendingCreate')))
+          .write(LocalMealPlanEntriesCompanion(
+        recipeId: const Value(''),
+        customName: Value(recipeName),
+        updatedAt: Value(DateTime.now()),
+      ));
+    });
+  }
+
   Future<void> hardDeleteEntry(String localId) {
     return (delete(localMealPlanEntries)
           ..where((t) => t.localId.equals(localId)))

@@ -1,12 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meal_planner/core/database/app_database.dart';
+import 'package:meal_planner/core/database/daos/meal_plan_dao.dart';
 import 'package:meal_planner/core/database/daos/recipe_cache_dao.dart';
 import 'package:meal_planner/data/repositories/cached_recipe_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_recipe_repository.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
+import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:mocktail/mocktail.dart';
 
 // ==================== Mocks ====================
@@ -15,6 +17,8 @@ class MockSupabaseRecipeRepository extends Mock
     implements SupabaseRecipeRepository {}
 
 class MockRecipeCacheDao extends Mock implements RecipeCacheDao {}
+
+class MockMealPlanDao extends Mock implements MealPlanDao {}
 
 class _LocalRecipesCompanionFake extends Fake
     implements LocalRecipesCompanion {}
@@ -28,6 +32,21 @@ Recipe _fakeRecipe({String id = 'r1', String name = 'Pasta'}) => Recipe(
       categories: [],
       portions: 2,
       instructions: '',
+    );
+
+LocalRecipe _fakeLocalRecipe({String id = 'r1', String name = 'Pasta'}) =>
+    LocalRecipe(
+      id: id,
+      groupId: 'gruppe-1',
+      name: name,
+      portions: 2,
+      instructions: '',
+      createdAt: DateTime(2024),
+      categoriesJson: '[]',
+      ingredientSectionsJson: '[]',
+      timersJson: '[]',
+      isDeleted: false,
+      cachedAt: DateTime(2024),
     );
 
 void main() {
@@ -390,6 +409,51 @@ void main() {
       // Folgeseite → additives Caching
       verify(() => mockDao.upsertRecipe(any())).called(1);
       verifyNever(() => mockDao.replaceAllForGroup(any(), any()));
+    });
+  });
+
+  // ==================== deleteRecipe ====================
+
+  group('deleteRecipe', () {
+    late MockMealPlanDao mockMealPlanDao;
+
+    setUp(() {
+      mockMealPlanDao = MockMealPlanDao();
+      container = ProviderContainer(overrides: [
+        isOnlineProvider.overrideWithValue(true),
+        mealPlanDaoProvider.overrideWithValue(mockMealPlanDao),
+      ]);
+    });
+
+    test('detaches meal plan entries, deletes remote, clears cache', () async {
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      when(() => mockDao.getRecipeById('r1'))
+          .thenAnswer((_) async => _fakeLocalRecipe(id: 'r1', name: 'Pasta'));
+      when(() => mockMealPlanDao.detachRecipeEntries('r1', 'Pasta'))
+          .thenAnswer((_) async {});
+      when(() => mockRemote.deleteRecipe('r1')).thenAnswer((_) async {});
+      when(() => mockDao.deleteRecipe('r1')).thenAnswer((_) async {});
+
+      await repo.deleteRecipe('r1');
+
+      verifyInOrder([
+        () => mockMealPlanDao.detachRecipeEntries('r1', 'Pasta'),
+        () => mockRemote.deleteRecipe('r1'),
+        () => mockDao.deleteRecipe('r1'),
+      ]);
+    });
+
+    test('skips detach when recipe is not in local cache', () async {
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      when(() => mockDao.getRecipeById('r1')).thenAnswer((_) async => null);
+      when(() => mockRemote.deleteRecipe('r1')).thenAnswer((_) async {});
+      when(() => mockDao.deleteRecipe('r1')).thenAnswer((_) async {});
+
+      await repo.deleteRecipe('r1');
+
+      verifyNever(() => mockMealPlanDao.detachRecipeEntries(any(), any()));
+      verify(() => mockRemote.deleteRecipe('r1')).called(1);
+      verify(() => mockDao.deleteRecipe('r1')).called(1);
     });
   });
 }

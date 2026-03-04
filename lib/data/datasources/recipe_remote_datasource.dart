@@ -73,4 +73,5 @@ abstract class RecipeRemoteDatasource {
   Future<List<Map<String, dynamic>>> getTimersForRecipe(String recipeId);
   Future<Map<String, dynamic>> upsertTimer(Map<String, dynamic> data);
   Future<void> deleteTimer(String recipeId, int stepIndex);
+  Future<void> deleteTimersForRecipe(String recipeId);
 }
