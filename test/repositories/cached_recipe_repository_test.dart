@@ -45,6 +45,7 @@ LocalRecipe _fakeLocalRecipe({String id = 'r1', String name = 'Pasta'}) =>
       categoriesJson: '[]',
       ingredientSectionsJson: '[]',
       timersJson: '[]',
+      carbTagsJson: '[]',
       isDeleted: false,
       cachedAt: DateTime(2024),
     );

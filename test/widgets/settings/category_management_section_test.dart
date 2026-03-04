@@ -31,7 +31,7 @@ class FakeGroupCategoriesNotifier extends GroupCategories {
   }
 
   @override
-  Future<void> addCategory(String name) async {}
+  Future<void> addCategory(String name, {String? iconName}) async {}
 
   @override
   Future<void> renameCategory(String categoryId, String newName) async {}
@@ -45,9 +45,12 @@ class FakeGroupCategoriesNotifier extends GroupCategories {
 
 // --- Fixtures ---
 
-final _cat0 = GroupCategory(id: 'c0', groupId: 'g1', name: 'suppen', sortOrder: 0);
-final _cat1 = GroupCategory(id: 'c1', groupId: 'g1', name: 'salate', sortOrder: 1);
-final _cat2 = GroupCategory(id: 'c2', groupId: 'g1', name: 'desserts', sortOrder: 2);
+final _cat0 =
+    GroupCategory(id: 'c0', groupId: 'g1', name: 'suppen', sortOrder: 0);
+final _cat1 =
+    GroupCategory(id: 'c1', groupId: 'g1', name: 'salate', sortOrder: 1);
+final _cat2 =
+    GroupCategory(id: 'c2', groupId: 'g1', name: 'desserts', sortOrder: 2);
 
 // --- Helpers ---
 
@@ -188,7 +191,8 @@ void main() {
         initialCategories: [_cat0, _cat1, _cat2],
       );
 
-      await tester.pumpWidget(_buildWidget(notifier: notifier, isOnline: false));
+      await tester
+          .pumpWidget(_buildWidget(notifier: notifier, isOnline: false));
       await tester.pumpAndSettle();
 
       // Edit/Delete-Buttons nicht sichtbar
@@ -196,7 +200,8 @@ void main() {
       expect(find.byIcon(Icons.delete_outline), findsNothing);
     });
 
-    testWidgets('loading state zeigt CircularProgressIndicator', (tester) async {
+    testWidgets('loading state zeigt CircularProgressIndicator',
+        (tester) async {
       final notifier = FakeGroupCategoriesNotifier(initialCategories: []);
 
       // Loading-State direkt setzen

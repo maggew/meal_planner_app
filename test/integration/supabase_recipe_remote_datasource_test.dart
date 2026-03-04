@@ -61,10 +61,12 @@ void main() {
         {
           SupabaseConstants.categoryId: testCategoryId1,
           SupabaseConstants.categoryName: 'test-category-1',
+          SupabaseConstants.categoryGroupId: testGroupId,
         },
         {
           SupabaseConstants.categoryId: testCategoryId2,
           SupabaseConstants.categoryName: 'test-category-2',
+          SupabaseConstants.categoryGroupId: testGroupId,
         },
       ]);
     });
