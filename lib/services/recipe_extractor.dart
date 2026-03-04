@@ -22,7 +22,10 @@ class RecipeExtractor {
       return ExtractionResult();
     }
 
-    List<String> ingredients = _mergeHyphenatedLines(lines);
+    List<String> split = _splitOnDelimiters(lines);
+    split = split.map(_normalizeLineSpacing).toList();
+    split = _splitInlineIngredients(split);
+    List<String> ingredients = _mergeHyphenatedLines(split);
     ingredients = _mergeContinuationLines(ingredients);
 
     Map<String, List<String>> ingredientSectionsMap =
@@ -101,6 +104,105 @@ class RecipeExtractor {
 
   /* ===================== INGREDIENTS ===================== */
 
+  static final _delimiterPattern = RegExp(r'\s*[♦◆•·✦]\s*');
+
+  static final _unitPatternString =
+      UnitParser.patterns.map(RegExp.escape).join('|');
+
+  // Fix 1: "abc)7" → "abc) 7"   Fix 2: "40g" → "40 g"
+  static String _normalizeLineSpacing(String line) {
+    // Space between ) and digit
+    line = line.replaceAllMapped(
+      RegExp(r'\)(\d)'),
+      (m) => ') ${m.group(1)}',
+    );
+    // Space between digit and unit when missing, e.g. "40g" → "40 g"
+    line = line.replaceAllMapped(
+      RegExp(r'(\d+(?:[,\.]\d+)?)(' + _unitPatternString + r')\b',
+          caseSensitive: false),
+      (m) => '${m.group(1)} ${m.group(2)}',
+    );
+    return line;
+  }
+
+  static List<String> _splitOnDelimiters(List<String> lines) {
+    final List<String> output = [];
+    for (final line in lines) {
+      if (_delimiterPattern.hasMatch(line)) {
+        final parts = line
+            .split(_delimiterPattern)
+            .map((p) => p.trim())
+            .where((p) => p.isNotEmpty);
+        output.addAll(parts);
+      } else {
+        output.add(line);
+      }
+    }
+    return output;
+  }
+
+  // Splits at: whitespace before "number + known unit" or "number + uppercase word"
+  // Skips matches inside parentheses, e.g. "(ca. 10 g)"
+  static final _unitInlineSplitPattern = RegExp(
+    r'\s+(?=\d+(?:[,\.]\d+)?\s+(?:' +
+        UnitParser.patterns.map(RegExp.escape).join('|') +
+        r')\b)',
+    caseSensitive: false,
+  );
+  static final _capitalInlineSplitPattern = RegExp(
+    r'\s+(?=\d+(?:[,\.]\d+)?\s+[A-ZÄÖÜ])',
+  );
+  // Splits before inline section keywords (reuses _sectionPatterns)
+  static final _inlineSectionPattern = RegExp(
+    r'\s+(?=(?:' +
+        _sectionPatterns.map(RegExp.escape).join('|') +
+        r'))',
+    caseSensitive: false,
+  );
+
+  static List<String> _splitInlineIngredients(List<String> lines) {
+    final List<String> output = [];
+    for (final line in lines) {
+      output.addAll(_splitLineOnIngredients(line));
+    }
+    return output;
+  }
+
+  static List<String> _splitLineOnIngredients(String line) {
+    final positions = <int>{};
+
+    // Section keywords: no parenthesis check needed, always split
+    for (final m in _inlineSectionPattern.allMatches(line)) {
+      positions.add(m.end);
+    }
+
+    // Ingredient-start patterns: skip matches inside parentheses
+    for (final pattern in [_unitInlineSplitPattern, _capitalInlineSplitPattern]) {
+      for (final m in pattern.allMatches(line)) {
+        int depth = 0;
+        for (int i = 0; i < m.start; i++) {
+          if (line[i] == '(') depth++;
+          else if (line[i] == ')') depth--;
+        }
+        if (depth == 0) positions.add(m.end);
+      }
+    }
+
+    if (positions.isEmpty) return [line];
+
+    final sorted = positions.toList()..sort();
+    final parts = <String>[];
+    int start = 0;
+    for (final pos in sorted) {
+      final part = line.substring(start, pos).trim();
+      if (part.isNotEmpty) parts.add(part);
+      start = pos;
+    }
+    final last = line.substring(start).trim();
+    if (last.isNotEmpty) parts.add(last);
+    return parts;
+  }
+
   static const _sectionPatterns = [
     'für den ', 'für die ', 'für das ', 'für ca.',
     'teig', 'füllung', 'sauce', 'soße', 'marinade',
@@ -139,10 +241,23 @@ class RecipeExtractor {
 
     for (String line in lines) {
       if (_isSectionHeader(line)) {
-        final header =
-            line.endsWith(':') ? line.substring(0, line.length - 1).trim() : line;
+        // "Außerdem: Backpapier" → header="Außerdem", item="Backpapier"
+        final colonIdx = line.indexOf(':');
+        final String header;
+        final String? inlineItem;
+        if (colonIdx > 0 && colonIdx < line.length - 1) {
+          header = line.substring(0, colonIdx).trim();
+          final rest = line.substring(colonIdx + 1).trim();
+          inlineItem = rest.isNotEmpty ? rest : null;
+        } else {
+          header = line.endsWith(':')
+              ? line.substring(0, line.length - 1).trim()
+              : line;
+          inlineItem = null;
+        }
         output[header] = [];
         currentSection = header;
+        if (inlineItem != null) output[header]!.add(inlineItem);
       } else {
         if (output.isEmpty || !output.containsKey(currentSection)) {
           output[currentSection] = [];
@@ -168,6 +283,9 @@ class RecipeExtractor {
         i--;
       } else if (i > 0 &&
           _flourType.any((z) => line.toLowerCase().contains(z))) {
+        output.insert(0, list[i - 1] + " " + line);
+        i--;
+      } else if (i > 0 && line.startsWith('(')) {
         output.insert(0, list[i - 1] + " " + line);
         i--;
       } else {
@@ -298,7 +416,6 @@ class RecipeExtractor {
   }
 
   static String _normalizeIngredientText(String text) {
-    text = text.replaceAll('•', ' ');
     text = text.replaceAll('½', '1/2');
     text = text.replaceAll('¼', '1/4');
     text = text.replaceAll('¾', '3/4');
