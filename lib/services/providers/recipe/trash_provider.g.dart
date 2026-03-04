@@ -40,7 +40,7 @@ final class TrashProvider extends $NotifierProvider<Trash, TrashState> {
   }
 }
 
-String _$trashHash() => r'1fc6670073214411e8c168effd9f0cf6028dbe46';
+String _$trashHash() => r'7d679a48ce996c7bb94c56055e810170225ea633';
 
 abstract class _$Trash extends $Notifier<TrashState> {
   TrashState build();
