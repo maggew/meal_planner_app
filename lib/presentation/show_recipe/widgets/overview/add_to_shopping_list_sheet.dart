@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
+import 'package:meal_planner/presentation/common/extensions/ingredient_inline_text_extenstion.dart';
 import 'package:meal_planner/services/providers/shopping_list/shopping_list_provider.dart';
 
 class AddToShoppingListSheet extends ConsumerStatefulWidget {
@@ -115,6 +116,8 @@ class _AddToShoppingListSheetState
                           final ingredient = entry.value;
                           final isSelected =
                               sectionSelected.contains(ingredientIndex);
+                          final (dispAmount, dispUnit) =
+                              ingredient.displayAmountAndUnit;
 
                           return InkWell(
                             onTap: () => setState(() {
@@ -147,8 +150,7 @@ class _AddToShoppingListSheetState
                                   SizedBox(
                                     width: 65,
                                     child: Text(
-                                      '${ingredient.amount ?? ''} ${ingredient.unit?.displayName ?? ''}'
-                                          .trim(),
+                                      '$dispAmount $dispUnit'.trim(),
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium,
