@@ -56,7 +56,9 @@ class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
           ),
         );
       }
-      if (next.error != null && next.error != previous?.error && !next.isLoadingIngredients) {
+      if (next.error != null &&
+          next.error != previous?.error &&
+          !next.isLoadingIngredients) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Analyse fehlgeschlagen')),
         );
@@ -102,7 +104,8 @@ class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
               icon: Icon(Icons.folder_outlined),
             ),
             Tooltip(
-              message: "📷 Kamera: Anleitung direkt scannen\n🗂 Galerie: Bild aus Galerie auswählen",
+              message:
+                  "📷 Kamera: Anleitung direkt scannen\n🗂 Galerie: Bild aus Galerie auswählen",
               triggerMode: TooltipTriggerMode.tap,
               showDuration: Duration(seconds: 4),
               child: Padding(

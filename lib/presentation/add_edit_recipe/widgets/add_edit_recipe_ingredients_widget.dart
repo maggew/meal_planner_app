@@ -14,7 +14,9 @@ class AddEditRecipeIngredientsWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen(recipeAnalysisProvider, (previous, next) {
-      if (next.error != null && next.error != previous?.error && !next.isLoadingInstructions) {
+      if (next.error != null &&
+          next.error != previous?.error &&
+          !next.isLoadingInstructions) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Zutaten-Analyse fehlgeschlagen')),
         );
@@ -50,7 +52,8 @@ class AddEditRecipeIngredientsWidget extends ConsumerWidget {
               },
             ),
             Tooltip(
-              message: "📷 Kamera: Zutaten direkt scannen\n🗂 Galerie: Bild aus Galerie auswählen",
+              message:
+                  "📷 Kamera: Zutaten direkt scannen\n🗂 Galerie: Bild aus Galerie auswählen",
               triggerMode: TooltipTriggerMode.tap,
               showDuration: Duration(seconds: 4),
               child: Padding(

@@ -13,7 +13,7 @@ class DisplayIngredient extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 75,
+          width: 65,
           child: Text(
             "$displayAmount $displayUnit",
           ),

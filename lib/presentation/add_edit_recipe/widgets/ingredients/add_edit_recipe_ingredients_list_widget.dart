@@ -40,132 +40,132 @@ class AddEditRecipeIngredientsListWidget extends ConsumerWidget {
 
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(6.0),
       child: Column(
-          children: [
-            ReorderableListView.builder(
-              shrinkWrap: true,
-              primary: false,
-              itemCount: listLength,
-              buildDefaultDragHandles: false,
-              proxyDecorator: (child, index, animation) {
-                return AnimatedBuilder(
-                  animation: animation,
-                  builder: (context, child) {
-                    return Material(
-                      elevation: 8,
-                      color: colorScheme.surface,
-                      borderRadius: BorderRadius.circular(8),
-                      child: child,
-                    );
-                  },
-                  child: child,
-                );
-              },
-              onReorder: (oldIndex, newIndex) {
-                ref.read(ingredientsProvider.notifier).reorderIngredient(
-                      oldIndex: oldIndex,
-                      newIndex: newIndex,
-                      flatItems: flatItems,
-                    );
-              },
-              itemBuilder: (BuildContext, index) {
-                final itemData = flatItems[index];
-                switch (itemData.type) {
-                  case FlatListItemType.header:
-                    final bool sectionHasNoIngredient =
-                        flatItems[index + 1].type == FlatListItemType.addButton;
-                    return AddEditRecipeSectionHeaderItem(
-                      key: ValueKey('section_${itemData.sectionIndex}'),
-                      titleController: itemData.section!.titleController,
-                      isEditable: itemData.section!.isEditable,
-                      sectionHasNoIngredient: sectionHasNoIngredient,
-                      shouldRequestFocus: itemData.section!.shouldRequestFocus,
-                      isFirstSection: itemData.sectionIndex == 0,
-                      onDeletePressed: () => _handleDeletePressed(context, ref,
-                          ingredientsProvider, itemData.sectionIndex),
-                      onEditPressed: () {
-                        ref
-                            .read(ingredientsProvider.notifier)
-                            .editSectionTitle(itemData.sectionIndex);
-                      },
-                      onConfirmPressed: () {
-                        FocusScope.of(context).unfocus();
-                        ref
-                            .read(ingredientsProvider.notifier)
-                            .confirmSectionTitle(itemData.sectionIndex);
-                      },
-                    );
-                  case FlatListItemType.ingredient:
-                    final item = itemData.item;
-                    //final isFirstItem = itemData.itemIndex == 0;
-                    final isFinalItem = itemData.itemIndex ==
-                        state.sections[itemData.sectionIndex].items.length - 1;
+        children: [
+          ReorderableListView.builder(
+            shrinkWrap: true,
+            primary: false,
+            itemCount: listLength,
+            buildDefaultDragHandles: false,
+            proxyDecorator: (child, index, animation) {
+              return AnimatedBuilder(
+                animation: animation,
+                builder: (context, child) {
+                  return Material(
+                    elevation: 8,
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(8),
+                    child: child,
+                  );
+                },
+                child: child,
+              );
+            },
+            onReorder: (oldIndex, newIndex) {
+              ref.read(ingredientsProvider.notifier).reorderIngredient(
+                    oldIndex: oldIndex,
+                    newIndex: newIndex,
+                    flatItems: flatItems,
+                  );
+            },
+            itemBuilder: (BuildContext, index) {
+              final itemData = flatItems[index];
+              switch (itemData.type) {
+                case FlatListItemType.header:
+                  final bool sectionHasNoIngredient =
+                      flatItems[index + 1].type == FlatListItemType.addButton;
+                  return AddEditRecipeSectionHeaderItem(
+                    key: ValueKey('section_${itemData.sectionIndex}'),
+                    titleController: itemData.section!.titleController,
+                    isEditable: itemData.section!.isEditable,
+                    sectionHasNoIngredient: sectionHasNoIngredient,
+                    shouldRequestFocus: itemData.section!.shouldRequestFocus,
+                    isFirstSection: itemData.sectionIndex == 0,
+                    onDeletePressed: () => _handleDeletePressed(context, ref,
+                        ingredientsProvider, itemData.sectionIndex),
+                    onEditPressed: () {
+                      ref
+                          .read(ingredientsProvider.notifier)
+                          .editSectionTitle(itemData.sectionIndex);
+                    },
+                    onConfirmPressed: () {
+                      FocusScope.of(context).unfocus();
+                      ref
+                          .read(ingredientsProvider.notifier)
+                          .confirmSectionTitle(itemData.sectionIndex);
+                    },
+                  );
+                case FlatListItemType.ingredient:
+                  final item = itemData.item;
+                  //final isFirstItem = itemData.itemIndex == 0;
+                  final isFinalItem = itemData.itemIndex ==
+                      state.sections[itemData.sectionIndex].items.length - 1;
 
-                    if (item!.isEditable) {
-                      return AddEditRecipeIngredientsInputCard(
-                        key: ValueKey(item.id),
-                        item: item,
-                        isFinalItem: isFinalItem,
-                        onDelete: () => ref
-                            .read(ingredientsProvider.notifier)
-                            .deleteIngredient(index),
-                        onChecked: () {
-                          // unfocus the textformfields
-                          FocusScope.of(context).unfocus();
-                          // Lock the current ingredient
-                          ref
-                              .read(ingredientsProvider.notifier)
-                              .confirmIngredient(index);
-                        },
-                        onUnitChanged: (unit) {
-                          ref
-                              .read(ingredientsProvider.notifier)
-                              .changeUnit(flatIndex: index, unit: unit);
-                        },
-                      );
-                    }
-
-                    // Nicht editierbar - normales Display Widget
-                    return AddEditRecipeIngredientItem(
-                      key: ValueKey(item),
-                      flatIndex: index,
-                      itemData: itemData,
+                  if (item!.isEditable) {
+                    return AddEditRecipeIngredientsInputCard(
+                      key: ValueKey(item.id),
+                      item: item,
                       isFinalItem: isFinalItem,
-                      ingredientsProvider: ingredientsProvider,
-                    );
-                  case FlatListItemType.addButton:
-                    return ListTile(
-                      key: ValueKey('add_btn_${itemData.sectionIndex}'),
-                      dense: true,
-                      title: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        spacing: 10,
-                        children: [
-                          Icon(Icons.add, color: colorScheme.primary),
-                          Text('Zutat hinzufügen'),
-                        ],
-                      ),
-                      onTap: () {
+                      onDelete: () => ref
+                          .read(ingredientsProvider.notifier)
+                          .deleteIngredient(index),
+                      onChecked: () {
+                        // unfocus the textformfields
+                        FocusScope.of(context).unfocus();
+                        // Lock the current ingredient
                         ref
                             .read(ingredientsProvider.notifier)
-                            .addIngredient(itemData.sectionIndex);
+                            .confirmIngredient(index);
+                      },
+                      onUnitChanged: (unit) {
+                        ref
+                            .read(ingredientsProvider.notifier)
+                            .changeUnit(flatIndex: index, unit: unit);
                       },
                     );
-                }
-              },
-            ),
-            SizedBox(height: 10),
-            TextButton.icon(
-              onPressed: () {
-                ref.read(ingredientsProvider.notifier).addSection();
-              },
-              icon: Icon(Icons.add),
-              label: Text('Neue Sektion hinzufügen'),
-            ),
-          ],
-        ),
-      );
+                  }
+
+                  // Nicht editierbar - normales Display Widget
+                  return AddEditRecipeIngredientItem(
+                    key: ValueKey(item),
+                    flatIndex: index,
+                    itemData: itemData,
+                    isFinalItem: isFinalItem,
+                    ingredientsProvider: ingredientsProvider,
+                  );
+                case FlatListItemType.addButton:
+                  return ListTile(
+                    key: ValueKey('add_btn_${itemData.sectionIndex}'),
+                    dense: true,
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 10,
+                      children: [
+                        Icon(Icons.add, color: colorScheme.primary),
+                        Text('Zutat hinzufügen'),
+                      ],
+                    ),
+                    onTap: () {
+                      ref
+                          .read(ingredientsProvider.notifier)
+                          .addIngredient(itemData.sectionIndex);
+                    },
+                  );
+              }
+            },
+          ),
+          SizedBox(height: 10),
+          TextButton.icon(
+            onPressed: () {
+              ref.read(ingredientsProvider.notifier).addSection();
+            },
+            icon: Icon(Icons.add),
+            label: Text('Neue Sektion hinzufügen'),
+          ),
+        ],
+      ),
+    );
   }
 }
 

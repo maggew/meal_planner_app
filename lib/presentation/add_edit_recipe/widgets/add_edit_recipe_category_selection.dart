@@ -32,22 +32,25 @@ class _AddRecipeCategorySelection
         categoriesAsync.when(
           loading: () => const CircularProgressIndicator(),
           error: (e, _) => const SizedBox.shrink(),
-          data: (categories) => Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            children: categories
-                .map((category) => FilterChip(
-                      labelStyle: textTheme.bodyMedium,
-                      label: Text(category.name),
-                      selected: selectedCategories.contains(category.id),
-                      onSelected: (_) {
-                        FocusScope.of(context).unfocus();
-                        ref
-                            .read(selectedCategoriesProvider.notifier)
-                            .toggle(category.id);
-                      },
-                    ))
-                .toList(),
+          data: (categories) => SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: categories
+                  .map((category) => FilterChip(
+                        labelStyle: textTheme.bodyMedium,
+                        label: Text(category.name),
+                        selected: selectedCategories.contains(category.id),
+                        onSelected: (_) {
+                          FocusScope.of(context).unfocus();
+                          ref
+                              .read(selectedCategoriesProvider.notifier)
+                              .toggle(category.id);
+                        },
+                      ))
+                  .toList(),
+            ),
           ),
         ),
       ],

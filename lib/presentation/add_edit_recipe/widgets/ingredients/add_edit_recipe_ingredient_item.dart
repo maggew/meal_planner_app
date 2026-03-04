@@ -55,7 +55,12 @@ class AddEditRecipeIngredientItem extends ConsumerWidget {
                     .read(ingredientsProvider.notifier)
                     .editIngredient(flatIndex);
               },
-              icon: Icon(Icons.edit)),
+              icon: Icon(Icons.edit, size: 20),
+              padding: EdgeInsets.all(6),
+              constraints: BoxConstraints(),
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              )),
           IconButton(
               onPressed: () {
                 ref
@@ -64,11 +69,20 @@ class AddEditRecipeIngredientItem extends ConsumerWidget {
               },
               icon: Icon(
                 Icons.delete,
+                size: 20,
                 color: colorsScheme.error,
+              ),
+              padding: EdgeInsets.all(6),
+              constraints: BoxConstraints(),
+              style: IconButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               )),
-          ReorderableDragStartListener(
-            index: flatIndex,
-            child: const Icon(Icons.drag_handle),
+          Padding(
+            padding: EdgeInsets.all(6),
+            child: ReorderableDragStartListener(
+              index: flatIndex,
+              child: const Icon(Icons.drag_handle, size: 20),
+            ),
           ),
         ],
       ),

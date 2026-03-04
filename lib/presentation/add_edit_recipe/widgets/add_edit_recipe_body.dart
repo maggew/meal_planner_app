@@ -74,8 +74,7 @@ class _AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
     });
 
     return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(
-          AppDimensions.screenMargin, 20, AppDimensions.screenMargin, 100),
+      padding: EdgeInsets.fromLTRB(0, 20, 0, 100),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 25,

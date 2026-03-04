@@ -53,30 +53,38 @@ class AddEditRecipePicture extends ConsumerWidget {
     ColorScheme colorScheme,
   ) {
     if (newImage != null) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
-        child: Image.file(
-          newImage,
-          height: 140,
-          width: double.infinity,
-          fit: BoxFit.cover,
+      return GestureDetector(
+        onTap: () => ref
+            .read(imageManagerProvider.notifier)
+            .pickImageFromGallery(imageType: AnalysisImageType.photo),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
+          child: Image.file(
+            newImage,
+            width: double.infinity,
+            fit: BoxFit.fitWidth,
+          ),
         ),
       );
     } else if (existingImageUrl != null) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
-        child: Image.network(
-          existingImageUrl!,
-          height: 140,
-          width: double.infinity,
-          fit: BoxFit.cover,
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return SizedBox(
-              height: 140,
-              child: Center(child: CircularProgressIndicator()),
-            );
-          },
+      return GestureDetector(
+        onTap: () => ref
+            .read(imageManagerProvider.notifier)
+            .pickImageFromGallery(imageType: AnalysisImageType.photo),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
+          child: Image.network(
+            existingImageUrl!,
+            width: double.infinity,
+            fit: BoxFit.fitWidth,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return SizedBox(
+                height: 140,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            },
+          ),
         ),
       );
     }
