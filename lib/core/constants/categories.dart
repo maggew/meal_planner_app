@@ -12,6 +12,17 @@ const List<String> defaultCategoryNames = [
   "sonstiges",
 ];
 
+/// Icons für die Default-Kategorien (Name → Icon-Key aus categoryIconOptions)
+const Map<String, String> defaultCategoryIcons = {
+  "suppen": "soup",
+  "salate": "salad",
+  "saucen, dips": "soup",
+  "hauptgerichte": "pizza",
+  "desserts": "ice_cream_cone",
+  "gebäck": "wedding_cake",
+  "sonstiges": "dish",
+};
+
 /// Icons, die im Icon-Picker zur Auswahl stehen (Name → IconData)
 const Map<String, IconData> categoryIconOptions = {
   'dish': AppIcons.dish,

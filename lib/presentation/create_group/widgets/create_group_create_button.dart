@@ -62,7 +62,11 @@ class CreateGroupCreateButton extends ConsumerWidget {
           final categoryRepo = ref.read(groupCategoryRepositoryProvider);
           for (final name in defaultCategoryNames) {
             try {
-              await categoryRepo.addCategory(groupId, name);
+              await categoryRepo.addCategory(
+                groupId,
+                name,
+                iconName: defaultCategoryIcons[name],
+              );
             } catch (_) {
               // Kategorie existiert ggf. schon — ignorieren
             }
