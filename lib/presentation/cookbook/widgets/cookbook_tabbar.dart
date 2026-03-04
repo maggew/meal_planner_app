@@ -33,7 +33,7 @@ class CookbookTabbar extends ConsumerWidget {
               (category) => CookbookCategoryTab(
                 name: category.name,
                 iconWidget: Icon(
-                  getCategoryIconData(category.name),
+                  getCategoryIconData(category.name, iconName: category.iconName),
                   size: 30,
                 ),
               ),

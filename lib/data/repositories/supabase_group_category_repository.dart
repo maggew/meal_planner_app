@@ -33,7 +33,8 @@ class SupabaseGroupCategoryRepository implements GroupCategoryRepository {
   }
 
   @override
-  Future<GroupCategory> addCategory(String groupId, String name) async {
+  Future<GroupCategory> addCategory(String groupId, String name,
+      {String? iconName}) async {
     // sort_order = aktuelle Anzahl Kategorien → neue Kategorie ans Ende
     final existing = await _supabase
         .from(SupabaseConstants.categoriesTable)
@@ -47,6 +48,7 @@ class SupabaseGroupCategoryRepository implements GroupCategoryRepository {
       groupId: groupId,
       name: name,
       sortOrder: nextSortOrder,
+      iconName: iconName,
     );
 
     final response = await _supabase
@@ -63,11 +65,12 @@ class SupabaseGroupCategoryRepository implements GroupCategoryRepository {
     String categoryId, {
     String? name,
     int? sortOrder,
+    String? iconName,
   }) async {
     final data = <String, dynamic>{};
     if (name != null) data[SupabaseConstants.categoryName] = name;
-    if (sortOrder != null)
-      data[SupabaseConstants.categorySortOrder] = sortOrder;
+    if (sortOrder != null) data[SupabaseConstants.categorySortOrder] = sortOrder;
+    if (iconName != null) data[SupabaseConstants.categoryIconName] = iconName;
     if (data.isEmpty) return;
 
     final response = await _supabase

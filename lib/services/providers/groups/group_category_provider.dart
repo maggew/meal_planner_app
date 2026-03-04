@@ -22,19 +22,20 @@ class GroupCategories extends _$GroupCategories {
     return repo.getCategories(groupId);
   }
 
-  Future<void> addCategory(String name) async {
+  Future<void> addCategory(String name, {String? iconName}) async {
     final session = ref.read(sessionProvider);
     final groupId = session.groupId;
     if (groupId == null) return;
 
     final repo = ref.read(groupCategoryRepositoryProvider);
-    await repo.addCategory(groupId, name);
+    await repo.addCategory(groupId, name, iconName: iconName);
     ref.invalidateSelf();
   }
 
-  Future<void> renameCategory(String categoryId, String newName) async {
+  Future<void> updateCategory(
+      String categoryId, String newName, String? iconName) async {
     final repo = ref.read(groupCategoryRepositoryProvider);
-    await repo.updateCategory(categoryId, name: newName);
+    await repo.updateCategory(categoryId, name: newName, iconName: iconName);
     ref.invalidateSelf();
   }
 

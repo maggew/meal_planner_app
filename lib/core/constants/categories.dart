@@ -12,7 +12,25 @@ const List<String> defaultCategoryNames = [
   "sonstiges",
 ];
 
-IconData getCategoryIconData(String categoryName) {
+/// Icons, die im Icon-Picker zur Auswahl stehen (Name → IconData)
+const Map<String, IconData> categoryIconOptions = {
+  'dish': AppIcons.dish,
+  'soup': AppIcons.soup,
+  'salad': AppIcons.salad,
+  'pizza': AppIcons.pizza,
+  'ice_cream_cone': AppIcons.ice_cream_cone,
+  'wedding_cake': AppIcons.wedding_cake,
+  'cheese_burger': AppIcons.cheese_burger,
+  'snowflake': AppIcons.snowflake,
+};
+
+/// Gibt das Icon für eine Kategorie zurück.
+/// Wenn [iconName] gesetzt ist, wird es direkt verwendet.
+/// Fallback: Name-basierte Zuordnung für Default-Kategorien.
+IconData getCategoryIconData(String categoryName, {String? iconName}) {
+  if (iconName != null && categoryIconOptions.containsKey(iconName)) {
+    return categoryIconOptions[iconName]!;
+  }
   switch (categoryName.toLowerCase()) {
     case "suppen":
       return AppIcons.soup;

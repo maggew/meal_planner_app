@@ -6,12 +6,14 @@ class GroupCategoryModel {
   final String groupId;
   final String name;
   final int sortOrder;
+  final String? iconName;
 
   const GroupCategoryModel({
     required this.id,
     required this.groupId,
     required this.name,
     required this.sortOrder,
+    this.iconName,
   });
 
   factory GroupCategoryModel.fromSupabase(Map<String, dynamic> data) {
@@ -20,6 +22,7 @@ class GroupCategoryModel {
       groupId: data[SupabaseConstants.categoryGroupId] as String,
       name: data[SupabaseConstants.categoryName] as String,
       sortOrder: data[SupabaseConstants.categorySortOrder] as int? ?? 0,
+      iconName: data[SupabaseConstants.categoryIconName] as String?,
     );
   }
 
@@ -29,6 +32,7 @@ class GroupCategoryModel {
       SupabaseConstants.categoryGroupId: groupId,
       SupabaseConstants.categoryName: name,
       SupabaseConstants.categorySortOrder: sortOrder,
+      if (iconName != null) SupabaseConstants.categoryIconName: iconName,
     };
   }
 
@@ -38,6 +42,7 @@ class GroupCategoryModel {
       groupId: groupId,
       name: name,
       sortOrder: sortOrder,
+      iconName: iconName,
     );
   }
 }
