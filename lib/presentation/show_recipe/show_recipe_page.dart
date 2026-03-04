@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
 import 'package:meal_planner/presentation/common/common_appbar.dart';
@@ -38,6 +39,24 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
   Recipe? _recipe;
   Image? _image;
   bool _isLoading = true;
+  int _currentPortions = 1;
+
+  List<IngredientSection> get _scaledSections {
+    final recipe = _recipe;
+    if (recipe == null) return [];
+    final factor =
+        recipe.portions > 0 ? _currentPortions / recipe.portions : 1.0;
+    if (factor == 1.0) return recipe.ingredientSections;
+    return recipe.ingredientSections
+        .map(
+          (section) => IngredientSection(
+            title: section.title,
+            ingredients:
+                section.ingredients.map((i) => i.scale(factor)).toList(),
+          ),
+        )
+        .toList();
+  }
 
   @override
   void initState() {
@@ -46,6 +65,7 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
 
     if (widget.recipe != null) {
       _recipe = widget.recipe;
+      _currentPortions = widget.recipe!.portions;
       _image = widget.image ?? _buildImage(widget.recipe!);
       _isLoading = false;
     } else if (widget.recipeId != null) {
@@ -60,6 +80,7 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
       if (recipe != null && mounted) {
         setState(() {
           _recipe = recipe;
+          _currentPortions = recipe.portions;
           _image = _buildImage(recipe);
           _isLoading = false;
         });
@@ -133,10 +154,17 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
         controller: _tabController,
         physics: const NeverScrollableScrollPhysics(),
         children: [
-          ShowRecipeOverview(recipe: _recipe!, image: _image!),
+          ShowRecipeOverview(
+            recipe: _recipe!,
+            image: _image!,
+            scaledSections: _scaledSections,
+            currentPortions: _currentPortions,
+            onPortionsChanged: (p) => setState(() => _currentPortions = p),
+          ),
           ShowRecipeCookingMode(
             recipe: _recipe!,
             initialStep: widget.initialStep,
+            scaledSections: _scaledSections,
           ),
         ],
       ),

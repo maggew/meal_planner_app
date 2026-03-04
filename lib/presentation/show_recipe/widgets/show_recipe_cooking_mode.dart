@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/active_timer.dart';
+import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooking_mode_ingredients_list.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooking_mode_page_buttons.dart';
@@ -13,9 +14,12 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 class ShowRecipeCookingMode extends ConsumerStatefulWidget {
   final Recipe recipe;
   final int? initialStep;
+  final List<IngredientSection> scaledSections;
+
   const ShowRecipeCookingMode({
     super.key,
     required this.recipe,
+    required this.scaledSections,
     this.initialStep,
   });
 
@@ -95,7 +99,7 @@ class _ShowRecipeCookingModeState extends ConsumerState<ShowRecipeCookingMode>
                       onExpandToggle: () => setState(() {
                         isIngredientsExpanded = !isIngredientsExpanded;
                       }),
-                      ingredientSections: widget.recipe.ingredientSections,
+                      ingredientSections: widget.scaledSections,
                       recipeId: widget.recipe.id!,
                       stepNumber: _tabController.index,
                       onAddTimer: () => setState(
