@@ -25,7 +25,7 @@ class SupabaseGroupCategoryRepository implements GroupCategoryRepository {
         .from(SupabaseConstants.categoriesTable)
         .select()
         .eq(SupabaseConstants.categoryGroupId, groupId)
-        .order(SupabaseConstants.categorySortOrder);
+        .order(SupabaseConstants.categorySortOrder, ascending: true);
 
     return (response as List)
         .map((data) => GroupCategoryModel.fromSupabase(data).toEntity())

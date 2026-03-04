@@ -74,6 +74,32 @@ class _VerticalTabsState extends State<VerticalTabs>
   }
 
   @override
+  void didUpdateWidget(covariant VerticalTabs oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.tabs.length != _animationControllers.length) {
+      // Add controllers for new tabs
+      while (_animationControllers.length < widget.tabs.length) {
+        _animationControllers.add(
+          AnimationController(
+            duration: const Duration(milliseconds: 400),
+            vsync: this,
+          ),
+        );
+      }
+      // Remove controllers for removed tabs
+      while (_animationControllers.length > widget.tabs.length) {
+        _animationControllers.removeLast().dispose();
+      }
+      // Clamp selected index
+      if (_selectedIndex >= widget.tabs.length) {
+        _selectedIndex = widget.tabs.length - 1;
+        _pageController.jumpToPage(_selectedIndex);
+      }
+      _selectTab(_selectedIndex);
+    }
+  }
+
+  @override
   void dispose() {
     _pageController.dispose();
     for (final controller in _animationControllers) {

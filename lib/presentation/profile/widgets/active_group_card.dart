@@ -49,14 +49,26 @@ class _ActiveGroupContent extends ConsumerWidget {
           ),
           Row(
             children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundImage: group.imageUrl.isNotEmpty
-                    ? NetworkImage(group.imageUrl)
-                    : null,
-                child: group.imageUrl.isEmpty
-                    ? const Icon(Icons.group_rounded, size: 28)
-                    : null,
+              SizedBox(
+                width: 56,
+                height: 56,
+                child: group.imageUrl.isNotEmpty
+                    ? ClipOval(
+                        child: Image.network(
+                          group.imageUrl,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          },
+                        ),
+                      )
+                    : const CircleAvatar(
+                        radius: 28,
+                        child: Icon(Icons.group_rounded, size: 28),
+                      ),
               ),
               const SizedBox(width: 14),
               Text(
@@ -120,20 +132,41 @@ class _MemberChip extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        CircleAvatar(
-          radius: 16,
-          backgroundImage: imageUrl != null ? NetworkImage(imageUrl!) : null,
-          backgroundColor: colorScheme.primaryContainer,
-          child: imageUrl == null
-              ? Text(
-                  name.isNotEmpty ? name[0].toUpperCase() : '?',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
+        SizedBox(
+          width: 32,
+          height: 32,
+          child: imageUrl != null
+              ? ClipOval(
+                  child: Image.network(
+                    imageUrl!,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return ColoredBox(
+                        color: colorScheme.primaryContainer,
+                        child: const Center(
+                          child: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 )
-              : null,
+              : CircleAvatar(
+                  radius: 16,
+                  backgroundColor: colorScheme.primaryContainer,
+                  child: Text(
+                    name.isNotEmpty ? name[0].toUpperCase() : '?',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
         ),
         const SizedBox(width: 6),
         Text(

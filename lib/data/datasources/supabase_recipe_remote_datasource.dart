@@ -34,7 +34,7 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
         .from(SupabaseConstants.categoriesTable)
         .select(SupabaseConstants.categoryName)
         .eq(SupabaseConstants.categoryGroupId, groupId)
-        .order(SupabaseConstants.categorySortOrder);
+        .order(SupabaseConstants.categorySortOrder, ascending: true);
 
     return (response as List)
         .map((data) => data[SupabaseConstants.categoryName] as String)
@@ -93,7 +93,7 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
         ''')
         .eq(SupabaseConstants.recipeGroupId, groupId)
         .inFilter('recipe_categories.categories.name',
-            categories.map((c) => c.toLowerCase()).toList())
+            categories)
         .order(SupabaseConstants.recipeCreatedAt, ascending: false);
 
     final ids =
@@ -187,7 +187,7 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
     final existing = await supabase
         .from(SupabaseConstants.categoriesTable)
         .select(SupabaseConstants.categoryId)
-        .eq(SupabaseConstants.categoryName, name.toLowerCase())
+        .eq(SupabaseConstants.categoryName, name)
         .eq(SupabaseConstants.categoryGroupId, groupId)
         .maybeSingle();
 
@@ -199,7 +199,7 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
 
     await supabase.from(SupabaseConstants.categoriesTable).insert({
       SupabaseConstants.categoryId: categoryId,
-      SupabaseConstants.categoryName: name.toLowerCase(),
+      SupabaseConstants.categoryName: name,
       SupabaseConstants.categoryGroupId: groupId,
     });
 

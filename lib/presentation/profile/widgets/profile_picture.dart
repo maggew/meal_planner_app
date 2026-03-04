@@ -20,13 +20,24 @@ class ProfilePicture extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ImageProvider backgroundImage;
+    final Widget avatar;
     if (pickedImage != null) {
-      backgroundImage = FileImage(pickedImage!);
+      avatar = CircleAvatar(backgroundImage: FileImage(pickedImage!));
     } else if (imageUrl != null) {
-      backgroundImage = NetworkImage(imageUrl!) as ImageProvider;
+      avatar = ClipOval(
+        child: Image.network(
+          imageUrl!,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return const Center(child: CircularProgressIndicator());
+          },
+        ),
+      );
     } else {
-      backgroundImage = const AssetImage('assets/default_pic.jpg');
+      avatar = const CircleAvatar(
+        backgroundImage: AssetImage('assets/default_pic.jpg'),
+      );
     }
 
     return Stack(
@@ -36,7 +47,7 @@ class ProfilePicture extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 150, maxHeight: 150),
           child: AspectRatio(
             aspectRatio: 1,
-            child: CircleAvatar(backgroundImage: backgroundImage),
+            child: avatar,
           ),
         ),
         if (isEditing) ...[

@@ -250,10 +250,14 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
       final recipeRepo = ref.read(recipeRepositoryProvider);
       await recipeRepo.deleteRecipe(_recipe!.id!);
 
-      // Provider für alle Kategorien invalidieren
-      final categories = ref.read(groupCategoriesProvider).asData?.value ?? [];
-      for (final category in categories) {
-        ref.invalidate(recipesPaginationProvider(category.name));
+      // Provider nur für die Kategorien des gelöschten Rezepts invalidieren
+      final allCategories =
+          ref.read(groupCategoriesProvider).asData?.value ?? [];
+      final recipeCategories = _recipe!.categories.toSet();
+      for (final category in allCategories) {
+        if (recipeCategories.contains(category.name)) {
+          ref.invalidate(recipesPaginationProvider(category.id));
+        }
       }
 
       if (context.mounted) {
