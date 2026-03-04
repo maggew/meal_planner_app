@@ -1,5 +1,6 @@
 import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/domain/entities/user.dart';
+import 'package:meal_planner/domain/enums/group_role.dart';
 
 abstract class GroupRepository {
   // CRUD Groups
@@ -23,4 +24,5 @@ abstract class GroupRepository {
   Future<void> removeMember(String groupId, String userId);
   Future<List<String>> getMemberIds(String groupId);
   Future<void> updateMemberRole(String groupId, String userId, String newRole);
+  Future<GroupRole?> getMemberRole(String groupId, String userId);
 }

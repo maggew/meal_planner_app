@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:meal_planner/domain/entities/user.dart';
+import 'package:meal_planner/domain/enums/group_role.dart';
 import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/data/model/group_model.dart';
 import 'package:meal_planner/domain/entities/group.dart';
@@ -264,6 +265,23 @@ class SupabaseGroupRepository implements GroupRepository {
       throw GroupMemberException("Keine Internetverbindung");
     } catch (e) {
       throw GroupMemberException("Unbekannter Fehler: $e");
+    }
+  }
+
+  @override
+  Future<GroupRole?> getMemberRole(String groupId, String userId) async {
+    try {
+      final result = await _supabase
+          .from(SupabaseConstants.groupMembersTable)
+          .select(SupabaseConstants.memberRole)
+          .eq(SupabaseConstants.memberGroupId, groupId)
+          .eq(SupabaseConstants.memberUserId, userId)
+          .maybeSingle();
+
+      if (result == null) return null;
+      return GroupRole.fromString(result[SupabaseConstants.memberRole] as String);
+    } catch (_) {
+      return null;
     }
   }
 }

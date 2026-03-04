@@ -5,6 +5,7 @@ import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/common/glass_card.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/recipe/trash_provider.dart';
+import 'package:meal_planner/services/providers/session_provider.dart';
 
 class TrashRecipeListItem extends ConsumerWidget {
   final Recipe recipe;
@@ -12,6 +13,8 @@ class TrashRecipeListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isAdmin = ref.watch(sessionProvider).isAdmin;
+
     final fallback = Image.asset('assets/images/Rosi.png', fit: BoxFit.cover);
     final recipeImage = (recipe.imageUrl == null ||
             recipe.imageUrl!.isEmpty ||
@@ -67,9 +70,16 @@ class TrashRecipeListItem extends ConsumerWidget {
                     tooltip: 'Endgültig löschen',
                     icon: Icon(
                       Icons.delete_forever_rounded,
-                      color: Theme.of(context).colorScheme.error,
+                      color: isAdmin
+                          ? Theme.of(context).colorScheme.error
+                          : Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.3),
                     ),
-                    onPressed: () => _confirmHardDelete(context, ref),
+                    onPressed: isAdmin
+                        ? () => _confirmHardDelete(context, ref)
+                        : () => _showAdminOnlySnackbar(context),
                   ),
                 ],
               ),
@@ -77,6 +87,14 @@ class TrashRecipeListItem extends ConsumerWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showAdminOnlySnackbar(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Nur Admins können Rezepte endgültig löschen.'),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:meal_planner/core/constants/local_storage_service.dart';
 import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
+import 'package:meal_planner/domain/enums/group_role.dart';
 import 'package:meal_planner/domain/exceptions/group_exceptions.dart';
 import 'package:meal_planner/services/providers/realtime_auth_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
@@ -13,25 +14,31 @@ class SessionState {
   final String? userId;
   final String? groupId;
   final Group? group;
+  final GroupRole? role;
   final bool isLoading;
 
   const SessionState({
     this.userId,
     this.groupId,
     this.group,
+    this.role,
     this.isLoading = false,
   });
+
+  bool get isAdmin => role == GroupRole.admin;
 
   SessionState copyWith({
     String? userId,
     String? groupId,
     Group? group,
+    GroupRole? role,
     bool? isLoading,
   }) {
     return SessionState(
       userId: userId ?? this.userId,
       groupId: groupId ?? this.groupId,
       group: group ?? this.group,
+      role: role ?? this.role,
       isLoading: isLoading ?? this.isLoading,
     );
   }
@@ -43,7 +50,7 @@ class SessionController extends StateNotifier<SessionState> {
 
   final Ref ref;
 
-  /// Lädt die komplette Session (userId + groupId + Group-Daten)
+  /// Lädt die komplette Session (userId + groupId + Group-Daten + Rolle)
   Future<void> loadSession(String userId) async {
     state = state.copyWith(isLoading: true, userId: userId);
 
@@ -51,10 +58,12 @@ class SessionController extends StateNotifier<SessionState> {
     final groupId = await storage.loadActiveGroup();
 
     Group? group;
+    GroupRole? role;
     if (groupId != null) {
       try {
         final groupRepo = ref.read(groupRepositoryProvider);
         group = await groupRepo.getGroup(groupId);
+        role = await groupRepo.getMemberRole(groupId, userId);
         if (group != null) {
           await storage.saveGroup(group);
         }
@@ -74,6 +83,7 @@ class SessionController extends StateNotifier<SessionState> {
       userId: userId,
       groupId: groupId,
       group: group,
+      role: role,
       isLoading: false,
     );
   }
@@ -93,7 +103,7 @@ class SessionController extends StateNotifier<SessionState> {
       final storage = LocalStorageService();
       await storage.saveActiveGroup(groupId);
 
-      state = state.copyWith(groupId: groupId, group: group);
+      state = state.copyWith(groupId: groupId, group: group, role: GroupRole.member);
     } on GroupNotFoundException {
       rethrow;
     } on PostgrestException catch (e) {
@@ -110,10 +120,11 @@ class SessionController extends StateNotifier<SessionState> {
     final groupRepository = ref.read(groupRepositoryProvider);
 
     final group = await groupRepository.getGroup(groupId);
+    final role = await groupRepository.getMemberRole(groupId, userId);
     final storage = LocalStorageService();
     await storage.saveActiveGroup(groupId);
 
-    state = state.copyWith(groupId: groupId, group: group);
+    state = state.copyWith(groupId: groupId, group: group, role: role);
   }
 
   Future<void> reloadActiveGroup() async {
