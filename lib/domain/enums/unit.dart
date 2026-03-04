@@ -40,7 +40,6 @@ class UnitParser {
     'messerspitze': Unit.KNIFETIP,
     'bund': Unit.BUNCH,
     'bunch': Unit.BUNCH,
-    'Dose': Unit.CAN,
     'dose': Unit.CAN,
   };
 

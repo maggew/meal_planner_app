@@ -101,17 +101,48 @@ class RecipeExtractor {
 
   /* ===================== INGREDIENTS ===================== */
 
+  static const _sectionPatterns = [
+    'für den ', 'für die ', 'für das ', 'für ca.',
+    'teig', 'füllung', 'sauce', 'soße', 'marinade',
+    'dressing', 'topping', 'beilage', 'garnitur',
+    'glasur', 'guss', 'creme', 'belag',
+    'außerdem', 'zusätzlich', 'zum servieren',
+    'boden', 'streusel', 'ganache', 'baiser',
+    'vinaigrette', 'pesto', 'chutney', 'salsa',
+    'zum garnieren', 'zum dekorieren', 'zum bestreuen', 'zum bestäuben',
+    'panade', 'kruste', 'brühe', 'mousse',
+  ];
+
+  static bool _isSectionHeader(String line) {
+    // (a) Beginnt mit Großbuchstabe
+    if (line[0] != line[0].toUpperCase() || line[0] == line[0].toLowerCase()) {
+      return false;
+    }
+
+    // (b) Enthält keine Zahl → Zeilen mit Mengenangaben sind Zutaten
+    if (RegExp(r'\d').hasMatch(line)) {
+      return false;
+    }
+
+    // (c) Endet mit ":" oder matcht bekanntes Header-Pattern
+    if (line.endsWith(':') || line.endsWith('::')) {
+      return true;
+    }
+
+    final lowerLine = line.toLowerCase();
+    return _sectionPatterns.any((p) => lowerLine.contains(p));
+  }
+
   static Map<String, List<String>> _createSections(List<String> lines) {
     Map<String, List<String>> output = {};
     String currentSection = "Zutaten";
 
     for (String line in lines) {
-      if (line[0] == line[0].toUpperCase() &&
-          line[0] != line[0].toLowerCase() &&
-          !_quantitylessIngredients
-              .any((z) => line.toLowerCase().contains(z))) {
-        output[line] = [];
-        currentSection = line;
+      if (_isSectionHeader(line)) {
+        final header =
+            line.endsWith(':') ? line.substring(0, line.length - 1).trim() : line;
+        output[header] = [];
+        currentSection = header;
       } else {
         if (output.isEmpty || !output.containsKey(currentSection)) {
           output[currentSection] = [];
@@ -128,13 +159,15 @@ class RecipeExtractor {
 
     for (int i = list.length - 1; i >= 0; i--) {
       String line = list[i];
-      if (line[0] == line[0].toLowerCase() &&
+      if (i > 0 &&
+          line[0] == line[0].toLowerCase() &&
           line[0] != line[0].toUpperCase() &&
           !_quantitylessIngredients
               .any((z) => line.toLowerCase().contains(z))) {
         output.insert(0, list[i - 1] + " " + line);
         i--;
-      } else if (_flourType.any((z) => line.toLowerCase().contains(z))) {
+      } else if (i > 0 &&
+          _flourType.any((z) => line.toLowerCase().contains(z))) {
         output.insert(0, list[i - 1] + " " + line);
         i--;
       } else {
@@ -180,7 +213,7 @@ class RecipeExtractor {
     for (int i = 0; i < lines.length; i++) {
       String line = lines[i].trim();
       int lastIndex = line.length - 1;
-      if (line.endsWith('-')) {
+      if (line.endsWith('-') && i + 1 < lines.length) {
         String nextLine = lines[i + 1].trim();
         if (nextLine[0] == nextLine[0].toLowerCase()) {
           String lineAdd = line.substring(0, lastIndex);
@@ -219,7 +252,7 @@ class RecipeExtractor {
     Unit? unit;
     String name = '';
 
-    if (amount != null) {
+    if (amount != null && tokens.length > 1) {
       unit = UnitParser.parse(tokens[1]);
       if (unit == null) {
         unit = Unit.PIECE;
@@ -227,6 +260,10 @@ class RecipeExtractor {
       } else {
         name = tokens.skip(2).join(" ");
       }
+    } else if (amount != null) {
+      unit = Unit.PIECE;
+      name = amount;
+      amount = null;
     } else if (tokens.length > 1 && UnitParser.parse(tokens[1]) != null) {
       unit = UnitParser.parse(tokens[1]);
       amount = tokens.first;
