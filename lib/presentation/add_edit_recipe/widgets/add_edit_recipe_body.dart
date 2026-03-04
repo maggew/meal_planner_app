@@ -8,11 +8,13 @@ import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recip
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_picture.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_portion_selection.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_recipe_name_textformfield.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/carb_tag_selection.dart';
 import 'package:meal_planner/presentation/common/glass_card.dart';
 import 'package:meal_planner/services/providers/groups/group_category_provider.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_edit_recipe_ingredients_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
+import 'package:meal_planner/services/providers/recipe/carb_tag_selection_provider.dart';
 
 class AddEditRecipeBody extends ConsumerStatefulWidget {
   final Recipe? existingRecipe;
@@ -57,6 +59,8 @@ class _AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
         ref
             .read(selectedPortionsProvider.notifier)
             .set(widget.existingRecipe!.portions);
+        ref.read(carbTagSelectionProvider.notifier)
+            .set(widget.existingRecipe!.carbTags);
       });
     }
   }
@@ -104,6 +108,9 @@ class _AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
             child: AddEditRecipePicture(
               existingImageUrl: widget.existingRecipe?.imageUrl,
             ),
+          ),
+          GlassCard(
+            child: CarbTagSelection(),
           ),
           AddEditRecipeButton(
             recipeNameController: _recipeNameController,

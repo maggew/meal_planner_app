@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
+import 'package:meal_planner/domain/services/carb_tag_detector.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/groups/group_category_provider.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_edit_recipe_ingredients_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
+import 'package:meal_planner/services/providers/recipe/carb_tag_selection_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_pagination_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_upload_provider.dart';
 
@@ -107,6 +109,14 @@ class AddEditRecipeButton extends ConsumerWidget {
       );
     }).toList();
 
+    // CarbTags: use manually selected ones, auto-detect if empty
+    var selectedCarbTags = ref.read(carbTagSelectionProvider);
+    if (selectedCarbTags.isEmpty) {
+      selectedCarbTags = CarbTagDetector.detect(ingredientSections)
+          .map((t) => t.value)
+          .toList();
+    }
+
     Recipe recipe = Recipe(
       id: existingRecipe?.id,
       name: recipeNameController.text,
@@ -115,6 +125,7 @@ class AddEditRecipeButton extends ConsumerWidget {
       ingredientSections: ingredientSections,
       instructions: recipeInstructionsController.text,
       imageUrl: existingRecipe?.imageUrl,
+      carbTags: selectedCarbTags,
     );
 
     final recipeRepo = ref.read(recipeUploadProvider.notifier);
@@ -152,6 +163,7 @@ class AddEditRecipeButton extends ConsumerWidget {
     ref.read(selectedCategoriesProvider.notifier).clear();
     ref.read(selectedPortionsProvider.notifier).set(defaultPortions);
     ref.read(imageManagerProvider.notifier).clearPhoto();
+    ref.read(carbTagSelectionProvider.notifier).clear();
     recipeNameController.clear();
     recipeInstructionsController.clear();
   }
