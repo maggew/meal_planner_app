@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_button.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_category_selection.dart';
