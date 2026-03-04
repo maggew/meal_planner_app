@@ -233,28 +233,6 @@ class CachedRecipeRepository implements RecipeRepository {
     await _dao.deleteRecipe(recipeId);
   }
 
-  @override
-  Future<void> restoreRecipe(String recipeId) async {
-    await _remote.restoreRecipe(recipeId);
-
-    // Re-fetch and cache restored recipe
-    try {
-      final restored = await _remote.getRecipeById(recipeId);
-      if (restored != null) {
-        final timers = await _remote.getTimersForRecipe(recipeId);
-        await _cacheRecipe(restored, timers);
-      }
-    } catch (e) {
-      log('Failed to cache restored recipe', error: e);
-    }
-  }
-
-  @override
-  Future<void> hardDeleteRecipe(String recipeId) async {
-    await _remote.hardDeleteRecipe(recipeId);
-    await _dao.deleteRecipe(recipeId);
-  }
-
   // ==================== TIMER (pass-through + cache update) ====================
 
   @override

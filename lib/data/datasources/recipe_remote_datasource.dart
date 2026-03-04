@@ -25,6 +25,12 @@ abstract class RecipeRemoteDatasource {
     required String groupId,
   });
 
+  Future<List<Map<String, dynamic>>> getDeletedRecipes({
+    required String groupId,
+    required int offset,
+    required int limit,
+  });
+
   Future<void> restoreRecipe(String recipeId);
   Future<void> hardDeleteRecipe(String recipeId);
   Future<void> softDeleteRecipe(String recipeId);

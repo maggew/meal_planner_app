@@ -55,5 +55,6 @@ class AppRouter extends RootStackRouter {
           ),
         ),
         AutoRoute(page: ZoomPictureRoute.page),
+        AutoRoute(page: TrashRoute.page),
       ];
 }

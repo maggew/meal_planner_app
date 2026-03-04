@@ -115,6 +115,27 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
   }
 
   @override
+  Future<List<Map<String, dynamic>>> getDeletedRecipes({
+    required String groupId,
+    required int offset,
+    required int limit,
+  }) async {
+    final response = await supabase
+        .from(SupabaseConstants.recipesTable)
+        .select('''
+          *,
+          recipe_categories(categories(name)),
+          recipe_ingredients(amount, unit, sort_order, group_name, ingredients(name))
+        ''')
+        .eq(SupabaseConstants.recipeGroupId, groupId)
+        .filter(SupabaseConstants.recipeDeletedAt, 'not.is', null)
+        .order(SupabaseConstants.recipeDeletedAt, ascending: false)
+        .range(offset, offset + limit - 1);
+
+    return (response as List).cast<Map<String, dynamic>>();
+  }
+
+  @override
   Future<void> deleteRecipeCategories(String recipeId) async {
     await supabase
         .from(SupabaseConstants.recipeCategoriesTable)

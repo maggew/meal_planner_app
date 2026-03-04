@@ -9,10 +9,10 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:auto_route/auto_route.dart' as _i20;
-import 'package:flutter/material.dart' as _i21;
-import 'package:meal_planner/domain/entities/group.dart' as _i23;
-import 'package:meal_planner/domain/entities/recipe.dart' as _i22;
+import 'package:auto_route/auto_route.dart' as _i21;
+import 'package:flutter/material.dart' as _i22;
+import 'package:meal_planner/domain/entities/group.dart' as _i24;
+import 'package:meal_planner/domain/entities/recipe.dart' as _i23;
 import 'package:meal_planner/presentation/add_edit_recipe/add_edit_recipe_page.dart'
     as _i1;
 import 'package:meal_planner/presentation/cookbook/cookbook_page.dart' as _i2;
@@ -41,17 +41,18 @@ import 'package:meal_planner/presentation/show_single_group/show_single_group_pa
     as _i16;
 import 'package:meal_planner/presentation/show_user_groups/show_user_groups_page.dart'
     as _i17;
-import 'package:meal_planner/presentation/welcome/welcome_page.dart' as _i18;
+import 'package:meal_planner/presentation/trash/trash_page.dart' as _i18;
+import 'package:meal_planner/presentation/welcome/welcome_page.dart' as _i19;
 import 'package:meal_planner/presentation/zoom_picture/zoom_pic_page.dart'
-    as _i19;
+    as _i20;
 
 /// generated route for
 /// [_i1.AddEditRecipePage]
-class AddEditRecipeRoute extends _i20.PageRouteInfo<AddEditRecipeRouteArgs> {
+class AddEditRecipeRoute extends _i21.PageRouteInfo<AddEditRecipeRouteArgs> {
   AddEditRecipeRoute({
-    _i21.Key? key,
-    _i22.Recipe? existingRecipe,
-    List<_i20.PageRouteInfo>? children,
+    _i22.Key? key,
+    _i23.Recipe? existingRecipe,
+    List<_i21.PageRouteInfo>? children,
   }) : super(
           AddEditRecipeRoute.name,
           args:
@@ -61,7 +62,7 @@ class AddEditRecipeRoute extends _i20.PageRouteInfo<AddEditRecipeRouteArgs> {
 
   static const String name = 'AddEditRecipeRoute';
 
-  static _i20.PageInfo page = _i20.PageInfo(
+  static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<AddEditRecipeRouteArgs>(
@@ -78,9 +79,9 @@ class AddEditRecipeRoute extends _i20.PageRouteInfo<AddEditRecipeRouteArgs> {
 class AddEditRecipeRouteArgs {
   const AddEditRecipeRouteArgs({this.key, this.existingRecipe});
 
-  final _i21.Key? key;
+  final _i22.Key? key;
 
-  final _i22.Recipe? existingRecipe;
+  final _i23.Recipe? existingRecipe;
 
   @override
   String toString() {
@@ -100,13 +101,13 @@ class AddEditRecipeRouteArgs {
 
 /// generated route for
 /// [_i2.CookbookPage]
-class CookbookRoute extends _i20.PageRouteInfo<void> {
-  const CookbookRoute({List<_i20.PageRouteInfo>? children})
+class CookbookRoute extends _i21.PageRouteInfo<void> {
+  const CookbookRoute({List<_i21.PageRouteInfo>? children})
       : super(CookbookRoute.name, initialChildren: children);
 
   static const String name = 'CookbookRoute';
 
-  static _i20.PageInfo page = _i20.PageInfo(
+  static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
       return const _i2.CookbookPage();
@@ -116,13 +117,13 @@ class CookbookRoute extends _i20.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i3.CreateGroupPage]
-class CreateGroupRoute extends _i20.PageRouteInfo<void> {
-  const CreateGroupRoute({List<_i20.PageRouteInfo>? children})
+class CreateGroupRoute extends _i21.PageRouteInfo<void> {
+  const CreateGroupRoute({List<_i21.PageRouteInfo>? children})
       : super(CreateGroupRoute.name, initialChildren: children);
 
   static const String name = 'CreateGroupRoute';
 
-  static _i20.PageInfo page = _i20.PageInfo(
+  static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
       return _i3.CreateGroupPage();
@@ -132,13 +133,13 @@ class CreateGroupRoute extends _i20.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i4.DetailedWeekplanPage]
-class DetailedWeekplanRoute extends _i20.PageRouteInfo<void> {
-  const DetailedWeekplanRoute({List<_i20.PageRouteInfo>? children})
+class DetailedWeekplanRoute extends _i21.PageRouteInfo<void> {
+  const DetailedWeekplanRoute({List<_i21.PageRouteInfo>? children})
       : super(DetailedWeekplanRoute.name, initialChildren: children);
 
   static const String name = 'DetailedWeekplanRoute';
 
-  static _i20.PageInfo page = _i20.PageInfo(
+  static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
       return const _i4.DetailedWeekplanPage();
@@ -148,11 +149,11 @@ class DetailedWeekplanRoute extends _i20.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i5.EditGroupPage]
-class EditGroupRoute extends _i20.PageRouteInfo<EditGroupRouteArgs> {
+class EditGroupRoute extends _i21.PageRouteInfo<EditGroupRouteArgs> {
   EditGroupRoute({
-    _i21.Key? key,
-    required _i23.Group group,
-    List<_i20.PageRouteInfo>? children,
+    _i22.Key? key,
+    required _i24.Group group,
+    List<_i21.PageRouteInfo>? children,
   }) : super(
           EditGroupRoute.name,
           args: EditGroupRouteArgs(key: key, group: group),
@@ -161,7 +162,7 @@ class EditGroupRoute extends _i20.PageRouteInfo<EditGroupRouteArgs> {
 
   static const String name = 'EditGroupRoute';
 
-  static _i20.PageInfo page = _i20.PageInfo(
+  static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<EditGroupRouteArgs>();
@@ -173,9 +174,9 @@ class EditGroupRoute extends _i20.PageRouteInfo<EditGroupRouteArgs> {
 class EditGroupRouteArgs {
   const EditGroupRouteArgs({this.key, required this.group});
 
-  final _i21.Key? key;
+  final _i22.Key? key;
 
-  final _i23.Group group;
+  final _i24.Group group;
 
   @override
   String toString() {
@@ -195,13 +196,13 @@ class EditGroupRouteArgs {
 
 /// generated route for
 /// [_i6.GroupOnboardingPage]
-class GroupOnboardingRoute extends _i20.PageRouteInfo<void> {
-  const GroupOnboardingRoute({List<_i20.PageRouteInfo>? children})
+class GroupOnboardingRoute extends _i21.PageRouteInfo<void> {
+  const GroupOnboardingRoute({List<_i21.PageRouteInfo>? children})
       : super(GroupOnboardingRoute.name, initialChildren: children);
 
   static const String name = 'GroupOnboardingRoute';
 
-  static _i20.PageInfo page = _i20.PageInfo(
+  static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
       return _i6.GroupOnboardingPage();
@@ -211,13 +212,13 @@ class GroupOnboardingRoute extends _i20.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i7.GroupsPage]
-class GroupsRoute extends _i20.PageRouteInfo<void> {
-  const GroupsRoute({List<_i20.PageRouteInfo>? children})
+class GroupsRoute extends _i21.PageRouteInfo<void> {
+  const GroupsRoute({List<_i21.PageRouteInfo>? children})
       : super(GroupsRoute.name, initialChildren: children);
 
   static const String name = 'GroupsRoute';
 
-  static _i20.PageInfo page = _i20.PageInfo(
+  static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
       return const _i7.GroupsPage();
@@ -227,13 +228,13 @@ class GroupsRoute extends _i20.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i8.JoinGroupPage]
-class JoinGroupRoute extends _i20.PageRouteInfo<void> {
-  const JoinGroupRoute({List<_i20.PageRouteInfo>? children})
+class JoinGroupRoute extends _i21.PageRouteInfo<void> {
+  const JoinGroupRoute({List<_i21.PageRouteInfo>? children})
       : super(JoinGroupRoute.name, initialChildren: children);
 
   static const String name = 'JoinGroupRoute';
 
-  static _i20.PageInfo page = _i20.PageInfo(
+  static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
       return _i8.JoinGroupPage();
@@ -243,13 +244,13 @@ class JoinGroupRoute extends _i20.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i9.LoginPage]
-class LoginRoute extends _i20.PageRouteInfo<void> {
-  const LoginRoute({List<_i20.PageRouteInfo>? children})
+class LoginRoute extends _i21.PageRouteInfo<void> {
+  const LoginRoute({List<_i21.PageRouteInfo>? children})
       : super(LoginRoute.name, initialChildren: children);
 
   static const String name = 'LoginRoute';
 
-  static _i20.PageInfo page = _i20.PageInfo(
+  static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
       return const _i9.LoginPage();
@@ -259,13 +260,13 @@ class LoginRoute extends _i20.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i10.ProfilePage]
-class ProfileRoute extends _i20.PageRouteInfo<void> {
-  const ProfileRoute({List<_i20.PageRouteInfo>? children})
+class ProfileRoute extends _i21.PageRouteInfo<void> {
+  const ProfileRoute({List<_i21.PageRouteInfo>? children})
       : super(ProfileRoute.name, initialChildren: children);
 
   static const String name = 'ProfileRoute';
 
-  static _i20.PageInfo page = _i20.PageInfo(
+  static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
       return const _i10.ProfilePage();
@@ -275,13 +276,13 @@ class ProfileRoute extends _i20.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i11.RegistrationPage]
-class RegistrationRoute extends _i20.PageRouteInfo<void> {
-  const RegistrationRoute({List<_i20.PageRouteInfo>? children})
+class RegistrationRoute extends _i21.PageRouteInfo<void> {
+  const RegistrationRoute({List<_i21.PageRouteInfo>? children})
       : super(RegistrationRoute.name, initialChildren: children);
 
   static const String name = 'RegistrationRoute';
 
-  static _i20.PageInfo page = _i20.PageInfo(
+  static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
       return _i11.RegistrationPage();
@@ -291,13 +292,13 @@ class RegistrationRoute extends _i20.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i12.SettingsPage]
-class SettingsRoute extends _i20.PageRouteInfo<void> {
-  const SettingsRoute({List<_i20.PageRouteInfo>? children})
+class SettingsRoute extends _i21.PageRouteInfo<void> {
+  const SettingsRoute({List<_i21.PageRouteInfo>? children})
       : super(SettingsRoute.name, initialChildren: children);
 
   static const String name = 'SettingsRoute';
 
-  static _i20.PageInfo page = _i20.PageInfo(
+  static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
       return const _i12.SettingsPage();
@@ -307,13 +308,13 @@ class SettingsRoute extends _i20.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i13.ShellPage]
-class ShellRoute extends _i20.PageRouteInfo<void> {
-  const ShellRoute({List<_i20.PageRouteInfo>? children})
+class ShellRoute extends _i21.PageRouteInfo<void> {
+  const ShellRoute({List<_i21.PageRouteInfo>? children})
       : super(ShellRoute.name, initialChildren: children);
 
   static const String name = 'ShellRoute';
 
-  static _i20.PageInfo page = _i20.PageInfo(
+  static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
       return const _i13.ShellPage();
@@ -323,13 +324,13 @@ class ShellRoute extends _i20.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i14.ShoppingListPage]
-class ShoppingListRoute extends _i20.PageRouteInfo<void> {
-  const ShoppingListRoute({List<_i20.PageRouteInfo>? children})
+class ShoppingListRoute extends _i21.PageRouteInfo<void> {
+  const ShoppingListRoute({List<_i21.PageRouteInfo>? children})
       : super(ShoppingListRoute.name, initialChildren: children);
 
   static const String name = 'ShoppingListRoute';
 
-  static _i20.PageInfo page = _i20.PageInfo(
+  static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
       return const _i14.ShoppingListPage();
@@ -339,14 +340,14 @@ class ShoppingListRoute extends _i20.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i15.ShowRecipePage]
-class ShowRecipeRoute extends _i20.PageRouteInfo<ShowRecipeRouteArgs> {
+class ShowRecipeRoute extends _i21.PageRouteInfo<ShowRecipeRouteArgs> {
   ShowRecipeRoute({
-    _i21.Key? key,
-    _i22.Recipe? recipe,
-    _i21.Image? image,
+    _i22.Key? key,
+    _i23.Recipe? recipe,
+    _i22.Image? image,
     String? recipeId,
     int? initialStep,
-    List<_i20.PageRouteInfo>? children,
+    List<_i21.PageRouteInfo>? children,
   }) : super(
           ShowRecipeRoute.name,
           args: ShowRecipeRouteArgs(
@@ -361,7 +362,7 @@ class ShowRecipeRoute extends _i20.PageRouteInfo<ShowRecipeRouteArgs> {
 
   static const String name = 'ShowRecipeRoute';
 
-  static _i20.PageInfo page = _i20.PageInfo(
+  static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<ShowRecipeRouteArgs>(
@@ -387,11 +388,11 @@ class ShowRecipeRouteArgs {
     this.initialStep,
   });
 
-  final _i21.Key? key;
+  final _i22.Key? key;
 
-  final _i22.Recipe? recipe;
+  final _i23.Recipe? recipe;
 
-  final _i21.Image? image;
+  final _i22.Image? image;
 
   final String? recipeId;
 
@@ -425,11 +426,11 @@ class ShowRecipeRouteArgs {
 /// generated route for
 /// [_i16.ShowSingleGroupPage]
 class ShowSingleGroupRoute
-    extends _i20.PageRouteInfo<ShowSingleGroupRouteArgs> {
+    extends _i21.PageRouteInfo<ShowSingleGroupRouteArgs> {
   ShowSingleGroupRoute({
-    _i21.Key? key,
-    required _i23.Group group,
-    List<_i20.PageRouteInfo>? children,
+    _i22.Key? key,
+    required _i24.Group group,
+    List<_i21.PageRouteInfo>? children,
   }) : super(
           ShowSingleGroupRoute.name,
           args: ShowSingleGroupRouteArgs(key: key, group: group),
@@ -438,7 +439,7 @@ class ShowSingleGroupRoute
 
   static const String name = 'ShowSingleGroupRoute';
 
-  static _i20.PageInfo page = _i20.PageInfo(
+  static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
       final args = data.argsAs<ShowSingleGroupRouteArgs>();
@@ -450,9 +451,9 @@ class ShowSingleGroupRoute
 class ShowSingleGroupRouteArgs {
   const ShowSingleGroupRouteArgs({this.key, required this.group});
 
-  final _i21.Key? key;
+  final _i22.Key? key;
 
-  final _i23.Group group;
+  final _i24.Group group;
 
   @override
   String toString() {
@@ -472,13 +473,13 @@ class ShowSingleGroupRouteArgs {
 
 /// generated route for
 /// [_i17.ShowUserGroupsPage]
-class ShowUserGroupsRoute extends _i20.PageRouteInfo<void> {
-  const ShowUserGroupsRoute({List<_i20.PageRouteInfo>? children})
+class ShowUserGroupsRoute extends _i21.PageRouteInfo<void> {
+  const ShowUserGroupsRoute({List<_i21.PageRouteInfo>? children})
       : super(ShowUserGroupsRoute.name, initialChildren: children);
 
   static const String name = 'ShowUserGroupsRoute';
 
-  static _i20.PageInfo page = _i20.PageInfo(
+  static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
       return const _i17.ShowUserGroupsPage();
@@ -487,33 +488,49 @@ class ShowUserGroupsRoute extends _i20.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i18.WelcomePage]
-class WelcomeRoute extends _i20.PageRouteInfo<void> {
-  const WelcomeRoute({List<_i20.PageRouteInfo>? children})
-      : super(WelcomeRoute.name, initialChildren: children);
+/// [_i18.TrashPage]
+class TrashRoute extends _i21.PageRouteInfo<void> {
+  const TrashRoute({List<_i21.PageRouteInfo>? children})
+      : super(TrashRoute.name, initialChildren: children);
 
-  static const String name = 'WelcomeRoute';
+  static const String name = 'TrashRoute';
 
-  static _i20.PageInfo page = _i20.PageInfo(
+  static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
-      return _i18.WelcomePage();
+      return const _i18.TrashPage();
     },
   );
 }
 
 /// generated route for
-/// [_i19.ZoomPicturePage]
-class ZoomPictureRoute extends _i20.PageRouteInfo<void> {
-  const ZoomPictureRoute({List<_i20.PageRouteInfo>? children})
+/// [_i19.WelcomePage]
+class WelcomeRoute extends _i21.PageRouteInfo<void> {
+  const WelcomeRoute({List<_i21.PageRouteInfo>? children})
+      : super(WelcomeRoute.name, initialChildren: children);
+
+  static const String name = 'WelcomeRoute';
+
+  static _i21.PageInfo page = _i21.PageInfo(
+    name,
+    builder: (data) {
+      return _i19.WelcomePage();
+    },
+  );
+}
+
+/// generated route for
+/// [_i20.ZoomPicturePage]
+class ZoomPictureRoute extends _i21.PageRouteInfo<void> {
+  const ZoomPictureRoute({List<_i21.PageRouteInfo>? children})
       : super(ZoomPictureRoute.name, initialChildren: children);
 
   static const String name = 'ZoomPictureRoute';
 
-  static _i20.PageInfo page = _i20.PageInfo(
+  static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
-      return _i19.ZoomPicturePage();
+      return _i20.ZoomPicturePage();
     },
   );
 }

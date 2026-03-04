@@ -10,6 +10,7 @@ import 'package:meal_planner/data/repositories/supabase_group_category_repositor
 import 'package:meal_planner/data/repositories/supabase_group_repository.dart';
 import 'package:meal_planner/data/repositories/cached_recipe_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_recipe_repository.dart';
+import 'package:meal_planner/data/repositories/supabase_trash_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_shopping_list_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_user_repository.dart';
 import 'package:meal_planner/domain/repositories/auth_repository.dart';
@@ -19,6 +20,7 @@ import 'package:meal_planner/domain/repositories/meal_plan_repository.dart';
 import 'package:meal_planner/domain/repositories/recipe_repository.dart';
 import 'package:meal_planner/domain/repositories/shopping_list_repository.dart';
 import 'package:meal_planner/domain/repositories/storage_repository.dart';
+import 'package:meal_planner/domain/repositories/trash_repository.dart';
 import 'package:meal_planner/domain/repositories/user_repository.dart';
 import 'package:meal_planner/services/providers/auth_providers.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
@@ -145,5 +147,15 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 final groupCategoryRepositoryProvider = Provider<GroupCategoryRepository>((ref) {
   return SupabaseGroupCategoryRepository(
     supabase: ref.watch(supabaseProvider),
+  );
+});
+
+final trashRepositoryProvider = Provider<TrashRepository>((ref) {
+  final session = ref.watch(sessionProvider);
+  return SupabaseTrashRepository(
+    remote: ref.watch(recipeRemoteDatasourceProvider),
+    storage: ref.watch(storageRepositoryProvider),
+    dao: ref.watch(recipeCacheDaoProvider),
+    groupId: session.groupId ?? '',
   );
 });

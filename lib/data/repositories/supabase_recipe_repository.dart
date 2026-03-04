@@ -279,32 +279,6 @@ class SupabaseRecipeRepository implements RecipeRepository {
     }
   }
 
-  @override
-  Future<void> hardDeleteRecipe(String recipeId) async {
-    try {
-      final recipe = await getRecipeById(recipeId);
-
-      if (recipe?.imageUrl != null && recipe!.imageUrl!.isNotEmpty) {
-        await _storage.deleteImage(recipe.imageUrl!);
-      }
-
-      await _remote.deleteRecipeCategories(recipeId);
-      await _remote.deleteRecipeIngredients(recipeId);
-      await _remote.hardDeleteRecipe(recipeId);
-    } catch (e) {
-      throw RecipeDeletionException(e.toString());
-    }
-  }
-
-  @override
-  Future<void> restoreRecipe(String recipeId) async {
-    try {
-      await _remote.restoreRecipe(recipeId);
-    } catch (e) {
-      throw RecipeUpdateException(e.toString());
-    }
-  }
-
   // ==================== TIMER ====================
   @override
   Future<List<RecipeTimer>> getTimersForRecipe(String recipeId) async {

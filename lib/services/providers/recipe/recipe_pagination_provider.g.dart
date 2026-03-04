@@ -58,7 +58,7 @@ final class RecipesPaginationProvider
   }
 }
 
-String _$recipesPaginationHash() => r'b10f096b8f523fa574ec89d84cd76dc3b464fdf4';
+String _$recipesPaginationHash() => r'fcd943d6cce448da1f3deb9e31ff285a74222d22';
 
 final class RecipesPaginationFamily extends $Family
     with
@@ -74,9 +74,9 @@ final class RecipesPaginationFamily extends $Family
         );
 
   RecipesPaginationProvider call(
-    String category,
+    String categoryId,
   ) =>
-      RecipesPaginationProvider._(argument: category, from: this);
+      RecipesPaginationProvider._(argument: categoryId, from: this);
 
   @override
   String toString() => r'recipesPaginationProvider';
@@ -84,10 +84,10 @@ final class RecipesPaginationFamily extends $Family
 
 abstract class _$RecipesPagination extends $Notifier<RecipesPaginationState> {
   late final _$args = ref.$arg as String;
-  String get category => _$args;
+  String get categoryId => _$args;
 
   RecipesPaginationState build(
-    String category,
+    String categoryId,
   );
   @$mustCallSuper
   @override

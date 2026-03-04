@@ -21,8 +21,6 @@ abstract class RecipeRepository {
   Future<void> updateRecipe(Recipe recipe, File? newImage);
 
   Future<void> deleteRecipe(String recipeId);
-  Future<void> restoreRecipe(String recipeId);
-  Future<void> hardDeleteRecipe(String recipeId);
 
   Future<List<String>> getAllCategories();
 

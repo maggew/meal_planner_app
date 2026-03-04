@@ -96,8 +96,8 @@ class CookingModeStepIndicator extends StatelessWidget {
     required ColorScheme colorScheme,
     required TextTheme textTheme,
   }) {
-    final windowStart = (currentStep - 2)
-        .clamp(0, totalSteps - _maxVisibleSteps);
+    final windowStart =
+        (currentStep - 2).clamp(0, totalSteps - _maxVisibleSteps);
     final hasMoreLeft = windowStart > 0;
     final hasMoreRight = windowStart + _maxVisibleSteps < totalSteps;
 
@@ -105,8 +105,7 @@ class CookingModeStepIndicator extends StatelessWidget {
     final scrollAreaWidth = availableWidth - 2 * _overflowLineWidth;
     const maxCircleSize = 36.0;
     final circleWidth = maxCircleSize + 4; // fixed SizedBox per circle
-    final lineWidth =
-        (scrollAreaWidth - _maxVisibleSteps * circleWidth) /
+    final lineWidth = (scrollAreaWidth - _maxVisibleSteps * circleWidth) /
         (_maxVisibleSteps - 1);
 
     // One "step unit" = circle + line (except last circle)
