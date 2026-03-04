@@ -6,6 +6,7 @@ import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/domain/entities/recipe_timer.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
+import 'package:meal_planner/domain/services/carb_tag_detector.dart';
 
 class RecipeCacheConverter {
   static LocalRecipesCompanion toCompanion(
@@ -24,21 +25,31 @@ class RecipeCacheConverter {
       categoriesJson: Value(jsonEncode(recipe.categories)),
       ingredientSectionsJson: Value(_encodeIngredientSections(recipe.ingredientSections)),
       timersJson: Value(_encodeTimers(timers)),
+      carbTagsJson: Value(jsonEncode(recipe.carbTags)),
       isDeleted: const Value(false),
       cachedAt: Value(DateTime.now()),
     );
   }
 
   static Recipe toRecipe(LocalRecipe row) {
+    final ingredientSections = _decodeIngredientSections(row.ingredientSectionsJson);
+    var carbTags = _decodeCarbTags(row.carbTagsJson);
+    // Backfill: auto-detect if empty
+    if (carbTags.isEmpty) {
+      carbTags = CarbTagDetector.detect(ingredientSections)
+          .map((t) => t.value)
+          .toList();
+    }
     return Recipe(
       id: row.id,
       name: row.name,
       categories: _decodeCategories(row.categoriesJson),
       portions: row.portions,
-      ingredientSections: _decodeIngredientSections(row.ingredientSectionsJson),
+      ingredientSections: ingredientSections,
       instructions: row.instructions,
       imageUrl: row.imageUrl,
       createdAt: row.createdAt,
+      carbTags: carbTags,
     );
   }
 
@@ -73,6 +84,15 @@ class RecipeCacheConverter {
   static List<String> _decodeCategories(String json) {
     final List<dynamic> decoded = jsonDecode(json);
     return decoded.cast<String>();
+  }
+
+  static List<String> _decodeCarbTags(String json) {
+    try {
+      final List<dynamic> decoded = jsonDecode(json);
+      return decoded.cast<String>();
+    } catch (_) {
+      return [];
+    }
   }
 
   static List<IngredientSection> _decodeIngredientSections(String json) {

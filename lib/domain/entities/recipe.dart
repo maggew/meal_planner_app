@@ -9,6 +9,7 @@ class Recipe {
   final String instructions;
   final String? imageUrl;
   final DateTime createdAt;
+  final List<String> carbTags;
 
   Recipe({
     this.id,
@@ -19,18 +20,19 @@ class Recipe {
     required this.instructions,
     this.imageUrl,
     DateTime? createdAt,
+    this.carbTags = const [],
   }) : createdAt = createdAt ?? DateTime.now();
 
   Recipe copyWith({
     String? id,
     String? name,
     List<String>? categories,
-    //List<String>? categories,
     int? portions,
     List<IngredientSection>? ingredientSections,
     String? instructions,
     String? imageUrl,
     DateTime? createdAt,
+    List<String>? carbTags,
   }) {
     return Recipe(
       id: id ?? this.id,
@@ -41,6 +43,7 @@ class Recipe {
       instructions: instructions ?? this.instructions,
       imageUrl: imageUrl ?? this.imageUrl,
       createdAt: createdAt ?? this.createdAt,
+      carbTags: carbTags ?? this.carbTags,
     );
   }
 }

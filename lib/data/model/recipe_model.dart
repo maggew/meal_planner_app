@@ -13,6 +13,7 @@ class RecipeModel extends Recipe {
     required super.instructions,
     super.imageUrl,
     super.createdAt,
+    super.carbTags,
   });
 
   Map<String, dynamic> toSupabase({
@@ -30,6 +31,7 @@ class RecipeModel extends Recipe {
       SupabaseConstants.recipeImageUrl: imageUrl ?? this.imageUrl,
       SupabaseConstants.recipeCreatedBy: createdBy,
       SupabaseConstants.recipeCreatedAt: createdAt.toIso8601String(),
+      'carb_tags': carbTags,
     };
   }
 
@@ -39,6 +41,7 @@ class RecipeModel extends Recipe {
       SupabaseConstants.recipePortions: portions,
       SupabaseConstants.recipeInstructions: instructions,
       SupabaseConstants.recipeImageUrl: imageUrl,
+      'carb_tags': carbTags,
     };
   }
 
@@ -79,6 +82,9 @@ class RecipeModel extends Recipe {
         )
         .toList();
 
+    final carbTagsRaw = data['carb_tags'] as List? ?? [];
+    final carbTags = carbTagsRaw.whereType<String>().toList();
+
     return RecipeModel(
       id: data[SupabaseConstants.recipeId] as String?,
       name: data[SupabaseConstants.recipeTitle] as String? ?? '',
@@ -87,6 +93,7 @@ class RecipeModel extends Recipe {
       portions: data[SupabaseConstants.recipePortions] as int? ?? 4,
       categories: categories,
       ingredientSections: ingredientSections,
+      carbTags: carbTags,
     );
   }
 
@@ -95,12 +102,12 @@ class RecipeModel extends Recipe {
       id: recipe.id,
       name: recipe.name,
       categories: recipe.categories,
-      //categories: recipe.categories,
       portions: recipe.portions,
       ingredientSections: recipe.ingredientSections,
       instructions: recipe.instructions,
       imageUrl: recipe.imageUrl,
       createdAt: recipe.createdAt,
+      carbTags: recipe.carbTags,
     );
   }
 
@@ -114,6 +121,7 @@ class RecipeModel extends Recipe {
       instructions: instructions,
       imageUrl: imageUrl,
       createdAt: createdAt,
+      carbTags: carbTags,
     );
   }
 }
