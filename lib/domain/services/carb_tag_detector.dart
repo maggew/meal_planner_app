@@ -6,9 +6,9 @@ class CarbTagDetector {
   static const _keywords = <CarbTag, List<String>>{
     CarbTag.reis: ['reis', 'rice', 'risotto', 'reismehl'],
     CarbTag.pasta: ['pasta', 'nudel', 'spaghetti', 'penne', 'fusilli', 'tagliatelle', 'linguine', 'farfalle', 'rigatoni', 'lasagne', 'gnocchi', 'tortellini', 'noodle'],
-    CarbTag.kartoffel: ['kartoffel', 'potato', 'pommes', 'knödel', 'kloesse', 'püree', 'puree', 'bratkartoffel', 'süsskartoffel', 'suesskartoffel'],
-    CarbTag.brot: ['brot', 'bread', 'toast', 'brötchen', 'broetchen', 'baguette', 'ciabatta', 'pita', 'wrap', 'tortilla', 'focaccia', 'semmel'],
-    CarbTag.couscousBulgur: ['couscous', 'bulgur', 'quinoa', 'hirse', 'freekeh', 'grieß', 'griess'],
+    CarbTag.kartoffel: ['kartoffel', 'potato', 'pommes', 'knoedel', 'kloesse', 'pueree', 'puree', 'bratkartoffel', 'suesskartoffel'],
+    CarbTag.brot: ['brot', 'bread', 'toast', 'broetchen', 'baguette', 'ciabatta', 'pita', 'wrap', 'tortilla', 'focaccia', 'semmel'],
+    CarbTag.couscousBulgur: ['couscous', 'bulgur', 'quinoa', 'hirse', 'freekeh', 'griess'],
   };
 
   static List<CarbTag> detect(List<IngredientSection> sections) {

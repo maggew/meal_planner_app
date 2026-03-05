@@ -19,7 +19,18 @@ class GermanTextNormalizer {
         .replaceAll('ß', 'ss');
 
     // Strip common German suffixes (min 3 chars remaining)
-    for (final suffix in ['ungen', 'ung', 'sten', 'sten', 'en', 'er', 'es', 'e', 'n', 's']) {
+    for (final suffix in [
+      'ungen',
+      'ung',
+      'sten',
+      'sten',
+      'en',
+      'er',
+      'es',
+      'e',
+      'n',
+      's',
+    ]) {
       if (s.length - suffix.length >= 3 && s.endsWith(suffix)) {
         s = s.substring(0, s.length - suffix.length);
         break;
