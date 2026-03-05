@@ -55,10 +55,11 @@ class RecipeExtractor {
         .where((l) => l.isNotEmpty)
         .toList();
 
-    return _assembleNumberedSteps(lines);
+    return assembleNumberedSteps(lines);
   }
 
-  static String _assembleNumberedSteps(List<String> lines) {
+  @visibleForTesting
+  static String assembleNumberedSteps(List<String> lines) {
     final stepPattern = RegExp(r'^\s*(\d+)\s*[:\.\)\-]\s*(.+)$');
     final Map<int, StringBuffer> steps = {};
     int? currentStep;

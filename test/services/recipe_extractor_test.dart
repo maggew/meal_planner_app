@@ -517,6 +517,109 @@ void main() {
   });
 
   // ═══════════════════════════════════════════════════════════════════
+  // assembleNumberedSteps
+  // ═══════════════════════════════════════════════════════════════════
+  group('assembleNumberedSteps', () {
+    // ── korrekte Fälle (aktuell grün) ──────────────────────────────
+
+    test('einfache nummerierte Schritte mit Punkt', () {
+      final result = RecipeExtractor.assembleNumberedSteps([
+        '1. Zwiebeln würfeln.',
+        '2. In Öl anschwitzen.',
+        '3. Salzen.',
+      ]);
+      expect(result, '1. Zwiebeln würfeln.\n\n2. In Öl anschwitzen.\n\n3. Salzen.');
+    });
+
+    test('Trennzeichen Doppelpunkt', () {
+      final result = RecipeExtractor.assembleNumberedSteps([
+        '1: Teig kneten.',
+        '2: Ruhen lassen.',
+      ]);
+      expect(result, '1. Teig kneten.\n\n2. Ruhen lassen.');
+    });
+
+    test('Trennzeichen Klammer', () {
+      final result = RecipeExtractor.assembleNumberedSteps([
+        '1) Teig kneten.',
+        '2) Backen.',
+      ]);
+      expect(result, '1. Teig kneten.\n\n2. Backen.');
+    });
+
+    test('Trennzeichen Bindestrich', () {
+      final result = RecipeExtractor.assembleNumberedSteps([
+        '1- Teig kneten.',
+        '2- Backen.',
+      ]);
+      expect(result, '1. Teig kneten.\n\n2. Backen.');
+    });
+
+    test('Continuation-Zeilen werden an aktuellen Schritt angehängt', () {
+      final result = RecipeExtractor.assembleNumberedSteps([
+        '1. Teig kneten.',
+        'Dabei 10 Minuten arbeiten.',
+        '2. Backen.',
+      ]);
+      expect(result, '1. Teig kneten. Dabei 10 Minuten arbeiten.\n\n2. Backen.');
+    });
+
+    test('Schritte werden sortiert auch wenn OCR sie ungeordnet liefert', () {
+      final result = RecipeExtractor.assembleNumberedSteps([
+        '3. Backen.',
+        '1. Teig kneten.',
+        '2. Ruhen lassen.',
+      ]);
+      expect(result, '1. Teig kneten.\n\n2. Ruhen lassen.\n\n3. Backen.');
+    });
+
+    test('doppelte Schrittnummer (OCR-Artefakt) wird zusammengeführt', () {
+      final result = RecipeExtractor.assembleNumberedSteps([
+        '1. Erste Hälfte.',
+        '1. Zweite Hälfte.',
+        '2. Nächster Schritt.',
+      ]);
+      expect(result, '1. Erste Hälfte. Zweite Hälfte.\n\n2. Nächster Schritt.');
+    });
+
+    // ── Bugs (aktuell rot) ──────────────────────────────────────────
+
+    test('Schrittnummer allein auf Zeile: Inhalt folgt in nächster Zeile', () {
+      // "1." allein → kein Match auf stepPattern → currentStep bleibt null
+      // → Folgezeile geht verloren (Bug 1)
+      final result = RecipeExtractor.assembleNumberedSteps([
+        '1.',
+        'Zwiebeln würfeln.',
+        '2.',
+        'In Öl anschwitzen.',
+      ]);
+      expect(result, '1. Zwiebeln würfeln.\n\n2. In Öl anschwitzen.');
+    });
+
+    test('kein nummerierter Schritt: Zeilenstruktur bleibt erhalten', () {
+      // Fallback join(' ') verliert Zeilenumbrüche (Bug 2)
+      final result = RecipeExtractor.assembleNumberedSteps([
+        'Zwiebeln würfeln.',
+        'In Öl anschwitzen.',
+        'Mit Salz abschmecken.',
+      ]);
+      expect(result, 'Zwiebeln würfeln.\nIn Öl anschwitzen.\nMit Salz abschmecken.');
+    });
+
+    test('Mengenangabe mit Punkt wird nicht als Schrittnummer erkannt', () {
+      // "2. EL Öl erhitzen" → stepPattern matcht fälschlich (Bug 3)
+      // → soll als eine einzige Continuation-Zeile durchgehen
+      final result = RecipeExtractor.assembleNumberedSteps([
+        '1. Öl erhitzen.',
+        '2. EL Butter zugeben.',
+        '3. Rühren.',
+      ]);
+      // "2. EL Butter zugeben." ist eine Mengenangabe, kein Schritt
+      expect(result, '1. Öl erhitzen. 2. EL Butter zugeben.\n\n3. Rühren.');
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
   // _parseIngredientLine – branch: non-numeric first token + valid unit second token
   // ═══════════════════════════════════════════════════════════════════
   group('parseIngredientLine via processRawLines', () {
