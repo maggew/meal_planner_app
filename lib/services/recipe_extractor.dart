@@ -41,15 +41,17 @@ class RecipeExtractor {
       return ExtractionResult();
     }
 
-    String instructions = lines.join("\n").replaceAll(RegExp(r'-\s*\n\s*'), '');
-    instructions = _assembleNumberedStepsFromString(instructions);
+    final instructions = assembleNumberedStepsFromString(lines.join("\n"));
     return ExtractionResult(instructions: instructions);
   }
 
   /* ===================== INSTRUCTIONS ===================== */
 
-  static String _assembleNumberedStepsFromString(String text) {
-    final lines = text
+  @visibleForTesting
+  static String assembleNumberedStepsFromString(String text) {
+    // Merge words hyphenated across line breaks: "klein-\nschneiden" → "kleinschneiden"
+    final merged = text.replaceAll(RegExp(r'-\s*\n\s*'), '');
+    final lines = merged
         .split(RegExp(r'\r?\n'))
         .map((l) => l.trim())
         .where((l) => l.isNotEmpty)

@@ -1,9 +1,37 @@
+import 'dart:ui';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
 import 'package:meal_planner/services/recipe_extractor.dart';
 
 // ignore_for_file: invalid_use_of_visible_for_testing_member
+
+// ── OCR Test-Helpers ────────────────────────────────────────────────
+
+TextLine _fakeLine(String text, {double left = 0, double top = 0}) => TextLine(
+      text: text,
+      elements: [],
+      boundingBox: Rect.fromLTWH(left, top, 150, 20),
+      recognizedLanguages: [],
+      cornerPoints: [],
+      confidence: 1.0,
+      angle: 0,
+    );
+
+TextBlock _fakeBlock(List<TextLine> lines) => TextBlock(
+      text: lines.map((l) => l.text).join('\n'),
+      lines: lines,
+      boundingBox: Rect.zero,
+      recognizedLanguages: [],
+      cornerPoints: [],
+    );
+
+RecognizedText _fakeOcr(List<TextBlock> blocks) =>
+    RecognizedText(text: '', blocks: blocks);
+
+// ── Ingredient helper ────────────────────────────────────────────────
 
 // Hilfsfunktion: findet die erste Zutat, deren Name [query] enthält
 Ingredient _find(List<IngredientSection> sections, String query) {
@@ -517,6 +545,35 @@ void main() {
   });
 
   // ═══════════════════════════════════════════════════════════════════
+  // assembleNumberedStepsFromString
+  // ═══════════════════════════════════════════════════════════════════
+  group('assembleNumberedStepsFromString', () {
+    test('bindet Bindestrich am Zeilenende zusammen', () {
+      final result = RecipeExtractor.assembleNumberedStepsFromString(
+          '1. Die Zwiebeln klein-\nschneiden.');
+      expect(result, '1. Die Zwiebeln kleinschneiden.');
+    });
+
+    test('leere Zeilen werden herausgefiltert', () {
+      final result = RecipeExtractor.assembleNumberedStepsFromString(
+          '1. Schritt eins.\n\n\n2. Schritt zwei.');
+      expect(result, '1. Schritt eins.\n\n2. Schritt zwei.');
+    });
+
+    test('Zeilen werden getrimmt', () {
+      final result = RecipeExtractor.assembleNumberedStepsFromString(
+          '  1. Schritt eins.  \n  2. Schritt zwei.  ');
+      expect(result, '1. Schritt eins.\n\n2. Schritt zwei.');
+    });
+
+    test('Windows-Zeilenenden (CRLF) werden korrekt behandelt', () {
+      final result = RecipeExtractor.assembleNumberedStepsFromString(
+          '1. Schritt eins.\r\n2. Schritt zwei.');
+      expect(result, '1. Schritt eins.\n\n2. Schritt zwei.');
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
   // assembleNumberedSteps
   // ═══════════════════════════════════════════════════════════════════
   group('assembleNumberedSteps', () {
@@ -630,6 +687,116 @@ void main() {
       final ing = _find(sections, 'Öl');
       expect(ing.unit, Unit.EATINGSPOON);
       expect(ing.amount, 'x');
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // extractRecipeIngredients (OCR end-to-end)
+  // ═══════════════════════════════════════════════════════════════════
+  group('extractRecipeIngredients', () {
+    test('leere RecognizedText ergibt ExtractionResult ohne Sektionen', () {
+      final result = RecipeExtractor.extractRecipeIngredients(
+        _fakeOcr([]),
+      );
+      expect(result.ingredientSections, isNull);
+      expect(result.instructions, isNull);
+    });
+
+    test('einspaltige Zutatenliste wird korrekt geparst', () {
+      final block = _fakeBlock([
+        _fakeLine('200 g Mehl', top: 0),
+        _fakeLine('3 Eier', top: 25),
+        _fakeLine('100 ml Milch', top: 50),
+      ]);
+      final result = RecipeExtractor.extractRecipeIngredients(_fakeOcr([block]));
+      final sections = result.ingredientSections!;
+      expect(sections.length, 1);
+      final mehl = _find(sections, 'Mehl');
+      expect(mehl.amount, '200');
+      expect(mehl.unit, Unit.GRAMM);
+      final eier = _find(sections, 'Eier');
+      expect(eier.amount, '3');
+      final milch = _find(sections, 'Milch');
+      expect(milch.amount, '100');
+      expect(milch.unit, Unit.MILLILITER);
+    });
+
+    test('zweispaltige Zutatenliste (Mengen links, Namen rechts) wird gepaart', () {
+      // Simuliert Column-Clustering: Amounts-Spalte left≈0, Namen-Spalte left≈200
+      final block = _fakeBlock([
+        _fakeLine('3 EL', left: 0, top: 0),
+        _fakeLine('1 TL', left: 0, top: 25),
+        _fakeLine('Rapsöl', left: 200, top: 0),
+        _fakeLine('Curry', left: 200, top: 25),
+      ]);
+      final result = RecipeExtractor.extractRecipeIngredients(_fakeOcr([block]));
+      final sections = result.ingredientSections!;
+      final rapsoel = _find(sections, 'Rapsöl');
+      expect(rapsoel.amount, '3');
+      expect(rapsoel.unit, Unit.EATINGSPOON);
+      final curry = _find(sections, 'Curry');
+      expect(curry.amount, '1');
+      expect(curry.unit, Unit.TEASPOON);
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // extractRecipeInstructions (OCR end-to-end)
+  // ═══════════════════════════════════════════════════════════════════
+  group('extractRecipeInstructions', () {
+    test('leere RecognizedText ergibt ExtractionResult ohne Instructions', () {
+      final result = RecipeExtractor.extractRecipeInstructions(
+        _fakeOcr([]),
+      );
+      expect(result.instructions, isNull);
+      expect(result.ingredientSections, isNull);
+    });
+
+    test('nummerierte Schritte werden korrekt zusammengebaut', () {
+      final block = _fakeBlock([
+        _fakeLine('1. Zwiebeln würfeln.', top: 0),
+        _fakeLine('2. In Öl anschwitzen.', top: 25),
+        _fakeLine('3. Mit Salz abschmecken.', top: 50),
+      ]);
+      final result =
+          RecipeExtractor.extractRecipeInstructions(_fakeOcr([block]));
+      expect(result.instructions,
+          '1. Zwiebeln würfeln.\n\n2. In Öl anschwitzen.\n\n3. Mit Salz abschmecken.');
+    });
+
+    test('Schrittnummer allein auf Zeile wird korrekt erkannt (Fix 1)', () {
+      final block = _fakeBlock([
+        _fakeLine('1.', top: 0),
+        _fakeLine('Zwiebeln würfeln.', top: 25),
+        _fakeLine('2.', top: 50),
+        _fakeLine('In Öl anschwitzen.', top: 75),
+      ]);
+      final result =
+          RecipeExtractor.extractRecipeInstructions(_fakeOcr([block]));
+      expect(result.instructions,
+          '1. Zwiebeln würfeln.\n\n2. In Öl anschwitzen.');
+    });
+
+    test('Bindestrich über Zeilenende wird zusammengefügt', () {
+      final block = _fakeBlock([
+        _fakeLine('1. Zwiebeln klein-', top: 0),
+        _fakeLine('schneiden und anschwitzen.', top: 25),
+      ]);
+      final result =
+          RecipeExtractor.extractRecipeInstructions(_fakeOcr([block]));
+      expect(result.instructions,
+          '1. Zwiebeln kleinschneiden und anschwitzen.');
+    });
+
+    test('unnummerierter Text: Zeilenstruktur bleibt erhalten (Fix 2)', () {
+      final block = _fakeBlock([
+        _fakeLine('Zwiebeln würfeln.', top: 0),
+        _fakeLine('In Öl anschwitzen.', top: 25),
+      ]);
+      final result =
+          RecipeExtractor.extractRecipeInstructions(_fakeOcr([block]));
+      expect(result.instructions,
+          'Zwiebeln würfeln.\nIn Öl anschwitzen.');
     });
   });
 }
