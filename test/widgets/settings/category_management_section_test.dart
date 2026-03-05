@@ -34,7 +34,7 @@ class FakeGroupCategoriesNotifier extends GroupCategories {
   Future<void> addCategory(String name, {String? iconName}) async {}
 
   @override
-  Future<void> renameCategory(String categoryId, String newName) async {}
+  Future<void> updateCategory(String categoryId, String newName, String? iconName) async {}
 
   @override
   Future<void> deleteCategory(String categoryId) async {}

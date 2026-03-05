@@ -1,5 +1,4 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:meal_planner/presentation/recipe_suggestion/recipe_suggestion_page.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/auth_guard.dart';
 
@@ -55,8 +54,7 @@ class AppRouter extends RootStackRouter {
             reverseDuration: const Duration(milliseconds: 50),
           ),
         ),
-        AutoRoute(page: ZoomPictureRoute.page),
-        AutoRoute(page: TrashRoute.page),
+AutoRoute(page: TrashRoute.page),
         AutoRoute(page: RecipeSuggestionRoute.page),
       ];
 }

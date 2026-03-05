@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
 import 'package:meal_planner/presentation/common/common_appbar.dart';
 import 'package:meal_planner/presentation/shopping_list/widgets/shopping_list_body.dart';
-import 'package:meal_planner/presentation/shopping_list/widgets/shopping_list_input.dart';
 import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
 import 'package:meal_planner/services/providers/shopping_list/shopping_list_provider.dart';
 import 'package:meal_planner/services/providers/shopping_list/shopping_list_realtime_service_provider.dart';
