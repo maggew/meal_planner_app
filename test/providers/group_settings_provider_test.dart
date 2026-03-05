@@ -1,210 +1,151 @@
-import 'dart:convert';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/domain/entities/group_settings.dart';
-import 'package:meal_planner/domain/entities/user_settings.dart';
+import 'package:meal_planner/domain/enums/meal_type.dart';
 import 'package:meal_planner/domain/enums/week_start_day.dart';
+import 'package:meal_planner/domain/repositories/group_repository.dart';
+import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
-import 'package:meal_planner/services/providers/shared_preferences_provider.dart';
 import 'package:meal_planner/services/providers/user/group_settings_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mocktail/mocktail.dart';
 
-// --- Fake Session Notifier ---
+// --- Mocks ---
 
-class FakeSessionNotifier extends StateNotifier<SessionState>
-    implements SessionController {
-  FakeSessionNotifier(super.state);
+class MockGroupRepository extends Mock implements GroupRepository {}
 
-  @override
-  Future<void> loadSession(String userId) async {}
-  @override
-  Future<void> joinGroup(String groupId) async {}
-  @override
-  Future<void> setActiveGroup(String groupId) async {}
-  @override
-  Future<void> reloadActiveGroup() async {}
-  @override
-  void setActiveUserAfterRegistration(String userId) {}
-  @override
-  Future<void> changeSettings(UserSettings settings) async {}
-  @override
-  Future<void> clearSession() async {}
-  @override
-  Ref get ref => throw UnimplementedError();
+// --- Helpers ---
+
+ProviderContainer _makeContainer({
+  required SessionState sessionState,
+  GroupRepository? groupRepo,
+}) {
+  final repo = groupRepo ?? MockGroupRepository();
+  return ProviderContainer(overrides: [
+    sessionProvider.overrideWithValue(sessionState),
+    groupRepositoryProvider.overrideWithValue(repo),
+  ]);
 }
+
+Group _groupWithSettings(GroupSettings settings) => Group(
+      id: 'g1',
+      name: 'Test',
+      imageUrl: '',
+      settings: settings,
+    );
 
 // --- Tests ---
 
 void main() {
-  late SharedPreferences prefs;
-
-  setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    prefs = await SharedPreferences.getInstance();
+  setUpAll(() {
+    registerFallbackValue(GroupSettings.defaultSettings);
   });
 
-  ProviderContainer _makeContainer({
-    required String? groupId,
-    Map<String, Object> prefsValues = const {},
-  }) {
-    for (final entry in prefsValues.entries) {
-      prefs.setString(entry.key, entry.value as String);
-    }
-    return ProviderContainer(overrides: [
-      sharedPreferencesProvider.overrideWithValue(prefs),
-      sessionProvider.overrideWith(
-        (ref) => FakeSessionNotifier(
-          SessionState(userId: groupId != null ? 'u1' : null, groupId: groupId),
-        ),
-      ),
-    ]);
-  }
-
   group('GroupSettingsNotifier.build()', () {
-    test('gibt defaultSettings zurück wenn kein groupId in Session', () {
-      final container = _makeContainer(groupId: null);
-      addTearDown(container.dispose);
-
-      final settings = container.read(groupSettingsProvider);
-
-      expect(settings.weekStartDay, equals(GroupSettings.defaultSettings.weekStartDay));
-      expect(settings.defaultMealSlots, equals(GroupSettings.defaultSettings.defaultMealSlots));
-    });
-
-    test('gibt defaultSettings zurück wenn kein gespeicherter Wert existiert', () {
-      final container = _makeContainer(groupId: 'g1');
-      addTearDown(container.dispose);
-
-      final settings = container.read(groupSettingsProvider);
-
-      expect(settings.weekStartDay, equals(GroupSettings.defaultSettings.weekStartDay));
-    });
-
-    test('lädt gespeicherte Einstellungen aus SharedPreferences', () {
+    test('gibt defaultSettings zurück wenn keine Gruppe in Session', () {
       final container = _makeContainer(
-        groupId: 'g1',
-        prefsValues: {
-          'group_settings_g1': jsonEncode({
-            'week_start_day': 'sunday',
-            'default_meal_slots': ['breakfast', 'lunch'],
-          }),
-        },
+        sessionState: const SessionState(userId: 'u1', groupId: null),
       );
       addTearDown(container.dispose);
 
       final settings = container.read(groupSettingsProvider);
 
-      expect(settings.weekStartDay, equals(WeekStartDay.sunday));
+      expect(settings.weekStartDay, GroupSettings.defaultSettings.weekStartDay);
+      expect(settings.defaultMealSlots, GroupSettings.defaultSettings.defaultMealSlots);
+      expect(settings.showCarbTags, GroupSettings.defaultSettings.showCarbTags);
     });
 
-    test('gibt defaultSettings zurück bei ungültigem JSON im Cache', () {
+    test('liest Einstellungen direkt aus session.group.settings', () {
+      final customSettings = GroupSettings(
+        weekStartDay: WeekStartDay.sunday,
+        defaultMealSlots: [MealType.lunch],
+        showCarbTags: false,
+      );
       final container = _makeContainer(
-        groupId: 'g1',
-        prefsValues: {'group_settings_g1': 'kein-valides-json{{{'},
+        sessionState: SessionState(
+          userId: 'u1',
+          groupId: 'g1',
+          group: _groupWithSettings(customSettings),
+        ),
       );
       addTearDown(container.dispose);
 
       final settings = container.read(groupSettingsProvider);
 
-      expect(settings.weekStartDay, equals(GroupSettings.defaultSettings.weekStartDay));
+      expect(settings.weekStartDay, WeekStartDay.sunday);
+      expect(settings.defaultMealSlots, [MealType.lunch]);
+      expect(settings.showCarbTags, false);
     });
 
-    test('verschiedene Gruppen haben unabhängige Einstellungen', () async {
-      final container = ProviderContainer(overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-        sessionProvider.overrideWith(
-          (ref) => FakeSessionNotifier(
-            const SessionState(userId: 'u1', groupId: 'g1'),
+    test('reagiert auf session-Änderungen', () {
+      final container = _makeContainer(
+        sessionState: SessionState(
+          userId: 'u1',
+          groupId: 'g1',
+          group: _groupWithSettings(GroupSettings.defaultSettings),
+        ),
+      );
+      addTearDown(container.dispose);
+
+      expect(container.read(groupSettingsProvider).weekStartDay, WeekStartDay.monday);
+
+      // Session wird extern aktualisiert
+      container.updateOverrides([
+        sessionProvider.overrideWithValue(
+          SessionState(
+            userId: 'u1',
+            groupId: 'g1',
+            group: _groupWithSettings(
+              GroupSettings(weekStartDay: WeekStartDay.sunday),
+            ),
           ),
         ),
+        groupRepositoryProvider.overrideWithValue(MockGroupRepository()),
       ]);
-      addTearDown(container.dispose);
 
-      await prefs.setString(
-        'group_settings_g1',
-        jsonEncode({'week_start_day': 'sunday', 'default_meal_slots': []}),
-      );
-      await prefs.setString(
-        'group_settings_g2',
-        jsonEncode({'week_start_day': 'saturday', 'default_meal_slots': []}),
-      );
-
-      // Gruppe 1: Sonntag
-      final settingsG1 = container.read(groupSettingsProvider);
-      expect(settingsG1.weekStartDay, equals(WeekStartDay.sunday));
+      expect(container.read(groupSettingsProvider).weekStartDay, WeekStartDay.sunday);
     });
   });
 
   group('GroupSettingsNotifier.update()', () {
-    test('speichert Einstellungen in SharedPreferences unter richtigem Key',
-        () async {
-      final container = _makeContainer(groupId: 'g1');
+    test('ruft groupRepository.updateSettings auf', () async {
+      final repo = MockGroupRepository();
+      when(() => repo.updateSettings(any(), any())).thenAnswer((_) async {});
+
+      final container = _makeContainer(
+        sessionState: SessionState(
+          userId: 'u1',
+          groupId: 'g1',
+          group: _groupWithSettings(GroupSettings.defaultSettings),
+        ),
+        groupRepo: repo,
+      );
       addTearDown(container.dispose);
 
-      await container
-          .read(groupSettingsProvider.notifier)
-          .update(GroupSettings(weekStartDay: WeekStartDay.sunday));
+      await container.read(groupSettingsProvider.notifier).update(
+            GroupSettings(weekStartDay: WeekStartDay.sunday),
+          );
 
-      final raw = prefs.getString('group_settings_g1');
-      expect(raw, isNotNull);
-      final decoded = jsonDecode(raw!) as Map<String, dynamic>;
-      expect(decoded['week_start_day'], equals('sunday'));
+      verify(() => repo.updateSettings(
+            'g1',
+            any(that: isA<GroupSettings>()),
+          )).called(1);
     });
 
-    test('aktualisiert State sofort (vor SharedPreferences-Write)', () async {
-      final container = _makeContainer(groupId: 'g1');
+    test('tut nichts wenn keine Gruppe in Session', () async {
+      final repo = MockGroupRepository();
+
+      final container = _makeContainer(
+        sessionState: const SessionState(userId: 'u1', groupId: null),
+        groupRepo: repo,
+      );
       addTearDown(container.dispose);
 
-      await container
-          .read(groupSettingsProvider.notifier)
-          .update(GroupSettings(weekStartDay: WeekStartDay.sunday));
+      await container.read(groupSettingsProvider.notifier).update(
+            GroupSettings(weekStartDay: WeekStartDay.sunday),
+          );
 
-      final settings = container.read(groupSettingsProvider);
-      expect(settings.weekStartDay, equals(WeekStartDay.sunday));
-    });
-
-    test('tut nichts wenn kein groupId in Session', () async {
-      final container = _makeContainer(groupId: null);
-      addTearDown(container.dispose);
-
-      await container
-          .read(groupSettingsProvider.notifier)
-          .update(GroupSettings(weekStartDay: WeekStartDay.sunday));
-
-      // Kein Key sollte gesetzt worden sein
-      expect(prefs.getKeys(), isEmpty);
-    });
-
-    test('Einstellungen bleiben nach Neustart erhalten (neuer Container, selbe prefs)',
-        () async {
-      // Schritt 1: Einstellungen speichern
-      final container1 = _makeContainer(groupId: 'g1');
-      await container1
-          .read(groupSettingsProvider.notifier)
-          .update(GroupSettings(weekStartDay: WeekStartDay.sunday));
-      container1.dispose();
-
-      // Schritt 2: Neuen Container erstellen (simuliert App-Neustart)
-      final container2 = _makeContainer(groupId: 'g1');
-      addTearDown(container2.dispose);
-
-      final settings = container2.read(groupSettingsProvider);
-      expect(settings.weekStartDay, equals(WeekStartDay.sunday),
-          reason: 'Einstellungen sollten nach Neustart noch vorhanden sein');
-    });
-
-    test('Einstellungen werden gruppenspezifisch gespeichert', () async {
-      final container1 = _makeContainer(groupId: 'g1');
-      addTearDown(container1.dispose);
-
-      await container1
-          .read(groupSettingsProvider.notifier)
-          .update(GroupSettings(weekStartDay: WeekStartDay.sunday));
-
-      // Gruppe g2 hat eigene (Default-)Einstellungen
-      expect(prefs.getString('group_settings_g2'), isNull);
+      verifyNever(() => repo.updateSettings(any(), any()));
     });
   });
 }
