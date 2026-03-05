@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/group_category.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
@@ -14,8 +15,7 @@ class GroupCategories extends _$GroupCategories {
 
   @override
   Future<List<GroupCategory>> build() async {
-    final session = ref.watch(sessionProvider);
-    final groupId = session.groupId;
+    final groupId = ref.watch(sessionProvider.select((s) => s.groupId));
     if (groupId == null || !_uuidRegex.hasMatch(groupId)) return [];
 
     final repo = ref.watch(groupCategoryRepositoryProvider);

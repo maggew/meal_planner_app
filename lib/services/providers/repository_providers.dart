@@ -59,8 +59,7 @@ final recipeRemoteDatasourceProvider = Provider<RecipeRemoteDatasource>((ref) {
 
 // Recipe Repository - nutzt die GroupId aus dem State
 final recipeRepositoryProvider = Provider<RecipeRepository>((ref) {
-  final session = ref.watch(sessionProvider);
-  final groupId = session.groupId ?? '';
+  final groupId = ref.watch(sessionProvider.select((s) => s.groupId)) ?? '';
 
   final supabaseRepo = SupabaseRecipeRepository(
     supabase: ref.watch(supabaseProvider),
@@ -110,8 +109,7 @@ final mealPlanDaoProvider = Provider((ref) {
 });
 
 final shoppingListRepositoryProvider = Provider<ShoppingListRepository>((ref) {
-  final session = ref.watch(sessionProvider);
-  final groupId = session.groupId ?? '';
+  final groupId = ref.watch(sessionProvider.select((s) => s.groupId)) ?? '';
 
   return OfflineFirstShoppingListRepository(
     groupId: groupId,
@@ -119,17 +117,17 @@ final shoppingListRepositoryProvider = Provider<ShoppingListRepository>((ref) {
     dao: ref.watch(shoppingItemDaoProvider),
     remote: SupabaseShoppingListRepository(
       supabase: ref.watch(supabaseProvider),
-      groupId: session.groupId ?? '',
+      groupId: groupId,
     ),
   );
 });
 
 final mealPlanRepositoryProvider = Provider<MealPlanRepository>((ref) {
-  final session = ref.watch(sessionProvider);
+  final groupId = ref.watch(sessionProvider.select((s) => s.groupId)) ?? '';
   return OfflineFirstMealPlanRepository(
     dao: ref.watch(mealPlanDaoProvider),
     supabase: ref.watch(supabaseProvider),
-    groupId: session.groupId ?? '',
+    groupId: groupId,
     ref: ref,
   );
 });
@@ -151,11 +149,11 @@ final groupCategoryRepositoryProvider = Provider<GroupCategoryRepository>((ref) 
 });
 
 final trashRepositoryProvider = Provider<TrashRepository>((ref) {
-  final session = ref.watch(sessionProvider);
+  final groupId = ref.watch(sessionProvider.select((s) => s.groupId)) ?? '';
   return SupabaseTrashRepository(
     remote: ref.watch(recipeRemoteDatasourceProvider),
     storage: ref.watch(storageRepositoryProvider),
     dao: ref.watch(recipeCacheDaoProvider),
-    groupId: session.groupId ?? '',
+    groupId: groupId,
   );
 });
