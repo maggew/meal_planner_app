@@ -11,7 +11,7 @@ class ExtractionResult {
 }
 
 class RecipeExtractor {
-  RecipeExtractor._();
+  RecipeExtractor._(); // coverage:ignore-line
 
   /* ===================== PUBLIC API ===================== */
 
