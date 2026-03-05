@@ -22,41 +22,16 @@ class RecipeExtractor {
       return ExtractionResult();
     }
 
-    print('=== [RecipeExtractor] RAW (${lines.length}) ===');
-    for (int i = 0; i < lines.length; i++) print('  [$i] "${lines[i]}"');
-
     List<String> split = _splitOnDelimiters(lines);
-    print('=== AFTER _splitOnDelimiters (${split.length}) ===');
-    for (int i = 0; i < split.length; i++) print('  [$i] "${split[i]}"');
-
     split = split.map(_normalizeLineSpacing).toList();
-    print('=== AFTER _normalizeLineSpacing (${split.length}) ===');
-    for (int i = 0; i < split.length; i++) print('  [$i] "${split[i]}"');
-
     split = _splitInlineIngredients(split);
-    print('=== AFTER _splitInlineIngredients (${split.length}) ===');
-    for (int i = 0; i < split.length; i++) print('  [$i] "${split[i]}"');
 
     List<String> ingredients = _mergeHyphenatedLines(split);
-    print('=== AFTER _mergeHyphenatedLines (${ingredients.length}) ===');
-    for (int i = 0; i < ingredients.length; i++) print('  [$i] "${ingredients[i]}"');
-
     ingredients = _pairOrphanAmountsWithNames(ingredients);
-    print('=== AFTER _pairOrphanAmountsWithNames (${ingredients.length}) ===');
-    for (int i = 0; i < ingredients.length; i++) print('  [$i] "${ingredients[i]}"');
-
     ingredients = _mergeContinuationLines(ingredients);
-    print('=== AFTER _mergeContinuationLines (${ingredients.length}) ===');
-    for (int i = 0; i < ingredients.length; i++) print('  [$i] "${ingredients[i]}"');
 
     Map<String, List<String>> ingredientSectionsMap =
         _createSections(ingredients);
-    print('=== AFTER _createSections ===');
-    ingredientSectionsMap.forEach((s, items) {
-      print('  Section "$s":');
-      for (final item in items) print('    - "$item"');
-    });
-
     List<IngredientSection> ingredientSections =
         _parseIngredients(ingredientSectionsMap);
 
