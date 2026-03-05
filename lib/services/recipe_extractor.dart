@@ -60,16 +60,40 @@ class RecipeExtractor {
 
   @visibleForTesting
   static String assembleNumberedSteps(List<String> lines) {
+    // Matches "1. Text", "1: Text", "1) Text", "1- Text"
     final stepPattern = RegExp(r'^\s*(\d+)\s*[:\.\)\-]\s*(.+)$');
+    // Fix 1: matches step number alone on a line, e.g. "1." or "2:"
+    final stepNumberOnlyPattern = RegExp(r'^\s*(\d+)\s*[:\.\)\-]\s*$');
     final Map<int, StringBuffer> steps = {};
     int? currentStep;
 
     for (final line in lines) {
+      // Fix 1: step number alone on a line → register step, wait for content
+      final numberOnlyMatch = stepNumberOnlyPattern.firstMatch(line);
+      if (numberOnlyMatch != null) {
+        final step = int.parse(numberOnlyMatch.group(1)!);
+        steps.putIfAbsent(step, () => StringBuffer());
+        currentStep = step;
+        continue;
+      }
+
       final match = stepPattern.firstMatch(line);
 
       if (match != null) {
         final step = int.parse(match.group(1)!);
         final text = match.group(2)!.trim();
+
+        // Fix 3: if the text after the number starts with a known unit,
+        // it's a quantity ("2. EL Butter"), not a step → treat as continuation
+        final firstWord = text.split(' ').first;
+        if (UnitParser.parse(firstWord) != null) {
+          if (currentStep != null) {
+            steps[currentStep]!
+              ..write(' ')
+              ..write(line.trim());
+          }
+          continue;
+        }
 
         steps.putIfAbsent(step, () => StringBuffer());
 
@@ -88,8 +112,9 @@ class RecipeExtractor {
       }
     }
 
+    // Fix 2: no numbered steps found → join with newlines to preserve structure
     if (steps.isEmpty) {
-      return lines.join(' ');
+      return lines.join('\n');
     }
 
     final sortedKeys = steps.keys.toList()..sort();
