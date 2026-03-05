@@ -92,8 +92,7 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
           recipe_ingredients(amount, unit, ingredients(name))
         ''')
         .eq(SupabaseConstants.recipeGroupId, groupId)
-        .inFilter('recipe_categories.categories.name',
-            categories)
+        .inFilter('recipe_categories.categories.name', categories)
         .order(SupabaseConstants.recipeCreatedAt, ascending: false);
 
     final ids =

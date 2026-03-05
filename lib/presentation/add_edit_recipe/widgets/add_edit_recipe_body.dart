@@ -15,6 +15,7 @@ import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_edit_recipe_ingredients_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
 import 'package:meal_planner/services/providers/recipe/carb_tag_selection_provider.dart';
+import 'package:meal_planner/services/providers/session_provider.dart';
 
 class AddEditRecipeBody extends ConsumerStatefulWidget {
   final Recipe? existingRecipe;
@@ -76,6 +77,10 @@ class _AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
       }
     });
 
+    final showCarbTags = ref.watch(
+      sessionProvider.select((s) => s.group?.settings.showCarbTags ?? true),
+    );
+
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(0, 20, 0, 100),
       child: Column(
@@ -109,9 +114,10 @@ class _AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
               existingImageUrl: widget.existingRecipe?.imageUrl,
             ),
           ),
-          GlassCard(
-            child: CarbTagSelection(),
-          ),
+          if (showCarbTags)
+            GlassCard(
+              child: CarbTagSelection(),
+            ),
           AddEditRecipeButton(
             recipeNameController: _recipeNameController,
             recipeInstructionsController: _recipeInstructionsController,

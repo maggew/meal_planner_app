@@ -78,7 +78,7 @@ class RecipeSuggestionNotifier extends Notifier<RecipeSuggestionState> {
 
       // 5. Run suggestion algorithm
       final showCarbTags =
-          ref.read(sessionProvider).group?.showCarbTags ?? true;
+          ref.read(sessionProvider).group?.settings.showCarbTags ?? true;
 
       final results = RecipeSuggestionService.suggest(
         recipes: recipes,

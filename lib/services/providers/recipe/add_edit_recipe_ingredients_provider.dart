@@ -1,11 +1,14 @@
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
+import 'package:meal_planner/domain/services/carb_tag_detector.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/form/ingredient_form_item.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/form/ingredient_section_form.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/state/ingredients_state.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/flat_list_item.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
+import 'package:meal_planner/services/providers/recipe/carb_tag_selection_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_analysis_provider.dart';
+import 'package:meal_planner/services/providers/session_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'add_edit_recipe_ingredients_provider.g.dart';
@@ -322,6 +325,15 @@ class AddEditRecipeIngredients extends _$AddEditRecipeIngredients {
       sections: list,
       isAnalyzing: false,
     );
+
+    final showCarbTags =
+        ref.read(sessionProvider).group?.settings.showCarbTags ?? true;
+    if (showCarbTags) {
+      final detectedTags = CarbTagDetector.detect(ingredientSections);
+      ref
+          .read(carbTagSelectionProvider.notifier)
+          .set(detectedTags.map((t) => t.value).toList());
+    }
   }
 
   ({int sectionIndex, int itemIndex}) _getFlatMapping(
