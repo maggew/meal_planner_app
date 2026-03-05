@@ -6,6 +6,7 @@ class GroupModel extends Group {
     required super.name,
     required super.id,
     required super.imageUrl,
+    super.showCarbTags = true,
   });
 
   factory GroupModel.fromSupabase(Map<String, dynamic> data) {
@@ -13,6 +14,7 @@ class GroupModel extends Group {
       id: data[SupabaseConstants.groupId] as String,
       name: data[SupabaseConstants.groupName] as String? ?? '',
       imageUrl: data[SupabaseConstants.groupImageUrl] as String? ?? '',
+      showCarbTags: data[SupabaseConstants.groupShowCarbTags] as bool? ?? true,
     );
   }
 
@@ -21,6 +23,7 @@ class GroupModel extends Group {
       SupabaseConstants.groupId: id,
       SupabaseConstants.groupName: name,
       SupabaseConstants.groupImageUrl: imageUrl,
+      SupabaseConstants.groupShowCarbTags: showCarbTags,
     };
   }
 
@@ -29,6 +32,7 @@ class GroupModel extends Group {
       name: group.name,
       id: group.id,
       imageUrl: group.imageUrl,
+      showCarbTags: group.showCarbTags,
     );
   }
 
@@ -37,21 +41,7 @@ class GroupModel extends Group {
       name: name,
       id: id,
       imageUrl: imageUrl,
+      showCarbTags: showCarbTags,
     );
   }
-  // factory GroupModel.fromFirestore(Map<String, dynamic> data) {
-  //   return GroupModel(
-  //     name: data[FirebaseConstants.groupName] as String? ?? '',
-  //     id: data[FirebaseConstants.groupId] as String? ?? '',
-  //     imageUrl: data[FirebaseConstants.groupImageUrl] as String? ?? '',
-  //   );
-  // }
-  //
-  // Map<String, dynamic> toFirestore() {
-  //   return {
-  //     FirebaseConstants.groupName: name,
-  //     FirebaseConstants.groupId: id,
-  //     FirebaseConstants.groupImageUrl: imageUrl,
-  //   };
-  // }
 }

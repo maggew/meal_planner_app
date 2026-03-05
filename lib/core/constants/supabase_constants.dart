@@ -17,6 +17,7 @@ class SupabaseConstants {
   static const String groupId = 'id';
   static const String groupName = 'name';
   static const String groupImageUrl = 'image_url';
+  static const String groupShowCarbTags = 'show_carb_tags';
 
   // Columns: Group Members
   static const String memberGroupId = 'group_id';

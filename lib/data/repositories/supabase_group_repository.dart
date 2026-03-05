@@ -225,6 +225,22 @@ class SupabaseGroupRepository implements GroupRepository {
   }
 
   @override
+  Future<void> updateShowCarbTags(String groupId, bool showCarbTags) async {
+    try {
+      await _supabase
+          .from(SupabaseConstants.groupsTable)
+          .update({SupabaseConstants.groupShowCarbTags: showCarbTags})
+          .eq(SupabaseConstants.groupId, groupId);
+    } on PostgrestException catch (e) {
+      throw GroupUpdateException('Datenbankfehler: $e');
+    } on SocketException {
+      throw GroupUpdateException('Keine Internetverbindung');
+    } catch (e) {
+      throw GroupUpdateException('Unbekannter Fehler: $e');
+    }
+  }
+
+  @override
   Future<List<Group>> getUserGroups(String userId) async {
     List<Group> userGroups = [];
     try {

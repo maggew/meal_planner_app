@@ -42,6 +42,7 @@ class LocalStorageService {
       'id': group.id,
       'name': group.name,
       'imageUrl': group.imageUrl,
+      'showCarbTags': group.showCarbTags,
     }));
   }
 
@@ -54,6 +55,7 @@ class LocalStorageService {
       id: map['id'] as String,
       name: map['name'] as String,
       imageUrl: map['imageUrl'] as String,
+      showCarbTags: map['showCarbTags'] as bool? ?? true,
     );
   }
 

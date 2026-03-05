@@ -11,11 +11,13 @@ class RecipeSuggestionService {
   /// [inputIngredients] — user-entered ingredient names
   /// [lastCookedMap]    — recipeId → days since last cooked (absent = never cooked)
   /// [recentCarbTags]   — carb tags from last 3 days (for variety scoring)
+  /// [useCarbVariety]   — whether to include carb-tag variety in scoring
   static List<RecipeSuggestion> suggest({
     required List<Recipe> recipes,
     required List<String> inputIngredients,
     required Map<String, int> lastCookedMap,
     required List<String> recentCarbTags,
+    bool useCarbVariety = true,
   }) {
     final suggestions = recipes
         .where((r) => r.id != null)
@@ -24,6 +26,7 @@ class RecipeSuggestionService {
               inputIngredients: inputIngredients,
               lastCookedDaysAgo: lastCookedMap[recipe.id!],
               recentCarbTags: recentCarbTags,
+              useCarbVariety: useCarbVariety,
             ))
         .toList();
 
@@ -42,15 +45,22 @@ class RecipeSuggestionService {
     required List<String> inputIngredients,
     required int? lastCookedDaysAgo,
     required List<String> recentCarbTags,
+    required bool useCarbVariety,
   }) {
     final matchedCount = _countMatches(recipe, inputIngredients);
     final ingredientScore = _calcIngredientScore(matchedCount, inputIngredients.length);
     final rotationScore = _calcRotationScore(lastCookedDaysAgo);
-    final carbVarietyScore = _calcCarbVarietyScore(recipe, recentCarbTags);
+    final carbVarietyScore = useCarbVariety
+        ? _calcCarbVarietyScore(recipe, recentCarbTags)
+        : 0.0;
 
-    final totalScore = ingredientScore * _weightIngredient +
-        rotationScore * _weightRotation +
-        carbVarietyScore * _weightCarbVariety;
+    // Wenn Kohlenhydrat-Varietät deaktiviert ist, Gewichte auf 50/30 normalisieren
+    final double iw = useCarbVariety ? _weightIngredient : 5 / 8;
+    final double rw = useCarbVariety ? _weightRotation : 3 / 8;
+    final double cw = useCarbVariety ? _weightCarbVariety : 0.0;
+
+    final totalScore =
+        ingredientScore * iw + rotationScore * rw + carbVarietyScore * cw;
 
     final matchQuality = _determineMatchQuality(
       matchedCount: matchedCount,

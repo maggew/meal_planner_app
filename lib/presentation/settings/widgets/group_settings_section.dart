@@ -7,6 +7,8 @@ import 'package:meal_planner/presentation/settings/widgets/control_widgets/meal_
 import 'package:meal_planner/presentation/settings/widgets/control_widgets/week_start_day_segmented_button.dart';
 import 'package:meal_planner/presentation/settings/widgets/settings_row_widget.dart';
 import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
+import 'package:meal_planner/services/providers/repository_providers.dart';
+import 'package:meal_planner/services/providers/session_provider.dart';
 import 'package:meal_planner/services/providers/user/group_settings_provider.dart';
 
 class GroupSettingsSection extends ConsumerStatefulWidget {
@@ -20,6 +22,7 @@ class GroupSettingsSection extends ConsumerStatefulWidget {
 class _GroupSettingsSectionState extends ConsumerState<GroupSettingsSection> {
   bool _weekStartLoading = false;
   bool _mealSlotsLoading = false;
+  bool _carbTagsLoading = false;
 
   Future<void> _updateSetting({
     required GroupSettings updated,
@@ -33,9 +36,24 @@ class _GroupSettingsSectionState extends ConsumerState<GroupSettingsSection> {
     }
   }
 
+  Future<void> _updateShowCarbTags(bool value) async {
+    final groupId = ref.read(sessionProvider).groupId;
+    if (groupId == null) return;
+
+    setState(() => _carbTagsLoading = true);
+    try {
+      final repo = ref.read(groupRepositoryProvider);
+      await repo.updateShowCarbTags(groupId, value);
+      await ref.read(sessionProvider.notifier).reloadActiveGroup();
+    } finally {
+      if (mounted) setState(() => _carbTagsLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final groupSettings = ref.watch(groupSettingsProvider);
+    final group = ref.watch(sessionProvider).group;
     final isOnline = ref.watch(isOnlineProvider);
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
@@ -102,6 +120,24 @@ class _GroupSettingsSectionState extends ConsumerState<GroupSettingsSection> {
                         setLoading: (v) => _mealSlotsLoading = v,
                       ),
                     ),
+                  ),
+                ),
+                LoadingOverlay(
+                  isLoading: _carbTagsLoading,
+                  child: SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      'Kohlenhydrat-Bewertung',
+                      style: textTheme.bodyMedium,
+                    ),
+                    subtitle: Text(
+                      'Berücksichtigt KH-Vielfalt bei Rezeptvorschlägen',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ),
+                    value: group?.showCarbTags ?? true,
+                    onChanged: _updateShowCarbTags,
                   ),
                 ),
               ],

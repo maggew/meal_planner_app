@@ -15,6 +15,8 @@ abstract class GroupRepository {
       required String newName,
       required String imageUrl});
 
+  Future<void> updateShowCarbTags(String groupId, bool showCarbTags);
+
   Future<List<Group>> getUserGroups(String userId);
   Future<List<User>> getGroupMembers(String groupId);
 
