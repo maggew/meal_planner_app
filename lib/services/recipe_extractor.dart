@@ -22,19 +22,56 @@ class RecipeExtractor {
       return ExtractionResult();
     }
 
+    print('=== [RecipeExtractor] RAW (${lines.length}) ===');
+    for (int i = 0; i < lines.length; i++) print('  [$i] "${lines[i]}"');
+
     List<String> split = _splitOnDelimiters(lines);
+    print('=== AFTER _splitOnDelimiters (${split.length}) ===');
+    for (int i = 0; i < split.length; i++) print('  [$i] "${split[i]}"');
+
     split = split.map(_normalizeLineSpacing).toList();
+    print('=== AFTER _normalizeLineSpacing (${split.length}) ===');
+    for (int i = 0; i < split.length; i++) print('  [$i] "${split[i]}"');
+
     split = _splitInlineIngredients(split);
+    print('=== AFTER _splitInlineIngredients (${split.length}) ===');
+    for (int i = 0; i < split.length; i++) print('  [$i] "${split[i]}"');
+
     List<String> ingredients = _mergeHyphenatedLines(split);
+    print('=== AFTER _mergeHyphenatedLines (${ingredients.length}) ===');
+    for (int i = 0; i < ingredients.length; i++) print('  [$i] "${ingredients[i]}"');
+
+    ingredients = _pairOrphanAmountsWithNames(ingredients);
+    print('=== AFTER _pairOrphanAmountsWithNames (${ingredients.length}) ===');
+    for (int i = 0; i < ingredients.length; i++) print('  [$i] "${ingredients[i]}"');
+
     ingredients = _mergeContinuationLines(ingredients);
+    print('=== AFTER _mergeContinuationLines (${ingredients.length}) ===');
+    for (int i = 0; i < ingredients.length; i++) print('  [$i] "${ingredients[i]}"');
 
     Map<String, List<String>> ingredientSectionsMap =
         _createSections(ingredients);
+    print('=== AFTER _createSections ===');
+    ingredientSectionsMap.forEach((s, items) {
+      print('  Section "$s":');
+      for (final item in items) print('    - "$item"');
+    });
 
     List<IngredientSection> ingredientSections =
         _parseIngredients(ingredientSectionsMap);
 
     return ExtractionResult(ingredientSections: ingredientSections);
+  }
+
+  /// Einstiegspunkt für Unit-Tests: überspringt OCR und startet direkt mit Rohzeilen.
+  static List<IngredientSection> processRawLines(List<String> lines) {
+    List<String> split = _splitOnDelimiters(lines);
+    split = split.map(_normalizeLineSpacing).toList();
+    split = _splitInlineIngredients(split);
+    List<String> ingredients = _mergeHyphenatedLines(split);
+    ingredients = _pairOrphanAmountsWithNames(ingredients);
+    ingredients = _mergeContinuationLines(ingredients);
+    return _parseIngredients(_createSections(ingredients));
   }
 
   static ExtractionResult extractRecipeInstructions(
@@ -296,6 +333,79 @@ class RecipeExtractor {
     return output;
   }
 
+  // Ingredients that are never measured — skip pairing even if an orphan is queued
+  static const _neverPairedIngredients = ['salz', 'pfeffer', 'muskat', 'muskatnuss'];
+
+  static final _orphanAmountPattern = RegExp(
+    r'^\d+(?:[,\.]\d+)?\s*(?:' + _unitPatternString + r')?\s*$',
+    caseSensitive: false,
+  );
+
+  /// Pairs "orphan" amount-only lines (e.g. "3 EL") with the next name-only line
+  /// (e.g. "Rapsöl") that follows in the sequence — as produced by column
+  /// clustering when a tabular recipe layout is scanned.
+  static List<String> _pairOrphanAmountsWithNames(List<String> lines) {
+    final queue = <String>[];
+    final output = <String>[];
+    final deferred = <_Deferred>[];
+    int pairingsDone = 0;
+
+    for (final line in lines) {
+      final startsWithDigit = line.isNotEmpty && RegExp(r'^\d').hasMatch(line);
+      final isFlourContinuation =
+          _flourType.any((z) => line.toLowerCase().startsWith(z));
+      final neverPaired =
+          _neverPairedIngredients.any((z) => line.toLowerCase().contains(z));
+
+      if (_orphanAmountPattern.hasMatch(line)) {
+        // Only number + optional unit, no ingredient name → queue
+        queue.add(line);
+      } else if (line.startsWith('(') || isFlourContinuation) {
+        // Parenthetical continuation or flour type → append to previous
+        if (output.isNotEmpty) {
+          output[output.length - 1] += ' $line';
+        } else {
+          output.add(line);
+        }
+      } else if (startsWithDigit && !neverPaired) {
+        // Complete line appearing while orphans are queued → defer it until
+        // all queue entries that existed before it have been paired off.
+        if (queue.isEmpty) {
+          output.add(line);
+        } else {
+          deferred.add(_Deferred(pairingsDone + queue.length, line));
+        }
+      } else if (neverPaired || queue.isEmpty) {
+        // Truly quantityless or nothing queued → pass through immediately
+        output.add(line);
+        _flushDeferred(deferred, pairingsDone, output);
+      } else {
+        // Name-only line with a queued orphan amount → pair them
+        output.add('${queue.removeAt(0)} $line');
+        pairingsDone++;
+        _flushDeferred(deferred, pairingsDone, output);
+      }
+    }
+
+    // Flush any remaining deferred and unmatched orphans
+    deferred.sort((a, b) => a.remaining.compareTo(b.remaining));
+    output.addAll(deferred.map((d) => d.line));
+    output.addAll(queue);
+    return output;
+  }
+
+  static void _flushDeferred(
+      List<_Deferred> deferred, int pairingsDone, List<String> output) {
+    // Output deferred items whose required pairing count has been reached.
+    deferred.removeWhere((d) {
+      if (pairingsDone >= d.remaining) {
+        output.add(d.line);
+        return true;
+      }
+      return false;
+    });
+  }
+
   static const _flourType = [
     'type',
     'typ',
@@ -515,4 +625,10 @@ double columnX(List<TextLine> column) {
   }
 
   return sum / weight;
+}
+
+class _Deferred {
+  final int remaining;
+  final String line;
+  _Deferred(this.remaining, this.line);
 }
