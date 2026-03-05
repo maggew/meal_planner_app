@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
@@ -17,36 +18,19 @@ class RecipeExtractor {
   static ExtractionResult extractRecipeIngredients(
       RecognizedText recognizedText) {
     final lines = _prepareRecognizedText(recognizedText);
-
-    if (lines.isEmpty) {
-      return ExtractionResult();
-    }
-
-    List<String> split = _splitOnDelimiters(lines);
-    split = split.map(_normalizeLineSpacing).toList();
-    split = _splitInlineIngredients(split);
-
-    List<String> ingredients = _mergeHyphenatedLines(split);
-    ingredients = _pairOrphanAmountsWithNames(ingredients);
-    ingredients = _mergeContinuationLines(ingredients);
-
-    Map<String, List<String>> ingredientSectionsMap =
-        _createSections(ingredients);
-    List<IngredientSection> ingredientSections =
-        _parseIngredients(ingredientSectionsMap);
-
-    return ExtractionResult(ingredientSections: ingredientSections);
+    if (lines.isEmpty) return ExtractionResult();
+    return ExtractionResult(ingredientSections: processRawLines(lines));
   }
 
-  /// Einstiegspunkt für Unit-Tests: überspringt OCR und startet direkt mit Rohzeilen.
+  /// Entry point for unit tests: skips OCR and starts directly from raw lines.
   static List<IngredientSection> processRawLines(List<String> lines) {
-    List<String> split = _splitOnDelimiters(lines);
-    split = split.map(_normalizeLineSpacing).toList();
-    split = _splitInlineIngredients(split);
-    List<String> ingredients = _mergeHyphenatedLines(split);
-    ingredients = _pairOrphanAmountsWithNames(ingredients);
-    ingredients = _mergeContinuationLines(ingredients);
-    return _parseIngredients(_createSections(ingredients));
+    List<String> split = splitOnDelimiters(lines);
+    split = split.map(normalizeLineSpacing).toList();
+    split = splitInlineIngredients(split);
+    List<String> ingredients = mergeHyphenatedLines(split);
+    ingredients = pairOrphanAmountsWithNames(ingredients);
+    ingredients = mergeContinuationLines(ingredients);
+    return _parseIngredients(createSections(ingredients));
   }
 
   static ExtractionResult extractRecipeInstructions(
@@ -122,7 +106,8 @@ class RecipeExtractor {
       UnitParser.patterns.map(RegExp.escape).join('|');
 
   // Fix 1: "abc)7" → "abc) 7"   Fix 2: "40g" → "40 g"
-  static String _normalizeLineSpacing(String line) {
+  @visibleForTesting
+  static String normalizeLineSpacing(String line) {
     // Space between ) and digit
     line = line.replaceAllMapped(
       RegExp(r'\)(\d)'),
@@ -137,7 +122,8 @@ class RecipeExtractor {
     return line;
   }
 
-  static List<String> _splitOnDelimiters(List<String> lines) {
+  @visibleForTesting
+  static List<String> splitOnDelimiters(List<String> lines) {
     final List<String> output = [];
     for (final line in lines) {
       if (_delimiterPattern.hasMatch(line)) {
@@ -166,13 +152,12 @@ class RecipeExtractor {
   );
   // Splits before inline section keywords (reuses _sectionPatterns)
   static final _inlineSectionPattern = RegExp(
-    r'\s+(?=(?:' +
-        _sectionPatterns.map(RegExp.escape).join('|') +
-        r'))',
+    r'\s+(?=(?:' + _sectionPatterns.map(RegExp.escape).join('|') + r'))',
     caseSensitive: false,
   );
 
-  static List<String> _splitInlineIngredients(List<String> lines) {
+  @visibleForTesting
+  static List<String> splitInlineIngredients(List<String> lines) {
     final List<String> output = [];
     for (final line in lines) {
       output.addAll(_splitLineOnIngredients(line));
@@ -189,11 +174,15 @@ class RecipeExtractor {
     }
 
     // Ingredient-start patterns: skip matches inside parentheses
-    for (final pattern in [_unitInlineSplitPattern, _capitalInlineSplitPattern]) {
+    for (final pattern in [
+      _unitInlineSplitPattern,
+      _capitalInlineSplitPattern
+    ]) {
       for (final m in pattern.allMatches(line)) {
         int depth = 0;
         for (int i = 0; i < m.start; i++) {
-          if (line[i] == '(') depth++;
+          if (line[i] == '(')
+            depth++;
           else if (line[i] == ')') depth--;
         }
         if (depth == 0) positions.add(m.end);
@@ -216,18 +205,46 @@ class RecipeExtractor {
   }
 
   static const _sectionPatterns = [
-    'für den ', 'für die ', 'für das ', 'für ca.',
-    'teig', 'füllung', 'sauce', 'soße', 'marinade',
-    'dressing', 'topping', 'beilage', 'garnitur',
-    'glasur', 'guss', 'creme', 'belag',
-    'außerdem', 'zusätzlich', 'zum servieren',
-    'boden', 'streusel', 'ganache', 'baiser',
-    'vinaigrette', 'pesto', 'chutney', 'salsa',
-    'zum garnieren', 'zum dekorieren', 'zum bestreuen', 'zum bestäuben',
-    'panade', 'kruste', 'brühe', 'mousse',
+    'für den ',
+    'für die ',
+    'für das ',
+    'für ca.',
+    'teig',
+    'füllung',
+    'sauce',
+    'soße',
+    'marinade',
+    'dressing',
+    'topping',
+    'beilage',
+    'garnitur',
+    'glasur',
+    'guss',
+    'creme',
+    'belag',
+    'außerdem',
+    'zusätzlich',
+    'zum servieren',
+    'boden',
+    'streusel',
+    'ganache',
+    'baiser',
+    'vinaigrette',
+    'pesto',
+    'chutney',
+    'salsa',
+    'zum garnieren',
+    'zum dekorieren',
+    'zum bestreuen',
+    'zum bestäuben',
+    'panade',
+    'kruste',
+    'brühe',
+    'mousse',
   ];
 
-  static bool _isSectionHeader(String line) {
+  @visibleForTesting
+  static bool isSectionHeader(String line) {
     // (a) Beginnt mit Großbuchstabe
     if (line[0] != line[0].toUpperCase() || line[0] == line[0].toLowerCase()) {
       return false;
@@ -247,12 +264,13 @@ class RecipeExtractor {
     return _sectionPatterns.any((p) => lowerLine.contains(p));
   }
 
-  static Map<String, List<String>> _createSections(List<String> lines) {
+  @visibleForTesting
+  static Map<String, List<String>> createSections(List<String> lines) {
     Map<String, List<String>> output = {};
     String currentSection = "Zutaten";
 
     for (String line in lines) {
-      if (_isSectionHeader(line)) {
+      if (isSectionHeader(line)) {
         // "Außerdem: Backpapier" → header="Außerdem", item="Backpapier"
         final colonIdx = line.indexOf(':');
         final String header;
@@ -281,7 +299,8 @@ class RecipeExtractor {
     return output;
   }
 
-  static List<String> _mergeContinuationLines(List<String> list) {
+  @visibleForTesting
+  static List<String> mergeContinuationLines(List<String> list) {
     List<String> output = [];
 
     for (int i = list.length - 1; i >= 0; i--) {
@@ -309,7 +328,12 @@ class RecipeExtractor {
   }
 
   // Ingredients that are never measured — skip pairing even if an orphan is queued
-  static const _neverPairedIngredients = ['salz', 'pfeffer', 'muskat', 'muskatnuss'];
+  static const _neverPairedIngredients = [
+    'salz',
+    'pfeffer',
+    'muskat',
+    'muskatnuss'
+  ];
 
   static final _orphanAmountPattern = RegExp(
     r'^\d+(?:[,\.]\d+)?\s*(?:' + _unitPatternString + r')?\s*$',
@@ -319,7 +343,8 @@ class RecipeExtractor {
   /// Pairs "orphan" amount-only lines (e.g. "3 EL") with the next name-only line
   /// (e.g. "Rapsöl") that follows in the sequence — as produced by column
   /// clustering when a tabular recipe layout is scanned.
-  static List<String> _pairOrphanAmountsWithNames(List<String> lines) {
+  @visibleForTesting
+  static List<String> pairOrphanAmountsWithNames(List<String> lines) {
     final queue = <String>[];
     final output = <String>[];
     final deferred = <_Deferred>[];
@@ -410,7 +435,8 @@ class RecipeExtractor {
     'zucker',
   ];
 
-  static List<String> _mergeHyphenatedLines(List<String> lines) {
+  @visibleForTesting
+  static List<String> mergeHyphenatedLines(List<String> lines) {
     List<String> output = [];
 
     for (int i = 0; i < lines.length; i++) {
@@ -449,9 +475,9 @@ class RecipeExtractor {
   }
 
   static Ingredient _parseIngredientLine(String ingredientLine) {
-    final lineText = _normalizeIngredientText(ingredientLine);
+    final lineText = normalizeIngredientText(ingredientLine);
     final tokens = lineText.split(' ');
-    String? amount = _parseAmountToken(tokens.first);
+    String? amount = parseAmountToken(tokens.first);
     Unit? unit;
     String name = '';
 
@@ -479,7 +505,8 @@ class RecipeExtractor {
   }
 
   /// Validiert und übernimmt Mengen als TEXT (keine Berechnung!)
-  static String? _parseAmountToken(String token) {
+  @visibleForTesting
+  static String? parseAmountToken(String token) {
     final normalized = token.replaceAll(',', '.');
 
     // Zahl: 150 | 1.5
@@ -500,7 +527,8 @@ class RecipeExtractor {
     return null;
   }
 
-  static String _normalizeIngredientText(String text) {
+  @visibleForTesting
+  static String normalizeIngredientText(String text) {
     text = text.replaceAll('½', '1/2');
     text = text.replaceAll('¼', '1/4');
     text = text.replaceAll('¾', '3/4');
