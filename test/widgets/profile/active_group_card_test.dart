@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/domain/entities/user.dart';
-import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/domain/repositories/group_repository.dart';
 import 'package:meal_planner/presentation/profile/widgets/active_group_card.dart';
 import 'package:meal_planner/presentation/profile/widgets/profile_groups_list.dart';
@@ -17,36 +15,6 @@ import 'package:mocktail/mocktail.dart';
 // --- Mocks ---
 
 class MockGroupRepository extends Mock implements GroupRepository {}
-
-class FakeSessionNotifier extends StateNotifier<SessionState>
-    implements SessionController {
-  FakeSessionNotifier(super.state);
-
-  @override
-  Future<void> loadSession(String userId) async {}
-
-  @override
-  Future<void> joinGroup(String groupId) async {}
-
-  @override
-  Future<void> setActiveGroup(String groupId) async {}
-
-  @override
-  Future<void> reloadActiveGroup() async {}
-
-  @override
-  void setActiveUserAfterRegistration(String userId) {}
-
-  @override
-  Future<void> changeSettings(UserSettings settings) async {}
-
-  @override
-  Future<void> clearSession() async {}
-
-  @override
-  // ignore: must_be_immutable
-  Ref get ref => throw UnimplementedError();
-}
 
 // --- Fixtures ---
 
@@ -111,10 +79,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            sessionProvider.overrideWith(
-              (ref) => FakeSessionNotifier(
-                const SessionState(userId: 'u1', groupId: 'g1', group: null),
-              ),
+            sessionProvider.overrideWithValue(
+              const SessionState(userId: 'u1', groupId: 'g1', group: null),
             ),
             groupRepositoryProvider.overrideWithValue(mockRepo),
           ],
@@ -204,10 +170,8 @@ void main() {
         ProviderScope(
           overrides: [
             userGroupsProvider.overrideWith((ref) async => [groupA, groupB]),
-            sessionProvider.overrideWith(
-              (ref) => FakeSessionNotifier(
-                const SessionState(userId: 'u1', groupId: 'g1'),
-              ),
+            sessionProvider.overrideWithValue(
+              const SessionState(userId: 'u1', groupId: 'g1'),
             ),
           ],
           child: const MaterialApp(
@@ -228,10 +192,8 @@ void main() {
         ProviderScope(
           overrides: [
             userGroupsProvider.overrideWith((ref) async => [groupA, groupB]),
-            sessionProvider.overrideWith(
-              (ref) => FakeSessionNotifier(
-                const SessionState(userId: 'u1', groupId: 'g1'),
-              ),
+            sessionProvider.overrideWithValue(
+              const SessionState(userId: 'u1', groupId: 'g1'),
             ),
           ],
           child: const MaterialApp(
@@ -251,9 +213,7 @@ void main() {
         ProviderScope(
           overrides: [
             userGroupsProvider.overrideWith((ref) async => []),
-            sessionProvider.overrideWith(
-              (ref) => FakeSessionNotifier(const SessionState()),
-            ),
+            sessionProvider.overrideWithValue(const SessionState()),
           ],
           child: const MaterialApp(
             home: Scaffold(

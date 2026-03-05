@@ -1,10 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meal_planner/domain/entities/group_category.dart';
-import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/domain/repositories/group_category_repository.dart';
 import 'package:meal_planner/services/providers/groups/group_category_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
@@ -15,28 +13,6 @@ import 'package:mocktail/mocktail.dart';
 
 class MockGroupCategoryRepository extends Mock
     implements GroupCategoryRepository {}
-
-class FakeSessionNotifier extends StateNotifier<SessionState>
-    implements SessionController {
-  FakeSessionNotifier(super.state);
-
-  @override
-  Future<void> loadSession(String userId) async {}
-  @override
-  Future<void> joinGroup(String groupId) async {}
-  @override
-  Future<void> setActiveGroup(String groupId) async {}
-  @override
-  Future<void> reloadActiveGroup() async {}
-  @override
-  void setActiveUserAfterRegistration(String userId) {}
-  @override
-  Future<void> changeSettings(UserSettings settings) async {}
-  @override
-  Future<void> clearSession() async {}
-  @override
-  Ref get ref => throw UnimplementedError();
-}
 
 // --- Fixtures ---
 
@@ -52,10 +28,8 @@ final _initialCategories = [_cat0, _cat1, _cat2];
 
 ProviderContainer _makeContainer(MockGroupCategoryRepository mockRepo) {
   final container = ProviderContainer(overrides: [
-    sessionProvider.overrideWith(
-      (ref) => FakeSessionNotifier(
-        const SessionState(userId: 'u1', groupId: _groupId),
-      ),
+    sessionProvider.overrideWithValue(
+      const SessionState(userId: 'u1', groupId: _groupId),
     ),
     groupCategoryRepositoryProvider.overrideWithValue(mockRepo),
   ]);
@@ -79,9 +53,7 @@ void main() {
   group('GroupCategories.build()', () {
     test('gibt leere Liste zurück wenn kein groupId in Session', () async {
       final container = ProviderContainer(overrides: [
-        sessionProvider.overrideWith(
-          (ref) => FakeSessionNotifier(const SessionState()),
-        ),
+        sessionProvider.overrideWithValue(const SessionState()),
         groupCategoryRepositoryProvider.overrideWithValue(mockRepo),
       ]);
       addTearDown(container.dispose);

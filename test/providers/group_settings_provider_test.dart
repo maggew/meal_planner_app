@@ -14,6 +14,14 @@ import 'package:mocktail/mocktail.dart';
 
 class MockGroupRepository extends Mock implements GroupRepository {}
 
+class _TestSessionNotifier extends SessionNotifier {
+  _TestSessionNotifier(this._initial);
+  final SessionState _initial;
+
+  @override
+  SessionState build() => _initial;
+}
+
 // --- Helpers ---
 
 ProviderContainer _makeContainer({
@@ -23,6 +31,20 @@ ProviderContainer _makeContainer({
   final repo = groupRepo ?? MockGroupRepository();
   return ProviderContainer(overrides: [
     sessionProvider.overrideWithValue(sessionState),
+    groupRepositoryProvider.overrideWithValue(repo),
+  ]);
+}
+
+/// Container for tests that invoke [GroupSettingsNotifier.update], which
+/// internally accesses [sessionProvider.notifier]. [overrideWithValue] does
+/// not expose a notifier, so we need [overrideWith] with a real notifier here.
+ProviderContainer _makeNotifierContainer({
+  required SessionState sessionState,
+  GroupRepository? groupRepo,
+}) {
+  final repo = groupRepo ?? MockGroupRepository();
+  return ProviderContainer(overrides: [
+    sessionProvider.overrideWith(() => _TestSessionNotifier(sessionState)),
     groupRepositoryProvider.overrideWithValue(repo),
   ]);
 }
@@ -51,7 +73,8 @@ void main() {
       final settings = container.read(groupSettingsProvider);
 
       expect(settings.weekStartDay, GroupSettings.defaultSettings.weekStartDay);
-      expect(settings.defaultMealSlots, GroupSettings.defaultSettings.defaultMealSlots);
+      expect(settings.defaultMealSlots,
+          GroupSettings.defaultSettings.defaultMealSlots);
       expect(settings.showCarbTags, GroupSettings.defaultSettings.showCarbTags);
     });
 
@@ -87,7 +110,8 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      expect(container.read(groupSettingsProvider).weekStartDay, WeekStartDay.monday);
+      expect(container.read(groupSettingsProvider).weekStartDay,
+          WeekStartDay.monday);
 
       // Session wird extern aktualisiert
       container.updateOverrides([
@@ -103,7 +127,8 @@ void main() {
         groupRepositoryProvider.overrideWithValue(MockGroupRepository()),
       ]);
 
-      expect(container.read(groupSettingsProvider).weekStartDay, WeekStartDay.sunday);
+      expect(container.read(groupSettingsProvider).weekStartDay,
+          WeekStartDay.sunday);
     });
   });
 
@@ -112,7 +137,7 @@ void main() {
       final repo = MockGroupRepository();
       when(() => repo.updateSettings(any(), any())).thenAnswer((_) async {});
 
-      final container = _makeContainer(
+      final container = _makeNotifierContainer(
         sessionState: SessionState(
           userId: 'u1',
           groupId: 'g1',

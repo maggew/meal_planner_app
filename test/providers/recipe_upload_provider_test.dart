@@ -29,12 +29,8 @@ void main() {
     container = ProviderContainer(
       overrides: [
         recipeRepositoryProvider.overrideWithValue(mockRepo),
-        sessionProvider.overrideWith(
-          (ref) {
-            final controller = SessionController(ref);
-            controller.setActiveUserAfterRegistration('user-1');
-            return controller;
-          },
+        sessionProvider.overrideWithValue(
+          const SessionState(userId: 'user-1'),
         ),
       ],
     );
