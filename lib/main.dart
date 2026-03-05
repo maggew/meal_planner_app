@@ -16,6 +16,7 @@ import 'package:meal_planner/services/providers/router_provider.dart';
 import 'package:meal_planner/services/meal_plan/meal_plan_sync_observer.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_sync_provider.dart';
 import 'package:meal_planner/services/providers/shopping_list/shopping_list_sync_provider.dart';
+import 'package:meal_planner/services/providers/session_provider.dart';
 import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
 import 'package:meal_planner/services/shopping_list/shopping_list_sync_observer.dart';
 import 'package:meal_planner/services/timer_lifecycle_observer.dart';
@@ -138,6 +139,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       next.whenData((isOnline) {
         final wasOffline = previous?.asData?.value == false;
         if (isOnline && wasOffline) {
+          ref.read(sessionProvider.notifier).reloadActiveGroup();
           ref.read(shoppingListSyncServiceProvider).syncPendingItems();
           final now = DateTime.now();
           ref.read(mealPlanSyncServiceProvider).sync(now.year, now.month);
