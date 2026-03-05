@@ -1,35 +1,26 @@
-import 'dart:convert';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/group_settings.dart';
+import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
-import 'package:meal_planner/services/providers/shared_preferences_provider.dart';
 
 class GroupSettingsNotifier extends Notifier<GroupSettings> {
   @override
   GroupSettings build() {
-    final prefs = ref.watch(sharedPreferencesProvider);
-    final groupId = ref.watch(sessionProvider).groupId;
-    if (groupId == null) return GroupSettings.defaultSettings;
-    final json = prefs.getString('group_settings_$groupId');
-    if (json == null) return GroupSettings.defaultSettings;
-    try {
-      return GroupSettings.fromJson(jsonDecode(json));
-    } catch (_) {
-      return GroupSettings.defaultSettings;
-    }
-  }
-
-  Future<void> _save() async {
-    final prefs = ref.read(sharedPreferencesProvider);
-    final groupId = ref.read(sessionProvider).groupId;
-    if (groupId == null) return;
-    await prefs.setString('group_settings_$groupId', jsonEncode(state.toJson()));
+    return ref.watch(
+      sessionProvider.select((s) => s.group?.settings ?? GroupSettings.defaultSettings),
+    );
   }
 
   Future<void> update(GroupSettings newSettings) async {
-    state = newSettings;
-    await _save();
+    final session = ref.read(sessionProvider);
+    final groupId = session.groupId;
+    final group = session.group;
+    if (groupId == null || group == null) return;
+
+    await ref.read(groupRepositoryProvider).updateSettings(groupId, newSettings);
+    ref.read(sessionProvider.notifier).updateGroupLocally(
+          group.copyWith(settings: newSettings),
+        );
   }
 }
 

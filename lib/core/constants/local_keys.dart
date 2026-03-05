@@ -4,5 +4,5 @@ class LocalKeys {
   static const activeGroupId = 'active_group_id';
   static const userSettings = 'user_settings';
   static const supabaseUserId = 'supabase_user_id';
-  static const cachedGroup = 'cached_group';
+  static const cachedGroupPrefix = 'cached_group_';
 }

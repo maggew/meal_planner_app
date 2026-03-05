@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:meal_planner/core/constants/local_storage_service.dart';
 import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
@@ -7,7 +6,10 @@ import 'package:meal_planner/domain/enums/group_role.dart';
 import 'package:meal_planner/domain/exceptions/group_exceptions.dart';
 import 'package:meal_planner/services/providers/realtime_auth_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+part 'session_provider.g.dart';
 
 /// Synchroner State für die aktuelle Session
 class SessionState {
@@ -44,11 +46,10 @@ class SessionState {
   }
 }
 
-/// Session Controller
-class SessionController extends StateNotifier<SessionState> {
-  SessionController(this.ref) : super(const SessionState());
-
-  final Ref ref;
+@Riverpod(keepAlive: true)
+class SessionNotifier extends _$SessionNotifier {
+  @override
+  SessionState build() => const SessionState();
 
   /// Lädt die komplette Session (userId + groupId + Group-Daten + Rolle)
   Future<void> loadSession(String userId) async {
@@ -69,7 +70,7 @@ class SessionController extends StateNotifier<SessionState> {
         }
       } catch (_) {
         // Offline: gecachte Gruppe laden
-        group = await storage.loadGroup();
+        group = await storage.loadGroup(groupId);
       }
     }
 
@@ -137,6 +138,10 @@ class SessionController extends StateNotifier<SessionState> {
     state = state.copyWith(group: group);
   }
 
+  void updateGroupLocally(Group updated) {
+    state = state.copyWith(group: updated);
+  }
+
   void setActiveUserAfterRegistration(String userId) {
     state = SessionState(
       userId: userId,
@@ -153,14 +158,12 @@ class SessionController extends StateNotifier<SessionState> {
 
   /// Session zurücksetzen (Logout)
   Future<void> clearSession() async {
+    final groupId = state.groupId;
     final storage = LocalStorageService();
     await storage.clearActiveGroup();
-    await storage.clearGroup();
+    if (groupId != null) await storage.clearGroup(groupId);
     ref.read(realtimeAuthServiceProvider).dispose();
     state = const SessionState();
   }
 }
 
-final sessionProvider = StateNotifierProvider<SessionController, SessionState>(
-  (ref) => SessionController(ref),
-);

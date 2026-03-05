@@ -1,4 +1,5 @@
 import 'package:meal_planner/domain/entities/group.dart';
+import 'package:meal_planner/domain/entities/group_settings.dart';
 import 'package:meal_planner/domain/entities/user.dart';
 import 'package:meal_planner/domain/enums/group_role.dart';
 
@@ -15,7 +16,7 @@ abstract class GroupRepository {
       required String newName,
       required String imageUrl});
 
-  Future<void> updateShowCarbTags(String groupId, bool showCarbTags);
+  Future<void> updateSettings(String groupId, GroupSettings settings);
 
   Future<List<Group>> getUserGroups(String userId);
   Future<List<User>> getGroupMembers(String groupId);

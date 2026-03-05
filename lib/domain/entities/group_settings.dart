@@ -4,10 +4,12 @@ import 'package:meal_planner/domain/enums/week_start_day.dart';
 class GroupSettings {
   final WeekStartDay weekStartDay;
   final List<MealType> defaultMealSlots;
+  final bool showCarbTags;
 
   const GroupSettings({
     this.weekStartDay = WeekStartDay.monday,
     List<MealType>? defaultMealSlots,
+    this.showCarbTags = true,
   }) : defaultMealSlots = defaultMealSlots ?? MealType.values;
 
   static const defaultSettings = GroupSettings();
@@ -33,21 +35,25 @@ class GroupSettings {
       ),
       defaultMealSlots:
           parsedSlots.isNotEmpty ? parsedSlots : MealType.values.toList(),
+      showCarbTags: json['show_carb_tags'] as bool? ?? true,
     );
   }
 
   Map<String, dynamic> toJson() => {
         'week_start_day': weekStartDay.name,
         'default_meal_slots': defaultMealSlots.map((m) => m.value).toList(),
+        'show_carb_tags': showCarbTags,
       };
 
   GroupSettings copyWith({
     WeekStartDay? weekStartDay,
     List<MealType>? defaultMealSlots,
+    bool? showCarbTags,
   }) {
     return GroupSettings(
       weekStartDay: weekStartDay ?? this.weekStartDay,
       defaultMealSlots: defaultMealSlots ?? this.defaultMealSlots,
+      showCarbTags: showCarbTags ?? this.showCarbTags,
     );
   }
 }

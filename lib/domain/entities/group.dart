@@ -1,32 +1,34 @@
+import 'package:meal_planner/domain/entities/group_settings.dart';
+
 class Group {
   final String name;
   final String id;
   final String imageUrl;
-  final bool showCarbTags;
+  final GroupSettings settings;
 
   Group({
     required this.name,
     required this.id,
     required this.imageUrl,
-    this.showCarbTags = true,
-  });
+    GroupSettings? settings,
+  }) : settings = settings ?? GroupSettings.defaultSettings;
 
   Group copyWith({
     String? name,
     String? id,
     String? imageUrl,
-    bool? showCarbTags,
+    GroupSettings? settings,
   }) {
     return Group(
       name: name ?? this.name,
       id: id ?? this.id,
       imageUrl: imageUrl ?? this.imageUrl,
-      showCarbTags: showCarbTags ?? this.showCarbTags,
+      settings: settings ?? this.settings,
     );
   }
 
   @override
   String toString() {
-    return 'Group(name: $name, id: $id, imageUrl: $imageUrl, showCarbTags: $showCarbTags)';
+    return 'Group(name: $name, id: $id, imageUrl: $imageUrl, settings: $settings)';
   }
 }

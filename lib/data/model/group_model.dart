@@ -1,20 +1,27 @@
 import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/domain/entities/group.dart';
+import 'package:meal_planner/domain/entities/group_settings.dart';
 
 class GroupModel extends Group {
   GroupModel({
     required super.name,
     required super.id,
     required super.imageUrl,
-    super.showCarbTags = true,
+    super.settings,
   });
 
   factory GroupModel.fromSupabase(Map<String, dynamic> data) {
+    final settings = GroupSettings.fromJson({
+      'week_start_day': data[SupabaseConstants.groupWeekStartDay],
+      'default_meal_slots': data[SupabaseConstants.groupDefaultMealSlots],
+      'show_carb_tags': data[SupabaseConstants.groupShowCarbTags],
+    });
+
     return GroupModel(
       id: data[SupabaseConstants.groupId] as String,
       name: data[SupabaseConstants.groupName] as String? ?? '',
       imageUrl: data[SupabaseConstants.groupImageUrl] as String? ?? '',
-      showCarbTags: data[SupabaseConstants.groupShowCarbTags] as bool? ?? true,
+      settings: settings,
     );
   }
 
@@ -23,7 +30,10 @@ class GroupModel extends Group {
       SupabaseConstants.groupId: id,
       SupabaseConstants.groupName: name,
       SupabaseConstants.groupImageUrl: imageUrl,
-      SupabaseConstants.groupShowCarbTags: showCarbTags,
+      SupabaseConstants.groupWeekStartDay: settings.weekStartDay.name,
+      SupabaseConstants.groupDefaultMealSlots:
+          settings.defaultMealSlots.map((m) => m.value).toList(),
+      SupabaseConstants.groupShowCarbTags: settings.showCarbTags,
     };
   }
 
@@ -32,7 +42,7 @@ class GroupModel extends Group {
       name: group.name,
       id: group.id,
       imageUrl: group.imageUrl,
-      showCarbTags: group.showCarbTags,
+      settings: group.settings,
     );
   }
 
@@ -41,7 +51,7 @@ class GroupModel extends Group {
       name: name,
       id: id,
       imageUrl: imageUrl,
-      showCarbTags: showCarbTags,
+      settings: settings,
     );
   }
 }

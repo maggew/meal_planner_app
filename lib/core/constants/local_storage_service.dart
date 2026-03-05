@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:meal_planner/core/constants/local_keys.dart';
 import 'package:meal_planner/domain/entities/group.dart';
+import 'package:meal_planner/domain/entities/group_settings.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -35,33 +36,45 @@ class LocalStorageService {
     return prefs.getString(LocalKeys.supabaseUserId);
   }
 
-  // ------ Cached Group ------
+  // ------ Cached Group (per groupId) ------
   Future<void> saveGroup(Group group) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(LocalKeys.cachedGroup, jsonEncode({
-      'id': group.id,
-      'name': group.name,
-      'imageUrl': group.imageUrl,
-      'showCarbTags': group.showCarbTags,
-    }));
-  }
-
-  Future<Group?> loadGroup() async {
-    final prefs = await SharedPreferences.getInstance();
-    final value = prefs.getString(LocalKeys.cachedGroup);
-    if (value == null) return null;
-    final map = jsonDecode(value) as Map<String, dynamic>;
-    return Group(
-      id: map['id'] as String,
-      name: map['name'] as String,
-      imageUrl: map['imageUrl'] as String,
-      showCarbTags: map['showCarbTags'] as bool? ?? true,
+    await prefs.setString(
+      '${LocalKeys.cachedGroupPrefix}${group.id}',
+      jsonEncode({
+        'id': group.id,
+        'name': group.name,
+        'imageUrl': group.imageUrl,
+        'settings': group.settings.toJson(),
+      }),
     );
   }
 
-  Future<void> clearGroup() async {
+  Future<Group?> loadGroup(String groupId) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(LocalKeys.cachedGroup);
+    final value = prefs.getString('${LocalKeys.cachedGroupPrefix}$groupId');
+    if (value == null) return null;
+    try {
+      final map = jsonDecode(value) as Map<String, dynamic>;
+      GroupSettings? settings;
+      final rawSettings = map['settings'];
+      if (rawSettings is Map<String, dynamic>) {
+        settings = GroupSettings.fromJson(rawSettings);
+      }
+      return Group(
+        id: map['id'] as String,
+        name: map['name'] as String,
+        imageUrl: map['imageUrl'] as String,
+        settings: settings,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> clearGroup(String groupId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('${LocalKeys.cachedGroupPrefix}$groupId');
   }
 
   // ------ User Settings ------

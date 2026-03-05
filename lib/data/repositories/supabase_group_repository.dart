@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:meal_planner/domain/entities/group_settings.dart';
 import 'package:meal_planner/domain/entities/user.dart';
 import 'package:meal_planner/domain/enums/group_role.dart';
 import 'package:meal_planner/core/constants/supabase_constants.dart';
@@ -225,12 +226,14 @@ class SupabaseGroupRepository implements GroupRepository {
   }
 
   @override
-  Future<void> updateShowCarbTags(String groupId, bool showCarbTags) async {
+  Future<void> updateSettings(String groupId, GroupSettings settings) async {
     try {
-      await _supabase
-          .from(SupabaseConstants.groupsTable)
-          .update({SupabaseConstants.groupShowCarbTags: showCarbTags})
-          .eq(SupabaseConstants.groupId, groupId);
+      await _supabase.from(SupabaseConstants.groupsTable).update({
+        SupabaseConstants.groupWeekStartDay: settings.weekStartDay.name,
+        SupabaseConstants.groupDefaultMealSlots:
+            settings.defaultMealSlots.map((m) => m.value).toList(),
+        SupabaseConstants.groupShowCarbTags: settings.showCarbTags,
+      }).eq(SupabaseConstants.groupId, groupId);
     } on PostgrestException catch (e) {
       throw GroupUpdateException('Datenbankfehler: $e');
     } on SocketException {
