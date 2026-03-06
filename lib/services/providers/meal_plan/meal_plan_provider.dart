@@ -27,14 +27,14 @@ class MealPlanActionsNotifier {
     required MealType mealType,
     String? recipeId,
     String? customName,
-    String? cookId,
+    List<String> cookIds = const [],
   }) async {
     await _ref.read(mealPlanRepositoryProvider).addEntry(
           date: date,
           mealType: mealType,
           recipeId: recipeId,
           customName: customName,
-          cookId: cookId,
+          cookIds: cookIds,
         );
   }
 
@@ -42,13 +42,13 @@ class MealPlanActionsNotifier {
     String localId, {
     String? recipeId,
     String? customName,
-    String? cookId,
+    List<String> cookIds = const [],
   }) async {
     await _ref.read(mealPlanRepositoryProvider).updateEntry(
           localId,
           recipeId: recipeId,
           customName: customName,
-          cookId: cookId,
+          cookIds: cookIds,
         );
   }
 
@@ -56,8 +56,8 @@ class MealPlanActionsNotifier {
     await _ref.read(mealPlanRepositoryProvider).removeEntry(localId);
   }
 
-  Future<void> setCook(String localId, String? cookId) async {
-    await _ref.read(mealPlanRepositoryProvider).setCook(localId, cookId);
+  Future<void> setCookIds(String localId, List<String> cookIds) async {
+    await _ref.read(mealPlanRepositoryProvider).setCookIds(localId, cookIds);
   }
 }
 
@@ -78,4 +78,15 @@ final cookUserProvider =
   if (groupId == null) return null;
   final members = await ref.watch(groupMembersProvider(groupId).future);
   return members.where((u) => u.id == userId).firstOrNull;
+});
+
+// Lookup multiple cooks by their IDs
+final cookUsersProvider =
+    FutureProvider.autoDispose.family<List<User>, List<String>>(
+        (ref, userIds) async {
+  if (userIds.isEmpty) return const [];
+  final groupId = ref.watch(sessionProvider).groupId;
+  if (groupId == null) return const [];
+  final members = await ref.watch(groupMembersProvider(groupId).future);
+  return members.where((u) => userIds.contains(u.id)).toList();
 });

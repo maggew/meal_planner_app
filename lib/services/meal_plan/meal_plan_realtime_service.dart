@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/core/database/app_database.dart';
@@ -65,6 +67,8 @@ class MealPlanRealtimeService {
     final existing = await _dao.watchEntriesForMonth(_groupId, yearMonth).first;
     if (existing.any((e) => e.remoteId == remoteId)) return;
 
+    final rawCookIds = record[SupabaseConstants.mealPlanEntryCookIds];
+    final cookIds = rawCookIds is List ? rawCookIds.cast<String>() : <String>[];
     await _dao.upsertEntry(LocalMealPlanEntriesCompanion(
       localId: Value(remoteId),
       remoteId: Value(remoteId),
@@ -74,6 +78,8 @@ class MealPlanRealtimeService {
       date: Value(date),
       mealType:
           Value(record[SupabaseConstants.mealPlanEntryMealType] as String),
+      cookIdsJson:
+          Value(cookIds.isEmpty ? null : jsonEncode(cookIds)),
       syncStatus: const Value('synced'),
       updatedAt: Value(DateTime.now()),
     ));
@@ -92,6 +98,9 @@ class MealPlanRealtimeService {
         existing.where((e) => e.remoteId == remoteId).firstOrNull;
     if (localEntry == null || localEntry.syncStatus != 'synced') return;
 
+    final rawCookIds2 = record[SupabaseConstants.mealPlanEntryCookIds];
+    final cookIds2 =
+        rawCookIds2 is List ? rawCookIds2.cast<String>() : <String>[];
     await _dao.upsertEntry(LocalMealPlanEntriesCompanion(
       localId: Value(localEntry.localId),
       remoteId: Value(remoteId),
@@ -101,6 +110,8 @@ class MealPlanRealtimeService {
       date: Value(date),
       mealType:
           Value(record[SupabaseConstants.mealPlanEntryMealType] as String),
+      cookIdsJson:
+          Value(cookIds2.isEmpty ? null : jsonEncode(cookIds2)),
       syncStatus: const Value('synced'),
       updatedAt: Value(DateTime.now()),
     ));

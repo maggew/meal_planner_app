@@ -9,17 +9,17 @@ abstract class MealPlanRepository {
     required MealType mealType,
     String? recipeId,
     String? customName,
-    String? cookId,
+    List<String> cookIds = const [],
   });
 
   Future<void> updateEntry(
     String localId, {
     String? recipeId,
     String? customName,
-    String? cookId,
+    List<String> cookIds = const [],
   });
 
   Future<void> removeEntry(String localId);
 
-  Future<void> setCook(String localId, String? cookId);
+  Future<void> setCookIds(String localId, List<String> cookIds);
 }

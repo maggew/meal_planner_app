@@ -95,7 +95,7 @@ class SupabaseConstants {
   static const String mealPlanEntryRecipeId = 'recipe_id';
   static const String mealPlanEntryDate = 'date';
   static const String mealPlanEntryMealType = 'meal_type';
-  static const String mealPlanEntryCookId = 'cook_id';
+  static const String mealPlanEntryCookIds = 'cook_ids';
   static const String mealPlanEntryCustomName = 'custom_name';
   static const String mealPlanEntryUpdatedAt = 'updated_at';
 }

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,7 +45,7 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
     required MealType mealType,
     String? recipeId,
     String? customName,
-    String? cookId,
+    List<String> cookIds = const [],
   }) async {
     final localId = _uuid.v4();
     final dateStr = _dateToString(date);
@@ -55,7 +57,7 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
       customName: Value(customName),
       date: Value(dateStr),
       mealType: Value(mealType.value),
-      cookId: Value(cookId),
+      cookIdsJson: Value(_encodeCookIds(cookIds)),
       syncStatus: const Value('pendingCreate'),
       updatedAt: Value(now),
     ));
@@ -70,7 +72,7 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
               SupabaseConstants.mealPlanEntryCustomName: customName,
               SupabaseConstants.mealPlanEntryDate: dateStr,
               SupabaseConstants.mealPlanEntryMealType: mealType.value,
-              SupabaseConstants.mealPlanEntryCookId: cookId,
+              SupabaseConstants.mealPlanEntryCookIds: cookIds,
               SupabaseConstants.mealPlanEntryUpdatedAt: now.toIso8601String(),
             })
             .select()
@@ -81,7 +83,6 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
         await _dao.updateSyncStatus(localId, 'synced', remoteId: remoteId);
       } catch (e) {
         debugPrint('[MealPlan] Supabase insert fehlgeschlagen: $e');
-        // bleibt pendingCreate – SyncService holt es nach
       }
     }
   }
@@ -91,7 +92,7 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
     String localId, {
     String? recipeId,
     String? customName,
-    String? cookId,
+    List<String> cookIds = const [],
   }) async {
     final existing = await _dao.getEntryByLocalId(localId);
     if (existing == null) return;
@@ -100,7 +101,7 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
       localId,
       recipeId: recipeId ?? '',
       customName: customName,
-      cookId: cookId,
+      cookIdsJson: _encodeCookIds(cookIds),
       keepPendingCreate: existing.remoteId == null,
     );
 
@@ -112,7 +113,7 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
             .update({
               SupabaseConstants.mealPlanEntryRecipeId: recipeId,
               SupabaseConstants.mealPlanEntryCustomName: customName,
-              SupabaseConstants.mealPlanEntryCookId: cookId,
+              SupabaseConstants.mealPlanEntryCookIds: cookIds,
               SupabaseConstants.mealPlanEntryUpdatedAt: now.toIso8601String(),
             })
             .eq(SupabaseConstants.mealPlanEntryId, existing.remoteId!);
@@ -125,8 +126,8 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
   }
 
   @override
-  Future<void> setCook(String localId, String? cookId) async {
-    await _dao.updateCookId(localId, cookId);
+  Future<void> setCookIds(String localId, List<String> cookIds) async {
+    await _dao.updateCookIds(localId, _encodeCookIds(cookIds));
 
     final entry = await _dao.getEntryByLocalId(localId);
     if (entry == null || entry.remoteId == null) return;
@@ -135,12 +136,12 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
       try {
         await _supabase
             .from(SupabaseConstants.mealPlanEntriesTable)
-            .update({SupabaseConstants.mealPlanEntryCookId: cookId})
+            .update({SupabaseConstants.mealPlanEntryCookIds: cookIds})
             .eq(SupabaseConstants.mealPlanEntryId, entry.remoteId!);
         await _dao.updateSyncStatus(localId, 'synced',
             remoteId: entry.remoteId);
       } catch (e) {
-        debugPrint('[MealPlan] setCook Supabase fehlgeschlagen: $e');
+        debugPrint('[MealPlan] setCookIds Supabase fehlgeschlagen: $e');
       }
     }
   }
@@ -181,8 +182,18 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
         int.parse(parts[2]),
       ),
       mealType: MealType.fromValue(row.mealType),
-      cookId: row.cookId,
+      cookIds: _decodeCookIds(row.cookIdsJson),
     );
+  }
+
+  static String? _encodeCookIds(List<String> ids) {
+    if (ids.isEmpty) return null;
+    return jsonEncode(ids);
+  }
+
+  static List<String> _decodeCookIds(String? json) {
+    if (json == null) return const [];
+    return (jsonDecode(json) as List<dynamic>).cast<String>();
   }
 
   static String _dateToString(DateTime date) =>

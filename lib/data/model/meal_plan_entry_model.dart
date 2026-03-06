@@ -9,7 +9,7 @@ class MealPlanEntryModel {
   final String? customName;
   final String date; // 'yyyy-MM-dd'
   final String mealType; // 'breakfast' | 'lunch' | 'dinner'
-  final String? cookId;
+  final List<String> cookIds;
 
   const MealPlanEntryModel({
     required this.id,
@@ -18,10 +18,15 @@ class MealPlanEntryModel {
     this.customName,
     required this.date,
     required this.mealType,
-    this.cookId,
+    this.cookIds = const [],
   });
 
   factory MealPlanEntryModel.fromSupabase(Map<String, dynamic> data) {
+    final rawCookIds = data[SupabaseConstants.mealPlanEntryCookIds];
+    final cookIds = rawCookIds is List
+        ? rawCookIds.cast<String>()
+        : const <String>[];
+
     return MealPlanEntryModel(
       id: data[SupabaseConstants.mealPlanEntryId] as String,
       groupId: data[SupabaseConstants.mealPlanEntryGroupId] as String,
@@ -29,7 +34,7 @@ class MealPlanEntryModel {
       customName: data[SupabaseConstants.mealPlanEntryCustomName] as String?,
       date: data[SupabaseConstants.mealPlanEntryDate] as String,
       mealType: data[SupabaseConstants.mealPlanEntryMealType] as String,
-      cookId: data[SupabaseConstants.mealPlanEntryCookId] as String?,
+      cookIds: cookIds,
     );
   }
 
@@ -47,7 +52,7 @@ class MealPlanEntryModel {
         int.parse(parts[2]),
       ),
       mealType: MealType.fromValue(mealType),
-      cookId: cookId,
+      cookIds: cookIds,
     );
   }
 }

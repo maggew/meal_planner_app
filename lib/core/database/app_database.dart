@@ -14,7 +14,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -25,10 +25,6 @@ class AppDatabase extends _$AppDatabase {
           if (from < 3) {
             await migrator.createTable(localMealPlanEntries);
           }
-          if (from < 4) {
-            await migrator.addColumn(
-                localMealPlanEntries, localMealPlanEntries.cookId);
-          }
           if (from < 5) {
             await migrator.addColumn(
                 localMealPlanEntries, localMealPlanEntries.customName);
@@ -36,6 +32,12 @@ class AppDatabase extends _$AppDatabase {
           if (from < 6) {
             await migrator.addColumn(
                 localRecipes, localRecipes.carbTagsJson);
+          }
+          if (from < 7) {
+            // Recreate table: cookId removed, cookIdsJson added.
+            // Local data is lost but will be re-pulled from Supabase.
+            await migrator.drop(localMealPlanEntries);
+            await migrator.createTable(localMealPlanEntries);
           }
         },
       );

@@ -8,7 +8,7 @@ class MealPlanEntry {
   final String? customName;
   final DateTime date;
   final MealType mealType;
-  final String? cookId;
+  final List<String> cookIds;
 
   const MealPlanEntry({
     required this.id,
@@ -18,6 +18,6 @@ class MealPlanEntry {
     this.customName,
     required this.date,
     required this.mealType,
-    this.cookId,
+    this.cookIds = const [],
   });
 }

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:meal_planner/core/constants/supabase_constants.dart';
@@ -47,13 +49,17 @@ class MealPlanSyncService {
 
           case 'pendingUpdate':
             if (entry.remoteId != null) {
+              final cookIds = entry.cookIdsJson != null
+                  ? (jsonDecode(entry.cookIdsJson!) as List<dynamic>)
+                      .cast<String>()
+                  : <String>[];
               await _supabase
                   .from(SupabaseConstants.mealPlanEntriesTable)
                   .update({
                     SupabaseConstants.mealPlanEntryRecipeId:
                         entry.recipeId.isEmpty ? null : entry.recipeId,
                     SupabaseConstants.mealPlanEntryCustomName: entry.customName,
-                    SupabaseConstants.mealPlanEntryCookId: entry.cookId,
+                    SupabaseConstants.mealPlanEntryCookIds: cookIds,
                     SupabaseConstants.mealPlanEntryUpdatedAt:
                         entry.updatedAt.toIso8601String(),
                   })
@@ -102,7 +108,9 @@ class MealPlanSyncService {
               customName: Value(model.customName),
               date: Value(model.date),
               mealType: Value(model.mealType),
-              cookId: Value(model.cookId),
+              cookIdsJson: Value(model.cookIds.isEmpty
+                  ? null
+                  : jsonEncode(model.cookIds)),
               syncStatus: const Value('synced'),
               updatedAt: Value(DateTime.now()),
             );

@@ -8,7 +8,7 @@ class LocalMealPlanEntries extends Table {
   TextColumn get customName => text().nullable()();
   TextColumn get date => text()(); // 'yyyy-MM-dd'
   TextColumn get mealType => text()(); // 'breakfast' | 'lunch' | 'dinner'
-  TextColumn get cookId => text().nullable()();
+  TextColumn get cookIdsJson => text().nullable()(); // JSON array of cook IDs
   TextColumn get syncStatus =>
       text().withDefault(const Constant('pendingCreate'))();
   DateTimeColumn get updatedAt => dateTime()();

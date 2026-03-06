@@ -72,11 +72,11 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
     ));
   }
 
-  Future<void> updateCookId(String localId, String? cookId) {
+  Future<void> updateCookIds(String localId, String? cookIdsJson) {
     return (update(localMealPlanEntries)
           ..where((t) => t.localId.equals(localId)))
         .write(LocalMealPlanEntriesCompanion(
-      cookId: Value(cookId),
+      cookIdsJson: Value(cookIdsJson),
       syncStatus: const Value('pendingUpdate'),
     ));
   }
@@ -85,7 +85,7 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
     String localId, {
     required String recipeId,
     String? customName,
-    String? cookId,
+    String? cookIdsJson,
     bool keepPendingCreate = false,
   }) {
     return (update(localMealPlanEntries)
@@ -93,7 +93,7 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
         .write(LocalMealPlanEntriesCompanion(
       recipeId: Value(recipeId),
       customName: Value(customName),
-      cookId: Value(cookId),
+      cookIdsJson: Value(cookIdsJson),
       syncStatus:
           Value(keepPendingCreate ? 'pendingCreate' : 'pendingUpdate'),
       updatedAt: Value(DateTime.now()),
