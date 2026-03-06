@@ -25,6 +25,7 @@ class RecipeExtractor {
   /// Entry point for unit tests: skips OCR and starts directly from raw lines.
   static List<IngredientSection> processRawLines(List<String> lines) {
     List<String> split = splitOnDelimiters(lines);
+    split = split.map(stripBulletPrefix).where((l) => l.isNotEmpty).toList();
     split = split.map(normalizeLineSpacing).toList();
     split = splitInlineIngredients(split);
     List<String> ingredients = mergeHyphenatedLines(split);
@@ -133,6 +134,13 @@ class RecipeExtractor {
   static final _unitPatternString =
       UnitParser.patterns.map(RegExp.escape).join('|');
 
+  static final _bulletPrefixPattern = RegExp(r'^[\*\-–•]\s*');
+
+  /// Strips leading bullet characters (* - – •) from a line.
+  @visibleForTesting
+  static String stripBulletPrefix(String line) =>
+      line.replaceFirst(_bulletPrefixPattern, '').trim();
+
   // Fix 1: "abc)7" → "abc) 7"   Fix 2: "40g" → "40 g"
   @visibleForTesting
   static String normalizeLineSpacing(String line) {
@@ -202,10 +210,7 @@ class RecipeExtractor {
     }
 
     // Ingredient-start patterns: skip matches inside parentheses
-    for (final pattern in [
-      _unitInlineSplitPattern,
-      _capitalInlineSplitPattern
-    ]) {
+    for (final pattern in [_unitInlineSplitPattern, _capitalInlineSplitPattern]) {
       for (final m in pattern.allMatches(line)) {
         int depth = 0;
         for (int i = 0; i < m.start; i++) {
@@ -213,7 +218,17 @@ class RecipeExtractor {
             depth++;
           else if (line[i] == ')') depth--;
         }
-        if (depth == 0) positions.add(m.end);
+        if (depth != 0) continue;
+
+        // For the capital-word pattern (e.g. "1 Zitrone"), only split if the
+        // preceding text also starts with a digit — otherwise "Saft von 1 Zitrone"
+        // would be incorrectly split into "Saft von" + "1 Zitrone".
+        if (pattern == _capitalInlineSplitPattern) {
+          final preceding = line.substring(0, m.start).trim();
+          if (!RegExp(r'^\d').hasMatch(preceding)) continue;
+        }
+
+        positions.add(m.end);
       }
     }
 
