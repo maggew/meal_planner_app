@@ -23,6 +23,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   google_fonts: ^8.0.1
   email_validator: ^3.0.0
   shared_preferences: ^2.5.4
