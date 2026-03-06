@@ -360,7 +360,7 @@ class ShowRecipeRoute extends _i21.PageRouteInfo<ShowRecipeRouteArgs> {
   ShowRecipeRoute({
     _i22.Key? key,
     _i23.Recipe? recipe,
-    _i22.Image? image,
+    _i22.Widget? image,
     String? recipeId,
     int? initialStep,
     List<_i21.PageRouteInfo>? children,
@@ -408,7 +408,7 @@ class ShowRecipeRouteArgs {
 
   final _i23.Recipe? recipe;
 
-  final _i22.Image? image;
+  final _i22.Widget? image;
 
   final String? recipeId;
 
