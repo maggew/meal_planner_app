@@ -102,6 +102,34 @@ class SupabaseGroupCategoryRepository implements GroupCategoryRepository {
   }
 
   @override
+  Future<void> syncCategories(
+    String groupId,
+    List<GroupCategory> categories,
+    List<String> deletedIds,
+  ) async {
+    if (deletedIds.isNotEmpty) {
+      // Check each for in-use before deleting (preserves CategoryInUseException)
+      for (final id in deletedIds) {
+        await deleteCategory(id);
+      }
+    }
+    if (categories.isNotEmpty) {
+      final data = categories
+          .map((c) => GroupCategoryModel(
+                id: c.id,
+                groupId: groupId,
+                name: c.name,
+                sortOrder: c.sortOrder,
+                iconName: c.iconName,
+              ).toSupabaseInsert())
+          .toList();
+      await _supabase
+          .from(SupabaseConstants.categoriesTable)
+          .upsert(data, onConflict: 'id');
+    }
+  }
+
+  @override
   Future<void> deleteCategory(String categoryId) async {
     // Prüfen ob Rezepte diese Kategorie verwenden
     final usages = await _supabase

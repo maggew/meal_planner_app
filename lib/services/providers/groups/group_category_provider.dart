@@ -52,6 +52,16 @@ class GroupCategories extends _$GroupCategories {
     ref.invalidateSelf();
   }
 
+  Future<void> syncCategories(
+    String groupId,
+    List<GroupCategory> categories,
+    List<String> deletedIds,
+  ) async {
+    final repo = ref.read(groupCategoryRepositoryProvider);
+    await repo.syncCategories(groupId, categories, deletedIds);
+    ref.invalidateSelf();
+  }
+
   Future<void> reorderCategories(List<GroupCategory> orderedCategories) async {
     final repo = ref.read(groupCategoryRepositoryProvider);
 

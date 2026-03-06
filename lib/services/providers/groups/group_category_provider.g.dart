@@ -33,7 +33,7 @@ final class GroupCategoriesProvider
   GroupCategories create() => GroupCategories();
 }
 
-String _$groupCategoriesHash() => r'3ad1fb38e0d9302286c042f5ccd9de5a7bbff08b';
+String _$groupCategoriesHash() => r'6185a86d78ca37f5bd813766cc88ded84bad1287';
 
 abstract class _$GroupCategories extends $AsyncNotifier<List<GroupCategory>> {
   FutureOr<List<GroupCategory>> build();

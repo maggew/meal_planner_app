@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/common/loading_overlay.dart';
 import 'package:meal_planner/presentation/profile/widgets/profile_name_widget.dart';
 import 'package:meal_planner/presentation/profile/widgets/profile_picture.dart';
+import 'package:meal_planner/services/providers/groups/group_members_provider.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
@@ -12,7 +13,9 @@ import 'package:meal_planner/services/providers/session_provider.dart';
 import 'package:meal_planner/services/providers/user/user_profile_provider.dart';
 
 class AccountSection extends ConsumerStatefulWidget {
-  const AccountSection({super.key});
+  final void Function(bool)? onEditingChanged;
+
+  const AccountSection({super.key, this.onEditingChanged});
 
   @override
   ConsumerState<AccountSection> createState() => _AccountSectionState();
@@ -42,6 +45,7 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
       _nameController.text = userProfile.name;
     }
     setState(() => _isEditing = true);
+    widget.onEditingChanged?.call(true);
   }
 
   Future<void> _saveChanges() async {
@@ -57,12 +61,15 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
           name: _nameController.text,
         );
         ref.invalidate(userProfileProvider);
+        final groupId = ref.read(sessionProvider).groupId;
+        if (groupId != null) ref.invalidate(groupMembersProvider(groupId));
         await ref.read(userProfileProvider.future);
       }
       setState(() {
         _isEditing = false;
         _pickedImage = null;
       });
+      widget.onEditingChanged?.call(false);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -85,6 +92,7 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
       _isEditing = false;
       _pickedImage = null;
     });
+    widget.onEditingChanged?.call(false);
   }
 
   Future<void> _pickImage({required bool pickFromCamera}) async {

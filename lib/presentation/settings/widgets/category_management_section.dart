@@ -1,125 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/categories.dart';
-import 'package:meal_planner/data/repositories/supabase_group_category_repository.dart';
 import 'package:meal_planner/domain/entities/group_category.dart';
-import 'package:meal_planner/presentation/common/loading_overlay.dart';
-import 'package:meal_planner/services/providers/groups/group_category_provider.dart';
-import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
 
-class CategoryManagementSection extends ConsumerStatefulWidget {
-  const CategoryManagementSection({super.key});
+class CategoryManagementSection extends StatefulWidget {
+  final bool isEditing;
+  final List<GroupCategory> categories;
+  final bool categoriesLoading;
+  final void Function(String name, String? iconName) onAdd;
+  final void Function(String id, String name, String? iconName) onEdit;
+  final void Function(String id) onDelete;
+  final void Function(List<GroupCategory> newList) onReorder;
+
+  const CategoryManagementSection({
+    super.key,
+    required this.isEditing,
+    required this.categories,
+    required this.onAdd,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onReorder,
+    this.categoriesLoading = false,
+  });
 
   @override
-  ConsumerState<CategoryManagementSection> createState() =>
+  State<CategoryManagementSection> createState() =>
       _CategoryManagementSectionState();
 }
 
 class _CategoryManagementSectionState
-    extends ConsumerState<CategoryManagementSection> {
-  bool _isLoading = false;
-
-  Future<void> _runWithLoading(Future<void> Function() action) async {
-    setState(() => _isLoading = true);
-    try {
-      await action();
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final categoriesAsync = ref.watch(groupCategoriesProvider);
-    final isOnline = ref.watch(isOnlineProvider);
-
-    return categoriesAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Text('Fehler: $e'),
-      data: (categories) => LoadingOverlay(
-        isLoading: _isLoading,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Kategorien',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            if (!isOnline) ...[
-              const SizedBox(height: 6),
-              Row(
-                children: [
-                  Icon(Icons.cloud_off_outlined,
-                      size: 14,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.4)),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Nur online bearbeitbar',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.4),
-                        ),
-                  ),
-                ],
-              ),
-            ],
-            const SizedBox(height: 8),
-            ReorderableListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: categories.length,
-              onReorder: isOnline && !_isLoading
-                  ? (oldIndex, newIndex) =>
-                      _onReorder(categories, oldIndex, newIndex)
-                  : (_, __) {},
-              itemBuilder: (context, index) => _CategoryTile(
-                key: ValueKey(categories[index].id),
-                category: categories[index],
-                index: index,
-                isOnline: isOnline && !_isLoading,
-                onAction: _runWithLoading,
-              ),
-            ),
-            if (isOnline)
-              TextButton.icon(
-                icon: const Icon(Icons.add),
-                label: const Text('Neue Kategorie'),
-                onPressed: _isLoading ? null : () => _showAddDialog(),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _onReorder(
-      List<GroupCategory> categories, int oldIndex, int newIndex) async {
-    if (newIndex > oldIndex) newIndex -= 1;
-    final newList = [...categories];
-    final item = newList.removeAt(oldIndex);
-    newList.insert(newIndex, item);
-    await _runWithLoading(() async {
-      try {
-        await ref
-            .read(groupCategoriesProvider.notifier)
-            .reorderCategories(newList);
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content:
-                    Text('Reihenfolge konnte nicht gespeichert werden: $e')),
-          );
-        }
-      }
-    });
-  }
-
+    extends State<CategoryManagementSection> {
   Future<void> _showAddDialog() async {
     final result = await showDialog<({String name, String? iconName})>(
       context: context,
@@ -128,22 +37,56 @@ class _CategoryManagementSectionState
         confirmLabel: 'Hinzufügen',
       ),
     );
-
     if (result != null && result.name.isNotEmpty) {
-      await _runWithLoading(() async {
-        try {
-          await ref
-              .read(groupCategoriesProvider.notifier)
-              .addCategory(result.name, iconName: result.iconName);
-        } catch (e) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Fehler: $e')),
-            );
-          }
-        }
-      });
+      widget.onAdd(result.name, result.iconName);
     }
+  }
+
+  void _onReorder(int oldIndex, int newIndex) {
+    if (newIndex > oldIndex) newIndex -= 1;
+    final newList = [...widget.categories];
+    final item = newList.removeAt(oldIndex);
+    newList.insert(newIndex, item);
+    widget.onReorder(newList);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.categoriesLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Kategorien',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 8),
+        ReorderableListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: widget.categories.length,
+          onReorder: widget.isEditing ? _onReorder : (_, __) {},
+          itemBuilder: (context, index) => _CategoryTile(
+            key: ValueKey(widget.categories[index].id),
+            category: widget.categories[index],
+            index: index,
+            isEditing: widget.isEditing,
+            onEdit: (name, iconName) =>
+                widget.onEdit(widget.categories[index].id, name, iconName),
+            onDelete: () => widget.onDelete(widget.categories[index].id),
+          ),
+        ),
+        if (widget.isEditing)
+          TextButton.icon(
+            icon: const Icon(Icons.add),
+            label: const Text('Neue Kategorie'),
+            onPressed: _showAddDialog,
+          ),
+      ],
+    );
   }
 }
 
@@ -264,30 +207,33 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
 // Category Tile
 // ---------------------------------------------------------------------------
 
-class _CategoryTile extends ConsumerWidget {
+class _CategoryTile extends StatelessWidget {
   final GroupCategory category;
   final int index;
-  final bool isOnline;
-  final Future<void> Function(Future<void> Function()) onAction;
+  final bool isEditing;
+  final void Function(String name, String? iconName) onEdit;
+  final VoidCallback onDelete;
 
   const _CategoryTile({
     super.key,
     required this.category,
     required this.index,
-    required this.isOnline,
-    required this.onAction,
+    required this.isEditing,
+    required this.onEdit,
+    required this.onDelete,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: isOnline
+      leading: isEditing
           ? ReorderableDragStartListener(
               index: index,
               child: const Icon(Icons.drag_handle_outlined),
             )
-          : const Icon(Icons.drag_handle_outlined, color: Colors.transparent),
+          : const Icon(Icons.drag_handle_outlined,
+              color: Colors.transparent),
       title: Row(
         children: [
           Icon(
@@ -298,19 +244,19 @@ class _CategoryTile extends ConsumerWidget {
           Text(category.name),
         ],
       ),
-      trailing: isOnline
+      trailing: isEditing
           ? Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
                   icon: const Icon(Icons.edit_outlined),
                   tooltip: 'Bearbeiten',
-                  onPressed: () => _showEditDialog(context, ref),
+                  onPressed: () => _showEditDialog(context),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
                   tooltip: 'Löschen',
-                  onPressed: () => _showDeleteDialog(context, ref),
+                  onPressed: () => _showDeleteDialog(context),
                 ),
               ],
             )
@@ -318,7 +264,7 @@ class _CategoryTile extends ConsumerWidget {
     );
   }
 
-  Future<void> _showEditDialog(BuildContext context, WidgetRef ref) async {
+  Future<void> _showEditDialog(BuildContext context) async {
     final result = await showDialog<({String name, String? iconName})>(
       context: context,
       builder: (context) => _CategoryFormDialog(
@@ -328,25 +274,12 @@ class _CategoryTile extends ConsumerWidget {
         initialIconName: category.iconName,
       ),
     );
-
     if (result != null && result.name.isNotEmpty) {
-      await onAction(() async {
-        try {
-          await ref
-              .read(groupCategoriesProvider.notifier)
-              .updateCategory(category.id, result.name, result.iconName);
-        } catch (e) {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Fehler: $e')),
-            );
-          }
-        }
-      });
+      onEdit(result.name, result.iconName);
     }
   }
 
-  Future<void> _showDeleteDialog(BuildContext context, WidgetRef ref) async {
+  Future<void> _showDeleteDialog(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -365,30 +298,7 @@ class _CategoryTile extends ConsumerWidget {
         ],
       ),
     );
-
-    if (confirmed == true) {
-      await onAction(() async {
-        try {
-          await ref
-              .read(groupCategoriesProvider.notifier)
-              .deleteCategory(category.id);
-        } on CategoryInUseException catch (e) {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Kann nicht gelöscht werden: $e'),
-                backgroundColor: Colors.orange,
-              ),
-            );
-          }
-        } catch (e) {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Fehler: $e')),
-            );
-          }
-        }
-      });
-    }
+    if (confirmed == true) onDelete();
   }
 }
+

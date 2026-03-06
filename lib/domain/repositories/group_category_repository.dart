@@ -10,4 +10,11 @@ abstract class GroupCategoryRepository {
   Future<void> updateSortOrders(List<GroupCategory> categories);
 
   Future<void> deleteCategory(String categoryId);
+
+  /// Batch-sync: deletes [deletedIds] and upserts all [categories].
+  Future<void> syncCategories(
+    String groupId,
+    List<GroupCategory> categories,
+    List<String> deletedIds,
+  );
 }
