@@ -34,13 +34,13 @@ class WeekplanMealCard extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       builder: (_) => WeekplanRecipePicker(
-        onSelected: (recipeId, customName, cookId) {
+        onSelected: (recipeId, customName, cookIds) {
           ref.read(mealPlanActionsProvider).addEntry(
                 date: selectedDay,
                 mealType: mealType,
                 recipeId: recipeId,
                 customName: customName,
-                cookId: cookId,
+                cookIds: cookIds,
               );
         },
       ),
@@ -56,13 +56,13 @@ class WeekplanMealCard extends ConsumerWidget {
         initialLabel: displayName,
         initialRecipeId: entry!.recipeId,
         initialCustomName: entry!.customName,
-        initialCookId: entry!.cookId,
-        onSelected: (recipeId, customName, cookId) {
+        initialCookIds: entry!.cookIds,
+        onSelected: (recipeId, customName, cookIds) {
           ref.read(mealPlanActionsProvider).updateEntry(
                 entry!.id,
                 recipeId: recipeId,
                 customName: customName,
-                cookId: cookId,
+                cookIds: cookIds,
               );
         },
       ),
@@ -111,19 +111,18 @@ class WeekplanMealCard extends ConsumerWidget {
       displayName = entry!.customName;
     }
 
-    // Resolve cook
-    final cookAsync = entry?.cookId != null
-        ? ref.watch(cookUserProvider(entry!.cookId!))
-        : null;
-    final cook = cookAsync?.value;
+    // Resolve cooks
+    final cooks = entry != null && entry!.cookIds.isNotEmpty
+        ? ref.watch(cookUsersProvider(entry!.cookIds)).value ?? const []
+        : const [];
 
     return GestureDetector(
-      onTap: entry != null && entry!.recipeId != null
+      onTap: entry != null
+          ? () => _openEditPicker(context, ref, displayName)
+          : null,
+      onLongPress: entry != null && entry!.recipeId != null
           ? () => context.router
               .root.push(ShowRecipeRoute(recipeId: entry!.recipeId!))
-          : null,
-      onLongPress: entry != null
-          ? () => _openEditPicker(context, ref, displayName)
           : null,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 7),
@@ -166,42 +165,50 @@ class WeekplanMealCard extends ConsumerWidget {
                         Text(
                           displayName ?? 'Mahlzeit hinzufügen',
                           style: textTheme.bodyLarge?.copyWith(
-                            color: displayName != null
-                                ? colorScheme.onSurface
-                                : colorScheme.onSurface
-                                    .withValues(alpha: 0.45),
+                            color: entry?.recipeId != null
+                                ? colorScheme.primary
+                                : displayName != null
+                                    ? colorScheme.onSurface
+                                    : colorScheme.onSurface
+                                        .withValues(alpha: 0.45),
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
 
-                  // Cook avatar (display only — no picker)
-                  if (entry?.cookId != null) ...[
+                  // Cook avatars (display only)
+                  if (cooks.isNotEmpty) ...[
                     const SizedBox(width: 8),
-                    CircleAvatar(
-                      radius: 14,
-                      backgroundColor: colorScheme.primaryContainer,
-                      backgroundImage: cook?.imageUrl != null
-                          ? CachedNetworkImageProvider(cook!.imageUrl!)
-                          : null,
-                      child: cook == null
-                          ? Icon(Icons.hourglass_empty,
-                              size: 13,
-                              color: colorScheme.onPrimaryContainer)
-                          : (cook.imageUrl == null
-                              ? Text(
-                                  cook.name.isNotEmpty
-                                      ? cook.name[0].toUpperCase()
-                                      : '?',
-                                  style: textTheme.labelSmall?.copyWith(
-                                    color: colorScheme.onPrimaryContainer,
-                                    fontSize: 10,
-                                  ),
-                                )
-                              : null),
+                    SizedBox(
+                      width: 28.0 + (cooks.length - 1) * 20.0,
+                      height: 28,
+                      child: Stack(
+                        children: List.generate(cooks.length, (i) {
+                          final cook = cooks[i];
+                          return Positioned(
+                            left: i * 20.0,
+                            child: CircleAvatar(
+                              radius: 14,
+                              backgroundColor: colorScheme.primaryContainer,
+                              backgroundImage: cook.imageUrl != null
+                                  ? CachedNetworkImageProvider(cook.imageUrl!)
+                                  : null,
+                              child: cook.imageUrl == null
+                                  ? Text(
+                                      cook.name.isNotEmpty
+                                          ? cook.name[0].toUpperCase()
+                                          : '?',
+                                      style: textTheme.labelSmall?.copyWith(
+                                        color: colorScheme.onPrimaryContainer,
+                                        fontSize: 10,
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                          );
+                        }),
+                      ),
                     ),
                   ],
 

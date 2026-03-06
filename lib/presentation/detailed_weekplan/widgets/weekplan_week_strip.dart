@@ -4,12 +4,16 @@ class WeekplanWeekStrip extends StatelessWidget {
   final DateTime weekStart; // always a Monday
   final VoidCallback onPreviousWeek;
   final VoidCallback onNextWeek;
+  final DateTime? selectedDay;
+  final ValueChanged<DateTime>? onDayTapped;
 
   const WeekplanWeekStrip({
     super.key,
     required this.weekStart,
     required this.onPreviousWeek,
     required this.onNextWeek,
+    this.selectedDay,
+    this.onDayTapped,
   });
 
   static const _weekdayShort = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
@@ -75,42 +79,65 @@ class WeekplanWeekStrip extends StatelessWidget {
                       final isToday = day.year == today.year &&
                           day.month == today.month &&
                           day.day == today.day;
+                      final isSelected = selectedDay != null &&
+                          day.year == selectedDay!.year &&
+                          day.month == selectedDay!.month &&
+                          day.day == selectedDay!.day;
+
+                      Color circleColor = Colors.transparent;
+                      Border? circleBorder;
+                      Color textColor = colorScheme.onSurface;
+
+                      if (isSelected) {
+                        circleColor =
+                            colorScheme.onSurface.withValues(alpha: 0.12);
+                        textColor = colorScheme.secondary;
+                      }
+                      if (isToday) {
+                        circleBorder = Border.all(
+                          color: colorScheme.primary,
+                          width: 2,
+                        );
+                        if (!isSelected) textColor = colorScheme.onSurface;
+                      }
 
                       return Expanded(
-                        child: Column(
-                          children: [
-                            Text(
-                              _weekdayShort[day.weekday - 1],
-                              style: textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurface
-                                    .withValues(alpha: 0.5),
+                        child: GestureDetector(
+                          onTap: () => onDayTapped?.call(day),
+                          behavior: HitTestBehavior.opaque,
+                          child: Column(
+                            children: [
+                              Text(
+                                _weekdayShort[day.weekday - 1],
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurface
+                                      .withValues(alpha: 0.5),
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Container(
-                              width: 30,
-                              height: 30,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isToday
-                                    ? colorScheme.primary
-                                    : Colors.transparent,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  '${day.day}',
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: isToday
-                                        ? colorScheme.onPrimary
-                                        : colorScheme.onSurface,
-                                    fontWeight: isToday
-                                        ? FontWeight.w700
-                                        : FontWeight.w500,
+                              const SizedBox(height: 4),
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                width: 30,
+                                height: 30,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: circleColor,
+                                  border: circleBorder,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '${day.day}',
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: textColor,
+                                      fontWeight: isToday || isSelected
+                                          ? FontWeight.w700
+                                          : FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     }).toList(),

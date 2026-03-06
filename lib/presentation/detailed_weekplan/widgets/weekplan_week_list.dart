@@ -3,28 +3,24 @@ import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_day
 
 class WeekplanWeekList extends StatelessWidget {
   final DateTime weekStart;
-  final GlobalKey? todayKey;
+  final List<GlobalKey> dayKeys;
 
   const WeekplanWeekList({
     super.key,
     required this.weekStart,
-    this.todayKey,
+    required this.dayKeys,
   });
 
   @override
   Widget build(BuildContext context) {
-    final today = DateTime.now();
     final days = List.generate(7, (i) => weekStart.add(Duration(days: i)));
     return Column(
-      children: days.map((day) {
-        final isToday = day.year == today.year &&
-            day.month == today.month &&
-            day.day == today.day;
+      children: List.generate(days.length, (i) {
         return WeekplanDayCard(
-          key: isToday ? todayKey : null,
-          date: day,
+          key: dayKeys[i],
+          date: days[i],
         );
-      }).toList(),
+      }),
     );
   }
 }

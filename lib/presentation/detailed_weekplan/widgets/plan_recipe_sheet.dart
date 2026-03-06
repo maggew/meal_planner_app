@@ -4,9 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/user.dart';
 import 'package:meal_planner/domain/enums/meal_type.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:meal_planner/domain/enums/week_start_day.dart';
 import 'package:meal_planner/services/providers/groups/group_members_provider.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_provider.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
+import 'package:meal_planner/services/providers/user/group_settings_provider.dart';
 
 class PlanRecipeSheet extends ConsumerStatefulWidget {
   final String recipeId;
@@ -25,7 +28,7 @@ class PlanRecipeSheet extends ConsumerStatefulWidget {
 class _PlanRecipeSheetState extends ConsumerState<PlanRecipeSheet> {
   DateTime _selectedDate = DateTime.now();
   MealType? _selectedMealType;
-  String? _selectedCookId;
+  final Set<String> _selectedCookIds = {};
 
   static const _weekdayLong = [
     'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag',
@@ -41,12 +44,26 @@ class _PlanRecipeSheetState extends ConsumerState<PlanRecipeSheet> {
     return '${_weekdayLong[d.weekday - 1]}, ${d.day}. ${_monthNames[d.month - 1]}';
   }
 
-  Future<void> _pickDate() async {
+  Future<void> _pickDate(WeekStartDay weekStartDay) async {
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      // Only override locale when Sunday start is explicitly requested;
+      // the app-level locale (de) already gives Monday by default.
+      builder: weekStartDay == WeekStartDay.sunday
+          ? (context, child) => Localizations.override(
+                context: context,
+                locale: const Locale('en'),
+                delegates: const [
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                child: child!,
+              )
+          : null,
     );
     if (picked != null) {
       setState(() => _selectedDate = picked);
@@ -96,14 +113,14 @@ class _PlanRecipeSheetState extends ConsumerState<PlanRecipeSheet> {
       await ref.read(mealPlanActionsProvider).updateEntry(
             existing.id,
             recipeId: widget.recipeId,
-            cookId: _selectedCookId,
+            cookIds: _selectedCookIds.toList(),
           );
     } else {
       await ref.read(mealPlanActionsProvider).addEntry(
             date: _selectedDate,
             mealType: _selectedMealType!,
             recipeId: widget.recipeId,
-            cookId: _selectedCookId,
+            cookIds: _selectedCookIds.toList(),
           );
     }
 
@@ -116,9 +133,17 @@ class _PlanRecipeSheetState extends ConsumerState<PlanRecipeSheet> {
     final textTheme = Theme.of(context).textTheme;
     final groupId = ref.watch(sessionProvider).groupId ?? '';
     final membersAsync = ref.watch(groupMembersProvider(groupId));
+    final settings = ref.watch(groupSettingsProvider);
+    final mealSlots = settings.defaultMealSlots;
 
     // Keep the stream alive while the sheet is open so _submit can read it
     ref.watch(mealPlanStreamProvider(_selectedDate));
+
+    // Reset selection if the chosen meal type is no longer in the allowed slots
+    if (_selectedMealType != null && !mealSlots.contains(_selectedMealType)) {
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => setState(() => _selectedMealType = null));
+    }
 
     return SafeArea(
       child: Padding(
@@ -156,7 +181,7 @@ class _PlanRecipeSheetState extends ConsumerState<PlanRecipeSheet> {
             Text('Tag', style: textTheme.labelMedium),
             const SizedBox(height: 8),
             InkWell(
-              onTap: _pickDate,
+              onTap: () => _pickDate(settings.weekStartDay),
               borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
               child: Container(
                 padding:
@@ -186,7 +211,7 @@ class _PlanRecipeSheetState extends ConsumerState<PlanRecipeSheet> {
             Text('Mahlzeit', style: textTheme.labelMedium),
             const SizedBox(height: 8),
             SegmentedButton<MealType>(
-              segments: MealType.values
+              segments: mealSlots
                   .map((t) => ButtonSegment(
                         value: t,
                         label: Text(t.displayName),
@@ -203,27 +228,26 @@ class _PlanRecipeSheetState extends ConsumerState<PlanRecipeSheet> {
             Text('Koch', style: textTheme.labelMedium),
             const SizedBox(height: 10),
             membersAsync.when(
-              data: (members) => Scrollbar(
-                thumbVisibility: true,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(
-                    children: members
-                        .map((user) => Padding(
-                              padding: const EdgeInsets.only(right: 14),
-                              child: _CookChip(
-                                user: user,
-                                isSelected: user.id == _selectedCookId,
-                                onTap: () => setState(() {
-                                  _selectedCookId = user.id == _selectedCookId
-                                      ? null
-                                      : user.id;
-                                }),
-                              ),
-                            ))
-                        .toList(),
-                  ),
+              data: (members) => SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  children: members
+                      .map((user) => Padding(
+                            padding: const EdgeInsets.only(right: 14),
+                            child: _CookChip(
+                              user: user,
+                              isSelected: _selectedCookIds.contains(user.id),
+                              onTap: () => setState(() {
+                                if (_selectedCookIds.contains(user.id)) {
+                                  _selectedCookIds.remove(user.id);
+                                } else {
+                                  _selectedCookIds.add(user.id);
+                                }
+                              }),
+                            ),
+                          ))
+                      .toList(),
                 ),
               ),
               loading: () => const SizedBox(

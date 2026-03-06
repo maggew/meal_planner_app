@@ -16,6 +16,9 @@ class WeekplanDayCard extends ConsumerWidget {
 
   const WeekplanDayCard({super.key, required this.date});
 
+  /// Minimum rendered height: vertical margin (14) + vertical padding (36) + header row (~20)
+  static const double minHeight = 70;
+
   static const _weekdayShort = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
   static const _mealIcons = {
@@ -29,13 +32,15 @@ class WeekplanDayCard extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       builder: (_) => WeekplanRecipePicker(
-        onSelected: (recipeId, customName, cookId) {
+        date: date,
+        mealType: mealType,
+        onSelected: (recipeId, customName, cookIds) {
           ref.read(mealPlanActionsProvider).addEntry(
                 date: date,
                 mealType: mealType,
                 recipeId: recipeId,
                 customName: customName,
-                cookId: cookId,
+                cookIds: cookIds,
               );
         },
       ),
@@ -60,13 +65,13 @@ class WeekplanDayCard extends ConsumerWidget {
     final dayLabel = _weekdayShort[date.weekday - 1];
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 7),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
-            padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+            padding: const EdgeInsets.fromLTRB(16, 18, 8, 18),
             decoration: BoxDecoration(
               color: isDark
                   ? colorScheme.surface.withValues(alpha: 0.3)
@@ -85,7 +90,7 @@ class WeekplanDayCard extends ConsumerWidget {
                   children: [
                     Text(
                       '$dayLabel, ${date.day}.${date.month}.',
-                      style: textTheme.labelLarge?.copyWith(
+                      style: textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: isToday
                             ? colorScheme.primary
@@ -103,7 +108,7 @@ class WeekplanDayCard extends ConsumerWidget {
                   ],
                 ),
                 if (hasAnyEntry) ...[
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 14),
                   ...mealSlots.map((type) {
                     final entry =
                         entries.where((e) => e.mealType == type).firstOrNull;
@@ -140,7 +145,7 @@ class _CompactAddButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return IconButton(
-      icon: Icon(icon, size: 18),
+      icon: Icon(icon, size: 22),
       color: colorScheme.onSurface.withValues(alpha: 0.35),
       onPressed: onTap,
       padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -162,14 +167,14 @@ class _EmptySlotRow extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(6),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           children: [
             Icon(icon,
-                size: 16, color: colorScheme.onSurface.withValues(alpha: 0.25)),
+                size: 20, color: colorScheme.onSurface.withValues(alpha: 0.25)),
             const SizedBox(width: 8),
             Icon(Icons.add,
-                size: 14, color: colorScheme.onSurface.withValues(alpha: 0.25)),
+                size: 18, color: colorScheme.onSurface.withValues(alpha: 0.25)),
           ],
         ),
       ),
@@ -228,49 +233,61 @@ class _MealRow extends ConsumerWidget {
 
     return GestureDetector(
       onTap: () {
-        if (entry.recipeId != null) {
-          context.router.root.push(ShowRecipeRoute(recipeId: entry.recipeId!));
-        }
-      },
-      onLongPress: () {
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
           builder: (_) => WeekplanRecipePicker(
+            date: date,
+            mealType: entry.mealType,
             initialLabel: displayName,
             initialRecipeId: entry.recipeId,
             initialCustomName: entry.customName,
-            initialCookId: entry.cookId,
-            onSelected: (recipeId, customName, cookId) {
+            initialCookIds: entry.cookIds,
+            onSelected: (recipeId, customName, cookIds) {
               ref.read(mealPlanActionsProvider).updateEntry(
                     entry.id,
                     recipeId: recipeId,
                     customName: customName,
-                    cookId: cookId,
+                    cookIds: cookIds,
                   );
             },
           ),
         );
       },
+      onLongPress: () {
+        if (entry.recipeId != null) {
+          context.router.root.push(ShowRecipeRoute(recipeId: entry.recipeId!));
+        }
+      },
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(icon, size: 16, color: colorScheme.primary),
-            if (entry.cookId != null) ...[
+            Icon(icon, size: 20, color: colorScheme.primary),
+            if (entry.cookIds.isNotEmpty) ...[
               const SizedBox(width: 6),
-              _CookAvatar(cookId: entry.cookId!),
+              _CookAvatarStack(cookIds: entry.cookIds),
             ],
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 displayName ?? '…',
-                style: textTheme.bodyMedium,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+                style: textTheme.bodyLarge?.copyWith(
+                  color: entry.recipeId != null
+                      ? colorScheme.primary
+                      : colorScheme.onSurface,
+                ),
               ),
             ),
+            if (entry.recipeId != null) ...[
+              const SizedBox(width: 4),
+              Icon(
+                Icons.menu_book_outlined,
+                size: 15,
+                color: colorScheme.onSurface.withValues(alpha: 0.35),
+              ),
+            ],
             const SizedBox(width: 4),
             GestureDetector(
               onTap: () => _showDeleteDialog(context, ref),
@@ -278,7 +295,7 @@ class _MealRow extends ConsumerWidget {
                 padding: const EdgeInsets.all(4),
                 child: Icon(
                   Icons.close,
-                  size: 15,
+                  size: 18,
                   color: colorScheme.onSurface.withValues(alpha: 0.4),
                 ),
               ),
@@ -290,29 +307,54 @@ class _MealRow extends ConsumerWidget {
   }
 }
 
-class _CookAvatar extends ConsumerWidget {
-  final String cookId;
-  const _CookAvatar({required this.cookId});
+class _CookAvatarStack extends ConsumerWidget {
+  final List<String> cookIds;
+  const _CookAvatarStack({required this.cookIds});
+
+  static const double _radius = 11;
+  static const double _overlap = 8;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
-    final user = ref.watch(cookUserProvider(cookId)).value;
-    return CircleAvatar(
-      radius: 9,
-      backgroundColor: colorScheme.primaryContainer,
-      backgroundImage:
-          user?.imageUrl != null ? NetworkImage(user!.imageUrl!) : null,
-      child: user?.imageUrl == null
-          ? Text(
-              user?.name.isNotEmpty == true ? user!.name[0].toUpperCase() : '?',
-              style: TextStyle(
-                fontSize: 9,
-                color: colorScheme.onPrimaryContainer,
-                fontWeight: FontWeight.w700,
-              ),
-            )
-          : null,
+
+    final avatars = cookIds
+        .map((id) => ref.watch(cookUserProvider(id)).value)
+        .toList();
+
+    final width =
+        _radius * 2 + (cookIds.length - 1) * (_radius * 2 - _overlap);
+
+    return SizedBox(
+      width: width,
+      height: _radius * 2,
+      child: Stack(
+        children: List.generate(avatars.length, (i) {
+          final user = avatars[i];
+          return Positioned(
+            left: i * (_radius * 2 - _overlap),
+            child: CircleAvatar(
+              radius: _radius,
+              backgroundColor: colorScheme.primaryContainer,
+              backgroundImage: user?.imageUrl != null
+                  ? NetworkImage(user!.imageUrl!)
+                  : null,
+              child: user?.imageUrl == null
+                  ? Text(
+                      user?.name.isNotEmpty == true
+                          ? user!.name[0].toUpperCase()
+                          : '?',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    )
+                  : null,
+            ),
+          );
+        }),
+      ),
     );
   }
 }
