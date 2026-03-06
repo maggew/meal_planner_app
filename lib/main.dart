@@ -27,16 +27,28 @@ import 'package:meal_planner/services/providers/shared_preferences_provider.dart
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load();
+
+  try {
+    await dotenv.load();
+  } catch (e) {
+    runApp(ErrorApp('dotenv load failed: $e'));
+    return;
+  }
 
   final supabaseUrl = dotenv.env['SUPABASE_URL'];
   final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'];
 
   if (supabaseUrl == null || supabaseAnonKey == null) {
-    throw Exception('Supabase environment variables are not set');
+    runApp(ErrorApp('Supabase env vars missing'));
+    return;
   }
 
-  await Firebase.initializeApp();
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    runApp(ErrorApp('Firebase init failed: $e'));
+    return;
+  }
 
   await Supabase.initialize(
       url: supabaseUrl,
@@ -62,6 +74,22 @@ void main() async {
       child: MyApp(),
     ),
   );
+}
+
+class ErrorApp extends StatelessWidget {
+  final String message;
+  const ErrorApp(this.message, {super.key});
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: Center(child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Text(message, style: TextStyle(color: Colors.red)),
+        )),
+      ),
+    );
+  }
 }
 
 //TODO: dart run build_runner watch --delete-conflicting-outputs
