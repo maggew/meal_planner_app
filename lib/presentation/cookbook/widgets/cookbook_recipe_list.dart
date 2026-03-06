@@ -23,7 +23,10 @@ class CookbookRecipeList extends ConsumerStatefulWidget {
   ConsumerState<CookbookRecipeList> createState() => _CookbookRecipeListState();
 }
 
-class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
+class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
   final ScrollController _scrollController = ScrollController();
   late final String categoryId;
 
@@ -49,6 +52,7 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final paginationState = ref.watch(recipesPaginationProvider(categoryId));
     final isSearching = ref.watch(isSearchActiveProvider);
 

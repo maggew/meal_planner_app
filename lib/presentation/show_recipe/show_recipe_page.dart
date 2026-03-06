@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
@@ -14,7 +15,7 @@ import 'package:meal_planner/services/providers/repository_providers.dart';
 @RoutePage()
 class ShowRecipePage extends ConsumerStatefulWidget {
   final Recipe? recipe;
-  final Image? image;
+  final Widget? image;
   final String? recipeId;
   final int? initialStep;
 
@@ -37,7 +38,7 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
     with TickerProviderStateMixin {
   late TabController _tabController;
   Recipe? _recipe;
-  Image? _image;
+  Widget? _image;
   bool _isLoading = true;
   int _currentPortions = 1;
 
@@ -93,17 +94,15 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
     }
   }
 
-  Image _buildImage(Recipe recipe) {
+  Widget _buildImage(Recipe recipe) {
     final fallback = Image.asset('assets/images/Rosi.png', fit: BoxFit.cover);
     if (recipe.imageUrl == null || recipe.imageUrl!.isEmpty) return fallback;
-    return Image.network(
-      recipe.imageUrl!,
+    return CachedNetworkImage(
+      imageUrl: recipe.imageUrl!,
       fit: BoxFit.cover,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return const Center(child: CircularProgressIndicator(strokeWidth: 2));
-      },
-      errorBuilder: (_, __, ___) => fallback,
+      placeholder: (_, __) =>
+          const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      errorWidget: (_, __, ___) => fallback,
     );
   }
 

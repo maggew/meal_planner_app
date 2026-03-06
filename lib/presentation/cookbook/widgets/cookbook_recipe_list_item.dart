@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
@@ -12,24 +13,22 @@ class CookbookRecipeListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fallback = Image.asset('assets/images/Rosi.png', fit: BoxFit.cover);
-    final recipeImage = (recipe.imageUrl == null ||
-            recipe.imageUrl!.isEmpty ||
-            recipe.imageUrl == 'assets/images/default_pic_2.jpg')
+    final useDefault = recipe.imageUrl == null ||
+        recipe.imageUrl!.isEmpty ||
+        recipe.imageUrl == 'assets/images/default_pic_2.jpg';
+    final recipeImage = useDefault
         ? fallback
-        : Image.network(
-            recipe.imageUrl!,
+        : CachedNetworkImage(
+            imageUrl: recipe.imageUrl!,
             fit: BoxFit.cover,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return const Center(child: CircularProgressIndicator(strokeWidth: 2));
-            },
-            errorBuilder: (_, __, ___) => fallback,
+            placeholder: (_, __) =>
+                const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            errorWidget: (_, __, ___) => fallback,
           );
 
     return GestureDetector(
       onTap: () {
-        context.router.root
-            .push(ShowRecipeRoute(recipe: recipe, image: recipeImage));
+        context.router.root.push(ShowRecipeRoute(recipe: recipe));
       },
       onLongPress: recipe.id == null
           ? null

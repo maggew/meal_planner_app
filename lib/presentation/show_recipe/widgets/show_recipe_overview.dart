@@ -6,7 +6,7 @@ import 'package:meal_planner/presentation/show_recipe/widgets/overview/show_reci
 
 class ShowRecipeOverview extends StatefulWidget {
   final Recipe recipe;
-  final Image image;
+  final Widget image;
   final List<IngredientSection> scaledSections;
   final int currentPortions;
   final ValueChanged<int> onPortionsChanged;
