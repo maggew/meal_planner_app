@@ -166,15 +166,12 @@ class _RegistrationBodyState extends ConsumerState<RegistrationBody> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      "Du hast schon einen Account?",
-                      style: TextStyle(color: Colors.black),
-                    ),
+                    Text("Du hast schon einen Account?"),
                     TextButton(
                       child: Text(
                         "Login",
                         style: TextStyle(
-                            color: Colors.green[100],
+                            color: Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.w600,
                             decoration: TextDecoration.underline),
                       ),
@@ -212,7 +209,7 @@ class _RegistrationBodyState extends ConsumerState<RegistrationBody> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: Theme.of(context).colorScheme.error,
         duration: Duration(seconds: 4),
       ),
     );

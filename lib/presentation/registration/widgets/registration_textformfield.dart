@@ -40,31 +40,8 @@ class RegistrationTextformfield extends StatelessWidget {
           decoration: InputDecoration(
             labelText: text,
             hintText: text,
-            filled: true,
-            fillColor: Colors.white,
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.blueGrey, width: 1.5),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Colors.green, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Colors.red, width: 1.5),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Colors.red, width: 2),
-            ),
-            errorStyle: const TextStyle(
-              fontSize: 12,
-              height: 1.2,
-              color: Colors.red,
-            ),
             suffixIcon: suffixIcon,
           ),
         ),

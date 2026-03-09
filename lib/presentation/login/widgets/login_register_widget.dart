@@ -16,7 +16,7 @@ class LoginRegisterWidget extends StatelessWidget {
           child: Text(
             "Registrieren",
             style: TextStyle(
-                color: Colors.green[100],
+                color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.w600,
                 decoration: TextDecoration.underline),
           ),
