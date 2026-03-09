@@ -139,7 +139,13 @@ class _ShowRecipeCookingModeState extends ConsumerState<ShowRecipeCookingMode>
     // Findest alle Zeilen, die mit "1. ", "2. " etc. beginnen
     final regex = RegExp(r'^\d+\.\s+(.+)$', multiLine: true);
     final matches = regex.allMatches(widget.recipe.instructions);
+    final steps = matches.map((m) => m.group(1)!).toList();
 
-    return matches.map((m) => m.group(1)!).toList();
+    // Fallback: kein nummeriertes Format → ganzen Text als einen Schritt zeigen
+    if (steps.isEmpty) {
+      final raw = widget.recipe.instructions.trim();
+      return [if (raw.isNotEmpty) raw else ''];
+    }
+    return steps;
   }
 }

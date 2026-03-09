@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meal_planner/presentation/common/extensions/text_theme_extensions.dart';
 
-class CookingModeTimerDurationPicker extends StatelessWidget {
+class CookingModeTimerDurationPicker extends StatefulWidget {
   final TextEditingController labelController;
   final TextEditingController minutesController;
   final TextEditingController secondsController;
@@ -17,6 +17,40 @@ class CookingModeTimerDurationPicker extends StatelessWidget {
     required this.onCancel,
     required this.onSave,
   });
+
+  @override
+  State<CookingModeTimerDurationPicker> createState() =>
+      _CookingModeTimerDurationPickerState();
+}
+
+class _CookingModeTimerDurationPickerState
+    extends State<CookingModeTimerDurationPicker> {
+  String? _secondsError;
+
+  @override
+  void initState() {
+    super.initState();
+    _secondsError = _validateSeconds(widget.secondsController.text);
+    widget.secondsController.addListener(_onSecondsChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.secondsController.removeListener(_onSecondsChanged);
+    super.dispose();
+  }
+
+  void _onSecondsChanged() {
+    setState(() {
+      _secondsError = _validateSeconds(widget.secondsController.text);
+    });
+  }
+
+  String? _validateSeconds(String text) {
+    final val = int.tryParse(text);
+    if (val != null && val > 59) return 'Max. 59';
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +71,7 @@ class CookingModeTimerDurationPicker extends StatelessWidget {
           style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         TextField(
-          controller: labelController,
+          controller: widget.labelController,
           decoration: InputDecoration(
               labelText: 'Name (optional)',
               hintText: 'z.B. Nudeln kochen',
@@ -48,36 +82,41 @@ class CookingModeTimerDurationPicker extends StatelessWidget {
         ),
         Row(
           children: [
-            SizedBox(
-              width: 60,
-              child: TextField(
-                controller: minutesController,
-                keyboardType: TextInputType.number,
-                textAlign: TextAlign.center,
-                decoration: InputDecoration(
-                    labelText: 'Min',
-                    enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                      color: inputBorderColor,
-                    ))),
+            Flexible(
+              child: SizedBox(
+                width: 60,
+                child: TextField(
+                  controller: widget.minutesController,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  decoration: InputDecoration(
+                      labelText: 'Min',
+                      enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                        color: inputBorderColor,
+                      ))),
+                ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Text(':', style: textTheme.bodyLarge),
             ),
-            SizedBox(
-              width: 60,
-              child: TextField(
-                controller: secondsController,
-                keyboardType: TextInputType.number,
-                textAlign: TextAlign.center,
-                decoration: InputDecoration(
-                    labelText: 'Sek',
-                    enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                      color: inputBorderColor,
-                    ))),
+            Flexible(
+              child: SizedBox(
+                width: 60,
+                child: TextField(
+                  controller: widget.secondsController,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  decoration: InputDecoration(
+                      labelText: 'Sek',
+                      errorText: _secondsError,
+                      enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                        color: inputBorderColor,
+                      ))),
+                ),
               ),
             ),
           ],
@@ -87,7 +126,7 @@ class CookingModeTimerDurationPicker extends StatelessWidget {
           children: [
             Expanded(
               child: OutlinedButton(
-                onPressed: onCancel,
+                onPressed: widget.onCancel,
                 style: outlineButtonStyle,
                 child: Text(
                   'Abbrechen',
@@ -99,7 +138,7 @@ class CookingModeTimerDurationPicker extends StatelessWidget {
             ),
             Expanded(
               child: OutlinedButton(
-                onPressed: onSave,
+                onPressed: widget.onSave,
                 style: outlineButtonStyle,
                 child: Text(
                   'Speichern',
@@ -112,7 +151,7 @@ class CookingModeTimerDurationPicker extends StatelessWidget {
             ConstrainedBox(
               constraints: const BoxConstraints(minWidth: 80, maxWidth: 100),
               child: FilledButton(
-                onPressed: onStart,
+                onPressed: widget.onStart,
                 child: Text('Start',
                     style: textTheme.bodyMediumEmphasis
                         ?.copyWith(color: colorScheme.onPrimary)),

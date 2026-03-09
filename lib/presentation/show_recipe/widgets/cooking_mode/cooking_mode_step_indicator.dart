@@ -20,6 +20,8 @@ class CookingModeStepIndicator extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
+    if (totalSteps == 0) return const SizedBox.shrink();
+
     final useWindow = totalSteps > _maxVisibleSteps;
 
     return Padding(
