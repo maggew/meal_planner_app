@@ -116,69 +116,72 @@ class _CookingModeIngredientsListState
         // Expandierbarer Inhalt mit MaxHeight
         AnimatedCrossFade(
           firstChild: SizedBox.shrink(),
-          secondChild: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.2,
-            ),
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: themeData.colorScheme.primaryContainer
-                    .withValues(alpha: 0.6),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(AppDimensions.borderRadius),
-                  bottomRight: Radius.circular(AppDimensions.borderRadius),
-                ),
+          secondChild: Visibility(
+            visible: widget.isExpanded,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.2,
               ),
-              padding: EdgeInsets.symmetric(horizontal: 10),
-              child: Scrollbar(
-                controller: _scrollController,
-                thumbVisibility: true,
-                child: SingleChildScrollView(
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: themeData.colorScheme.primaryContainer
+                      .withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(AppDimensions.borderRadius),
+                    bottomRight: Radius.circular(AppDimensions.borderRadius),
+                  ),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                child: Scrollbar(
                   controller: _scrollController,
-                  padding: EdgeInsets.only(right: 14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: widget.ingredientSections.map((section) {
-                      bool isLastSection = section ==
-                          widget.ingredientSections[
-                              widget.ingredientSections.length - 1];
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            //Text(section.title),
-                            Text.rich(
-                              TextSpan(
-                                style: themeData.textTheme.bodyMedium,
-                                children: section.ingredients
-                                    .asMap()
-                                    .entries
-                                    .expand<TextSpan>((entry) {
-                                  final index = entry.key;
-                                  final ing = entry.value;
-                                  return [
-                                    if (index != 0)
-                                      TextSpan(
-                                        text: "  \u2022  ", // this char: •
+                  thumbVisibility: true,
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    padding: EdgeInsets.only(right: 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: widget.ingredientSections.map((section) {
+                        bool isLastSection = section ==
+                            widget.ingredientSections[
+                                widget.ingredientSections.length - 1];
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              //Text(section.title),
+                              Text.rich(
+                                TextSpan(
+                                  style: themeData.textTheme.bodyMedium,
+                                  children: section.ingredients
+                                      .asMap()
+                                      .entries
+                                      .expand<TextSpan>((entry) {
+                                    final index = entry.key;
+                                    final ing = entry.value;
+                                    return [
+                                      if (index != 0)
+                                        TextSpan(
+                                          text: "  \u2022  ", // this char: •
+                                        ),
+                                      ...ing.toInlineTextSpans(
+                                        nameStyle: themeData
+                                            .textTheme.bodyMediumEmphasis,
                                       ),
-                                    ...ing.toInlineTextSpans(
-                                      nameStyle: themeData
-                                          .textTheme.bodyMediumEmphasis,
-                                    ),
-                                  ];
-                                }).toList(),
+                                    ];
+                                  }).toList(),
+                                ),
                               ),
-                            ),
-                            SizedBox(height: 12),
-                            if (!isLastSection) ...[
-                              Divider(),
+                              SizedBox(height: 12),
+                              if (!isLastSection) ...[
+                                Divider(),
+                              ],
                             ],
-                          ],
-                        ),
-                      );
-                    }).toList(),
+                          ),
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ),
               ),

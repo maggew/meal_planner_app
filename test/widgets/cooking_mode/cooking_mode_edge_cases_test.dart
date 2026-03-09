@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
+import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooking_mode_ingredients_list.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooking_mode_step_indicator.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/timer/cooking_mode_timer_duration_picker.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/show_recipe_cooking_mode.dart';
@@ -223,6 +224,56 @@ void main() {
           findsOneWidget,
           reason: 'Sekunden > 59 sollten einen Validierungsfehler zeigen',
         );
+      },
+    );
+  });
+
+  // -------------------------------------------------------------------------
+  // Bug #7: Scrollbar bleibt mid-animation sichtbar beim Zuklappen
+  // AnimatedCrossFade hält beide Children im Tree während der Animation.
+  // Der Scrollbar-Thumb "schwebt" dadurch in der Mitte des Bildschirms,
+  // bis die 200ms-Animation abgeschlossen ist.
+  // Erwartet: Scrollbar verschwindet sofort beim Zuklappen (nicht nach Animation).
+  // -------------------------------------------------------------------------
+  group('CookingModeIngredientsList – Scrollbar sichtbarkeit', () {
+    testWidgets(
+      'Bug: Scrollbar verschwindet sofort beim Zuklappen (nicht mid-animation)',
+      (tester) async {
+        bool isExpanded = true;
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: _timerOverrides,
+            child: MaterialApp(
+              home: Scaffold(
+                body: StatefulBuilder(
+                  builder: (context, setState) => CookingModeIngredientsList(
+                    isExpanded: isExpanded,
+                    onExpandToggle: () =>
+                        setState(() => isExpanded = !isExpanded),
+                    ingredientSections: [_testSection],
+                    recipeId: _recipeId,
+                    stepNumber: 0,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Zutatenliste ist offen → Scrollbar im Tree
+        expect(find.byType(Scrollbar), findsOneWidget);
+
+        // Zuklappen antippen
+        await tester.tap(find.text('Zutaten'));
+        // Nur einen Frame pumpen – die 200ms-Animation läuft noch
+        await tester.pump();
+
+        // Scrollbar soll SOFORT weg sein, nicht noch mid-animation im Tree bleiben.
+        // Aktuell: AnimatedCrossFade hält den zweiten Child (mit Scrollbar) im Tree
+        // → Scrollbar noch vorhanden → dieser Test ist ROT.
+        expect(find.byType(Scrollbar), findsNothing);
       },
     );
   });
