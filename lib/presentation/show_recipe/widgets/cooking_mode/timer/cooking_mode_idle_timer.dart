@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/utils/time_formatter.dart';
 import 'package:meal_planner/domain/entities/recipe_timer.dart';
-import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/timer/cooking_mode_timer_duration_picker.dart';
+import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/timer/cooking_mode_timer_picker_sheet.dart';
 import 'package:meal_planner/services/providers/recipe/timer/active_timer_provider.dart';
 import 'package:meal_planner/services/providers/recipe/timer/recipe_timer_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
@@ -11,16 +11,13 @@ import 'package:meal_planner/services/providers/repository_providers.dart';
 class CookingModeIdleTimer extends ConsumerStatefulWidget {
   final String recipeId;
   final int stepIndex;
-  final bool forceShowPicker;
-  final VoidCallback? onPickerClosed;
   final RecipeTimer? saved;
+
   const CookingModeIdleTimer({
     super.key,
     required this.recipeId,
     required this.stepIndex,
-    required this.forceShowPicker,
     this.saved,
-    this.onPickerClosed,
   });
 
   @override
@@ -29,44 +26,8 @@ class CookingModeIdleTimer extends ConsumerStatefulWidget {
 }
 
 class _CookingModeIdleTimerState extends ConsumerState<CookingModeIdleTimer> {
-  bool _isSettingDuration = false;
-  late TextEditingController _labelController;
-  late TextEditingController _minutesController;
-  late TextEditingController _secondsController;
-
-  @override
-  void initState() {
-    super.initState();
-    _labelController =
-        TextEditingController(text: widget.saved?.timerName ?? '');
-    final duration = widget.saved?.durationSeconds ?? 0;
-    _minutesController = TextEditingController(
-        text: duration > 0 ? (duration ~/ 60).toString() : '');
-    _secondsController = TextEditingController(
-        text: duration > 0 ? (duration % 60).toString() : '');
-  }
-
-  @override
-  void dispose() {
-    _labelController.dispose();
-    _minutesController.dispose();
-    _secondsController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (_isSettingDuration || widget.forceShowPicker) {
-      return CookingModeTimerDurationPicker(
-        labelController: _labelController,
-        minutesController: _minutesController,
-        secondsController: _secondsController,
-        onStart: _onStartPressed,
-        onCancel: _onCancelPicker,
-        onSave: _onSavePressed,
-      );
-    }
-
     if (widget.saved == null) return const SizedBox.shrink();
     final RecipeTimer saved = widget.saved!;
 
@@ -128,7 +89,12 @@ class _CookingModeIdleTimerState extends ConsumerState<CookingModeIdleTimer> {
           tooltip: 'Start',
         ),
         IconButton(
-          onPressed: () => setState(() => _isSettingDuration = true),
+          onPressed: () => showCookingModeTimerPicker(
+            context,
+            recipeId: widget.recipeId,
+            stepIndex: widget.stepIndex,
+            saved: widget.saved,
+          ),
           icon: const Icon(Icons.edit_outlined, size: 20),
           color: greyAlpha,
           tooltip: 'Ändern',
@@ -141,54 +107,6 @@ class _CookingModeIdleTimerState extends ConsumerState<CookingModeIdleTimer> {
         ),
       ],
     );
-  }
-
-  ({int totalSeconds, String? name})? _parseInput() {
-    final minutes = int.tryParse(_minutesController.text) ?? 0;
-    final seconds = int.tryParse(_secondsController.text) ?? 0;
-    final totalSeconds = (minutes * 60) + seconds;
-    if (totalSeconds <= 0) return null;
-    final name = _labelController.text.trim();
-    return (totalSeconds: totalSeconds, name: name.isNotEmpty ? name : null);
-  }
-
-  void _onStartPressed() {
-    final input = _parseInput();
-    if (input == null) return;
-    _startWithDuration(input.totalSeconds, input.name);
-    _onCancelPicker();
-  }
-
-  void _onSavePressed() async {
-    final input = _parseInput();
-    if (input == null) return;
-    try {
-      final repo = ref.read(recipeRepositoryProvider);
-      await repo.upsertTimer(RecipeTimer(
-        recipeId: widget.recipeId,
-        stepIndex: widget.stepIndex,
-        durationSeconds: input.totalSeconds,
-        timerName: input.name ?? '',
-      ));
-      ref.invalidate(recipeTimersProvider(widget.recipeId));
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Timer konnte nicht gespeichert werden')),
-        );
-      }
-    }
-    _onCancelPicker();
-  }
-
-  void _onCancelPicker() {
-    setState(() => _isSettingDuration = false);
-    // Werte zurücksetzen auf gespeicherte Werte statt leeren
-    _labelController.text = widget.saved?.timerName ?? '';
-    final duration = widget.saved?.durationSeconds ?? 0;
-    _minutesController.text = duration > 0 ? (duration ~/ 60).toString() : '';
-    _secondsController.text = duration > 0 ? (duration % 60).toString() : '';
-    widget.onPickerClosed?.call();
   }
 
   void _startWithDuration(int durationSeconds, String? label) {

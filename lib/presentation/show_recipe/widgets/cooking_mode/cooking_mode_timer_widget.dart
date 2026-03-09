@@ -11,15 +11,11 @@ import 'package:meal_planner/services/providers/recipe/timer/timer_tick_provider
 class CookingModeTimerWidget extends ConsumerStatefulWidget {
   final String recipeId;
   final int stepIndex;
-  final bool forceShowPicker;
-  final VoidCallback? onPickerClosed;
 
   const CookingModeTimerWidget({
     super.key,
     required this.recipeId,
     required this.stepIndex,
-    this.forceShowPicker = false,
-    this.onPickerClosed,
   });
 
   @override
@@ -65,7 +61,7 @@ class _CookingModeTimerWidgetState extends ConsumerState<CookingModeTimerWidget>
     }
 
     final hasSaved = savedTimers.value?[widget.stepIndex] != null;
-    if (activeTimer == null && !hasSaved && !widget.forceShowPicker) {
+    if (activeTimer == null && !hasSaved) {
       return const SizedBox.shrink();
     }
 
@@ -115,11 +111,9 @@ class _CookingModeTimerWidgetState extends ConsumerState<CookingModeTimerWidget>
               )
             : CookingModeIdleTimer(
                 key: const ValueKey('idle'),
-                forceShowPicker: widget.forceShowPicker,
                 stepIndex: widget.stepIndex,
                 recipeId: widget.recipeId,
                 saved: savedTimers.value?[widget.stepIndex],
-                onPickerClosed: widget.onPickerClosed,
               ),
       ),
     );

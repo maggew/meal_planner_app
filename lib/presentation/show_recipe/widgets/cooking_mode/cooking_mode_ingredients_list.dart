@@ -4,6 +4,7 @@ import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/presentation/common/extensions/ingredient_inline_text_extenstion.dart';
 import 'package:meal_planner/presentation/common/extensions/text_theme_extensions.dart';
+import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/timer/cooking_mode_timer_picker_sheet.dart';
 import 'package:meal_planner/services/providers/recipe/timer/recipe_timer_provider.dart';
 
 class CookingModeIngredientsList extends ConsumerStatefulWidget {
@@ -12,7 +13,6 @@ class CookingModeIngredientsList extends ConsumerStatefulWidget {
   final bool isExpanded;
   final String recipeId;
   final int stepNumber;
-  final VoidCallback onAddTimer;
 
   const CookingModeIngredientsList({
     super.key,
@@ -21,7 +21,6 @@ class CookingModeIngredientsList extends ConsumerStatefulWidget {
     required this.onExpandToggle,
     required this.recipeId,
     required this.stepNumber,
-    required this.onAddTimer,
   });
 
   @override
@@ -101,7 +100,11 @@ class _CookingModeIngredientsListState
                     ? const SizedBox.shrink(key: ValueKey('empty'))
                     : IconButton(
                         key: const ValueKey('timer'),
-                        onPressed: widget.onAddTimer,
+                        onPressed: () => showCookingModeTimerPicker(
+                          context,
+                          recipeId: widget.recipeId,
+                          stepIndex: widget.stepNumber,
+                        ),
                         icon: const Icon(Icons.add_alarm, size: 22),
                         color: themeData.colorScheme.onPrimary,
                       ),

@@ -7,8 +7,6 @@ class CookingModeStepWidget extends StatefulWidget {
   final String instructionStep;
   final int stepNumber;
   final int totalSteps;
-  final bool isAddingTimer;
-  final VoidCallback onTimerPickerClosed;
 
   const CookingModeStepWidget({
     super.key,
@@ -16,8 +14,6 @@ class CookingModeStepWidget extends StatefulWidget {
     required this.instructionStep,
     required this.stepNumber,
     required this.totalSteps,
-    required this.isAddingTimer,
-    required this.onTimerPickerClosed,
   });
 
   @override
@@ -68,8 +64,6 @@ class _CookingModeStepWidgetState extends State<CookingModeStepWidget> {
         CookingModeTimerWidget(
           recipeId: widget.recipeId,
           stepIndex: widget.stepNumber,
-          forceShowPicker: widget.isAddingTimer,
-          onPickerClosed: widget.onTimerPickerClosed,
         ),
         Expanded(
           child: ShaderMask(

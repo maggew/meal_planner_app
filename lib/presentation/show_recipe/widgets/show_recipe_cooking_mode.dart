@@ -33,7 +33,6 @@ class _ShowRecipeCookingModeState extends ConsumerState<ShowRecipeCookingMode>
   late List<String> instructions;
   late TabController _tabController;
   bool isIngredientsExpanded = false;
-  int? _addingTimerForStep;
 
   @override
   bool get wantKeepAlive => true;
@@ -102,8 +101,6 @@ class _ShowRecipeCookingModeState extends ConsumerState<ShowRecipeCookingMode>
                       ingredientSections: widget.scaledSections,
                       recipeId: widget.recipe.id!,
                       stepNumber: _tabController.index,
-                      onAddTimer: () => setState(
-                          () => _addingTimerForStep = _tabController.index),
                     ),
                   ],
                 ),
@@ -119,9 +116,6 @@ class _ShowRecipeCookingModeState extends ConsumerState<ShowRecipeCookingMode>
                               instructionStep: instructions[index],
                               stepNumber: index,
                               totalSteps: _tabController.length,
-                              isAddingTimer: _addingTimerForStep == index,
-                              onTimerPickerClosed: () =>
-                                  setState(() => _addingTimerForStep = null),
                             )).toList()),
               ),
             ],
