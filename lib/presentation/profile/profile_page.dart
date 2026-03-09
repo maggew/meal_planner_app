@@ -15,6 +15,7 @@ class ProfilePage extends ConsumerWidget {
     return AppBackground(
       scaffoldAppBar: CommonAppbar(
         title: "Profil",
+        leading: SizedBox.shrink(),
         actionsButtons: [
           IconButton(
             key: const ValueKey("settings"),

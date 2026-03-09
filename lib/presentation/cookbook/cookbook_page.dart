@@ -15,6 +15,7 @@ class CookbookPage extends StatelessWidget {
     return AppBackground(
       scaffoldAppBar: CommonAppbar(
         title: "Kochbuch",
+        leading: SizedBox.shrink(),
         actionsButtons: [
           IconButton(
             onPressed: () => context.router.root.push(TrashRoute()),
