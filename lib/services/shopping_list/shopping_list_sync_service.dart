@@ -29,7 +29,13 @@ class ShoppingListSyncService {
             await _dao.updateSyncStatus(item.localId, 'synced',
                 remoteId: created.id);
           case 'pendingUpdate':
-            if (item.remoteId == null) continue;
+            if (item.remoteId == null) {
+              // Fallback: Item wurde nie zu Remote synchronisiert → als pendingCreate behandeln
+              final created = await _remote.addItem(item.information, item.quantity);
+              await _dao.updateSyncStatus(item.localId, 'synced', remoteId: created.id);
+              break;
+            }
+            await _remote.updateItem(item.remoteId!, item.information, item.quantity);
             await _remote.toggleItem(item.remoteId!, item.isChecked);
             await _dao.updateSyncStatus(item.localId, 'synced');
 

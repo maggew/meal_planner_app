@@ -159,13 +159,16 @@ class OfflineFirstShoppingListRepository implements ShoppingListRepository {
       (i) => i.localId == id || i.remoteId == id,
       orElse: () => throw Exception('Item nicht gefunden: $id'),
     );
+    // pendingCreate beibehalten: Item noch nie synced, wird beim nächsten Sync mit den
+    // aktuellen Daten erstellt – kein Überschreiben auf pendingUpdate nötig
+    final newStatus = item.syncStatus == 'pendingCreate' ? 'pendingCreate' : 'pendingUpdate';
     await _dao.upsertItem(LocalShoppingItemsCompanion(
       localId: Value(item.localId),
       groupId: Value(item.groupId),
       information: Value(information),
       quantity: Value(quantity),
       isChecked: Value(item.isChecked),
-      syncStatus: const Value('pendingUpdate'),
+      syncStatus: Value(newStatus),
       updatedAt: Value(DateTime.now()),
     ));
   }
@@ -176,13 +179,16 @@ class OfflineFirstShoppingListRepository implements ShoppingListRepository {
       (i) => i.localId == id || i.remoteId == id,
       orElse: () => throw Exception('Item nicht gefunden: $id'),
     );
+    // pendingCreate beibehalten: Item noch nie synced, wird beim nächsten Sync mit den
+    // aktuellen Daten erstellt – kein Überschreiben auf pendingUpdate nötig
+    final newStatus = item.syncStatus == 'pendingCreate' ? 'pendingCreate' : 'pendingUpdate';
     await _dao.upsertItem(LocalShoppingItemsCompanion(
       localId: Value(item.localId),
       groupId: Value(item.groupId),
       information: Value(item.information),
       quantity: Value(item.quantity),
       isChecked: Value(isChecked),
-      syncStatus: const Value('pendingUpdate'),
+      syncStatus: Value(newStatus),
       updatedAt: Value(DateTime.now()),
     ));
   }
