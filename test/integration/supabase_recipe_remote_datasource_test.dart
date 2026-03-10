@@ -44,6 +44,7 @@ void main() {
       await supabase.from(SupabaseConstants.usersTable).insert({
         SupabaseConstants.userId: testUserId,
         SupabaseConstants.userName: 'Test User',
+        SupabaseConstants.userFirebaseUid: 'test-firebase-uid-$testUserId',
       });
 
       // 3. Recipe anlegen

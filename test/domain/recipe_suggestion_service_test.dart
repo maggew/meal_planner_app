@@ -229,21 +229,22 @@ void main() {
       expect(s.totalScore, closeTo(expected, 0.001));
     });
 
-    test('useCarbVariety=false → Gewichte 5/8 + 3/8, carbVariety ignoriert', () {
+    test('carbVarietyWeight=0 → Gewichte 4/8 + 4/8, carbVariety ignoriert', () {
       final r = recipe(id: 'r1', name: 'Test', carbTags: ['reis']);
       final results = RecipeSuggestionService.suggest(
         recipes: [r],
         inputIngredients: [],
         lastCookedMap: {'r1': 7},
         recentCarbTags: ['reis'],
-        useCarbVariety: false,
+        carbVarietyWeight: 0,
       );
       final s = results.first;
-      final expected = s.ingredientScore * (5 / 8) + s.rotationScore * (3 / 8);
+      // carbVarietyWeight=0: ingredient bekommt 0.5, rotation bekommt alle restlichen 0.5
+      final expected = s.ingredientScore * 0.5 + s.rotationScore * 0.5;
       expect(s.totalScore, closeTo(expected, 0.001));
     });
 
-    test('useCarbVariety=false → carbVarietyScore hat keinen Einfluss auf totalScore', () {
+    test('carbVarietyWeight=0 → carbVarietyScore hat keinen Einfluss auf totalScore', () {
       final withOverlap = recipe(id: 'r1', name: 'Mit Overlap', carbTags: ['reis']);
       final withoutOverlap = recipe(id: 'r2', name: 'Kein Overlap', carbTags: ['pasta']);
 
@@ -252,7 +253,7 @@ void main() {
             inputIngredients: [],
             lastCookedMap: {},
             recentCarbTags: ['reis'],
-            useCarbVariety: false,
+            carbVarietyWeight: 0,
           );
 
       expect(

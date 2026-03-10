@@ -82,7 +82,7 @@ void main() {
       final customSettings = GroupSettings(
         weekStartDay: WeekStartDay.sunday,
         defaultMealSlots: [MealType.lunch],
-        showCarbTags: false,
+        carbVarietyWeight: 0,
       );
       final container = _makeContainer(
         sessionState: SessionState(
