@@ -149,7 +149,9 @@ class _ShoppingListItemTileState extends ConsumerState<ShoppingListItemTile>
               children: [
                 Flexible(
                   child: Text(
-                    widget.item.information[0],
+                    widget.item.information.isNotEmpty
+                        ? widget.item.information[0]
+                        : '?',
                     style: GoogleFonts.frederickaTheGreat(
                         fontSize: 50,
                         color: widget.item.isChecked

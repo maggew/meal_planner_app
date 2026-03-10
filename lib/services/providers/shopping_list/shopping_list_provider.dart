@@ -29,12 +29,14 @@ class ShoppingListActions extends _$ShoppingListActions {
   Future<void> addItemsFromIngredients(List<Ingredient> ingredients) async {
     final repo = ref.read(shoppingListRepositoryProvider);
     for (final ingredient in ingredients) {
+      final name = ingredient.name.trim();
+      if (name.isEmpty) continue;
       final quantity = [
         if (ingredient.amount != null) '${ingredient.amount}',
         if (ingredient.unit != null) ingredient.unit!.displayName,
       ].join(' ');
       await repo.addItem(
-        ingredient.name,
+        name,
         quantity.isEmpty ? null : quantity,
       );
     }
