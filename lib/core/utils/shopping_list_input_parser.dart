@@ -28,7 +28,7 @@ class ShoppingListInputParser {
       if (number != null) {
         final info = [unitStr, rest].whereType<String>().join(' ').trim();
         return (
-          quantity: number,
+          quantity: info.isNotEmpty ? number : null,
           information: info.isNotEmpty ? info : trimmed,
         );
       }
