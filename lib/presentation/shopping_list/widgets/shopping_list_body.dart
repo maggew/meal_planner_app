@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/shopping_list/widgets/shopping_list_input.dart';
@@ -27,12 +29,19 @@ class ShoppingListBody extends ConsumerWidget {
               final unchecked = items.where((i) => !i.isChecked).toList();
               final checked = items.where((i) => i.isChecked).toList();
 
+              const gridPadding = 12.0;
+              const maxItemWidth = 200.0;
+              final availableWidth =
+                  MediaQuery.sizeOf(context).width - gridPadding * 2;
+              final crossAxisCount =
+                  math.max(3, (availableWidth / maxItemWidth).ceil());
+
               return CustomScrollView(
                 slivers: [
                   SliverPadding(
                     padding: const EdgeInsets.all(12),
                     sliver: SliverGrid.count(
-                      crossAxisCount: 3,
+                      crossAxisCount: crossAxisCount,
                       crossAxisSpacing: 8,
                       mainAxisSpacing: 8,
                       children: unchecked
@@ -62,7 +71,7 @@ class ShoppingListBody extends ConsumerWidget {
                     SliverPadding(
                       padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                       sliver: SliverGrid.count(
-                        crossAxisCount: 3,
+                        crossAxisCount: crossAxisCount,
                         crossAxisSpacing: 8,
                         mainAxisSpacing: 8,
                         children: checked
