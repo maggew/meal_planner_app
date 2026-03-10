@@ -58,5 +58,43 @@ void main() {
         expect(result.information, 'Eier');
       });
     });
+
+    group('Einheit ohne Namen → keine quantity', () {
+      test('"500g" → quantity null, information "500g"', () {
+        final result = ShoppingListInputParser.parse('500g');
+        expect(result.quantity, isNull);
+        expect(result.information, '500g');
+      });
+
+      test('"2el" → quantity null, information "2el"', () {
+        final result = ShoppingListInputParser.parse('2el');
+        expect(result.quantity, isNull);
+        expect(result.information, '2el');
+      });
+
+      test('"1 Dose" → quantity null, information "1 Dose"', () {
+        final result = ShoppingListInputParser.parse('1 Dose');
+        expect(result.quantity, isNull);
+        expect(result.information, '1 Dose');
+      });
+
+      test('"500g Mehl" → bleibt korrekt (unit + Name)', () {
+        final result = ShoppingListInputParser.parse('500g Mehl');
+        expect(result.quantity, '500g');
+        expect(result.information, 'Mehl');
+      });
+
+      test('"1,5kg Mehl" → Komma-Dezimal mit Einheit und Name', () {
+        final result = ShoppingListInputParser.parse('1,5kg Mehl');
+        expect(result.quantity, '1,5kg');
+        expect(result.information, 'Mehl');
+      });
+
+      test('"500 g Mehl" → Leerzeichen zwischen Zahl und Einheit', () {
+        final result = ShoppingListInputParser.parse('500 g Mehl');
+        expect(result.quantity, '500g');
+        expect(result.information, 'Mehl');
+      });
+    });
   });
 }
