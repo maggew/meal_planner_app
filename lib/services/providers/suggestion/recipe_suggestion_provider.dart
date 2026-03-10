@@ -46,46 +46,56 @@ class RecipeSuggestionNotifier extends Notifier<RecipeSuggestionState> {
       final recipes =
           localRecipes.map((r) => RecipeCacheConverter.toRecipe(r)).toList();
 
-      // 2. Load recent 14-day meal plan entries
-      final recentEntries = await mealPlanDao.getRecentEntries(groupId, 14);
-
-      // 3. Build lastCookedMap: recipeId → days since last cooked
+      // 2. Load meal plan entries in a ±14-day window around today
       final today = DateTime.now();
+      final fromDate = today.subtract(const Duration(days: 14));
+      final toDate = today.add(const Duration(days: 14));
+      final rangeEntries = await mealPlanDao.getEntriesInRange(
+        groupId,
+        _formatDate(fromDate),
+        _formatDate(toDate),
+      );
+
+      // 3. Build lastCookedMap: recipeId → days to nearest occurrence (past or future)
       final Map<String, int> lastCookedMap = {};
-      for (final entry in recentEntries) {
+      for (final entry in rangeEntries) {
         if (entry.recipeId.isEmpty) continue;
         final entryDate = DateTime.tryParse(entry.date);
         if (entryDate == null) continue;
-        final daysAgo = today.difference(entryDate).inDays;
+        final daysAway = today.difference(entryDate).inDays.abs();
         final existing = lastCookedMap[entry.recipeId];
-        if (existing == null || daysAgo < existing) {
-          lastCookedMap[entry.recipeId] = daysAgo;
+        if (existing == null || daysAway < existing) {
+          lastCookedMap[entry.recipeId] = daysAway;
         }
       }
 
-      // 4. Collect recent carb tags (last 3 days)
-      final threeDaysAgo = today.subtract(const Duration(days: 3));
+      // 4. Collect carb tags from entries within ±3 days of today
       final recentCarbTags = <String>[];
-      for (final entry in recentEntries) {
+      for (final entry in rangeEntries) {
         if (entry.recipeId.isEmpty) continue;
         final entryDate = DateTime.tryParse(entry.date);
-        if (entryDate == null || entryDate.isBefore(threeDaysAgo)) continue;
-        final recipe = recipes.where((r) => r.id == entry.recipeId).firstOrNull;
+        if (entryDate == null) continue;
+        if (today.difference(entryDate).inDays.abs() > 3) continue;
+        final recipe =
+            recipes.where((r) => r.id == entry.recipeId).firstOrNull;
         if (recipe != null) {
           recentCarbTags.addAll(recipe.carbTags);
         }
       }
 
-      // 5. Run suggestion algorithm
-      final showCarbTags =
-          ref.read(sessionProvider).group?.settings.showCarbTags ?? true;
+      // 5. Read algorithm weights from group settings
+      final settings = ref.read(sessionProvider).group?.settings;
+      final rotationWeight = settings?.rotationWeight ?? 3;
+      final carbVarietyWeight = settings?.carbVarietyWeight ?? 2;
 
+      // 6. Run suggestion algorithm
       final results = RecipeSuggestionService.suggest(
         recipes: recipes,
         inputIngredients: ingredients,
         lastCookedMap: lastCookedMap,
         recentCarbTags: recentCarbTags,
-        useCarbVariety: showCarbTags,
+        rotationWeight: rotationWeight,
+        carbVarietyWeight: carbVarietyWeight,
       );
 
       state = state.copyWith(suggestions: results, isLoading: false);
@@ -96,6 +106,11 @@ class RecipeSuggestionNotifier extends Notifier<RecipeSuggestionState> {
       );
     }
   }
+
+  static String _formatDate(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-'
+      '${d.month.toString().padLeft(2, '0')}-'
+      '${d.day.toString().padLeft(2, '0')}';
 }
 
 final recipeSuggestionProvider =

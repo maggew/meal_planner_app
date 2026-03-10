@@ -1,38 +1,58 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
 import 'package:meal_planner/presentation/common/common_appbar.dart';
 import 'package:meal_planner/presentation/recipe_suggestion/widgets/recipe_suggestion_body.dart';
+import 'package:meal_planner/services/providers/session_provider.dart';
 
 @RoutePage()
-class RecipeSuggestionPage extends StatelessWidget {
+class RecipeSuggestionPage extends ConsumerWidget {
   const RecipeSuggestionPage({super.key});
 
-  void _showScoringInfo(BuildContext context) {
+  void _showScoringInfo(
+    BuildContext context, {
+    required int rotationWeight,
+    required int carbVarietyWeight,
+  }) {
+    final rTotal = rotationWeight + carbVarietyWeight;
+    final rw = rTotal > 0 ? rotationWeight / rTotal * 0.5 : 0.0;
+    final cw = rTotal > 0 ? carbVarietyWeight / rTotal * 0.5 : 0.0;
+    final iw = 1.0 - rw - cw;
+
+    String pct(double v) => '${(v * 100).round()}%';
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Score-Berechnung'),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             _ScoreRow(
-                label: 'Zutaten',
-                weight: '50%',
-                description:
-                    'Wie viele eingegebene Zutaten im Rezept vorkommen'),
-            SizedBox(height: 12),
+              label: 'Zutaten',
+              weight: pct(iw),
+              description:
+                  'Wie viele eingegebene Zutaten im Rezept vorkommen',
+            ),
+            const SizedBox(height: 12),
             _ScoreRow(
-                label: 'Rotation',
-                weight: '30%',
-                description:
-                    'Wie lange das Rezept nicht gekocht wurde (max. 14 Tage)'),
-            SizedBox(height: 12),
-            _ScoreRow(
+              label: 'Rotation',
+              weight: pct(rw),
+              description:
+                  'Wie lange das Rezept nicht gekocht wurde – '
+                  'berücksichtigt auch bereits eingeplante Mahlzeiten (±14 Tage)',
+            ),
+            if (carbVarietyWeight > 0) ...[
+              const SizedBox(height: 12),
+              _ScoreRow(
                 label: 'KH-Abwechslung',
-                weight: '20%',
+                weight: pct(cw),
                 description:
-                    'Wie wenig die Kohlenhydrate mit den letzten 3 Tagen überlappen'),
+                    'Wie wenig die Kohlenhydrate mit den Mahlzeiten '
+                    'der letzten und nächsten 3 Tage überlappen',
+              ),
+            ],
           ],
         ),
         actions: [
@@ -46,7 +66,13 @@ class RecipeSuggestionPage extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(
+      sessionProvider.select((s) => s.group?.settings),
+    );
+    final rotationWeight = settings?.rotationWeight ?? 3;
+    final carbVarietyWeight = settings?.carbVarietyWeight ?? 2;
+
     return AppBackground(
       scaffoldAppBar: CommonAppbar(
         title: 'Vorschläge',
@@ -54,7 +80,11 @@ class RecipeSuggestionPage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.info_outline),
             tooltip: 'Score-Berechnung',
-            onPressed: () => _showScoringInfo(context),
+            onPressed: () => _showScoringInfo(
+              context,
+              rotationWeight: rotationWeight,
+              carbVarietyWeight: carbVarietyWeight,
+            ),
           ),
         ],
       ),
@@ -101,10 +131,12 @@ class _ScoreRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text(description,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      )),
+              Text(
+                description,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+              ),
             ],
           ),
         ),

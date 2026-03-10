@@ -3,30 +3,31 @@ import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/domain/entities/recipe_suggestion.dart';
 
 class RecipeSuggestionService {
-  static const _weightIngredient = 0.50;
-  static const _weightRotation = 0.30;
-  static const _weightCarbVariety = 0.20;
+  static const double _ingredientShare = 0.50;
 
-  /// [recipes]          — all recipes from local cache
-  /// [inputIngredients] — user-entered ingredient names
-  /// [lastCookedMap]    — recipeId → days since last cooked (absent = never cooked)
-  /// [recentCarbTags]   — carb tags from last 3 days (for variety scoring)
-  /// [useCarbVariety]   — whether to include carb-tag variety in scoring
+  /// [recipes]            — all recipes from local cache
+  /// [inputIngredients]   — user-entered ingredient names
+  /// [lastCookedMap]      — recipeId → days to nearest occurrence (past or future)
+  /// [recentCarbTags]     — carb tags from ±3 days around today
+  /// [rotationWeight]     — 0–3: how strongly to weight rotation (0 = off)
+  /// [carbVarietyWeight]  — 0–3: how strongly to weight carb variety (0 = off)
   static List<RecipeSuggestion> suggest({
     required List<Recipe> recipes,
     required List<String> inputIngredients,
     required Map<String, int> lastCookedMap,
     required List<String> recentCarbTags,
-    bool useCarbVariety = true,
+    int rotationWeight = 3,
+    int carbVarietyWeight = 2,
   }) {
     final suggestions = recipes
         .where((r) => r.id != null)
         .map((recipe) => _score(
               recipe: recipe,
               inputIngredients: inputIngredients,
-              lastCookedDaysAgo: lastCookedMap[recipe.id!],
+              lastCookedDaysAway: lastCookedMap[recipe.id!],
               recentCarbTags: recentCarbTags,
-              useCarbVariety: useCarbVariety,
+              rotationWeight: rotationWeight,
+              carbVarietyWeight: carbVarietyWeight,
             ))
         .toList();
 
@@ -43,21 +44,25 @@ class RecipeSuggestionService {
   static RecipeSuggestion _score({
     required Recipe recipe,
     required List<String> inputIngredients,
-    required int? lastCookedDaysAgo,
+    required int? lastCookedDaysAway,
     required List<String> recentCarbTags,
-    required bool useCarbVariety,
+    required int rotationWeight,
+    required int carbVarietyWeight,
   }) {
     final matchedCount = _countMatches(recipe, inputIngredients);
-    final ingredientScore = _calcIngredientScore(matchedCount, inputIngredients.length);
-    final rotationScore = _calcRotationScore(lastCookedDaysAgo);
-    final carbVarietyScore = useCarbVariety
-        ? _calcCarbVarietyScore(recipe, recentCarbTags)
-        : 0.0;
+    final ingredientScore =
+        _calcIngredientScore(matchedCount, inputIngredients.length);
+    final rotationScore = _calcRotationScore(lastCookedDaysAway);
+    final carbVarietyScore =
+        carbVarietyWeight > 0 ? _calcCarbVarietyScore(recipe, recentCarbTags) : 0.0;
 
-    // Wenn Kohlenhydrat-Varietät deaktiviert ist, Gewichte auf 50/30 normalisieren
-    final double iw = useCarbVariety ? _weightIngredient : 5 / 8;
-    final double rw = useCarbVariety ? _weightRotation : 3 / 8;
-    final double cw = useCarbVariety ? _weightCarbVariety : 0.0;
+    // Distribute the remaining 50% proportionally between rotation and carb variety.
+    final rTotal = rotationWeight + carbVarietyWeight;
+    final double rw =
+        rTotal > 0 ? rotationWeight / rTotal * (1.0 - _ingredientShare) : 0.0;
+    final double cw =
+        rTotal > 0 ? carbVarietyWeight / rTotal * (1.0 - _ingredientShare) : 0.0;
+    final double iw = 1.0 - rw - cw;
 
     final totalScore =
         ingredientScore * iw + rotationScore * rw + carbVarietyScore * cw;
@@ -76,6 +81,8 @@ class RecipeSuggestionService {
       matchedIngredientCount: matchedCount,
       totalInputIngredients: inputIngredients.length,
       matchQuality: matchQuality,
+      rotationWeight: rotationWeight,
+      carbVarietyWeight: carbVarietyWeight,
     );
   }
 
@@ -100,9 +107,11 @@ class RecipeSuggestionService {
     return matched;
   }
 
-  static double _calcRotationScore(int? lastCookedDaysAgo) {
-    if (lastCookedDaysAgo == null) return 1.0;
-    return (lastCookedDaysAgo / 14.0).clamp(0.0, 1.0);
+  /// [lastCookedDaysAway] is the number of days to the nearest occurrence of
+  /// this recipe (past or future). null means never planned/cooked.
+  static double _calcRotationScore(int? lastCookedDaysAway) {
+    if (lastCookedDaysAway == null) return 1.0;
+    return (lastCookedDaysAway / 14.0).clamp(0.0, 1.0);
   }
 
   static double _calcCarbVarietyScore(

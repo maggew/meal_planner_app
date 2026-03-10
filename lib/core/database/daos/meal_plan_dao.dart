@@ -133,17 +133,17 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
         .go();
   }
 
-  /// Returns all non-deleted entries for the last [days] days (inclusive today)
-  Future<List<LocalMealPlanEntry>> getRecentEntries(
+  /// Returns all non-deleted entries between [fromDate] and [toDate] inclusive.
+  /// Dates must be formatted as 'yyyy-MM-dd'.
+  Future<List<LocalMealPlanEntry>> getEntriesInRange(
     String groupId,
-    int days,
+    String fromDate,
+    String toDate,
   ) {
-    final cutoff = DateTime.now().subtract(Duration(days: days));
-    final cutoffStr =
-        '${cutoff.year.toString().padLeft(4, '0')}-${cutoff.month.toString().padLeft(2, '0')}-${cutoff.day.toString().padLeft(2, '0')}';
     return (select(localMealPlanEntries)
           ..where((t) => t.groupId.equals(groupId))
-          ..where((t) => t.date.isBiggerOrEqualValue(cutoffStr))
+          ..where((t) => t.date.isBiggerOrEqualValue(fromDate))
+          ..where((t) => t.date.isSmallerOrEqualValue(toDate))
           ..where((t) => t.syncStatus.equals('pendingDelete').not()))
         .get();
   }

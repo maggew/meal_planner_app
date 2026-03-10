@@ -6,6 +6,7 @@ import 'package:meal_planner/domain/entities/recipe_suggestion.dart';
 import 'package:meal_planner/domain/enums/carb_tag.dart';
 import 'package:meal_planner/presentation/recipe_suggestion/widgets/quick_assign_dialog.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
+import 'package:meal_planner/services/providers/session_provider.dart';
 
 class SuggestionResultCard extends ConsumerWidget {
   final RecipeSuggestion suggestion;
@@ -40,6 +41,9 @@ class SuggestionResultCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final recipe = suggestion.recipe;
+    final showCarbTags = ref.watch(
+      sessionProvider.select((s) => s.group?.settings.showCarbTags ?? false),
+    );
 
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
@@ -79,7 +83,7 @@ class SuggestionResultCard extends ConsumerWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (recipe.carbTags.isNotEmpty) ...[
+                    if (showCarbTags && recipe.carbTags.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Wrap(
                         spacing: 4,
@@ -113,9 +117,12 @@ class SuggestionResultCard extends ConsumerWidget {
                                   color: colorScheme.onSurfaceVariant,
                                 ),
                           ),
-                          const SizedBox(width: 8),
-                          Text('·', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
-                          const SizedBox(width: 8),
+                          Text(' · ',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                      color: colorScheme.onSurfaceVariant)),
                         ],
                         Text(
                           '${(suggestion.totalScore * 100).round()}%',
@@ -154,3 +161,4 @@ class SuggestionResultCard extends ConsumerWidget {
     );
   }
 }
+

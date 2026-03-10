@@ -4,15 +4,22 @@ import 'package:meal_planner/domain/enums/week_start_day.dart';
 class GroupSettings {
   final WeekStartDay weekStartDay;
   final List<MealType> defaultMealSlots;
-  final bool showCarbTags;
+  /// Suggestion algorithm weight for recipe rotation (0=off … 3=high).
+  final int rotationWeight;
+  /// Suggestion algorithm weight for carb-tag variety (0=off … 3=high).
+  /// Also controls whether the carb-tag selector is shown in recipe forms.
+  final int carbVarietyWeight;
 
   const GroupSettings({
     this.weekStartDay = WeekStartDay.monday,
     List<MealType>? defaultMealSlots,
-    this.showCarbTags = true,
+    this.rotationWeight = 3,
+    this.carbVarietyWeight = 2,
   }) : defaultMealSlots = defaultMealSlots ?? MealType.values;
 
   static const defaultSettings = GroupSettings();
+
+  bool get showCarbTags => carbVarietyWeight > 0;
 
   factory GroupSettings.fromJson(Map<String, dynamic> json) {
     final rawSlots = json['default_meal_slots'] as List<dynamic>?;
@@ -35,25 +42,29 @@ class GroupSettings {
       ),
       defaultMealSlots:
           parsedSlots.isNotEmpty ? parsedSlots : MealType.values.toList(),
-      showCarbTags: json['show_carb_tags'] as bool? ?? true,
+      rotationWeight: json['rotation_weight'] as int? ?? 3,
+      carbVarietyWeight: json['carb_variety_weight'] as int? ?? 2,
     );
   }
 
   Map<String, dynamic> toJson() => {
         'week_start_day': weekStartDay.name,
         'default_meal_slots': defaultMealSlots.map((m) => m.value).toList(),
-        'show_carb_tags': showCarbTags,
+        'rotation_weight': rotationWeight,
+        'carb_variety_weight': carbVarietyWeight,
       };
 
   GroupSettings copyWith({
     WeekStartDay? weekStartDay,
     List<MealType>? defaultMealSlots,
-    bool? showCarbTags,
+    int? rotationWeight,
+    int? carbVarietyWeight,
   }) {
     return GroupSettings(
       weekStartDay: weekStartDay ?? this.weekStartDay,
       defaultMealSlots: defaultMealSlots ?? this.defaultMealSlots,
-      showCarbTags: showCarbTags ?? this.showCarbTags,
+      rotationWeight: rotationWeight ?? this.rotationWeight,
+      carbVarietyWeight: carbVarietyWeight ?? this.carbVarietyWeight,
     );
   }
 }

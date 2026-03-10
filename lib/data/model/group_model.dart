@@ -14,7 +14,8 @@ class GroupModel extends Group {
     final settings = GroupSettings.fromJson({
       'week_start_day': data[SupabaseConstants.groupWeekStartDay],
       'default_meal_slots': data[SupabaseConstants.groupDefaultMealSlots],
-      'show_carb_tags': data[SupabaseConstants.groupShowCarbTags],
+      'rotation_weight': data[SupabaseConstants.groupRotationWeight],
+      'carb_variety_weight': data[SupabaseConstants.groupCarbVarietyWeight],
     });
 
     return GroupModel(
@@ -33,7 +34,8 @@ class GroupModel extends Group {
       SupabaseConstants.groupWeekStartDay: settings.weekStartDay.name,
       SupabaseConstants.groupDefaultMealSlots:
           settings.defaultMealSlots.map((m) => m.value).toList(),
-      SupabaseConstants.groupShowCarbTags: settings.showCarbTags,
+      SupabaseConstants.groupRotationWeight: settings.rotationWeight,
+      SupabaseConstants.groupCarbVarietyWeight: settings.carbVarietyWeight,
     };
   }
 

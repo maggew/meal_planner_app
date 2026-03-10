@@ -232,7 +232,8 @@ class SupabaseGroupRepository implements GroupRepository {
         SupabaseConstants.groupWeekStartDay: settings.weekStartDay.name,
         SupabaseConstants.groupDefaultMealSlots:
             settings.defaultMealSlots.map((m) => m.value).toList(),
-        SupabaseConstants.groupShowCarbTags: settings.showCarbTags,
+        SupabaseConstants.groupRotationWeight: settings.rotationWeight,
+        SupabaseConstants.groupCarbVarietyWeight: settings.carbVarietyWeight,
       }).eq(SupabaseConstants.groupId, groupId);
     } on PostgrestException catch (e) {
       throw GroupUpdateException('Datenbankfehler: $e');

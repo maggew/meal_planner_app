@@ -220,22 +220,25 @@ class _GroupSettingsSectionState extends ConsumerState<GroupSettingsSection> {
                           : (_) {},
                     ),
                   ),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(
-                      'Kohlenhydrat-Bewertung',
-                      style: textTheme.bodyMedium,
-                    ),
-                    subtitle: Text(
-                      'Berücksichtigt KH-Vielfalt bei Rezeptvorschlägen',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
-                    ),
-                    value: displaySettings.showCarbTags,
+                  _WeightSettingRow(
+                    label: 'Rezept-Rotation',
+                    subtitle:
+                        'Wie stark bevorzugt werden Rezepte, die selten oder noch nie gekocht wurden',
+                    value: displaySettings.rotationWeight,
                     onChanged: _isEditing
                         ? (v) => _onSettingsChanged(
-                              displaySettings.copyWith(showCarbTags: v),
+                              displaySettings.copyWith(rotationWeight: v),
+                            )
+                        : null,
+                  ),
+                  _WeightSettingRow(
+                    label: 'KH-Abwechslung',
+                    subtitle:
+                        'Wie stark werden Kohlenhydrat-Wiederholungen in den letzten Tagen vermieden',
+                    value: displaySettings.carbVarietyWeight,
+                    onChanged: _isEditing
+                        ? (v) => _onSettingsChanged(
+                              displaySettings.copyWith(carbVarietyWeight: v),
                             )
                         : null,
                   ),
@@ -271,6 +274,55 @@ class _GroupSettingsSectionState extends ConsumerState<GroupSettingsSection> {
               ],
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class _WeightSettingRow extends StatelessWidget {
+  final String label;
+  final String subtitle;
+  final int value;
+  final ValueChanged<int>? onChanged;
+
+  const _WeightSettingRow({
+    required this.label,
+    required this.subtitle,
+    required this.value,
+    this.onChanged,
+  });
+
+  static const _labels = ['Aus', 'Niedrig', 'Mittel', 'Hoch'];
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: textTheme.bodyMedium),
+          Text(
+            subtitle,
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SegmentedButton<int>(
+            selected: {value},
+            onSelectionChanged:
+                onChanged != null ? (s) => onChanged!(s.first) : null,
+            showSelectedIcon: false,
+            segments: [
+              for (int i = 0; i < _labels.length; i++)
+                ButtonSegment(value: i, label: Text(_labels[i])),
+            ],
+          ),
         ],
       ),
     );
