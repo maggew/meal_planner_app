@@ -18,10 +18,10 @@ class ShoppingListInputParser {
       final rest = startMatch.group(3)?.trim();
 
       if (unitStr != null && UnitParser.parse(unitStr) != null) {
-        final quantity = '$number$unitStr';
+        final hasName = rest != null && rest.isNotEmpty;
         return (
-          quantity: quantity,
-          information: rest != null && rest.isNotEmpty ? rest : trimmed,
+          quantity: hasName ? '$number$unitStr' : null,
+          information: hasName ? rest! : trimmed,
         );
       }
 
