@@ -32,7 +32,7 @@ class VerticalTabs extends StatefulWidget {
     this.indicatorColor,
     this.disabledChangePageFromContentView = false,
     this.contentScrollAxis = Axis.horizontal,
-    this.changePageCurve = Curves.easeInOut,
+    this.changePageCurve = Curves.bounceInOut,
     this.changePageDuration = const Duration(milliseconds: 300),
     this.onSelect,
   }) : assert(tabs.length == contents.length);
@@ -45,6 +45,8 @@ class _VerticalTabsState extends State<VerticalTabs>
     with TickerProviderStateMixin {
   late int _selectedIndex;
   bool? _changePageByTapView;
+  int? _fakePageIndex;
+  int? _fakeContentIndex;
   late final PageController _pageController;
   late final List<AnimationController> _animationControllers;
   late final ScrollPhysics _pageScrollPhysics;
@@ -167,7 +169,15 @@ class _VerticalTabsState extends State<VerticalTabs>
                   }
                   setState(() {});
                 },
-                itemBuilder: (_, index) => widget.contents[index],
+                itemBuilder: (_, index) {
+                  if (index == _fakePageIndex && _fakeContentIndex != null) {
+                    return KeyedSubtree(
+                      key: ValueKey('fake_$index'),
+                      child: widget.contents[_fakeContentIndex!],
+                    );
+                  }
+                  return widget.contents[index];
+                },
               ),
             ),
           ),
@@ -189,8 +199,9 @@ class _VerticalTabsState extends State<VerticalTabs>
     final isFirst = index == 0;
 
     final alignment = Alignment.center;
-    final itemBgColor =
-        isSelected ? colorScheme.surface.withValues(alpha: 0.3) : Colors.transparent;
+    final itemBgColor = isSelected
+        ? colorScheme.surface.withValues(alpha: 0.3)
+        : Colors.transparent;
 
     // Indicator position
     final double? left;
@@ -235,13 +246,34 @@ class _VerticalTabsState extends State<VerticalTabs>
       children: [
         GestureDetector(
           onTap: () {
+            final previousIndex = _selectedIndex;
             _changePageByTapView = true;
             setState(() => _selectTab(index));
-            _pageController.animateToPage(
+
+            final distance = (index - previousIndex).abs();
+            if (distance > 1) {
+              final forward = index > previousIndex;
+              final adjacentPage = forward ? index - 1 : index + 1;
+              setState(() {
+                _fakePageIndex = adjacentPage;
+                _fakeContentIndex = previousIndex;
+              });
+              _pageController.jumpToPage(adjacentPage);
+            }
+            _pageController
+                .animateToPage(
               index,
               duration: widget.changePageDuration,
               curve: widget.changePageCurve,
-            );
+            )
+                .then((_) {
+              if (mounted) {
+                setState(() {
+                  _fakePageIndex = null;
+                  _fakeContentIndex = null;
+                });
+              }
+            });
           },
           child: Container(
             decoration: BoxDecoration(

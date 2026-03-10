@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/core/constants/categories.dart';
 import 'package:meal_planner/domain/enums/tab_position.dart';
 import 'package:meal_planner/presentation/cookbook/widgets/vertical_tabbar.dart';
@@ -28,12 +29,15 @@ class CookbookTabbar extends ConsumerWidget {
           disabledChangePageFromContentView: true,
           tabsWidth: 70,
           tabsPosition: tabsPosition,
+          changePageDuration: AppDimensions.animationDuration,
+          changePageCurve: Curves.easeInOutCubic,
           tabs: [
             ...categories.map(
               (category) => CookbookCategoryTab(
                 name: category.name,
                 iconWidget: Icon(
-                  getCategoryIconData(category.name, iconName: category.iconName),
+                  getCategoryIconData(category.name,
+                      iconName: category.iconName),
                   size: 30,
                 ),
               ),
