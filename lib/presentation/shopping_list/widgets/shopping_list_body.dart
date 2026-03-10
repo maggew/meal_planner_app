@@ -30,7 +30,7 @@ class ShoppingListBody extends ConsumerWidget {
               final checked = items.where((i) => i.isChecked).toList();
 
               const gridPadding = 12.0;
-              const maxItemWidth = 200.0;
+              const maxItemWidth = 150.0;
               final availableWidth =
                   MediaQuery.sizeOf(context).width - gridPadding * 2;
               final crossAxisCount =
