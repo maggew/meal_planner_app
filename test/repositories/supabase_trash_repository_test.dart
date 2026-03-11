@@ -253,5 +253,45 @@ void main() {
         throwsA(isA<RecipeDeletionException>()),
       );
     });
+
+    test('throws RecipeDeletionException when getRecipeById throws', () async {
+      when(() => remote.getRecipeById(recipeId: 'r1', groupId: 'group-1'))
+          .thenThrow(Exception('boom'));
+
+      await expectLater(
+        repository.hardDeleteRecipe('r1'),
+        throwsA(isA<RecipeDeletionException>()),
+      );
+    });
+
+    test(
+        'throws RecipeDeletionException when mid-cleanup step fails',
+        () async {
+      when(() => remote.getRecipeById(recipeId: 'r1', groupId: 'group-1'))
+          .thenAnswer((_) async => null);
+      when(() => remote.deleteRecipeCategories('r1')).thenAnswer((_) async {});
+      when(() => remote.deleteRecipeIngredients('r1'))
+          .thenThrow(Exception('mid-fail'));
+
+      await expectLater(
+        repository.hardDeleteRecipe('r1'),
+        throwsA(isA<RecipeDeletionException>()),
+      );
+    });
+  });
+
+  group('restoreRecipe — cache error handling', () {
+    test(
+        'completes even if getTimersForRecipe throws during cache update',
+        () async {
+      when(() => remote.restoreRecipe('r1')).thenAnswer((_) async {});
+      when(() => remote.getRecipeById(recipeId: 'r1', groupId: 'group-1'))
+          .thenAnswer((_) async => _recipeMap(id: 'r1'));
+      when(() => remote.getTimersForRecipe('r1'))
+          .thenThrow(Exception('timer fetch failed'));
+
+      await expectLater(repository.restoreRecipe('r1'), completes);
+      verifyNever(() => dao.upsertRecipe(any()));
+    });
   });
 }

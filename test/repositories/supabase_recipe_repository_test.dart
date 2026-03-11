@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meal_planner/data/model/recipe_model.dart';
+import 'package:meal_planner/domain/entities/recipe_timer.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/domain/exceptions/recipe_exceptions.dart';
 import 'package:mocktail/mocktail.dart';
@@ -43,7 +44,25 @@ void main() {
         portions: 4,
         ingredientSections: [],
         instructions: ""));
+    registerFallbackValue(<String, dynamic>{});
   });
+
+  // Helper: minimal timer map matching RecipeTimerModel.fromSupabase
+  Map<String, dynamic> _timerMap() => {
+        'id': 'timer-1',
+        'recipe_id': 'r1',
+        'step_index': 0,
+        'timer_name': 'Kochen',
+        'duration_seconds': 300,
+      };
+
+  RecipeTimer _fakeTimer() => RecipeTimer(
+        id: 'timer-1',
+        recipeId: 'r1',
+        stepIndex: 0,
+        timerName: 'Kochen',
+        durationSeconds: 300,
+      );
 
   group("getRecipeById", () {
     test('getRecipeById returns Recipe when datasource returns data', () async {
@@ -593,6 +612,122 @@ void main() {
       expect(
         repository.saveRecipe(recipe, null, 'user-1'),
         throwsA(isA<RecipeCreationException>()),
+      );
+    });
+
+    test("throws RecipeCreationException when image upload fails", () async {
+      // arrange
+      final recipe = Recipe(
+        id: null,
+        name: 'Pasta',
+        ingredientSections: [],
+        categories: [],
+        portions: 2,
+        instructions: '',
+      );
+
+      when(() => storage.uploadImage(any<File>(), any()))
+          .thenThrow(Exception('upload failed'));
+
+      // act & assert
+      expect(
+        repository.saveRecipe(recipe, File('dummy'), 'user-1'),
+        throwsA(isA<RecipeCreationException>()),
+      );
+    });
+  });
+
+  group('getRecipesByCategories — edge cases', () {
+    test('returns empty list when called with empty categories list', () async {
+      when(() => remote.getRecipesByCategories(
+            categories: [],
+            groupId: 'group-1',
+          )).thenAnswer((_) async => []);
+
+      final result = await repository.getRecipesByCategories([]);
+
+      expect(result, isEmpty);
+    });
+  });
+
+  group('updateRecipe — error cases', () {
+    test('throws RecipeUpdateException when deleteImage fails', () async {
+      final recipe = Recipe(
+        id: 'r1',
+        name: 'Pasta',
+        ingredientSections: [],
+        categories: [],
+        portions: 2,
+        instructions: '',
+        imageUrl: 'old_image_url',
+      );
+      when(() => storage.deleteImage(any())).thenThrow(Exception('delete failed'));
+
+      expect(
+        repository.updateRecipe(recipe, File('dummy')),
+        throwsA(isA<RecipeUpdateException>()),
+      );
+    });
+  });
+
+  group('getTimersForRecipe', () {
+    test('returns mapped RecipeTimer list on success', () async {
+      when(() => remote.getTimersForRecipe('r1'))
+          .thenAnswer((_) async => [_timerMap()]);
+
+      final result = await repository.getTimersForRecipe('r1');
+
+      expect(result, isA<List<RecipeTimer>>());
+      expect(result.length, 1);
+      expect(result.first.timerName, 'Kochen');
+    });
+
+    test('throws RecipeTimerException on datasource error', () async {
+      when(() => remote.getTimersForRecipe('r1'))
+          .thenThrow(Exception('boom'));
+
+      expect(
+        repository.getTimersForRecipe('r1'),
+        throwsA(isA<RecipeTimerException>()),
+      );
+    });
+  });
+
+  group('upsertTimer', () {
+    test('returns mapped RecipeTimer on success', () async {
+      when(() => remote.upsertTimer(any())).thenAnswer((_) async => _timerMap());
+
+      final result = await repository.upsertTimer(_fakeTimer());
+
+      expect(result, isA<RecipeTimer>());
+      expect(result.timerName, 'Kochen');
+    });
+
+    test('throws RecipeTimerException on datasource error', () async {
+      when(() => remote.upsertTimer(any())).thenThrow(Exception('boom'));
+
+      expect(
+        repository.upsertTimer(_fakeTimer()),
+        throwsA(isA<RecipeTimerException>()),
+      );
+    });
+  });
+
+  group('deleteTimer', () {
+    test('calls remote.deleteTimer on success', () async {
+      when(() => remote.deleteTimer('r1', 0)).thenAnswer((_) async {});
+
+      await repository.deleteTimer('r1', 0);
+
+      verify(() => remote.deleteTimer('r1', 0)).called(1);
+    });
+
+    test('throws RecipeTimerException on datasource error', () async {
+      when(() => remote.deleteTimer('r1', 0)).thenThrow(Exception('boom'));
+
+      expect(
+        repository.deleteTimer('r1', 0),
+        throwsA(isA<RecipeTimerException>()),
       );
     });
   });
