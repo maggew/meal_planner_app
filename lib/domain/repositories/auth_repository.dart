@@ -22,4 +22,6 @@ abstract class AuthRepository {
   Stream<String?> authStateChanges();
 
   bool get isSignedIn;
+
+  Future<void> sendPasswordResetEmail(String email);
 }

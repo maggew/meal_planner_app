@@ -163,6 +163,11 @@ class FirebaseAuthRepository implements AuthRepository {
   bool get isSignedIn => _auth.currentUser != null;
 
   @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _auth.sendPasswordResetEmail(email: email);
+  }
+
+  @override
   Future<String> signInWithGoogle() async {
     try {
       final signIn = _googleSignIn;

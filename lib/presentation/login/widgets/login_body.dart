@@ -27,6 +27,7 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
   late final FocusNode emailFocusNode;
   late final FocusNode passwordFocusNode;
   bool _obscurePassword = true;
+  bool _loginFailed = false;
 
   @override
   void initState() {
@@ -48,6 +49,8 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
 
   Future<void> _submitForm() async {
     if (_formKey.currentState?.validate() != true) return;
+
+    setState(() => _loginFailed = false);
 
     final authController = ref.read(authControllerProvider.notifier);
 
@@ -83,6 +86,7 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
           }
         },
         error: (e, _) {
+          setState(() => _loginFailed = true);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(_mapAuthError(e))),
           );
@@ -147,7 +151,10 @@ class _LoginBodyState extends ConsumerState<LoginBody> {
                               .loginWithGoogle();
                         },
                 ),
-                LoginResetPasswordWidget(),
+                if (_loginFailed)
+                  LoginResetPasswordWidget(
+                    initialEmail: emailController.text.trim(),
+                  ),
               ],
             ),
           ),
