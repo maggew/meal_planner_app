@@ -135,6 +135,7 @@ class OfflineFirstShoppingListRepository implements ShoppingListRepository {
   Future<void> removeCheckedItems() async {
     final items = await _dao.watchItemsByGroup(_groupId).first;
     final checkedItems = items.where((i) => i.isChecked).toList();
+    if (checkedItems.isEmpty) return;
 
     for (final item in checkedItems) {
       await _dao.markAsDeleted(item.localId);
