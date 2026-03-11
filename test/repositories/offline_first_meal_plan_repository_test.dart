@@ -312,6 +312,7 @@ void main() {
     });
 
     test(
+
         '3 — Gruppen-Isolation: DAO wird nur mit der eigenen groupId abgefragt',
         () async {
       final repo = _buildRepo(isOnline: false, groupId: 'gruppe-A');
@@ -345,6 +346,7 @@ void main() {
     });
 
     test(
+
         '5 — recipeId="" (Free-Text intern) wird als null in der Entity gemappt',
         () async {
       final repo = _buildRepo(isOnline: false);
@@ -401,6 +403,7 @@ void main() {
     });
 
     test('8 — cookIdsJson mit JSON-Array wird korrekt deserialisiert',
+
         () async {
       final repo = _buildRepo(isOnline: false);
       final ctrl = StreamController<List<LocalMealPlanEntry>>.broadcast();
@@ -464,6 +467,7 @@ void main() {
     });
 
     test(
+
         '12 — Online + Supabase-Fehler: kein Absturz, syncStatus bleibt pendingCreate',
         () async {
       _stubDaoVoids();
@@ -568,6 +572,7 @@ void main() {
     });
 
     test('18 — Nicht-leere cookIds werden als JSON-Array gespeichert',
+
         () async {
       _stubDaoVoids();
       final repo = _buildRepo(isOnline: false);
@@ -686,6 +691,7 @@ void main() {
     });
 
     test(
+
         '24 — Online + Supabase-Fehler: lokales Update bleibt erhalten, kein Absturz',
         () async {
       _stubDaoVoids();
@@ -819,6 +825,7 @@ void main() {
     });
 
     test(
+
         '31 — Online + kein remoteId: nur lokales Update, kein Supabase-Aufruf',
         () async {
       _stubDaoVoids();

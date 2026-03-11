@@ -21,14 +21,14 @@ typedef _Row = Map<String, dynamic>;
 class _FakeMapChain extends Fake
     implements PostgrestTransformBuilder<PostgrestMap> {
   final PostgrestMap _value;
-  final bool _throws;
+  final Object? _throwError;
 
-  _FakeMapChain(PostgrestMap value, {bool throws = false})
+  _FakeMapChain(PostgrestMap value, {Object? throwError})
       : _value = value,
-        _throws = throws;
+        _throwError = throwError;
 
-  Future<PostgrestMap> _f() => _throws
-      ? Future<PostgrestMap>.error(Exception('supabase error'))
+  Future<PostgrestMap> _f() => _throwError != null
+      ? Future<PostgrestMap>.error(_throwError!)
       : Future.value(_value);
 
   @override
@@ -52,12 +52,13 @@ class _FakeMapChain extends Fake
 class _FakeNullableMapChain extends Fake
     implements PostgrestTransformBuilder<PostgrestMap?> {
   final PostgrestMap? _value;
-  final bool _throws;
+  final Object? _throwError;
 
-  _FakeNullableMapChain(this._value, {bool throws = false}) : _throws = throws;
+  _FakeNullableMapChain(this._value, {Object? throwError})
+      : _throwError = throwError;
 
-  Future<PostgrestMap?> _f() => _throws
-      ? Future<PostgrestMap?>.error(Exception('supabase error'))
+  Future<PostgrestMap?> _f() => _throwError != null
+      ? Future<PostgrestMap?>.error(_throwError!)
       : Future.value(_value);
 
   @override
@@ -81,14 +82,14 @@ class _FakeNullableMapChain extends Fake
 class _FakeListChain extends Fake
     implements PostgrestTransformBuilder<PostgrestList> {
   final PostgrestList _value;
-  final bool _throws;
+  final Object? _throwError;
 
-  _FakeListChain(List<PostgrestMap> value, {bool throws = false})
+  _FakeListChain(List<PostgrestMap> value, {Object? throwError})
       : _value = value,
-        _throws = throws;
+        _throwError = throwError;
 
-  Future<PostgrestList> _f() => _throws
-      ? Future<PostgrestList>.error(Exception('supabase error'))
+  Future<PostgrestList> _f() => _throwError != null
+      ? Future<PostgrestList>.error(_throwError!)
       : Future.value(_value);
 
   @override
@@ -99,7 +100,8 @@ class _FakeListChain extends Fake
       this;
   @override
   PostgrestTransformBuilder<PostgrestMap> single() =>
-      _FakeMapChain(_value.isNotEmpty ? _value.first : {}, throws: _throws);
+      _FakeMapChain(_value.isNotEmpty ? _value.first : {},
+          throwError: _throwError);
   @override
   Future<R> then<R>(FutureOr<R> Function(PostgrestList) onValue,
           {Function? onError}) =>
@@ -120,16 +122,16 @@ class _FakeListChain extends Fake
 
 class _FakeChain<T> extends Fake implements PostgrestFilterBuilder<T> {
   final dynamic _response;
-  final bool _throws;
+  final Object? _throwError;
 
-  _FakeChain(this._response, {bool throws = false}) : _throws = throws;
+  _FakeChain(this._response, {Object? throwError}) : _throwError = throwError;
 
   List<PostgrestMap> get _list => _response is List
       ? (_response as List).cast<PostgrestMap>()
       : <PostgrestMap>[];
 
-  Future<T> _f() => _throws
-      ? Future<T>.error(Exception('supabase error'))
+  Future<T> _f() => _throwError != null
+      ? Future<T>.error(_throwError!)
       : Future<T>.value(_response as T);
 
   @override
@@ -137,12 +139,12 @@ class _FakeChain<T> extends Fake implements PostgrestFilterBuilder<T> {
 
   @override
   PostgrestTransformBuilder<PostgrestList> select([String columns = '*']) =>
-      _FakeListChain(_list, throws: _throws);
+      _FakeListChain(_list, throwError: _throwError);
 
   @override
   PostgrestTransformBuilder<PostgrestMap?> maybeSingle() =>
       _FakeNullableMapChain(_list.isEmpty ? null : _list.first,
-          throws: _throws);
+          throwError: _throwError);
 
   @override
   Future<R> then<R>(FutureOr<R> Function(T) onValue, {Function? onError}) =>
@@ -162,9 +164,10 @@ class _FakeChain<T> extends Fake implements PostgrestFilterBuilder<T> {
 
 class _FakeQueryBuilder extends Fake implements SupabaseQueryBuilder {
   final dynamic _response;
-  final bool _throws;
+  final Object? _throwError;
 
-  _FakeQueryBuilder(this._response, {bool throws = false}) : _throws = throws;
+  _FakeQueryBuilder(this._response, {Object? throwError})
+      : _throwError = throwError;
 
   List<PostgrestMap> get _list => _response is List
       ? (_response as List).cast<PostgrestMap>()
@@ -172,21 +175,21 @@ class _FakeQueryBuilder extends Fake implements SupabaseQueryBuilder {
 
   @override
   PostgrestFilterBuilder<PostgrestList> select([String columns = '*']) =>
-      _FakeChain<PostgrestList>(_list, throws: _throws);
+      _FakeChain<PostgrestList>(_list, throwError: _throwError);
 
   @override
   PostgrestFilterBuilder<PostgrestList> insert(dynamic values,
           {bool defaultToNull = true}) =>
-      _FakeChain<PostgrestList>(_list, throws: _throws);
+      _FakeChain<PostgrestList>(_list, throwError: _throwError);
 
   @override
   PostgrestFilterBuilder<PostgrestList> update(Map<dynamic, dynamic> values,
           {bool defaultToNull = true}) =>
-      _FakeChain<PostgrestList>(<PostgrestMap>[], throws: _throws);
+      _FakeChain<PostgrestList>(<PostgrestMap>[], throwError: _throwError);
 
   @override
   PostgrestFilterBuilder<PostgrestList> delete({bool defaultToNull = true}) =>
-      _FakeChain<PostgrestList>(<PostgrestMap>[], throws: _throws);
+      _FakeChain<PostgrestList>(<PostgrestMap>[], throwError: _throwError);
 }
 
 class _FakeSupabaseClient extends Fake implements SupabaseClient {
@@ -197,19 +200,31 @@ class _FakeSupabaseClient extends Fake implements SupabaseClient {
   }
 
   void enqueueError(String table) {
-    _queues.putIfAbsent(table, () => []).add(_Error());
+    _queues.putIfAbsent(table, () => []).add(_ErrorSentinel());
+  }
+
+  void enqueuePostgrestError(String table) {
+    _queues
+        .putIfAbsent(table, () => [])
+        .add(_ErrorSentinel(PostgrestException(message: 'db error')));
   }
 
   @override
   SupabaseQueryBuilder from(String table) {
     final queue = _queues[table] ?? [];
     final entry = queue.isNotEmpty ? queue.removeAt(0) : <PostgrestMap>[];
-    if (entry is _Error) return _FakeQueryBuilder(null, throws: true);
+    if (entry is _ErrorSentinel) {
+      return _FakeQueryBuilder(null,
+          throwError: entry.error ?? Exception('supabase error'));
+    }
     return _FakeQueryBuilder(entry);
   }
 }
 
-class _Error {}
+class _ErrorSentinel {
+  final Object? error;
+  _ErrorSentinel([this.error]);
+}
 
 // ─── Test helpers ─────────────────────────────────────────────────────────────
 
@@ -415,6 +430,16 @@ void main() {
           repo.updateUserImage(uid: _uid, imageUrl: 'https://img.test/new.jpg'),
           throwsA(isA<UserUpdateException>()));
     });
+
+    test('throws UserUpdateException (PostgrestException → Datenbankfehler)',
+        () async {
+      supabase.enqueuePostgrestError(_users);
+      await expectLater(
+        repo.updateUserImage(uid: _uid, imageUrl: 'https://img.test/new.jpg'),
+        throwsA(isA<UserUpdateException>()
+            .having((e) => e.toString(), 'message', contains('Datenbankfehler'))),
+      );
+    });
   });
 
   // ── updateUserProfile ───────────────────────────────────────────────────────
@@ -505,6 +530,18 @@ void main() {
           repo.updateUserProfile(
               userId: _uid, image: File('test.jpg'), name: 'Alice'),
           throwsA(isA<UserUpdateException>()));
+    });
+
+    test('throws UserUpdateException (PostgrestException → Datenbankfehler)',
+        () async {
+      // image: null → only one Supabase update call
+      supabase.enqueuePostgrestError(_users);
+
+      await expectLater(
+        repo.updateUserProfile(userId: _uid, image: null, name: 'Alice'),
+        throwsA(isA<UserUpdateException>()
+            .having((e) => e.toString(), 'message', contains('Datenbankfehler'))),
+      );
     });
   });
 }

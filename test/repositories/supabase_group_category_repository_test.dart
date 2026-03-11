@@ -261,6 +261,19 @@ SupabaseGroupCategoryRepository _buildRepo(_FakeSupabaseClient supabase) {
 
 void main() {
   // ═══════════════════════════════════════════════════════════════════════════
+  // CategoryInUseException
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  group('CategoryInUseException', () {
+    test('toString gibt korrekte Meldung mit recipeCount zurück', () {
+      expect(
+        CategoryInUseException(3).toString(),
+        '3 Rezepte verwenden diese Kategorie',
+      );
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // Gruppe 1 — getCategories
   // ═══════════════════════════════════════════════════════════════════════════
 
@@ -393,6 +406,28 @@ void main() {
       await expectLater(
         repo.updateCategory('cat-1', name: 'Neuer Name'),
         throwsA(isA<Exception>()),
+      );
+    });
+
+    test('10 — sortOrder != null wird in data aufgenommen', () async {
+      final supabase = _FakeSupabaseClient()
+        ..enqueue('categories', [_categoryRow()]);
+      final repo = _buildRepo(supabase);
+
+      await expectLater(
+        repo.updateCategory('cat-1', sortOrder: 2),
+        completes,
+      );
+    });
+
+    test('11 — iconName != null wird in data aufgenommen', () async {
+      final supabase = _FakeSupabaseClient()
+        ..enqueue('categories', [_categoryRow()]);
+      final repo = _buildRepo(supabase);
+
+      await expectLater(
+        repo.updateCategory('cat-1', iconName: 'pizza'),
+        completes,
       );
     });
   });

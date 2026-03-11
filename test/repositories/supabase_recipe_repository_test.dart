@@ -9,6 +9,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:meal_planner/data/repositories/supabase_recipe_repository.dart';
 import 'package:meal_planner/data/datasources/recipe_remote_datasource.dart';
 import 'package:meal_planner/domain/repositories/storage_repository.dart';
+import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -615,6 +616,52 @@ void main() {
       );
     });
 
+    test(
+        'ingredientSections mit Zutaten → innere Schleife wird durchlaufen, ingredients werden übergeben',
+        () async {
+      final recipe = Recipe(
+        id: null,
+        name: 'Pasta',
+        ingredientSections: [
+          IngredientSection(
+            title: 'Hauptzutaten',
+            ingredients: [
+              Ingredient(name: 'Nudeln', unit: null, amount: '200g'),
+              Ingredient(name: 'Tomaten', unit: null, amount: '3'),
+            ],
+          ),
+        ],
+        categories: [],
+        portions: 2,
+        instructions: '',
+      );
+
+      when(() => remote.insertRecipe(
+              recipeId: any(named: 'recipeId'),
+              model: any<RecipeModel>(named: 'model'),
+              groupId: any(named: 'groupId'),
+              createdBy: any(named: 'createdBy'),
+              imageUrl: any(named: 'imageUrl')))
+          .thenAnswer((_) async {});
+      when(() => remote.saveRecipeCategories(
+              recipeId: any(named: 'recipeId'),
+              categories: any(named: 'categories'),
+              groupId: any(named: 'groupId')))
+          .thenAnswer((_) async {});
+      when(() => remote.saveRecipeIngredients(
+              recipeId: any(named: 'recipeId'),
+              ingredients: any(named: 'ingredients')))
+          .thenAnswer((_) async {});
+
+      final result = await repository.saveRecipe(recipe, null, 'user-1');
+
+      expect(result, isNotEmpty);
+      verify(() => remote.saveRecipeIngredients(
+            recipeId: any(named: 'recipeId'),
+            ingredients: any(named: 'ingredients'),
+          )).called(1);
+    });
+
     test("throws RecipeCreationException when image upload fails", () async {
       // arrange
       final recipe = Recipe(
@@ -647,6 +694,49 @@ void main() {
       final result = await repository.getRecipesByCategories([]);
 
       expect(result, isEmpty);
+    });
+  });
+
+  group('updateRecipe — ingredientSections', () {
+    test(
+        'ingredientSections mit Zutaten → innere Schleife wird durchlaufen, ingredients werden übergeben',
+        () async {
+      final recipe = Recipe(
+        id: 'r1',
+        name: 'Pasta',
+        ingredientSections: [
+          IngredientSection(
+            title: 'Hauptzutaten',
+            ingredients: [
+              Ingredient(name: 'Nudeln', unit: null, amount: '200g'),
+              Ingredient(name: 'Tomaten', unit: null, amount: '3'),
+            ],
+          ),
+        ],
+        categories: [],
+        portions: 2,
+        instructions: '',
+      );
+
+      when(() => remote.updateRecipe(any(), any())).thenAnswer((_) async {});
+      when(() => remote.deleteRecipeCategories(any())).thenAnswer((_) async {});
+      when(() => remote.deleteRecipeIngredients(any())).thenAnswer((_) async {});
+      when(() => remote.saveRecipeCategories(
+              recipeId: 'r1',
+              categories: any(named: 'categories'),
+              groupId: any(named: 'groupId')))
+          .thenAnswer((_) async {});
+      when(() => remote.saveRecipeIngredients(
+              recipeId: 'r1',
+              ingredients: any(named: 'ingredients')))
+          .thenAnswer((_) async {});
+
+      await repository.updateRecipe(recipe, null);
+
+      verify(() => remote.saveRecipeIngredients(
+            recipeId: 'r1',
+            ingredients: any(named: 'ingredients'),
+          )).called(1);
     });
   });
 

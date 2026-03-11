@@ -298,7 +298,9 @@ void main() {
 
         // Doppel-Tap ohne pumpAndSettle dazwischen
         await tester.tap(find.byIcon(Icons.add_alarm));
-        await tester.tap(find.byIcon(Icons.add_alarm));
+        // warnIfMissed: false — nach dem ersten Tap öffnet sich das Sheet und
+        // verdeckt das Icon; das Verfehlen beim zweiten Tap ist gewollt.
+        await tester.tap(find.byIcon(Icons.add_alarm), warnIfMissed: false);
         await tester.pumpAndSettle();
 
         // Erwartet: genau ein "Timer einstellen" sichtbar

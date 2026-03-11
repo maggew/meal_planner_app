@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meal_planner/data/repositories/supabase_group_repository.dart';
@@ -17,14 +18,14 @@ typedef _Row = Map<String, dynamic>;
 class _FakeMapChain extends Fake
     implements PostgrestTransformBuilder<PostgrestMap> {
   final PostgrestMap _value;
-  final bool _throws;
+  final Object? _throwError;
 
-  _FakeMapChain(PostgrestMap value, {bool throws = false})
+  _FakeMapChain(PostgrestMap value, {Object? throwError})
       : _value = value,
-        _throws = throws;
+        _throwError = throwError;
 
-  Future<PostgrestMap> _future() => _throws
-      ? Future<PostgrestMap>.error(Exception('supabase error'))
+  Future<PostgrestMap> _future() => _throwError != null
+      ? Future<PostgrestMap>.error(_throwError!)
       : Future.value(_value);
 
   @override
@@ -53,12 +54,13 @@ class _FakeMapChain extends Fake
 class _FakeNullableMapChain extends Fake
     implements PostgrestTransformBuilder<PostgrestMap?> {
   final PostgrestMap? _value;
-  final bool _throws;
+  final Object? _throwError;
 
-  _FakeNullableMapChain(this._value, {bool throws = false}) : _throws = throws;
+  _FakeNullableMapChain(this._value, {Object? throwError})
+      : _throwError = throwError;
 
-  Future<PostgrestMap?> _future() => _throws
-      ? Future<PostgrestMap?>.error(Exception('supabase error'))
+  Future<PostgrestMap?> _future() => _throwError != null
+      ? Future<PostgrestMap?>.error(_throwError!)
       : Future.value(_value);
 
   @override
@@ -87,14 +89,14 @@ class _FakeNullableMapChain extends Fake
 class _FakeListChain extends Fake
     implements PostgrestTransformBuilder<PostgrestList> {
   final PostgrestList _value;
-  final bool _throws;
+  final Object? _throwError;
 
-  _FakeListChain(List<PostgrestMap> value, {bool throws = false})
+  _FakeListChain(List<PostgrestMap> value, {Object? throwError})
       : _value = value,
-        _throws = throws;
+        _throwError = throwError;
 
-  Future<PostgrestList> _future() => _throws
-      ? Future<PostgrestList>.error(Exception('supabase error'))
+  Future<PostgrestList> _future() => _throwError != null
+      ? Future<PostgrestList>.error(_throwError!)
       : Future.value(_value);
 
   @override
@@ -106,7 +108,8 @@ class _FakeListChain extends Fake
 
   @override
   PostgrestTransformBuilder<PostgrestMap> single() =>
-      _FakeMapChain(_value.isNotEmpty ? _value.first : {}, throws: _throws);
+      _FakeMapChain(_value.isNotEmpty ? _value.first : {},
+          throwError: _throwError);
 
   @override
   Future<R> then<R>(FutureOr<R> Function(PostgrestList) onValue,
@@ -134,16 +137,16 @@ class _FakeListChain extends Fake
 // single(), maybeSingle().
 class _FakeChain<T> extends Fake implements PostgrestFilterBuilder<T> {
   final dynamic _response;
-  final bool _throws;
+  final Object? _throwError;
 
-  _FakeChain(this._response, {bool throws = false}) : _throws = throws;
+  _FakeChain(this._response, {Object? throwError}) : _throwError = throwError;
 
   List<PostgrestMap> get _asList => _response is List
       ? (_response as List).cast<PostgrestMap>()
       : <PostgrestMap>[];
 
-  Future<T> _future() => _throws
-      ? Future<T>.error(Exception('supabase error'))
+  Future<T> _future() => _throwError != null
+      ? Future<T>.error(_throwError!)
       : Future<T>.value(_response as T);
 
   @override
@@ -161,16 +164,17 @@ class _FakeChain<T> extends Fake implements PostgrestFilterBuilder<T> {
 
   @override
   PostgrestTransformBuilder<PostgrestList> select([String columns = '*']) =>
-      _FakeListChain(_asList, throws: _throws);
+      _FakeListChain(_asList, throwError: _throwError);
 
   @override
   PostgrestTransformBuilder<PostgrestMap> single() =>
-      _FakeMapChain(_asList.isNotEmpty ? _asList.first : {}, throws: _throws);
+      _FakeMapChain(_asList.isNotEmpty ? _asList.first : {},
+          throwError: _throwError);
 
   @override
   PostgrestTransformBuilder<PostgrestMap?> maybeSingle() =>
       _FakeNullableMapChain(_asList.isEmpty ? null : _asList.first,
-          throws: _throws);
+          throwError: _throwError);
 
   @override
   Future<R> then<R>(FutureOr<R> Function(T) onValue, {Function? onError}) =>
@@ -194,9 +198,10 @@ class _FakeChain<T> extends Fake implements PostgrestFilterBuilder<T> {
 
 class _FakeQueryBuilder extends Fake implements SupabaseQueryBuilder {
   final dynamic _response;
-  final bool _throws;
+  final Object? _throwError;
 
-  _FakeQueryBuilder(this._response, {bool throws = false}) : _throws = throws;
+  _FakeQueryBuilder(this._response, {Object? throwError})
+      : _throwError = throwError;
 
   List<PostgrestMap> get _asList => _response is List
       ? (_response as List).cast<PostgrestMap>()
@@ -204,21 +209,21 @@ class _FakeQueryBuilder extends Fake implements SupabaseQueryBuilder {
 
   @override
   PostgrestFilterBuilder<PostgrestList> select([String columns = '*']) =>
-      _FakeChain<PostgrestList>(_asList, throws: _throws);
+      _FakeChain<PostgrestList>(_asList, throwError: _throwError);
 
   @override
   PostgrestFilterBuilder<PostgrestList> insert(dynamic values,
           {bool defaultToNull = true}) =>
-      _FakeChain<PostgrestList>(_asList, throws: _throws);
+      _FakeChain<PostgrestList>(_asList, throwError: _throwError);
 
   @override
   PostgrestFilterBuilder<PostgrestList> update(Map<dynamic, dynamic> values,
           {bool defaultToNull = true}) =>
-      _FakeChain<PostgrestList>(<PostgrestMap>[], throws: _throws);
+      _FakeChain<PostgrestList>(<PostgrestMap>[], throwError: _throwError);
 
   @override
   PostgrestFilterBuilder<PostgrestList> delete({bool defaultToNull = true}) =>
-      _FakeChain<PostgrestList>(<PostgrestMap>[], throws: _throws);
+      _FakeChain<PostgrestList>(<PostgrestMap>[], throwError: _throwError);
 }
 
 class _FakeSupabaseClient extends Fake implements SupabaseClient {
@@ -233,19 +238,35 @@ class _FakeSupabaseClient extends Fake implements SupabaseClient {
     _queues.putIfAbsent(table, () => []).add(_ErrorSentinel());
   }
 
+  void enqueuePostgrestError(String table) {
+    _queues
+        .putIfAbsent(table, () => [])
+        .add(_ErrorSentinel(PostgrestException(message: 'db error')));
+  }
+
+  void enqueueSocketError(String table) {
+    _queues
+        .putIfAbsent(table, () => [])
+        .add(_ErrorSentinel(SocketException('no connection')));
+  }
+
   @override
   SupabaseQueryBuilder from(String table) {
     tableCalls.add(table);
     final queue = _queues[table] ?? [];
     final entry = queue.isNotEmpty ? queue.removeAt(0) : <PostgrestMap>[];
     if (entry is _ErrorSentinel) {
-      return _FakeQueryBuilder(null, throws: true);
+      return _FakeQueryBuilder(null,
+          throwError: entry.error ?? Exception('supabase error'));
     }
     return _FakeQueryBuilder(entry);
   }
 }
 
-class _ErrorSentinel {}
+class _ErrorSentinel {
+  final Object? error;
+  _ErrorSentinel([this.error]);
+}
 
 // ─── Test helpers ─────────────────────────────────────────────────────────────
 
@@ -324,6 +345,27 @@ void main() {
       await expectLater(repo.createGroup(_groupId, 'My Group', 'url', _userId),
           throwsA(isA<GroupCreationException>()));
     });
+
+    test('throws GroupCreationException (PostgrestException → Datenbankfehler)',
+        () async {
+      client.enqueuePostgrestError(_groups);
+      await expectLater(
+        repo.createGroup(_groupId, 'My Group', 'url', _userId),
+        throwsA(isA<GroupCreationException>()
+            .having((e) => e.message, 'message', contains('Datenbankfehler'))),
+      );
+    });
+
+    test(
+        'throws GroupCreationException (SocketException → Keine Internetverbindung)',
+        () async {
+      client.enqueueSocketError(_groups);
+      await expectLater(
+        repo.createGroup(_groupId, 'My Group', 'url', _userId),
+        throwsA(isA<GroupCreationException>().having(
+            (e) => e.message, 'message', 'Keine Internetverbindung')),
+      );
+    });
   });
 
   // ── updateGroup ─────────────────────────────────────────────────────────────
@@ -343,6 +385,29 @@ void main() {
           repo.updateGroup(
               oldGroupId: _groupId, newName: 'New Name', imageUrl: 'url'),
           throwsA(isA<GroupCreationException>()));
+    });
+
+    test('throws GroupCreationException (PostgrestException → Datenbankfehler)',
+        () async {
+      client.enqueuePostgrestError(_groups);
+      await expectLater(
+        repo.updateGroup(
+            oldGroupId: _groupId, newName: 'New Name', imageUrl: 'url'),
+        throwsA(isA<GroupCreationException>()
+            .having((e) => e.message, 'message', contains('Datenbankfehler'))),
+      );
+    });
+
+    test(
+        'throws GroupCreationException (SocketException → Keine Internetverbindung)',
+        () async {
+      client.enqueueSocketError(_groups);
+      await expectLater(
+        repo.updateGroup(
+            oldGroupId: _groupId, newName: 'New Name', imageUrl: 'url'),
+        throwsA(isA<GroupCreationException>().having(
+            (e) => e.message, 'message', 'Keine Internetverbindung')),
+      );
     });
   });
 
@@ -374,6 +439,21 @@ void main() {
       client.enqueueError(_groups);
       await expectLater(
           repo.getGroup('g-1'), throwsA(isA<GroupNotFoundException>()));
+    });
+
+    test('throws GroupNotFoundException (PostgrestException → Datenbankfehler)',
+        () async {
+      client.enqueuePostgrestError(_groups);
+      await expectLater(repo.getGroup('g-1'),
+          throwsA(isA<GroupNotFoundException>()));
+    });
+
+    test(
+        'throws GroupNotFoundException (SocketException → Keine Internetverbindung)',
+        () async {
+      client.enqueueSocketError(_groups);
+      await expectLater(repo.getGroup('g-1'),
+          throwsA(isA<GroupNotFoundException>()));
     });
   });
 
@@ -410,6 +490,21 @@ void main() {
       await expectLater(
           repo.getGroupMembers(_groupId), throwsA(isA<GroupMemberException>()));
     });
+
+    test('throws GroupMemberException (PostgrestException → Datenbankfehler)',
+        () async {
+      client.enqueuePostgrestError(_members);
+      await expectLater(repo.getGroupMembers(_groupId),
+          throwsA(isA<GroupMemberException>()));
+    });
+
+    test(
+        'throws GroupMemberException (SocketException → Keine Internetverbindung)',
+        () async {
+      client.enqueueSocketError(_members);
+      await expectLater(repo.getGroupMembers(_groupId),
+          throwsA(isA<GroupMemberException>()));
+    });
   });
 
   // ── getGroupsByIds ──────────────────────────────────────────────────────────
@@ -438,6 +533,21 @@ void main() {
       await expectLater(
           repo.getGroupsByIds(['g-1']), throwsA(isA<GroupNotFoundException>()));
     });
+
+    test('throws GroupNotFoundException (PostgrestException → Datenbankfehler)',
+        () async {
+      client.enqueuePostgrestError(_groups);
+      await expectLater(repo.getGroupsByIds(['g-1']),
+          throwsA(isA<GroupNotFoundException>()));
+    });
+
+    test(
+        'throws GroupNotFoundException (SocketException → Keine Internetverbindung)',
+        () async {
+      client.enqueueSocketError(_groups);
+      await expectLater(repo.getGroupsByIds(['g-1']),
+          throwsA(isA<GroupNotFoundException>()));
+    });
   });
 
   // ── updateGroupPic ──────────────────────────────────────────────────────────
@@ -453,6 +563,21 @@ void main() {
       client.enqueueError(_groups);
       await expectLater(
           repo.updateGroupPic(_groupId, 'https://img.test/new.jpg'),
+          throwsA(isA<GroupUpdateException>()));
+    });
+
+    test('throws GroupUpdateException (PostgrestException → Datenbankfehler)',
+        () async {
+      client.enqueuePostgrestError(_groups);
+      await expectLater(repo.updateGroupPic(_groupId, 'url'),
+          throwsA(isA<GroupUpdateException>()));
+    });
+
+    test(
+        'throws GroupUpdateException (SocketException → Keine Internetverbindung)',
+        () async {
+      client.enqueueSocketError(_groups);
+      await expectLater(repo.updateGroupPic(_groupId, 'url'),
           throwsA(isA<GroupUpdateException>()));
     });
   });
@@ -480,6 +605,21 @@ void main() {
       await expectLater(
           repo.deleteGroup(_groupId), throwsA(isA<GroupDeletionException>()));
     });
+
+    test('throws GroupDeletionException (PostgrestException → Datenbankfehler)',
+        () async {
+      client.enqueuePostgrestError(_members);
+      await expectLater(repo.deleteGroup(_groupId),
+          throwsA(isA<GroupDeletionException>()));
+    });
+
+    test(
+        'throws GroupDeletionException (SocketException → Keine Internetverbindung)',
+        () async {
+      client.enqueueSocketError(_members);
+      await expectLater(repo.deleteGroup(_groupId),
+          throwsA(isA<GroupDeletionException>()));
+    });
   });
 
   // ── addMember ───────────────────────────────────────────────────────────────
@@ -495,6 +635,21 @@ void main() {
       await expectLater(repo.addMember(_groupId, _userId),
           throwsA(isA<GroupMemberException>()));
     });
+
+    test('throws GroupMemberException (PostgrestException → Datenbankfehler)',
+        () async {
+      client.enqueuePostgrestError(_members);
+      await expectLater(repo.addMember(_groupId, _userId),
+          throwsA(isA<GroupMemberException>()));
+    });
+
+    test(
+        'throws GroupMemberException (SocketException → Keine Internetverbindung)',
+        () async {
+      client.enqueueSocketError(_members);
+      await expectLater(repo.addMember(_groupId, _userId),
+          throwsA(isA<GroupMemberException>()));
+    });
   });
 
   // ── removeMember ────────────────────────────────────────────────────────────
@@ -507,6 +662,21 @@ void main() {
 
     test('throws GroupMemberException on error', () async {
       client.enqueueError(_members);
+      await expectLater(repo.removeMember(_groupId, _userId),
+          throwsA(isA<GroupMemberException>()));
+    });
+
+    test('throws GroupMemberException (PostgrestException → Datenbankfehler)',
+        () async {
+      client.enqueuePostgrestError(_members);
+      await expectLater(repo.removeMember(_groupId, _userId),
+          throwsA(isA<GroupMemberException>()));
+    });
+
+    test(
+        'throws GroupMemberException (SocketException → Keine Internetverbindung)',
+        () async {
+      client.enqueueSocketError(_members);
       await expectLater(repo.removeMember(_groupId, _userId),
           throwsA(isA<GroupMemberException>()));
     });
@@ -536,6 +706,21 @@ void main() {
       await expectLater(
           repo.getMemberIds(_groupId), throwsA(isA<GroupMemberException>()));
     });
+
+    test('throws GroupMemberException (PostgrestException → Datenbankfehler)',
+        () async {
+      client.enqueuePostgrestError(_members);
+      await expectLater(repo.getMemberIds(_groupId),
+          throwsA(isA<GroupMemberException>()));
+    });
+
+    test(
+        'throws GroupMemberException (SocketException → Keine Internetverbindung)',
+        () async {
+      client.enqueueSocketError(_members);
+      await expectLater(repo.getMemberIds(_groupId),
+          throwsA(isA<GroupMemberException>()));
+    });
   });
 
   // ── updateSettings ──────────────────────────────────────────────────────────
@@ -549,6 +734,21 @@ void main() {
 
     test('throws GroupUpdateException on error', () async {
       client.enqueueError(_groups);
+      await expectLater(repo.updateSettings(_groupId, const GroupSettings()),
+          throwsA(isA<GroupUpdateException>()));
+    });
+
+    test('throws GroupUpdateException (PostgrestException → Datenbankfehler)',
+        () async {
+      client.enqueuePostgrestError(_groups);
+      await expectLater(repo.updateSettings(_groupId, const GroupSettings()),
+          throwsA(isA<GroupUpdateException>()));
+    });
+
+    test(
+        'throws GroupUpdateException (SocketException → Keine Internetverbindung)',
+        () async {
+      client.enqueueSocketError(_groups);
       await expectLater(repo.updateSettings(_groupId, const GroupSettings()),
           throwsA(isA<GroupUpdateException>()));
     });
@@ -620,6 +820,21 @@ void main() {
 
     test('throws GroupMemberException on error', () async {
       client.enqueueError(_members);
+      await expectLater(repo.updateMemberRole(_groupId, _userId, 'admin'),
+          throwsA(isA<GroupMemberException>()));
+    });
+
+    test('throws GroupMemberException (PostgrestException → Datenbankfehler)',
+        () async {
+      client.enqueuePostgrestError(_members);
+      await expectLater(repo.updateMemberRole(_groupId, _userId, 'admin'),
+          throwsA(isA<GroupMemberException>()));
+    });
+
+    test(
+        'throws GroupMemberException (SocketException → Keine Internetverbindung)',
+        () async {
+      client.enqueueSocketError(_members);
       await expectLater(repo.updateMemberRole(_groupId, _userId, 'admin'),
           throwsA(isA<GroupMemberException>()));
     });

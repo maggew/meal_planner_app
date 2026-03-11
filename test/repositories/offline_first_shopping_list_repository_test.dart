@@ -796,5 +796,31 @@ void main() {
         throwsA(isA<Exception>()),
       );
     });
+
+    test(
+        '44 — updateItem online: Item verschwindet zwischen lokalem Update und _markSyncedByRemoteId → orElse wirft, catch swallowed',
+        () async {
+      _stubDaoVoids();
+      int callCount = 0;
+      when(() => mockDao.watchItemsByGroup(any())).thenAnswer((_) {
+        callCount++;
+        if (callCount == 1) {
+          // Erster Aufruf in _updateLocalInfoByAnyId → Item gefunden
+          return Stream.value([_fakeLocal(remoteId: 'remote-1')]);
+        } else {
+          // Zweiter Aufruf in _markSyncedByRemoteId → kein Item → orElse wirft
+          return Stream.value([]);
+        }
+      });
+      when(() => mockRemote.updateItem(any(), any(), any()))
+          .thenAnswer((_) async {});
+      final repo = _buildRepo(isOnline: true);
+
+      await expectLater(
+        repo.updateItem('remote-1', 'Milch', '1L'),
+        completes,
+      );
+      verifyNever(() => mockDao.updateSyncStatus(any(), 'synced'));
+    });
   });
 }

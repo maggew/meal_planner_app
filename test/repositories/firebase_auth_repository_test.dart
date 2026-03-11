@@ -263,6 +263,69 @@ void main() {
               name: _name, email: _email, password: _password, image: null),
           throwsA(isA<AuthException>()));
     });
+
+    test('image != null, upload erfolgreich → updateUserImage wird aufgerufen',
+        () async {
+      final mockCred = MockUserCredential();
+      final mockUser = MockFirebaseUser();
+      when(() => auth.createUserWithEmailAndPassword(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          )).thenAnswer((_) async => mockCred);
+      when(() => mockCred.user).thenReturn(mockUser);
+      when(() => mockUser.getIdToken(any()))
+          .thenAnswer((_) async => _firebaseToken);
+      when(() => dio.post(any(),
+              options: any(named: 'options'),
+              data: any(named: 'data')))
+          .thenAnswer(
+              (_) async => _successResponse({'user_id': _supabaseUserId}));
+      when(() => storage.uploadImage(any(), any()))
+          .thenAnswer((_) async => 'https://img.example.com/photo.jpg');
+      when(() => userRepo.updateUserImage(
+              uid: any(named: 'uid'), imageUrl: any(named: 'imageUrl')))
+          .thenAnswer((_) async {});
+
+      final id = await repo.registerWithEmail(
+          name: _name,
+          email: _email,
+          password: _password,
+          image: File('avatar.jpg'));
+
+      expect(id, _supabaseUserId);
+      verify(() => userRepo.updateUserImage(
+          uid: _supabaseUserId,
+          imageUrl: 'https://img.example.com/photo.jpg')).called(1);
+    });
+
+    test(
+        'image != null, uploadImage wirft → catch-Block swallowed, userId wird trotzdem zurückgegeben',
+        () async {
+      final mockCred = MockUserCredential();
+      final mockUser = MockFirebaseUser();
+      when(() => auth.createUserWithEmailAndPassword(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          )).thenAnswer((_) async => mockCred);
+      when(() => mockCred.user).thenReturn(mockUser);
+      when(() => mockUser.getIdToken(any()))
+          .thenAnswer((_) async => _firebaseToken);
+      when(() => dio.post(any(),
+              options: any(named: 'options'),
+              data: any(named: 'data')))
+          .thenAnswer(
+              (_) async => _successResponse({'user_id': _supabaseUserId}));
+      when(() => storage.uploadImage(any(), any()))
+          .thenThrow(Exception('upload failed'));
+
+      final id = await repo.registerWithEmail(
+          name: _name,
+          email: _email,
+          password: _password,
+          image: File('avatar.jpg'));
+
+      expect(id, _supabaseUserId);
+    });
   });
 
   // ── signInWithEmail ─────────────────────────────────────────────────────────
@@ -364,6 +427,28 @@ void main() {
           repo.signInWithEmail(email: _email, password: _password),
           throwsA(isA<AuthException>()));
     });
+
+    test('throws AuthException for invalid-email', () async {
+      when(() => auth.signInWithEmailAndPassword(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          )).thenThrow(FirebaseAuthException(code: 'invalid-email'));
+      await expectLater(
+          repo.signInWithEmail(email: _email, password: _password),
+          throwsA(isA<AuthException>()));
+    });
+
+    test('throws AuthException for unbekannten FirebaseAuthException Code (default branch)',
+        () async {
+      when(() => auth.signInWithEmailAndPassword(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          )).thenThrow(
+              FirebaseAuthException(code: 'too-many-requests', message: 'Rate limited'));
+      await expectLater(
+          repo.signInWithEmail(email: _email, password: _password),
+          throwsA(isA<AuthException>()));
+    });
   });
 
   // ── signInWithGoogle ────────────────────────────────────────────────────────
@@ -405,6 +490,177 @@ void main() {
 
       await expectLater(
           repo.signInWithGoogle(), throwsA(isA<AuthException>()));
+    });
+
+    test('throws AuthException when idToken is null', () async {
+      final gUser = MockGoogleSignInAccount();
+      final gAuth = MockGoogleSignInAuthentication();
+      when(() => googleSignIn.initialize(
+              serverClientId: any(named: 'serverClientId')))
+          .thenAnswer((_) async {});
+      when(() => googleSignIn.supportsAuthenticate()).thenReturn(true);
+      when(() => googleSignIn.authenticate()).thenAnswer((_) async => gUser);
+      when(() => gUser.authentication).thenReturn(gAuth);
+      when(() => gAuth.idToken).thenReturn(null);
+
+      await expectLater(
+          repo.signInWithGoogle(),
+          throwsA(isA<AuthException>().having(
+              (e) => e.message, 'message', contains('idToken is null'))));
+    });
+
+    test('throws AuthException when Firebase user is null after signInWithCredential',
+        () async {
+      final gUser = MockGoogleSignInAccount();
+      final gAuth = MockGoogleSignInAuthentication();
+      final cred = MockUserCredential();
+      when(() => googleSignIn.initialize(
+              serverClientId: any(named: 'serverClientId')))
+          .thenAnswer((_) async {});
+      when(() => googleSignIn.supportsAuthenticate()).thenReturn(true);
+      when(() => googleSignIn.authenticate()).thenAnswer((_) async => gUser);
+      when(() => gUser.authentication).thenReturn(gAuth);
+      when(() => gAuth.idToken).thenReturn('google-id-token');
+      when(() => auth.signInWithCredential(any())).thenAnswer((_) async => cred);
+      when(() => cred.user).thenReturn(null);
+
+      await expectLater(
+          repo.signInWithGoogle(), throwsA(isA<AuthException>()));
+    });
+
+    test('success, kein photoUrl → kein updateUserImage, gibt userId zurück',
+        () async {
+      final gUser = MockGoogleSignInAccount();
+      final gAuth = MockGoogleSignInAuthentication();
+      final cred = MockUserCredential();
+      final fbUser = MockFirebaseUser();
+      when(() => googleSignIn.initialize(
+              serverClientId: any(named: 'serverClientId')))
+          .thenAnswer((_) async {});
+      when(() => googleSignIn.supportsAuthenticate()).thenReturn(true);
+      when(() => googleSignIn.authenticate()).thenAnswer((_) async => gUser);
+      when(() => gUser.authentication).thenReturn(gAuth);
+      when(() => gAuth.idToken).thenReturn('google-id-token');
+      when(() => auth.signInWithCredential(any())).thenAnswer((_) async => cred);
+      when(() => cred.user).thenReturn(fbUser);
+      when(() => fbUser.getIdToken(any())).thenAnswer((_) async => _firebaseToken);
+      when(() => gUser.photoUrl).thenReturn(null);
+      when(() => dio.post(any(),
+              options: any(named: 'options'),
+              data: any(named: 'data')))
+          .thenAnswer((_) async => _successResponse({
+                'user_id': _supabaseUserId,
+                'image_url': null,
+              }));
+
+      final id = await repo.signInWithGoogle();
+      expect(id, _supabaseUserId);
+      verifyNever(() => userRepo.updateUserImage(
+          uid: any(named: 'uid'), imageUrl: any(named: 'imageUrl')));
+    });
+
+    test('success, photoUrl gesetzt + kein existingImage → updateUserImage wird aufgerufen',
+        () async {
+      final gUser = MockGoogleSignInAccount();
+      final gAuth = MockGoogleSignInAuthentication();
+      final cred = MockUserCredential();
+      final fbUser = MockFirebaseUser();
+      when(() => googleSignIn.initialize(
+              serverClientId: any(named: 'serverClientId')))
+          .thenAnswer((_) async {});
+      when(() => googleSignIn.supportsAuthenticate()).thenReturn(true);
+      when(() => googleSignIn.authenticate()).thenAnswer((_) async => gUser);
+      when(() => gUser.authentication).thenReturn(gAuth);
+      when(() => gAuth.idToken).thenReturn('google-id-token');
+      when(() => auth.signInWithCredential(any())).thenAnswer((_) async => cred);
+      when(() => cred.user).thenReturn(fbUser);
+      when(() => fbUser.getIdToken(any())).thenAnswer((_) async => _firebaseToken);
+      when(() => gUser.photoUrl).thenReturn('https://google-photo.com/photo.jpg');
+      when(() => dio.post(any(),
+              options: any(named: 'options'),
+              data: any(named: 'data')))
+          .thenAnswer((_) async => _successResponse({
+                'user_id': _supabaseUserId,
+                'image_url': null,
+              }));
+      when(() => userRepo.updateUserImage(
+              uid: any(named: 'uid'), imageUrl: any(named: 'imageUrl')))
+          .thenAnswer((_) async {});
+
+      final id = await repo.signInWithGoogle();
+      expect(id, _supabaseUserId);
+      verify(() => userRepo.updateUserImage(
+          uid: _supabaseUserId,
+          imageUrl: 'https://google-photo.com/photo.jpg')).called(1);
+    });
+
+    test(
+        'success, photoUrl gesetzt + existingImage leer → updateUserImage wird aufgerufen',
+        () async {
+      final gUser = MockGoogleSignInAccount();
+      final gAuth = MockGoogleSignInAuthentication();
+      final cred = MockUserCredential();
+      final fbUser = MockFirebaseUser();
+      when(() => googleSignIn.initialize(
+              serverClientId: any(named: 'serverClientId')))
+          .thenAnswer((_) async {});
+      when(() => googleSignIn.supportsAuthenticate()).thenReturn(true);
+      when(() => googleSignIn.authenticate()).thenAnswer((_) async => gUser);
+      when(() => gUser.authentication).thenReturn(gAuth);
+      when(() => gAuth.idToken).thenReturn('google-id-token');
+      when(() => auth.signInWithCredential(any())).thenAnswer((_) async => cred);
+      when(() => cred.user).thenReturn(fbUser);
+      when(() => fbUser.getIdToken(any())).thenAnswer((_) async => _firebaseToken);
+      when(() => gUser.photoUrl).thenReturn('https://google-photo.com/photo.jpg');
+      when(() => dio.post(any(),
+              options: any(named: 'options'),
+              data: any(named: 'data')))
+          .thenAnswer((_) async => _successResponse({
+                'user_id': _supabaseUserId,
+                'image_url': '',
+              }));
+      when(() => userRepo.updateUserImage(
+              uid: any(named: 'uid'), imageUrl: any(named: 'imageUrl')))
+          .thenAnswer((_) async {});
+
+      final id = await repo.signInWithGoogle();
+      expect(id, _supabaseUserId);
+      verify(() => userRepo.updateUserImage(
+          uid: _supabaseUserId,
+          imageUrl: 'https://google-photo.com/photo.jpg')).called(1);
+    });
+
+    test(
+        'success, photoUrl gesetzt, updateUserImage wirft → catch-Block swallowed, gibt userId zurück',
+        () async {
+      final gUser = MockGoogleSignInAccount();
+      final gAuth = MockGoogleSignInAuthentication();
+      final cred = MockUserCredential();
+      final fbUser = MockFirebaseUser();
+      when(() => googleSignIn.initialize(
+              serverClientId: any(named: 'serverClientId')))
+          .thenAnswer((_) async {});
+      when(() => googleSignIn.supportsAuthenticate()).thenReturn(true);
+      when(() => googleSignIn.authenticate()).thenAnswer((_) async => gUser);
+      when(() => gUser.authentication).thenReturn(gAuth);
+      when(() => gAuth.idToken).thenReturn('google-id-token');
+      when(() => auth.signInWithCredential(any())).thenAnswer((_) async => cred);
+      when(() => cred.user).thenReturn(fbUser);
+      when(() => fbUser.getIdToken(any())).thenAnswer((_) async => _firebaseToken);
+      when(() => gUser.photoUrl).thenReturn('https://google-photo.com/photo.jpg');
+      when(() => dio.post(any(),
+              options: any(named: 'options'),
+              data: any(named: 'data')))
+          .thenAnswer((_) async => _successResponse({
+                'user_id': _supabaseUserId,
+                'image_url': null,
+              }));
+      when(() => userRepo.updateUserImage(
+              uid: any(named: 'uid'), imageUrl: any(named: 'imageUrl')))
+          .thenThrow(Exception('update failed'));
+
+      final id = await repo.signInWithGoogle();
+      expect(id, _supabaseUserId);
     });
   });
 }

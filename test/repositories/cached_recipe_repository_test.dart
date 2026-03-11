@@ -6,6 +6,7 @@ import 'package:meal_planner/core/database/daos/recipe_cache_dao.dart';
 import 'package:meal_planner/data/repositories/cached_recipe_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_recipe_repository.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
+import 'package:meal_planner/domain/entities/recipe_timer.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
@@ -23,6 +24,13 @@ class MockMealPlanDao extends Mock implements MealPlanDao {}
 class _LocalRecipesCompanionFake extends Fake
     implements LocalRecipesCompanion {}
 
+RecipeTimer _fakeTimer({String recipeId = 'r1'}) => RecipeTimer(
+      recipeId: recipeId,
+      stepIndex: 0,
+      timerName: 'Kochen',
+      durationSeconds: 300,
+    );
+
 // ==================== Hilfsmethoden ====================
 
 Recipe _fakeRecipe({String id = 'r1', String name = 'Pasta'}) => Recipe(
@@ -34,15 +42,20 @@ Recipe _fakeRecipe({String id = 'r1', String name = 'Pasta'}) => Recipe(
       instructions: '',
     );
 
-LocalRecipe _fakeLocalRecipe({String id = 'r1', String name = 'Pasta'}) =>
+LocalRecipe _fakeLocalRecipe({
+  String id = 'r1',
+  String name = 'Pasta',
+  DateTime? createdAt,
+  String categoriesJson = '[]',
+}) =>
     LocalRecipe(
       id: id,
       groupId: 'gruppe-1',
       name: name,
       portions: 2,
       instructions: '',
-      createdAt: DateTime(2024),
-      categoriesJson: '[]',
+      createdAt: createdAt ?? DateTime(2024),
+      categoriesJson: categoriesJson,
       ingredientSectionsJson: '[]',
       timersJson: '[]',
       carbTagsJson: '[]',
@@ -77,6 +90,7 @@ void main() {
     registerFallbackValue(_LocalRecipesCompanionFake());
     registerFallbackValue(<LocalRecipesCompanion>[]);
     registerFallbackValue(_fakeRecipe());
+    registerFallbackValue(_fakeTimer());
   });
 
   /// Erstellt einen CachedRecipeRepository mit einer echten Riverpod-Ref
@@ -297,6 +311,27 @@ void main() {
           ));
     });
 
+    test('getRecipesByCategories online error → Fallback auf Cache', () async {
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      when(() => mockRemote.getRecipesByCategories(any()))
+          .thenThrow(Exception('Netzwerkfehler'));
+      when(() => mockDao.getRecipesByGroup(
+            'gruppe-1',
+            limit: any(named: 'limit'),
+            offset: any(named: 'offset'),
+            isDeleted: any(named: 'isDeleted'),
+          )).thenAnswer((_) async => []);
+
+      await repo.getRecipesByCategories(['pasta']);
+
+      verify(() => mockDao.getRecipesByGroup(
+            'gruppe-1',
+            limit: any(named: 'limit'),
+            offset: any(named: 'offset'),
+            isDeleted: any(named: 'isDeleted'),
+          )).called(1);
+    });
+
     test('geladene Rezepte werden nach dem Online-Abruf im Cache gespeichert',
         () async {
       final repo = _buildRepo(groupId: 'gruppe-1');
@@ -398,6 +433,33 @@ void main() {
       verify(() => mockDao.replaceAllForGroup('gruppe-1', any())).called(1);
       // Kein additives upsert beim vollen Sync
       verifyNever(() => mockDao.upsertRecipe(any()));
+    });
+
+    test('replaceAllForGroup wirft → catch-Block, Remote-Ergebnis wird trotzdem zurückgegeben',
+        () async {
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      final recipe = _fakeRecipe(id: 'r1');
+      when(() => mockRemote.getRecipesByCategoryId(
+            categoryId: any(named: 'categoryId'),
+            offset: any(named: 'offset'),
+            limit: any(named: 'limit'),
+            sortOption: any(named: 'sortOption'),
+            isDeleted: any(named: 'isDeleted'),
+          )).thenAnswer((_) async => [recipe]);
+      when(() => mockDao.replaceAllForGroup(any(), any()))
+          .thenThrow(Exception('db error'));
+
+      final result = await repo.getRecipesByCategoryId(
+        categoryId: '',
+        offset: 0,
+        limit: 20,
+        sortOption: RecipeSortOption.alphabetical,
+        isDeleted: false,
+      );
+
+      await Future.delayed(Duration.zero);
+
+      expect(result, hasLength(1));
     });
 
     test(
@@ -528,6 +590,42 @@ void main() {
 
       expect(result, 'new-id');
     });
+
+    test('upsertRecipe wirft → catch-Block in _cacheRecipe, recipeId wird trotzdem zurückgegeben',
+        () async {
+      container = ProviderContainer(overrides: [
+        isOnlineProvider.overrideWithValue(true),
+      ]);
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      when(() => mockRemote.saveRecipe(any(), any(), any()))
+          .thenAnswer((_) async => 'new-id');
+      when(() => mockRemote.getRecipeById('new-id'))
+          .thenAnswer((_) async => _fakeRecipe(id: 'new-id'));
+      when(() => mockDao.upsertRecipe(any()))
+          .thenThrow(Exception('db error'));
+
+      final result = await repo.saveRecipe(_fakeRecipe(), null, 'user-1');
+
+      expect(result, 'new-id');
+      verify(() => mockDao.upsertRecipe(any())).called(1);
+    });
+
+    test('caches recipe when re-fetch succeeds', () async {
+      container = ProviderContainer(overrides: [
+        isOnlineProvider.overrideWithValue(true),
+      ]);
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      when(() => mockRemote.saveRecipe(any(), any(), any()))
+          .thenAnswer((_) async => 'new-id');
+      when(() => mockRemote.getRecipeById('new-id'))
+          .thenAnswer((_) async => _fakeRecipe(id: 'new-id'));
+      when(() => mockDao.upsertRecipe(any())).thenAnswer((_) async {});
+
+      final result = await repo.saveRecipe(_fakeRecipe(), null, 'user-1');
+
+      expect(result, 'new-id');
+      verify(() => mockDao.upsertRecipe(any())).called(1);
+    });
   });
 
   // ==================== Offline edge cases ====================
@@ -566,6 +664,83 @@ void main() {
       final result = await repo.getRecipesByCategories(['pasta']); // lowercase
 
       expect(result, hasLength(1));
+    });
+
+    test('nicht-leere categoryId filtert gecachte Rezepte nach Kategorie',
+        () async {
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      when(() => mockDao.getRecipesByGroup(
+            'gruppe-1',
+            limit: any(named: 'limit'),
+            offset: any(named: 'offset'),
+            isDeleted: any(named: 'isDeleted'),
+          )).thenAnswer((_) async => [
+            _fakeLocalRecipe(
+                id: 'r1', name: 'Pasta', categoriesJson: '["Pasta"]'),
+            _fakeLocalRecipe(
+                id: 'r2', name: 'Salat', categoriesJson: '["Salat"]'),
+          ]);
+
+      final result = await repo.getRecipesByCategoryId(
+        categoryId: 'Pasta',
+        offset: 0,
+        limit: 20,
+        sortOption: RecipeSortOption.alphabetical,
+        isDeleted: false,
+      );
+
+      expect(result, hasLength(1));
+      expect(result.first.name, 'Pasta');
+    });
+
+    test('newest sort: neuestes Rezept zuerst', () async {
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      when(() => mockDao.getRecipesByGroup(
+            'gruppe-1',
+            limit: any(named: 'limit'),
+            offset: any(named: 'offset'),
+            isDeleted: any(named: 'isDeleted'),
+          )).thenAnswer((_) async => [
+            _fakeLocalRecipe(
+                id: 'r1', name: 'Alt', createdAt: DateTime(2023)),
+            _fakeLocalRecipe(
+                id: 'r2', name: 'Neu', createdAt: DateTime(2025)),
+          ]);
+
+      final result = await repo.getRecipesByCategoryId(
+        categoryId: '',
+        offset: 0,
+        limit: 20,
+        sortOption: RecipeSortOption.newest,
+        isDeleted: false,
+      );
+
+      expect(result.first.name, 'Neu');
+    });
+
+    test('oldest sort: ältestes Rezept zuerst', () async {
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      when(() => mockDao.getRecipesByGroup(
+            'gruppe-1',
+            limit: any(named: 'limit'),
+            offset: any(named: 'offset'),
+            isDeleted: any(named: 'isDeleted'),
+          )).thenAnswer((_) async => [
+            _fakeLocalRecipe(
+                id: 'r1', name: 'Neu', createdAt: DateTime(2025)),
+            _fakeLocalRecipe(
+                id: 'r2', name: 'Alt', createdAt: DateTime(2023)),
+          ]);
+
+      final result = await repo.getRecipesByCategoryId(
+        categoryId: '',
+        offset: 0,
+        limit: 20,
+        sortOption: RecipeSortOption.oldest,
+        isDeleted: false,
+      );
+
+      expect(result.first.name, 'Alt');
     });
 
     test('mostCooked sort falls back to alphabetical offline', () async {
@@ -624,22 +799,258 @@ void main() {
 
       expect(result, isEmpty);
     });
+
+    test('offline + kein Cache-Eintrag → gibt leere Liste zurück', () async {
+      container = ProviderContainer(overrides: [
+        isOnlineProvider.overrideWithValue(false),
+      ]);
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      when(() => mockDao.getRecipeById('r1')).thenAnswer((_) async => null);
+
+      final result = await repo.getTimersForRecipe('r1');
+
+      expect(result, isEmpty);
+    });
   });
 
   // ==================== deleteTimer ====================
 
-  group('deleteTimer', () {
-    test('swallows cache-update error: completes even if getTimersForRecipe throws',
-        () async {
+  // ==================== upsertTimer ====================
+
+  group('upsertTimer', () {
+    setUp(() {
       container = ProviderContainer(overrides: [
         isOnlineProvider.overrideWithValue(true),
       ]);
+    });
+
+    test('success + Cache-Eintrag vorhanden → cached recipe wird aktualisiert',
+        () async {
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      final timer = _fakeTimer();
+      when(() => mockRemote.upsertTimer(any())).thenAnswer((_) async => timer);
+      when(() => mockRemote.getTimersForRecipe('r1'))
+          .thenAnswer((_) async => [timer]);
+      when(() => mockDao.getRecipeById('r1'))
+          .thenAnswer((_) async => _fakeLocalRecipe(id: 'r1'));
+      when(() => mockDao.upsertRecipe(any())).thenAnswer((_) async {});
+
+      final result = await repo.upsertTimer(timer);
+
+      expect(result, timer);
+      verify(() => mockDao.upsertRecipe(any())).called(1);
+    });
+
+    test('kein Cache-Eintrag → kein upsertRecipe', () async {
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      final timer = _fakeTimer();
+      when(() => mockRemote.upsertTimer(any())).thenAnswer((_) async => timer);
+      when(() => mockRemote.getTimersForRecipe('r1'))
+          .thenAnswer((_) async => [timer]);
+      when(() => mockDao.getRecipeById('r1')).thenAnswer((_) async => null);
+
+      final result = await repo.upsertTimer(timer);
+
+      expect(result, timer);
+      verifyNever(() => mockDao.upsertRecipe(any()));
+    });
+
+    test('getTimersForRecipe wirft → catch-Block, Ergebnis wird trotzdem zurückgegeben',
+        () async {
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      final timer = _fakeTimer();
+      when(() => mockRemote.upsertTimer(any())).thenAnswer((_) async => timer);
+      when(() => mockRemote.getTimersForRecipe('r1'))
+          .thenThrow(Exception('network error'));
+
+      final result = await repo.upsertTimer(timer);
+
+      expect(result, timer);
+      verifyNever(() => mockDao.upsertRecipe(any()));
+    });
+  });
+
+  group('deleteTimer', () {
+    setUp(() {
+      container = ProviderContainer(overrides: [
+        isOnlineProvider.overrideWithValue(true),
+      ]);
+    });
+
+    test('swallows cache-update error: completes even if getTimersForRecipe throws',
+        () async {
       final repo = _buildRepo(groupId: 'gruppe-1');
       when(() => mockRemote.deleteTimer('r1', 0)).thenAnswer((_) async {});
       when(() => mockRemote.getTimersForRecipe('r1'))
           .thenThrow(Exception('network error'));
 
       await expectLater(repo.deleteTimer('r1', 0), completes);
+    });
+
+    test('Cache-Eintrag vorhanden → cached recipe wird mit neuen Timern aktualisiert',
+        () async {
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      when(() => mockRemote.deleteTimer('r1', 0)).thenAnswer((_) async {});
+      when(() => mockRemote.getTimersForRecipe('r1'))
+          .thenAnswer((_) async => []);
+      when(() => mockDao.getRecipeById('r1'))
+          .thenAnswer((_) async => _fakeLocalRecipe(id: 'r1'));
+      when(() => mockDao.upsertRecipe(any())).thenAnswer((_) async {});
+
+      await repo.deleteTimer('r1', 0);
+
+      verify(() => mockDao.upsertRecipe(any())).called(1);
+    });
+
+    test('kein Cache-Eintrag → kein upsertRecipe', () async {
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      when(() => mockRemote.deleteTimer('r1', 0)).thenAnswer((_) async {});
+      when(() => mockRemote.getTimersForRecipe('r1'))
+          .thenAnswer((_) async => []);
+      when(() => mockDao.getRecipeById('r1')).thenAnswer((_) async => null);
+
+      await repo.deleteTimer('r1', 0);
+
+      verifyNever(() => mockDao.upsertRecipe(any()));
+    });
+  });
+
+  // ==================== updateRecipe ====================
+
+  group('updateRecipe', () {
+    setUp(() {
+      container = ProviderContainer(overrides: [
+        isOnlineProvider.overrideWithValue(true),
+      ]);
+    });
+
+    test('success → ruft Remote auf, re-fetcht und cached das Rezept', () async {
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      final recipe = _fakeRecipe(id: 'r1');
+      when(() => mockRemote.updateRecipe(any(), any())).thenAnswer((_) async {});
+      when(() => mockRemote.getRecipeById('r1'))
+          .thenAnswer((_) async => recipe);
+      when(() => mockRemote.getTimersForRecipe('r1'))
+          .thenAnswer((_) async => []);
+      when(() => mockDao.upsertRecipe(any())).thenAnswer((_) async {});
+
+      await repo.updateRecipe(recipe, null);
+
+      verify(() => mockRemote.updateRecipe(any(), any())).called(1);
+      verify(() => mockDao.upsertRecipe(any())).called(1);
+    });
+
+    test('recipe.id == null → kein Re-fetch', () async {
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      final recipe = Recipe(
+        id: null,
+        name: 'Pasta',
+        ingredientSections: [],
+        categories: [],
+        portions: 2,
+        instructions: '',
+      );
+      when(() => mockRemote.updateRecipe(any(), any())).thenAnswer((_) async {});
+
+      await repo.updateRecipe(recipe, null);
+
+      verify(() => mockRemote.updateRecipe(any(), any())).called(1);
+      verifyNever(() => mockRemote.getRecipeById(any()));
+      verifyNever(() => mockDao.upsertRecipe(any()));
+    });
+
+    test('re-fetch gibt null zurück → kein upsert', () async {
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      final recipe = _fakeRecipe(id: 'r1');
+      when(() => mockRemote.updateRecipe(any(), any())).thenAnswer((_) async {});
+      when(() => mockRemote.getRecipeById('r1')).thenAnswer((_) async => null);
+
+      await repo.updateRecipe(recipe, null);
+
+      verifyNever(() => mockDao.upsertRecipe(any()));
+    });
+
+    test('re-fetch wirft → catch-Block, completes ohne Fehler', () async {
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      final recipe = _fakeRecipe(id: 'r1');
+      when(() => mockRemote.updateRecipe(any(), any())).thenAnswer((_) async {});
+      when(() => mockRemote.getRecipeById('r1'))
+          .thenThrow(Exception('network error'));
+
+      await expectLater(repo.updateRecipe(recipe, null), completes);
+      verifyNever(() => mockDao.upsertRecipe(any()));
+    });
+  });
+
+  // ==================== getAllCategories ====================
+
+  group('getAllCategories', () {
+    test('online → delegiert an Remote, kein DAO-Read', () async {
+      container = ProviderContainer(overrides: [
+        isOnlineProvider.overrideWithValue(true),
+      ]);
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      when(() => mockRemote.getAllCategories())
+          .thenAnswer((_) async => ['Pasta', 'Salat']);
+
+      final result = await repo.getAllCategories();
+
+      expect(result, ['Pasta', 'Salat']);
+      verify(() => mockRemote.getAllCategories()).called(1);
+      verifyNever(() => mockDao.getRecipesByGroup(
+            any(),
+            limit: any(named: 'limit'),
+            offset: any(named: 'offset'),
+            isDeleted: any(named: 'isDeleted'),
+          ));
+    });
+
+    test('offline → extrahiert eindeutige Kategorien aus gecachten Rezepten',
+        () async {
+      container = ProviderContainer(overrides: [
+        isOnlineProvider.overrideWithValue(false),
+      ]);
+      final repo = _buildRepo(groupId: 'gruppe-1');
+      when(() => mockDao.getRecipesByGroup(
+            'gruppe-1',
+            limit: any(named: 'limit'),
+            offset: any(named: 'offset'),
+            isDeleted: any(named: 'isDeleted'),
+          )).thenAnswer((_) async => [
+            LocalRecipe(
+              id: 'r1',
+              groupId: 'gruppe-1',
+              name: 'Pasta',
+              portions: 2,
+              instructions: '',
+              createdAt: DateTime(2024),
+              categoriesJson: '["Pasta","Salat"]',
+              ingredientSectionsJson: '[]',
+              timersJson: '[]',
+              carbTagsJson: '[]',
+              isDeleted: false,
+              cachedAt: DateTime.now(),
+            ),
+            LocalRecipe(
+              id: 'r2',
+              groupId: 'gruppe-1',
+              name: 'Suppe',
+              portions: 2,
+              instructions: '',
+              createdAt: DateTime(2024),
+              categoriesJson: '["Salat"]',
+              ingredientSectionsJson: '[]',
+              timersJson: '[]',
+              carbTagsJson: '[]',
+              isDeleted: false,
+              cachedAt: DateTime.now(),
+            ),
+          ]);
+
+      final result = await repo.getAllCategories();
+
+      expect(result, containsAll(['Pasta', 'Salat']));
+      expect(result, hasLength(2)); // keine Duplikate
     });
   });
 
