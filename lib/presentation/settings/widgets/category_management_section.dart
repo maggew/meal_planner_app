@@ -301,4 +301,3 @@ class _CategoryTile extends StatelessWidget {
     if (confirmed == true) onDelete();
   }
 }
-

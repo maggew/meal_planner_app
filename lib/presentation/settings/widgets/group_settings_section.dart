@@ -250,8 +250,7 @@ class _GroupSettingsSectionState extends ConsumerState<GroupSettingsSection> {
           CategoryManagementSection(
             isEditing: _isEditing,
             categories: displayCategories,
-            categoriesLoading:
-                !_isEditing && categoriesAsync.isLoading,
+            categoriesLoading: !_isEditing && categoriesAsync.isLoading,
             onAdd: _onAddCategory,
             onEdit: _onEditCategory,
             onDelete: _onDeleteCategory,

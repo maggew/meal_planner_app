@@ -78,8 +78,7 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
             .select()
             .single();
 
-        final remoteId =
-            response[SupabaseConstants.mealPlanEntryId] as String;
+        final remoteId = response[SupabaseConstants.mealPlanEntryId] as String;
         await _dao.updateSyncStatus(localId, 'synced', remoteId: remoteId);
       } catch (e) {
         debugPrint('[MealPlan] Supabase insert fehlgeschlagen: $e');
@@ -108,15 +107,12 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
     if (_isOnline && existing.remoteId != null) {
       try {
         final now = DateTime.now();
-        await _supabase
-            .from(SupabaseConstants.mealPlanEntriesTable)
-            .update({
-              SupabaseConstants.mealPlanEntryRecipeId: recipeId,
-              SupabaseConstants.mealPlanEntryCustomName: customName,
-              SupabaseConstants.mealPlanEntryCookIds: cookIds,
-              SupabaseConstants.mealPlanEntryUpdatedAt: now.toIso8601String(),
-            })
-            .eq(SupabaseConstants.mealPlanEntryId, existing.remoteId!);
+        await _supabase.from(SupabaseConstants.mealPlanEntriesTable).update({
+          SupabaseConstants.mealPlanEntryRecipeId: recipeId,
+          SupabaseConstants.mealPlanEntryCustomName: customName,
+          SupabaseConstants.mealPlanEntryCookIds: cookIds,
+          SupabaseConstants.mealPlanEntryUpdatedAt: now.toIso8601String(),
+        }).eq(SupabaseConstants.mealPlanEntryId, existing.remoteId!);
         await _dao.updateSyncStatus(localId, 'synced',
             remoteId: existing.remoteId);
       } catch (e) {
@@ -136,8 +132,8 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
       try {
         await _supabase
             .from(SupabaseConstants.mealPlanEntriesTable)
-            .update({SupabaseConstants.mealPlanEntryCookIds: cookIds})
-            .eq(SupabaseConstants.mealPlanEntryId, entry.remoteId!);
+            .update({SupabaseConstants.mealPlanEntryCookIds: cookIds}).eq(
+                SupabaseConstants.mealPlanEntryId, entry.remoteId!);
         await _dao.updateSyncStatus(localId, 'synced',
             remoteId: entry.remoteId);
       } catch (e) {
