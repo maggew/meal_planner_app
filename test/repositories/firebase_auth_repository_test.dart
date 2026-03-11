@@ -663,4 +663,27 @@ void main() {
       expect(id, _supabaseUserId);
     });
   });
+
+  // ── sendPasswordResetEmail ──────────────────────────────────────────────────
+
+  group('sendPasswordResetEmail', () {
+    test('completes und ruft Firebase mit korrekter E-Mail auf', () async {
+      when(() => auth.sendPasswordResetEmail(email: any(named: 'email')))
+          .thenAnswer((_) async {});
+
+      await repo.sendPasswordResetEmail(_email);
+
+      verify(() => auth.sendPasswordResetEmail(email: _email)).called(1);
+    });
+
+    test('propagiert FirebaseAuthException', () async {
+      when(() => auth.sendPasswordResetEmail(email: any(named: 'email')))
+          .thenThrow(FirebaseAuthException(code: 'invalid-email'));
+
+      await expectLater(
+        repo.sendPasswordResetEmail('ungueltig'),
+        throwsA(isA<FirebaseAuthException>()),
+      );
+    });
+  });
 }
