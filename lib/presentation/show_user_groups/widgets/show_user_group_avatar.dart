@@ -41,7 +41,7 @@ class ShowUserGroupAvatar extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: isCurrentGroup
-              ? Border.all(color: Colors.pink[200]!, width: 3)
+              ? Border.all(color: Theme.of(context).colorScheme.secondary, width: 3)
               : null,
         ),
         child: ClipOval(child: image),

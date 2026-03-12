@@ -14,8 +14,8 @@ class ShowUserGroupsBody extends ConsumerWidget {
     return Column(
       children: [
         groupsAsync.when(
-          loading: () => const Center(
-              child: CircularProgressIndicator(color: Colors.green)),
+          loading: () => Center(
+              child: CircularProgressIndicator()),
           error: (error, stack) => ShowUserErrorpage(),
           data: (groups) {
             if (groups.isEmpty) {

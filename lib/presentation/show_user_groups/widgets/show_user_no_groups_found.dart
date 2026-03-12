@@ -15,20 +15,17 @@ class ShowUserNoGroupsFound extends StatelessWidget {
           Icon(
             Icons.group_outlined,
             size: 64,
-            color: Colors.grey[400],
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Keine Gruppen vorhanden',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-            ),
+            style: Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(height: 8),
           Text(
             'Erstelle oder trete einer Gruppe bei',
-            style: TextStyle(color: Colors.grey[600]),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
@@ -37,13 +34,6 @@ class ShowUserNoGroupsFound extends StatelessWidget {
             },
             icon: const Icon(AppIcons.plus_1),
             label: const Text('Gruppe erstellen'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green[400],
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 12,
-              ),
-            ),
           ),
         ],
       ),

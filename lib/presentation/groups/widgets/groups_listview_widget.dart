@@ -18,11 +18,10 @@ class GroupsListviewWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final joinGroupColor =
-        (groups.length % 2 == 1) ? Colors.green[100]! : Colors.green[300]!;
-    final createGroupColor = (joinGroupColor == Colors.green[100])
-        ? Colors.green[300]!
-        : Colors.green[100]!;
+    final colorA = Theme.of(context).colorScheme.primaryContainer;
+    final colorB = Theme.of(context).colorScheme.primary;
+    final joinGroupColor = (groups.length % 2 == 1) ? colorA : colorB;
+    final createGroupColor = (groups.length % 2 == 1) ? colorB : colorA;
     return Column(
       children: [
         ListView.separated(
@@ -32,8 +31,7 @@ class GroupsListviewWidget extends StatelessWidget {
           primary: false,
           itemCount: groups.length,
           itemBuilder: (BuildContext, index) {
-            final Color color =
-                (index % 2 == 0) ? Colors.green[100]! : Colors.green[300]!;
+            final Color color = (index % 2 == 0) ? colorA : colorB;
             return GroupsListviewItem(
               group: groups[index],
               color: color,

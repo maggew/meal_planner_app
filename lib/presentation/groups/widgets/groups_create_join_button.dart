@@ -34,7 +34,7 @@ class GroupsCreateJoinButton extends StatelessWidget {
               children: [
                 Icon(
                   iconData,
-                  color: Colors.black,
+                  color: Theme.of(context).colorScheme.onSurface,
                   size: 40,
                 ),
                 Gap(10),
