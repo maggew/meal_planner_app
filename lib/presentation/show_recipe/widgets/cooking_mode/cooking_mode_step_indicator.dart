@@ -25,7 +25,7 @@ class CookingModeStepIndicator extends StatelessWidget {
     final useWindow = totalSteps > _maxVisibleSteps;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final availableWidth = constraints.maxWidth;

@@ -137,6 +137,7 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
     }
 
     return AppBackground(
+      applyScreenPadding: true,
       scaffoldAppBar: CommonAppbar(
         leading: IconButton(
           icon: const Icon(Icons.keyboard_arrow_left),

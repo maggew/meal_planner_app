@@ -16,7 +16,7 @@ class ShowRecipeOverviewInstructions extends StatelessWidget {
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      margin: const EdgeInsets.symmetric(vertical: 10),
       padding: EdgeInsets.all(10),
       width: double.infinity,
       decoration: BoxDecoration(

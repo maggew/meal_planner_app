@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/active_timer.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
@@ -78,9 +77,7 @@ class _ShowRecipeCookingModeState extends ConsumerState<ShowRecipeCookingMode>
       }
     });
 
-    return Padding(
-      padding: AppDimensions.screenPadding,
-      child: Stack(
+    return Stack(
         children: [
           Column(
             children: [
@@ -131,7 +128,6 @@ class _ShowRecipeCookingModeState extends ConsumerState<ShowRecipeCookingMode>
             ),
           ),
         ],
-      ),
     );
   }
 
