@@ -336,6 +336,33 @@ class AddEditRecipeIngredients extends _$AddEditRecipeIngredients {
     }
   }
 
+  void loadFromScraped(List<IngredientSection> sections) {
+    for (final section in state.sections) {
+      for (final item in section.items) {
+        item.dispose();
+      }
+    }
+
+    final list = sections
+        .map((s) => IngredientSectionForm(
+              title: s.title,
+              items:
+                  s.ingredients.map(IngredientFormItem.fromIngredient).toList(),
+            ))
+        .toList();
+
+    state = state.copyWith(sections: list, isAnalyzing: false);
+
+    final showCarbTags =
+        ref.read(sessionProvider).group?.settings.showCarbTags ?? true;
+    if (showCarbTags) {
+      final detectedTags = CarbTagDetector.detect(sections);
+      ref
+          .read(carbTagSelectionProvider.notifier)
+          .set(detectedTags.map((t) => t.value).toList());
+    }
+  }
+
   ({int sectionIndex, int itemIndex}) _getFlatMapping(
       {required int flatIndex}) {
     int currentIndex = 0;

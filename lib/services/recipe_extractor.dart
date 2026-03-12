@@ -61,7 +61,6 @@ class RecipeExtractor {
     return assembleNumberedSteps(lines);
   }
 
-  @visibleForTesting
   static String assembleNumberedSteps(List<String> lines) {
     // Matches "1. Text", "1: Text", "1) Text", "1- Text"
     final stepPattern = RegExp(r'^\s*(\d+)\s*[:\.\)\-]\s*(.+)$');

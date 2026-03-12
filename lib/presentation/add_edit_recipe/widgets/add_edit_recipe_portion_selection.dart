@@ -51,7 +51,8 @@ class _AddRecipePortionSelection
                       label: number.toString(),
                     ))
                 .toList(),
-            initialSelection: selectedPortions,
+            key: ValueKey(selectedPortions),
+          initialSelection: selectedPortions,
             onSelected: (portions) {
               if (portions != null) {
                 ref.read(selectedPortionsProvider.notifier).set(portions);

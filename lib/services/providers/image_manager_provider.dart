@@ -117,6 +117,10 @@ class ImageManager extends _$ImageManager {
     state = state.copyWith(photo: () => null);
   }
 
+  void setPhoto(File file) {
+    state = state.copyWith(photo: () => file);
+  }
+
   void clearAll() {
     state = const CustomImages();
   }

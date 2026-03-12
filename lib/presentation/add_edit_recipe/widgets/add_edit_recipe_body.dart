@@ -1,12 +1,16 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/data/model/scraped_recipe_data.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
+import 'package:meal_planner/services/recipe_extractor.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_button.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_category_selection.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_ingredients_widget.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_instructions.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_picture.dart';
-import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_portion_selection.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_portion_selection.dart' show AddEditRecipePortionSelection, maxPortionsNumber;
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/add_edit_recipe_recipe_name_textformfield.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/carb_tag_selection.dart';
 import 'package:meal_planner/presentation/common/glass_card.dart';
@@ -26,10 +30,10 @@ class AddEditRecipeBody extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<AddEditRecipeBody> createState() => _AddEditRecipeBodyState();
+  ConsumerState<AddEditRecipeBody> createState() => AddEditRecipeBodyState();
 }
 
-class _AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
+class AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
   late final TextEditingController _recipeNameController;
   late final TextEditingController _recipeInstructionsController;
   late final AddEditRecipeIngredientsProvider ingredientsProvider;
@@ -128,6 +132,24 @@ class _AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
         ],
       ),
     );
+  }
+
+  void applyScrapedData(ScrapedRecipeData data) {
+    if (data.name != null) _recipeNameController.text = data.name!;
+    if (data.instructions != null) {
+      _recipeInstructionsController.text = data.instructions!;
+    }
+    if (data.servings != null) {
+      final clamped = data.servings!.clamp(1, maxPortionsNumber);
+      ref.read(selectedPortionsProvider.notifier).set(clamped);
+    }
+
+    final sections = RecipeExtractor.processRawLines(data.rawIngredients);
+    ref.read(ingredientsProvider.notifier).loadFromScraped(sections);
+
+    if (data.localImagePath != null) {
+      ref.read(imageManagerProvider.notifier).setPhoto(File(data.localImagePath!));
+    }
   }
 
   @override
