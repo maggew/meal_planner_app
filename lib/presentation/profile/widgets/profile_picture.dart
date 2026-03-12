@@ -32,11 +32,14 @@ class ProfilePicture extends StatelessWidget {
             if (loadingProgress == null) return child;
             return const Center(child: CircularProgressIndicator());
           },
+          errorBuilder: (context, error, stackTrace) => const CircleAvatar(
+            backgroundImage: AssetImage('assets/images/default_pic.jpg'),
+          ),
         ),
       );
     } else {
       avatar = const CircleAvatar(
-        backgroundImage: AssetImage('assets/default_pic.jpg'),
+        backgroundImage: AssetImage('assets/images/default_pic.jpg'),
       );
     }
 

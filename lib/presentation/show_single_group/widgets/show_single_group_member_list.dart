@@ -29,7 +29,7 @@ class ShowSingleGroupMemberList extends StatelessWidget {
 
             final Widget userImage = hasValidImage
                 ? CachedNetworkImage(
-                    imageUrl: group.imageUrl,
+                    imageUrl: user.imageUrl!,
                     fit: BoxFit.cover,
                     placeholder: (_, __) =>
                         Center(child: const CircularProgressIndicator()),
