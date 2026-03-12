@@ -78,7 +78,7 @@ class CreateGroupCreateButton extends ConsumerWidget {
           await session.setActiveGroup(groupId);
 
           if (context.mounted) {
-            context.router.replace(const CookbookRoute());
+            context.router.replaceAll([const CookbookRoute()]);
           }
         } catch (e) {
           if (context.mounted) {

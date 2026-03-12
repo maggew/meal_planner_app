@@ -46,7 +46,7 @@ class JoinGroupBody extends ConsumerWidget {
               try {
                 await ref.read(sessionProvider.notifier).joinGroup(groupId);
                 if (context.mounted) {
-                  context.router.replace(const CookbookRoute());
+                  context.router.replaceAll([const CookbookRoute()]);
                 }
               } catch (e) {
                 if (context.mounted) {
