@@ -29,23 +29,15 @@ class RegistrationImageInput extends ConsumerWidget {
                       .pickImageFromGallery(imageType: AnalysisImageType.photo);
                 },
                 child: InputDecorator(
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white30,
-                    enabledBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Colors.blueGrey, width: 1.5),
-                    ),
-                    border: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Colors.blueGrey, width: 1.5),
-                    ),
+                  decoration: const InputDecoration(
                     suffixIcon: Icon(AppIcons.upload, size: 25),
                   ),
                   child: Text(
                     imageName.isEmpty ? 'Bild auswählen' : imageName,
                     style: TextStyle(
-                      color: imageName.isEmpty ? Colors.grey : Colors.black,
+                      color: imageName.isEmpty
+                          ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)
+                          : Theme.of(context).colorScheme.onSurface,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
