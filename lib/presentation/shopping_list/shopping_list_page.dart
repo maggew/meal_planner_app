@@ -42,7 +42,7 @@ class _ShoppingListPageState extends ConsumerState<ShoppingListPage> {
     return AppBackground(
       scaffoldAppBar: CommonAppbar(
         title: "Einkaufsliste",
-        leading: SizedBox.shrink(),
+        automaticallyImplyLeading: false,
         actionsButtons: [
           if (!ref.watch(isOnlineProvider)) ...[
             const Padding(

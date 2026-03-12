@@ -41,7 +41,7 @@ class _DetailedWeekplanPageState extends ConsumerState<DetailedWeekplanPage> {
   @override
   Widget build(BuildContext context) {
     return AppBackground(
-      scaffoldAppBar: CommonAppbar(title: 'Wochenplan', leading: SizedBox.shrink()),
+      scaffoldAppBar: CommonAppbar(title: 'Wochenplan', automaticallyImplyLeading: false),
       scaffoldBody: const WeekplanBody(),
       scaffoldFloatingActionButton: FloatingActionButton(
         onPressed: () =>

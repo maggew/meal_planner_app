@@ -4,11 +4,14 @@ class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final Widget? leading;
   final List<Widget>? actionsButtons;
+  final bool automaticallyImplyLeading;
+
   const CommonAppbar({
     super.key,
     required this.title,
     this.leading,
     this.actionsButtons,
+    this.automaticallyImplyLeading = true,
   });
 
   @override
@@ -17,6 +20,7 @@ class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
       surfaceTintColor: Colors.transparent,
       toolbarHeight: 80,
       leading: leading,
+      automaticallyImplyLeading: automaticallyImplyLeading,
       elevation: 0,
       title: Text(
         title,
