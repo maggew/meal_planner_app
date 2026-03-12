@@ -171,7 +171,7 @@ class _RegistrationBodyState extends ConsumerState<RegistrationBody> {
                       child: Text(
                         "Login",
                         style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontWeight: FontWeight.w600,
                             decoration: TextDecoration.underline),
                       ),
