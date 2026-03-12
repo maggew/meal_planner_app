@@ -11,17 +11,8 @@ class CreateGroupInputTextfield extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextField(
       controller: groupNameController,
-      decoration: InputDecoration(
-        errorStyle: Theme.of(context).textTheme.bodyLarge,
-        labelText: "Gruppenname",
-        filled: true,
-        fillColor: Colors.white,
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(
-            color: Colors.blueGrey,
-            width: 1.5,
-          ),
-        ),
+      decoration: const InputDecoration(
+        labelText: 'Gruppenname',
         hintText: 'Gruppenname',
       ),
       keyboardType: TextInputType.text,

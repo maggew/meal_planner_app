@@ -29,29 +29,9 @@ class CreateGroupPickImage extends ConsumerWidget {
               imagePathController.text = imageManager.photo!.path;
             }
           },
-          decoration: InputDecoration(
-            suffixIcon: Icon(
-              AppIcons.upload,
-              size: 25,
-            ),
-            filled: true,
-            fillColor: Colors.white30,
+          decoration: const InputDecoration(
+            suffixIcon: Icon(AppIcons.upload, size: 25),
             hintMaxLines: 2,
-            hintStyle: TextStyle(
-              color: Colors.black,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                color: Colors.blueGrey,
-                width: 1.5,
-              ),
-            ),
-            border: OutlineInputBorder(
-              borderSide: BorderSide(
-                color: Colors.blueGrey,
-                width: 1.5,
-              ),
-            ),
           ),
         ),
         if (imageManager.photo != null) ...[
