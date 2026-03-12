@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/overview/show_recipe_overview_details.dart';
@@ -36,14 +37,14 @@ class _ShowRecipeOverviewState extends State<ShowRecipeOverview>
     return SingleChildScrollView(
       child: Column(
         children: [
-          Hero(
-            tag: widget.recipe.id ?? widget.recipe.name,
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(24),
-                bottomRight: Radius.circular(24),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 300),
+            child: Hero(
+              tag: widget.recipe.id ?? widget.recipe.name,
+              child: ClipRRect(
+                borderRadius: AppDimensions.borderRadiusAll,
+                child: widget.image,
               ),
-              child: widget.image,
             ),
           ),
           ShowRecipeOverviewDetails(
