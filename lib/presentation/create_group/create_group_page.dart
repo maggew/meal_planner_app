@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
 import 'package:meal_planner/presentation/common/common_appbar.dart';
+import 'package:meal_planner/presentation/common/loading_overlay.dart';
 import 'package:meal_planner/presentation/create_group/widgets/create_group_body.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 
@@ -42,24 +43,18 @@ class _CreateGroupPageState extends ConsumerState<CreateGroupPage> {
       }
     });
 
-    return Stack(
-      children: [
-        AppBackground(
-          scaffoldAppBar: const CommonAppbar(title: 'Gruppe erstellen'),
-          scaffoldBody: CreateGroupBody(
-            groupNameController: groupNameController,
-            imagePathController: imagePathController,
-            onLoadingChanged: (loading) {
-              setState(() => _isLoading = loading);
-            },
-          ),
+    return LoadingOverlay(
+      isLoading: _isLoading,
+      child: AppBackground(
+        scaffoldAppBar: const CommonAppbar(title: 'Gruppe erstellen'),
+        scaffoldBody: CreateGroupBody(
+          groupNameController: groupNameController,
+          imagePathController: imagePathController,
+          onLoadingChanged: (loading) {
+            setState(() => _isLoading = loading);
+          },
         ),
-        if (_isLoading)
-          Container(
-            color: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.26),
-            child: const Center(child: CircularProgressIndicator()),
-          ),
-      ],
+      ),
     );
   }
 }

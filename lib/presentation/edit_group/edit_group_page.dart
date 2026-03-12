@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
+import 'package:meal_planner/presentation/common/loading_overlay.dart';
 import 'package:meal_planner/presentation/edit_group/widgets/edit_group_body.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 
@@ -55,26 +56,15 @@ class _EditGroupPageState extends ConsumerState<EditGroupPage> {
         ),
         leadingWidth: 65,
       ),
-      scaffoldBody: Stack(
-        children: [
-          EditGroupBody(
-            group: widget.group,
-            groupNameController: groupNameController,
-            onLoadingChanged: (loading) {
-              setState(() {
-                _isLoading = loading;
-              });
-            },
-          ),
-          if (_isLoading) ...[
-            Container(
-              color: Colors.black38,
-              width: double.infinity,
-              height: double.infinity,
-              child: Center(child: CircularProgressIndicator()),
-            ),
-          ],
-        ],
+      scaffoldBody: LoadingOverlay(
+        isLoading: _isLoading,
+        child: EditGroupBody(
+          group: widget.group,
+          groupNameController: groupNameController,
+          onLoadingChanged: (loading) {
+            setState(() => _isLoading = loading);
+          },
+        ),
       ),
     );
   }
