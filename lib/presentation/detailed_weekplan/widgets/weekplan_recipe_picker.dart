@@ -108,19 +108,23 @@ class _WeekplanRecipePickerState extends ConsumerState<WeekplanRecipePicker> {
     final dao = ref.watch(recipeCacheDaoProvider);
     final membersAsync = ref.watch(groupMembersProvider(groupId));
 
-    return DraggableScrollableSheet(
-      initialChildSize: 0.65,
-      minChildSize: 0.4,
-      maxChildSize: 0.92,
-      expand: false,
-      builder: (context, scrollController) => Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(AppDimensions.borderRadius),
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomInset),
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        minChildSize: 0.5,
+        maxChildSize: 1.0,
+        expand: false,
+        builder: (context, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppDimensions.borderRadius),
+            ),
           ),
-        ),
-        child: Column(
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Drag handle
@@ -371,8 +375,7 @@ class _WeekplanRecipePickerState extends ConsumerState<WeekplanRecipePicker> {
 
                   return ListView.separated(
                     controller: scrollController,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 4),
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
                     itemCount: recipes.length,
                     separatorBuilder: (_, __) => const Divider(height: 1),
                     itemBuilder: (context, index) {
@@ -391,6 +394,7 @@ class _WeekplanRecipePickerState extends ConsumerState<WeekplanRecipePicker> {
           ],
         ),
       ),
+    ),
     );
   }
 }
