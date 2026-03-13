@@ -20,7 +20,7 @@ class UserSettingsSection extends ConsumerWidget {
         Text(
           'Persönliche Einstellungen',
           style: textTheme.titleSmall?.copyWith(
-            color: colorScheme.primary,
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.w700,
           ),
         ),

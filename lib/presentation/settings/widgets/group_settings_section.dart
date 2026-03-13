@@ -166,7 +166,7 @@ class _GroupSettingsSectionState extends ConsumerState<GroupSettingsSection> {
               Text(
                 'Gruppen-Einstellungen',
                 style: textTheme.titleSmall?.copyWith(
-                  color: colorScheme.primary,
+                  color: colorScheme.onSurface,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -229,7 +229,7 @@ class _GroupSettingsSectionState extends ConsumerState<GroupSettingsSection> {
                         ? (v) => _onSettingsChanged(
                               displaySettings.copyWith(rotationWeight: v),
                             )
-                        : null,
+                        : (_) {},
                   ),
                   _WeightSettingRow(
                     label: 'KH-Abwechslung',
@@ -240,7 +240,7 @@ class _GroupSettingsSectionState extends ConsumerState<GroupSettingsSection> {
                         ? (v) => _onSettingsChanged(
                               displaySettings.copyWith(carbVarietyWeight: v),
                             )
-                        : null,
+                        : (_) {},
                   ),
                 ],
               ),
@@ -312,15 +312,18 @@ class _WeightSettingRow extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          SegmentedButton<int>(
-            selected: {value},
-            onSelectionChanged:
-                onChanged != null ? (s) => onChanged!(s.first) : null,
-            showSelectedIcon: false,
-            segments: [
-              for (int i = 0; i < _labels.length; i++)
-                ButtonSegment(value: i, label: Text(_labels[i])),
-            ],
+          SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<int>(
+              selected: {value},
+              onSelectionChanged:
+                  onChanged != null ? (s) => onChanged!(s.first) : null,
+              showSelectedIcon: false,
+              segments: [
+                for (int i = 0; i < _labels.length; i++)
+                  ButtonSegment(value: i, label: Text(_labels[i])),
+              ],
+            ),
           ),
         ],
       ),
