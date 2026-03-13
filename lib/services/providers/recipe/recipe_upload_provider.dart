@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
@@ -18,7 +19,23 @@ class RecipeUpload extends _$RecipeUpload {
     state = await AsyncValue.guard(() async {
       final recipeRepo = ref.read(recipeRepositoryProvider);
       final userId = ref.read(sessionProvider).userId!;
-      await recipeRepo.saveRecipe(recipe, image, userId);
+
+      // Bild wurde ggf. schon beim Auswählen hochgeladen — dann URL nehmen
+      // und kein erneutes Hochladen in saveRecipe auslösen.
+      Recipe recipeToSave = recipe;
+      File? imageToUpload = image;
+      if (image != null) {
+        final pending = ref.read(imageManagerProvider).pendingPhotoUpload;
+        if (pending != null) {
+          final preUploadedUrl = await pending;
+          if (preUploadedUrl != null) {
+            recipeToSave = recipe.copyWith(imageUrl: preUploadedUrl);
+            imageToUpload = null;
+          }
+        }
+      }
+
+      await recipeRepo.saveRecipe(recipeToSave, imageToUpload, userId);
     });
   }
 

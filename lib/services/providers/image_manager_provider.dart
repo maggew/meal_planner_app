@@ -3,6 +3,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:meal_planner/core/constants/firebase_constants.dart';
+import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'image_manager_provider.g.dart';
@@ -14,12 +16,15 @@ class CustomImages {
   final File? instructionsImage;
   final File? photo;
   final String? error;
+  // Laufender/abgeschlossener Upload-Future für das Rezeptfoto
+  final Future<String?>? pendingPhotoUpload;
 
   const CustomImages({
     this.ingredientsImage,
     this.instructionsImage,
     this.photo,
     this.error,
+    this.pendingPhotoUpload,
   });
 
   CustomImages copyWith({
@@ -27,6 +32,7 @@ class CustomImages {
     File? Function()? instructionsImage,
     File? Function()? photo,
     String? Function()? error,
+    Future<String?>? Function()? pendingPhotoUpload,
   }) {
     return CustomImages(
       ingredientsImage:
@@ -36,6 +42,9 @@ class CustomImages {
           : this.instructionsImage,
       photo: photo != null ? photo() : this.photo,
       error: error != null ? error() : this.error,
+      pendingPhotoUpload: pendingPhotoUpload != null
+          ? pendingPhotoUpload()
+          : this.pendingPhotoUpload,
     );
   }
 }
@@ -101,7 +110,11 @@ class ImageManager extends _$ImageManager {
       case AnalysisImageType.instructions:
         state = state.copyWith(instructionsImage: () => file);
       case AnalysisImageType.photo:
-        state = state.copyWith(photo: () => file);
+        final uploadFuture = _startUpload(file);
+        state = state.copyWith(
+          photo: () => file,
+          pendingPhotoUpload: () => uploadFuture,
+        );
     }
   }
 
@@ -114,15 +127,28 @@ class ImageManager extends _$ImageManager {
   }
 
   void clearPhoto() {
-    state = state.copyWith(photo: () => null);
+    state = state.copyWith(photo: () => null, pendingPhotoUpload: () => null);
   }
 
   void setPhoto(File file) {
-    state = state.copyWith(photo: () => file);
+    state = state.copyWith(
+      photo: () => file,
+      pendingPhotoUpload: () => _startUpload(file),
+    );
   }
 
   void clearAll() {
     state = const CustomImages();
+  }
+
+  Future<String?> _startUpload(File file) async {
+    try {
+      return await ref
+          .read(storageRepositoryProvider)
+          .uploadImage(file, FirebaseConstants.imagePathRecipe);
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<File?> _cropImage(File imageFile) async {
