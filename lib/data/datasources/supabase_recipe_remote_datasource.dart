@@ -185,18 +185,36 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
     required List<String> categories,
     required String groupId,
   }) async {
-    for (final categoryName in categories) {
-      try {
-        final categoryId =
-            await upsertCategory(name: categoryName, groupId: groupId);
-        await supabase.from(SupabaseConstants.recipeCategoriesTable).insert({
-          SupabaseConstants.recipeCategoryRecipeId: recipeId,
-          SupabaseConstants.recipeCategoryCategoryId: categoryId,
-        });
-      } catch (e) {
-        rethrow;
+    if (categories.isEmpty) return;
+
+    // 1. Alle bestehenden Kategorien in einer Query laden
+    final existing = await supabase
+        .from(SupabaseConstants.categoriesTable)
+        .select('${SupabaseConstants.categoryId}, ${SupabaseConstants.categoryName}')
+        .eq(SupabaseConstants.categoryGroupId, groupId)
+        .inFilter(SupabaseConstants.categoryName, categories);
+
+    final idMap = {
+      for (final row in existing as List)
+        row[SupabaseConstants.categoryName] as String:
+            row[SupabaseConstants.categoryId] as String,
+    };
+
+    // 2. Fehlende Kategorien einzeln anlegen (Sonderfall, sollte normalerweise nicht vorkommen)
+    for (final name in categories) {
+      if (!idMap.containsKey(name)) {
+        idMap[name] = await upsertCategory(name: name, groupId: groupId);
       }
     }
+
+    // 3. Alle recipe_category-Einträge in einem Batch einfügen
+    await supabase.from(SupabaseConstants.recipeCategoriesTable).insert([
+      for (final name in categories)
+        {
+          SupabaseConstants.recipeCategoryRecipeId: recipeId,
+          SupabaseConstants.recipeCategoryCategoryId: idMap[name]!,
+        },
+    ]);
   }
 
   @override
@@ -231,16 +249,45 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
     required String recipeId,
     required List<IngredientModel> ingredients,
   }) async {
-    for (final ingredient in ingredients) {
-      final ingredientId = await upsertIngredient(name: ingredient.name);
+    if (ingredients.isEmpty) return;
 
-      await supabase.from(SupabaseConstants.recipeIngredientsTable).insert(
-            ingredient.toSupabaseRecipeIngredient(
-              recipeId,
-              ingredientId,
-            ),
-          );
+    final names = ingredients.map((i) => i.name).toList();
+
+    // 1. Alle bestehenden Zutaten in einer Query laden
+    final existing = await supabase
+        .from(SupabaseConstants.ingredientsTable)
+        .select('${SupabaseConstants.ingredientId}, ${SupabaseConstants.ingredientName}')
+        .inFilter(SupabaseConstants.ingredientName, names);
+
+    final idMap = {
+      for (final row in existing as List)
+        row[SupabaseConstants.ingredientName] as String:
+            row[SupabaseConstants.ingredientId] as String,
+    };
+
+    // 2. Neue Zutaten in einem Batch anlegen
+    final newRows = [
+      for (final ingredient in ingredients)
+        if (!idMap.containsKey(ingredient.name))
+          {
+            SupabaseConstants.ingredientId: generateUuid(),
+            SupabaseConstants.ingredientName: ingredient.name,
+          },
+    ];
+
+    if (newRows.isNotEmpty) {
+      await supabase.from(SupabaseConstants.ingredientsTable).insert(newRows);
+      for (final row in newRows) {
+        idMap[row[SupabaseConstants.ingredientName] as String] =
+            row[SupabaseConstants.ingredientId] as String;
+      }
     }
+
+    // 3. Alle recipe_ingredient-Einträge in einem Batch einfügen
+    await supabase.from(SupabaseConstants.recipeIngredientsTable).insert([
+      for (final ingredient in ingredients)
+        ingredient.toSupabaseRecipeIngredient(recipeId, idMap[ingredient.name]!),
+    ]);
   }
 
   @override

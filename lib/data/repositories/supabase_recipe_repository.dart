@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 import 'package:meal_planner/core/constants/firebase_constants.dart';
 import 'package:meal_planner/data/datasources/recipe_remote_datasource.dart';
@@ -37,8 +36,8 @@ class SupabaseRecipeRepository implements RecipeRepository {
       final recipeId = generateUuid();
       final model = RecipeModel.fromEntity(recipe);
 
-      // 1. Bild hochladen
-      String? imageUrl;
+      // 1. Bild hochladen (oder vorher hochgeladene URL verwenden)
+      String? imageUrl = recipe.imageUrl;
       if (image != null) {
         imageUrl = await _storage.uploadImage(
             image, FirebaseConstants.imagePathRecipe);
@@ -53,27 +52,24 @@ class SupabaseRecipeRepository implements RecipeRepository {
         imageUrl: imageUrl,
       );
 
-      // 3. Categories speichern
-      await _remote.saveRecipeCategories(
-          recipeId: recipeId, categories: recipe.categories, groupId: _groupId);
-
+      // 3+4. Categories + Ingredients parallel speichern
       final List<IngredientModel> ingredientModels = [];
       for (final section in recipe.ingredientSections) {
         for (int i = 0; i < section.ingredients.length; i++) {
-          final ingredient = section.ingredients[i];
-
           ingredientModels.add(IngredientModel.fromEntity(
-            ingredient,
+            section.ingredients[i],
             groupName: section.title,
             sortOrder: i,
           ));
         }
       }
-      // 4. Ingredients speichern
-      await _remote.saveRecipeIngredients(
-        recipeId: recipeId,
-        ingredients: ingredientModels,
-      );
+
+      await Future.wait([
+        _remote.saveRecipeCategories(
+            recipeId: recipeId, categories: recipe.categories, groupId: _groupId),
+        _remote.saveRecipeIngredients(
+            recipeId: recipeId, ingredients: ingredientModels),
+      ]);
 
       return recipeId;
     } catch (e) {
@@ -182,8 +178,7 @@ class SupabaseRecipeRepository implements RecipeRepository {
               (recipeData) => RecipeModel.fromSupabaseWithRelations(recipeData))
           .toList();
     } catch (e, stackTrace) {
-      log("Error fetching recipes by category",
-          error: e, stackTrace: stackTrace);
+      print("Error fetching recipes by category: $e\n$stackTrace");
       throw RecipeNotFoundException('Kategorie: $categoryId');
     }
   }
@@ -198,8 +193,7 @@ class SupabaseRecipeRepository implements RecipeRepository {
               (recipeData) => RecipeModel.fromSupabaseWithRelations(recipeData))
           .toList();
     } catch (e, stackTrace) {
-      log("Error fetching recipes by categories",
-          error: e, stackTrace: stackTrace);
+      print("Error fetching recipes by categories: $e\n$stackTrace");
       throw RecipeNotFoundException('Kategorien: $categories');
     }
   }
@@ -235,34 +229,33 @@ class SupabaseRecipeRepository implements RecipeRepository {
 
       final updatedRecipe = recipe.copyWith(imageUrl: imageUrl);
       final model = RecipeModel.fromEntity(updatedRecipe);
+
       await _remote.updateRecipe(recipeId, model.toSupabaseUpdate());
-      // Alte Junction-Einträge löschen
-      await _remote.deleteRecipeCategories(recipeId);
-      await _remote.deleteRecipeIngredients(recipeId);
 
-      await _remote.saveRecipeCategories(
-          recipeId: recipeId, categories: recipe.categories, groupId: _groupId);
+      // Alte Junction-Einträge parallel löschen
+      await Future.wait([
+        _remote.deleteRecipeCategories(recipeId),
+        _remote.deleteRecipeIngredients(recipeId),
+      ]);
 
+      // Categories + Ingredients parallel speichern
       final List<IngredientModel> ingredientModels = [];
-
       for (final section in recipe.ingredientSections) {
         for (int i = 0; i < section.ingredients.length; i++) {
-          final ingredient = section.ingredients[i];
-
-          ingredientModels.add(
-            IngredientModel.fromEntity(
-              ingredient,
-              groupName: section.title,
-              sortOrder: i,
-            ),
-          );
+          ingredientModels.add(IngredientModel.fromEntity(
+            section.ingredients[i],
+            groupName: section.title,
+            sortOrder: i,
+          ));
         }
       }
 
-      await _remote.saveRecipeIngredients(
-        recipeId: recipeId,
-        ingredients: ingredientModels,
-      );
+      await Future.wait([
+        _remote.saveRecipeCategories(
+            recipeId: recipeId, categories: recipe.categories, groupId: _groupId),
+        _remote.saveRecipeIngredients(
+            recipeId: recipeId, ingredients: ingredientModels),
+      ]);
     } catch (e) {
       throw RecipeUpdateException(e.toString());
     }
