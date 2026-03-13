@@ -741,7 +741,7 @@ void main() {
   });
 
   group('updateRecipe — error cases', () {
-    test('throws RecipeUpdateException when deleteImage fails', () async {
+    test('throws RecipeUpdateException when uploadImage fails', () async {
       final recipe = Recipe(
         id: 'r1',
         name: 'Pasta',
@@ -751,7 +751,54 @@ void main() {
         instructions: '',
         imageUrl: 'old_image_url',
       );
-      when(() => storage.deleteImage(any())).thenThrow(Exception('delete failed'));
+      when(() => storage.uploadImage(any<File>(), any()))
+          .thenThrow(Exception('upload failed'));
+
+      expect(
+        repository.updateRecipe(recipe, File('dummy')),
+        throwsA(isA<RecipeUpdateException>()),
+      );
+    });
+
+    test('does not delete old image when upload fails', () async {
+      // arrange
+      final recipe = Recipe(
+        id: 'r1',
+        name: 'Pasta',
+        ingredientSections: [],
+        categories: [],
+        portions: 2,
+        instructions: '',
+        imageUrl: 'old_image_url',
+      );
+      when(() => storage.uploadImage(any<File>(), any()))
+          .thenThrow(Exception('upload failed'));
+      when(() => storage.deleteImage(any())).thenAnswer((_) async {});
+
+      // act
+      try {
+        await repository.updateRecipe(recipe, File('dummy'));
+      } catch (_) {}
+
+      // assert: old image was NOT deleted because upload failed first
+      verifyNever(() => storage.deleteImage(any()));
+    });
+
+    test('throws RecipeUpdateException when deleteImage fails after upload',
+        () async {
+      final recipe = Recipe(
+        id: 'r1',
+        name: 'Pasta',
+        ingredientSections: [],
+        categories: [],
+        portions: 2,
+        instructions: '',
+        imageUrl: 'old_image_url',
+      );
+      when(() => storage.uploadImage(any<File>(), any()))
+          .thenAnswer((_) async => 'new_image_url');
+      when(() => storage.deleteImage(any()))
+          .thenThrow(Exception('delete failed'));
 
       expect(
         repository.updateRecipe(recipe, File('dummy')),
