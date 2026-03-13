@@ -49,15 +49,12 @@ class CookbookRecipeListItem extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               SizedBox(width: 10),
-              Hero(
-                tag: recipe.name,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: SizedBox(
-                    width: 100,
-                    height: 80,
-                    child: recipeImage,
-                  ),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  width: 100,
+                  height: 80,
+                  child: recipeImage,
                 ),
               ),
               SizedBox(width: 10),

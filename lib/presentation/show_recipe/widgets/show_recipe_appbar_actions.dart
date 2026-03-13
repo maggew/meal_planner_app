@@ -117,13 +117,9 @@ class ShowRecipeAppBarActions extends ConsumerWidget {
     try {
       await ref.read(recipeRepositoryProvider).deleteRecipe(recipe.id!);
 
-      final allCategories =
-          ref.read(groupCategoriesProvider).asData?.value ?? [];
-      final recipeCategories = recipe.categories.toSet();
+      final allCategories = await ref.read(groupCategoriesProvider.future);
       for (final category in allCategories) {
-        if (recipeCategories.contains(category.name)) {
-          ref.invalidate(recipesPaginationProvider(category.id));
-        }
+        ref.invalidate(recipesPaginationProvider(category.id));
       }
 
       if (context.mounted) context.router.pop();
