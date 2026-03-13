@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/domain/repositories/recipe_repository.dart';
+import 'package:meal_planner/domain/repositories/storage_repository.dart';
+import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_upload_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
@@ -11,9 +13,12 @@ import 'package:mocktail/mocktail.dart';
 
 class MockRecipeRepository extends Mock implements RecipeRepository {}
 
+class MockStorageRepository extends Mock implements StorageRepository {}
+
 void main() {
   late ProviderContainer container;
   late MockRecipeRepository mockRepo;
+  late MockStorageRepository mockStorage;
 
   final testRecipe = Recipe(
     name: 'Test Recipe',
@@ -25,10 +30,12 @@ void main() {
 
   setUp(() {
     mockRepo = MockRecipeRepository();
+    mockStorage = MockStorageRepository();
 
     container = ProviderContainer(
       overrides: [
         recipeRepositoryProvider.overrideWithValue(mockRepo),
+        storageRepositoryProvider.overrideWithValue(mockStorage),
         sessionProvider.overrideWithValue(
           const SessionState(userId: 'user-1'),
         ),
@@ -150,6 +157,107 @@ void main() {
       // assert
       final state = container.read(recipeUploadProvider);
       expect(state, isA<AsyncError>());
+    });
+
+    test(
+        'updateRecipe uses pre-uploaded URL and skips re-upload when pendingPhotoUpload is set',
+        () async {
+      // arrange: pre-upload already completed
+      const preUploadedUrl = 'https://firebase.storage/recipe/pre.jpg';
+      final recipe = testRecipe.copyWith(id: 'r1');
+      final file = File('new_photo.jpg');
+
+      container.read(imageManagerProvider.notifier).state = CustomImages(
+        photo: file,
+        pendingPhotoUpload: Future.value(preUploadedUrl),
+      );
+
+      when(() => mockStorage.deleteImage(any())).thenAnswer((_) async {});
+      when(() => mockRepo.updateRecipe(any(), any())).thenAnswer((_) async {});
+
+      // act
+      await container
+          .read(recipeUploadProvider.notifier)
+          .updateRecipe(recipe, file);
+
+      // assert: no re-upload, repo called with null image and pre-uploaded URL
+      final captured =
+          verify(() => mockRepo.updateRecipe(captureAny(), captureAny()))
+              .captured;
+      expect((captured[0] as Recipe).imageUrl, preUploadedUrl);
+      expect(captured[1], isNull);
+      verifyNever(() => mockStorage.uploadImage(any(), any()));
+    });
+
+    test(
+        'updateRecipe deletes old image when using pre-uploaded URL',
+        () async {
+      // arrange
+      const oldUrl = 'https://firebase.storage/recipe/old.jpg';
+      const preUploadedUrl = 'https://firebase.storage/recipe/pre.jpg';
+      final recipe = testRecipe.copyWith(id: 'r1', imageUrl: oldUrl);
+      final file = File('new_photo.jpg');
+
+      container.read(imageManagerProvider.notifier).state = CustomImages(
+        photo: file,
+        pendingPhotoUpload: Future.value(preUploadedUrl),
+      );
+
+      when(() => mockStorage.deleteImage(any())).thenAnswer((_) async {});
+      when(() => mockRepo.updateRecipe(any(), any())).thenAnswer((_) async {});
+
+      // act
+      await container
+          .read(recipeUploadProvider.notifier)
+          .updateRecipe(recipe, file);
+
+      // assert: old image deleted before using pre-uploaded URL
+      verify(() => mockStorage.deleteImage(oldUrl)).called(1);
+    });
+
+    test('updateRecipe uploads file normally when no pendingPhotoUpload',
+        () async {
+      // arrange: no pre-upload in imageManagerProvider
+      final recipe = testRecipe.copyWith(id: 'r1');
+      final file = File('new_photo.jpg');
+
+      when(() => mockRepo.updateRecipe(any(), any())).thenAnswer((_) async {});
+
+      // act
+      await container
+          .read(recipeUploadProvider.notifier)
+          .updateRecipe(recipe, file);
+
+      // assert: file passed through to repo as-is
+      verify(() => mockRepo.updateRecipe(recipe, file)).called(1);
+      verifyNever(() => mockStorage.deleteImage(any()));
+    });
+
+    test(
+        'updateRecipe falls back to file upload when pendingPhotoUpload resolves to null',
+        () async {
+      // arrange: pre-upload was attempted but failed → Future resolves to null
+      final recipe = testRecipe.copyWith(id: 'r1');
+      final file = File('new_photo.jpg');
+
+      container.read(imageManagerProvider.notifier).state = CustomImages(
+        photo: file,
+        pendingPhotoUpload: Future.value(null),
+      );
+
+      when(() => mockRepo.updateRecipe(any(), any())).thenAnswer((_) async {});
+
+      // act
+      await container
+          .read(recipeUploadProvider.notifier)
+          .updateRecipe(recipe, file);
+
+      // assert: falls back to passing the file to the repo for upload
+      final captured =
+          verify(() => mockRepo.updateRecipe(captureAny(), captureAny()))
+              .captured;
+      expect(captured[1], file);
+      verifyNever(() => mockStorage.deleteImage(any()));
     });
   });
 }
