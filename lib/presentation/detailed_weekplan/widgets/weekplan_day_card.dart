@@ -8,6 +8,7 @@ import 'package:meal_planner/domain/entities/meal_plan_entry.dart';
 import 'package:meal_planner/domain/enums/meal_type.dart';
 import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_recipe_picker.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
+import 'package:meal_planner/services/providers/meal_plan/meal_plan_clipboard_provider.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_provider.dart';
 import 'package:meal_planner/services/providers/user/group_settings_provider.dart';
 
@@ -26,6 +27,22 @@ class WeekplanDayCard extends ConsumerWidget {
     MealType.lunch: Icons.lunch_dining,
     MealType.dinner: Icons.nights_stay_outlined,
   };
+
+  void _pasteEntry(WidgetRef ref, MealType targetType) {
+    final clipboard = ref.read(mealPlanClipboardProvider);
+    if (clipboard == null) return;
+    ref.read(mealPlanActionsProvider).addEntry(
+      date: date,
+      mealType: targetType,
+      recipeId: clipboard.entry.recipeId,
+      customName: clipboard.entry.customName,
+      cookIds: clipboard.entry.cookIds,
+    );
+    if (clipboard.isCut) {
+      ref.read(mealPlanActionsProvider).removeEntry(clipboard.entry.id);
+    }
+    ref.read(mealPlanClipboardProvider.notifier).clear();
+  }
 
   void _openAddPicker(BuildContext context, WidgetRef ref, MealType mealType) {
     showModalBottomSheet(
@@ -61,6 +78,7 @@ class WeekplanDayCard extends ConsumerWidget {
     final entries = entriesAsync.value ?? [];
     final mealSlots = ref.watch(groupSettingsProvider).defaultMealSlots;
     final hasAnyEntry = entries.any((e) => mealSlots.contains(e.mealType));
+    final clipboard = ref.watch(mealPlanClipboardProvider);
 
     final dayLabel = _weekdayShort[date.weekday - 1];
 
@@ -109,21 +127,40 @@ class WeekplanDayCard extends ConsumerWidget {
                 ),
                 if (hasAnyEntry) ...[
                   const SizedBox(height: 14),
-                  ...mealSlots.map((type) {
-                    final entry =
-                        entries.where((e) => e.mealType == type).firstOrNull;
-                    if (entry != null) {
-                      return _MealRow(
-                        entry: entry,
-                        icon: _mealIcons[type]!,
-                        date: date,
-                      );
-                    } else {
-                      return _EmptySlotRow(
-                        icon: _mealIcons[type]!,
-                        onTap: () => _openAddPicker(context, ref, type),
-                      );
+                  ...mealSlots.expand((type) {
+                    final slotEntries =
+                        entries.where((e) => e.mealType == type).toList();
+
+                    if (slotEntries.isEmpty) {
+                      return [
+                        _EmptySlotRow(
+                          icon: _mealIcons[type]!,
+                          onTap: () => _openAddPicker(context, ref, type),
+                          onPaste: clipboard != null
+                              ? () => _pasteEntry(ref, type)
+                              : null,
+                        ),
+                      ];
                     }
+
+                    return [
+                      _MealRow(
+                          entry: slotEntries.first,
+                          icon: _mealIcons[type]!,
+                          date: date),
+                      for (int i = 1; i < slotEntries.length; i++)
+                        _MealRow(
+                            entry: slotEntries[i],
+                            icon: _mealIcons[type]!,
+                            date: date,
+                            showIcon: false),
+                      _AddMoreRow(
+                        onTap: () => _openAddPicker(context, ref, type),
+                        onPaste: clipboard != null
+                            ? () => _pasteEntry(ref, type)
+                            : null,
+                      ),
+                    ];
                   }),
                 ],
               ],
@@ -133,6 +170,39 @@ class WeekplanDayCard extends ConsumerWidget {
       ),
     );
   }
+}
+
+void _showPasteOrNewModal(
+  BuildContext context, {
+  required VoidCallback onPaste,
+  required VoidCallback onAddNew,
+}) {
+  showModalBottomSheet(
+    context: context,
+    builder: (ctx) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.content_paste_outlined),
+            title: const Text('Einfügen'),
+            onTap: () {
+              Navigator.pop(ctx);
+              onPaste();
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.add),
+            title: const Text('Neuer Eintrag'),
+            onTap: () {
+              Navigator.pop(ctx);
+              onAddNew();
+            },
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _CompactAddButton extends StatelessWidget {
@@ -157,14 +227,21 @@ class _CompactAddButton extends StatelessWidget {
 class _EmptySlotRow extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
+  final VoidCallback? onPaste;
 
-  const _EmptySlotRow({required this.icon, required this.onTap});
+  const _EmptySlotRow({required this.icon, required this.onTap, this.onPaste});
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        if (onPaste != null) {
+          _showPasteOrNewModal(context, onPaste: onPaste!, onAddNew: onTap);
+        } else {
+          onTap();
+        }
+      },
       borderRadius: BorderRadius.circular(6),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -173,8 +250,11 @@ class _EmptySlotRow extends StatelessWidget {
             Icon(icon,
                 size: 20, color: colorScheme.onSurface.withValues(alpha: 0.25)),
             const SizedBox(width: 8),
-            Icon(Icons.add,
-                size: 18, color: colorScheme.onSurface.withValues(alpha: 0.25)),
+            Icon(
+              onPaste != null ? Icons.content_paste_outlined : Icons.add,
+              size: 18,
+              color: colorScheme.onSurface.withValues(alpha: 0.25),
+            ),
           ],
         ),
       ),
@@ -186,11 +266,13 @@ class _MealRow extends ConsumerWidget {
   final MealPlanEntry entry;
   final IconData icon;
   final DateTime date;
+  final bool showIcon;
 
   const _MealRow({
     required this.entry,
     required this.icon,
     required this.date,
+    this.showIcon = true,
   });
 
   Future<void> _showDeleteDialog(BuildContext context, WidgetRef ref) async {
@@ -231,7 +313,12 @@ class _MealRow extends ConsumerWidget {
       displayName = entry.customName;
     }
 
-    return GestureDetector(
+    final clipboard = ref.watch(mealPlanClipboardProvider);
+    final isCut = clipboard?.isCut == true && clipboard?.entry.id == entry.id;
+
+    return Opacity(
+      opacity: isCut ? 0.4 : 1.0,
+      child: GestureDetector(
       onTap: () {
         showModalBottomSheet(
           context: context,
@@ -254,9 +341,55 @@ class _MealRow extends ConsumerWidget {
           ),
         );
       },
-      onLongPress: () {
-        if (entry.recipeId != null) {
-          context.router.root.push(ShowRecipeRoute(recipeId: entry.recipeId!));
+      onLongPressStart: (details) async {
+        final size = MediaQuery.sizeOf(context);
+        final dx = details.globalPosition.dx;
+        final dy = details.globalPosition.dy;
+        final result = await showMenu<String>(
+          context: context,
+          position: RelativeRect.fromLTRB(
+              dx, dy, size.width - dx, size.height - dy),
+          items: [
+            if (entry.recipeId != null)
+              PopupMenuItem(
+                value: 'navigate',
+                child: Row(children: [
+                  const Icon(Icons.menu_book_outlined, size: 16),
+                  const SizedBox(width: 8),
+                  const Text('Zum Rezept'),
+                ]),
+              ),
+            PopupMenuItem(
+              value: 'copy',
+              child: Row(children: [
+                const Icon(Icons.content_copy, size: 16),
+                const SizedBox(width: 8),
+                const Text('Kopieren'),
+              ]),
+            ),
+            PopupMenuItem(
+              value: 'cut',
+              child: Row(children: [
+                const Icon(Icons.content_cut, size: 16),
+                const SizedBox(width: 8),
+                const Text('Ausschneiden'),
+              ]),
+            ),
+          ],
+        );
+        if (!context.mounted) return;
+        switch (result) {
+          case 'navigate':
+            context.router.root
+                .push(ShowRecipeRoute(recipeId: entry.recipeId!));
+          case 'copy':
+            ref
+                .read(mealPlanClipboardProvider.notifier)
+                .copy(entry, displayName: displayName);
+          case 'cut':
+            ref
+                .read(mealPlanClipboardProvider.notifier)
+                .cut(entry, displayName: displayName);
         }
       },
       child: Padding(
@@ -264,7 +397,10 @@ class _MealRow extends ConsumerWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(icon, size: 20, color: colorScheme.primary),
+            if (showIcon)
+              Icon(icon, size: 20, color: colorScheme.primary)
+            else
+              const SizedBox(width: 20),
             if (entry.cookIds.isNotEmpty) ...[
               const SizedBox(width: 6),
               _CookAvatarStack(cookIds: entry.cookIds),
@@ -299,6 +435,43 @@ class _MealRow extends ConsumerWidget {
                   color: colorScheme.onSurface.withValues(alpha: 0.4),
                 ),
               ),
+            ),
+          ],
+        ),
+      ),
+    ),
+    );
+  }
+}
+
+class _AddMoreRow extends StatelessWidget {
+  final VoidCallback onTap;
+  final VoidCallback? onPaste;
+
+  const _AddMoreRow({required this.onTap, this.onPaste});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: () {
+        if (onPaste != null) {
+          _showPasteOrNewModal(context, onPaste: onPaste!, onAddNew: onTap);
+        } else {
+          onTap();
+        }
+      },
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            const SizedBox(width: 20),
+            const SizedBox(width: 8),
+            Icon(
+              onPaste != null ? Icons.content_paste_outlined : Icons.add,
+              size: 18,
+              color: colorScheme.onSurface.withValues(alpha: 0.25),
             ),
           ],
         ),
