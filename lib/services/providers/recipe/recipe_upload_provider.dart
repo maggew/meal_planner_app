@@ -41,9 +41,32 @@ class RecipeUpload extends _$RecipeUpload {
 
   Future<void> updateRecipe(Recipe recipe, File? image) async {
     state = const AsyncValue.loading();
+
     state = await AsyncValue.guard(() async {
       final recipeRepo = ref.read(recipeRepositoryProvider);
-      await recipeRepo.updateRecipe(recipe, image);
+
+      // Bild wurde ggf. schon beim Auswählen hochgeladen — dann URL nehmen
+      // und kein erneutes Hochladen auslösen. Altes Bild manuell löschen,
+      // da das Repo das sonst nur beim eigenen Upload-Pfad tut.
+      Recipe recipeToSave = recipe;
+      File? imageToUpload = image;
+      if (image != null) {
+        final pending = ref.read(imageManagerProvider).pendingPhotoUpload;
+        if (pending != null) {
+          final preUploadedUrl = await pending;
+          if (preUploadedUrl != null) {
+            if (recipe.imageUrl != null) {
+              await ref
+                  .read(storageRepositoryProvider)
+                  .deleteImage(recipe.imageUrl!);
+            }
+            recipeToSave = recipe.copyWith(imageUrl: preUploadedUrl);
+            imageToUpload = null;
+          }
+        }
+      }
+
+      await recipeRepo.updateRecipe(recipeToSave, imageToUpload);
     });
   }
 }

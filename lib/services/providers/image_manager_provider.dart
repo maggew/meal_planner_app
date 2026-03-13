@@ -141,6 +141,19 @@ class ImageManager extends _$ImageManager {
     state = const CustomImages();
   }
 
+  /// Löscht ein hochgeladenes Foto aus Firebase Storage, falls der Rezept-Upload
+  /// abgebrochen wurde. Wird in dispose() der Formular-Seite aufgerufen.
+  /// Nach erfolgreichem Speichern ist pendingPhotoUpload bereits null → No-op.
+  Future<void> cleanupPendingPhoto() async {
+    final pending = state.pendingPhotoUpload;
+    if (pending == null) return;
+    state = const CustomImages();
+    final url = await pending;
+    if (url != null) {
+      await ref.read(storageRepositoryProvider).deleteImage(url);
+    }
+  }
+
   Future<String?> _startUpload(File file) async {
     try {
       return await ref

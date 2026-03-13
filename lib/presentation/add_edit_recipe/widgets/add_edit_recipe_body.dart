@@ -37,10 +37,14 @@ class AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
   late final TextEditingController _recipeNameController;
   late final TextEditingController _recipeInstructionsController;
   late final AddEditRecipeIngredientsProvider ingredientsProvider;
+  // Notifier-Referenz früh sichern, damit dispose() kein ref benutzen muss
+  // (ref ist in dispose() laut Riverpod unsafe).
+  late final ImageManager _imageManagerNotifier;
 
   @override
   void initState() {
     super.initState();
+    _imageManagerNotifier = ref.read(imageManagerProvider.notifier);
     _recipeNameController =
         TextEditingController(text: widget.existingRecipe?.name ?? '');
     _recipeInstructionsController =
@@ -156,6 +160,9 @@ class AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
   void dispose() {
     _recipeNameController.dispose();
     _recipeInstructionsController.dispose();
+    // Beim Abbrechen: hochgeladenes Foto aus Firebase Storage löschen.
+    // Nach erfolgreichem Speichern ist pendingPhotoUpload bereits null (clearPhoto in _resetForm).
+    _imageManagerNotifier.cleanupPendingPhoto();
     super.dispose();
   }
 }
