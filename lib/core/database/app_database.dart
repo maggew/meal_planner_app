@@ -25,10 +25,6 @@ class AppDatabase extends _$AppDatabase {
           if (from < 3) {
             await migrator.createTable(localMealPlanEntries);
           }
-          if (from < 5) {
-            await migrator.addColumn(
-                localMealPlanEntries, localMealPlanEntries.customName);
-          }
           if (from < 6) {
             await migrator.addColumn(
                 localRecipes, localRecipes.carbTagsJson);
