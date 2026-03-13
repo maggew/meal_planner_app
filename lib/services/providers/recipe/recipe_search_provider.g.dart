@@ -154,7 +154,7 @@ final class FilteredRecipesProvider
   }
 }
 
-String _$filteredRecipesHash() => r'098b782954047d655f382cc856a2cadc58efda8b';
+String _$filteredRecipesHash() => r'049b6fc9f15fa4bda774778a64c42cb022c08631';
 
 final class FilteredRecipesFamily extends $Family
     with

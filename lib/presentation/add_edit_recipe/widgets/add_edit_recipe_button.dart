@@ -10,6 +10,7 @@ import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_edit_recipe_ingredients_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
 import 'package:meal_planner/services/providers/recipe/carb_tag_selection_provider.dart';
+import 'package:meal_planner/services/providers/recipe/cookbook_initial_category_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_pagination_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_upload_provider.dart';
 
@@ -66,7 +67,7 @@ class AddEditRecipeButton extends ConsumerWidget {
       BuildContext context, WidgetRef ref, Recipe? existingRecipe) async {
     // Provider speichert IDs → in Namen für Recipe-Entity und Cache-Invalidierung umwandeln
     final selectedCategoryIds = ref.read(selectedCategoriesProvider);
-    final allGroupCategories = ref.read(groupCategoriesProvider).value ?? [];
+    final allGroupCategories = await ref.read(groupCategoriesProvider.future);
     final selectedCategories = allGroupCategories
         .where((c) => selectedCategoryIds.contains(c.id))
         .map((c) => c.name)
@@ -135,13 +136,19 @@ class AddEditRecipeButton extends ConsumerWidget {
       await recipeRepo.createRecipe(recipe, image);
     }
 
-    final oldCategories = existingRecipe?.categories ?? [];
-    final newCategories = recipe.categories;
-    final allCategoriesToInvalidate = {...oldCategories, ...newCategories};
+    final oldCategoryIds = allGroupCategories
+        .where((c) => (existingRecipe?.categories ?? []).contains(c.name))
+        .map((c) => c.id);
 
-    // Neue Kategorien invalidieren
-    for (final category in allCategoriesToInvalidate) {
-      ref.invalidate(recipesPaginationProvider(category));
+    for (final id in {...selectedCategoryIds, ...oldCategoryIds}) {
+      ref.invalidate(recipesPaginationProvider(id));
+    }
+
+    // Kochbuch zur ersten Kategorie des Rezepts navigieren
+    if (existingRecipe == null && selectedCategoryIds.isNotEmpty) {
+      ref
+          .read(cookbookInitialCategoryProvider.notifier)
+          .set(selectedCategoryIds.first);
     }
 
     _resetForm(

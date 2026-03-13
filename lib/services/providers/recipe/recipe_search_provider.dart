@@ -34,12 +34,15 @@ class FilteredRecipes extends _$FilteredRecipes {
     final query = ref.watch(searchQueryProvider).toLowerCase().trim();
     final searchAll = ref.watch(searchAllCategoriesProvider);
 
+    // Immer zuerst die eigene Kategorie watchten — stabiler Subscription-Anker,
+    // verhindert Riverpod-Assertion beim pause/resume bei Navigation.
+    final currentPagination = ref.watch(recipesPaginationProvider(category));
+
     if (query.length < 3) {
-      final paginationState = ref.watch(recipesPaginationProvider(category));
-      return paginationState.recipes;
+      return currentPagination.recipes;
     }
 
-    if (searchAll && query.isNotEmpty) {
+    if (searchAll) {
       // Über alle Kategorien suchen
       final allRecipes = <Recipe>[];
       final seenIds = <String>{};
@@ -58,15 +61,7 @@ class FilteredRecipes extends _$FilteredRecipes {
           .where((r) => r.name.toLowerCase().contains(query))
           .toList();
     } else {
-      // Nur in aktueller Kategorie
-      final paginationState = ref.watch(recipesPaginationProvider(category));
-      final recipes = paginationState.recipes;
-
-      if (query.isEmpty) {
-        return recipes;
-      }
-
-      return recipes
+      return currentPagination.recipes
           .where((r) => r.name.toLowerCase().contains(query))
           .toList();
     }
