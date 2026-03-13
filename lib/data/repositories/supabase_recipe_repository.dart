@@ -220,11 +220,12 @@ class SupabaseRecipeRepository implements RecipeRepository {
       String? imageUrl = recipe.imageUrl;
 
       if (newImage != null) {
+        // Upload zuerst — wenn er schlägt fehl, bleibt das alte Bild erhalten.
+        imageUrl = await _storage.uploadImage(
+            newImage, FirebaseConstants.imagePathRecipe);
         if (recipe.imageUrl != null) {
           await _storage.deleteImage(recipe.imageUrl!);
         }
-        imageUrl = await _storage.uploadImage(
-            newImage, FirebaseConstants.imagePathRecipe);
       }
 
       final updatedRecipe = recipe.copyWith(imageUrl: imageUrl);
