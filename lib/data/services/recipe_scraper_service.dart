@@ -123,7 +123,24 @@ class RecipeScraperService {
           steps.add(item.trim());
         } else if (item is Map) {
           final text = item['text'] as String?;
-          if (text != null && text.isNotEmpty) steps.add(text.trim());
+          if (text != null && text.isNotEmpty) {
+            steps.add(text.trim());
+          } else {
+            // HowToSection: steps are nested in itemListElement
+            final nested = item['itemListElement'];
+            if (nested is List) {
+              for (final step in nested) {
+                if (step is Map) {
+                  final stepText = step['text'] as String?;
+                  if (stepText != null && stepText.isNotEmpty) {
+                    steps.add(stepText.trim());
+                  }
+                } else if (step is String && step.isNotEmpty) {
+                  steps.add(step.trim());
+                }
+              }
+            }
+          }
         }
       }
       if (steps.isEmpty) return null;
