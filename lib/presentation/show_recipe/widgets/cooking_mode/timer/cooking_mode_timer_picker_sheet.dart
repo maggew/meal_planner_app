@@ -17,6 +17,7 @@ void showCookingModeTimerPicker(
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (_) => CookingModeTimerPickerSheet(
       recipeId: recipeId,
       stepIndex: stepIndex,
@@ -47,7 +48,6 @@ class _CookingModeTimerPickerSheetState
   late final TextEditingController _labelController;
   late final TextEditingController _minutesController;
   late final TextEditingController _secondsController;
-
   @override
   void initState() {
     super.initState();

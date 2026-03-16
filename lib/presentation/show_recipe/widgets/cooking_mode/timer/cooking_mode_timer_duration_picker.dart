@@ -63,6 +63,7 @@ class _CookingModeTimerDurationPickerState
       foregroundColor: colorScheme.onSurface,
     );
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 10,
       children: [
@@ -72,6 +73,7 @@ class _CookingModeTimerDurationPickerState
         ),
         TextField(
           controller: widget.labelController,
+          autofocus: true,
           decoration: InputDecoration(
               labelText: 'Name (optional)',
               hintText: 'z.B. Nudeln kochen',
