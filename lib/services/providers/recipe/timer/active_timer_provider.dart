@@ -151,6 +151,7 @@ class ActiveTimerNotifier extends _$ActiveTimerNotifier {
     );
     if (!hasActive) {
       ref.read(timerTickProvider.notifier).stop();
+      ref.read(timerTickProvider.notifier).cancelOngoingNotification();
     }
   }
 

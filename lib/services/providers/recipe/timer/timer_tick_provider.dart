@@ -22,17 +22,23 @@ class TimerTick extends _$TimerTick {
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       state++;
       ref.read(activeTimerProvider.notifier).checkExpiredTimers();
-      _updateOngoingNotification();
+      updateOngoingNotification();
     });
   }
 
   void stop() {
     _timer?.cancel();
     _timer = null;
+    // Ongoing-Notification NICHT hier canceln — sie soll im Hintergrund
+    // sichtbar bleiben solange Timer laufen. Canceln übernimmt
+    // _stopTickIfNoActiveTimers() sobald keine aktiven Timer mehr existieren.
+  }
+
+  void cancelOngoingNotification() {
     NotificationService.instance.cancelOngoingTimerNotification();
   }
 
-  void _updateOngoingNotification() {
+  void updateOngoingNotification() {
     final timers = ref.read(activeTimerProvider);
     final running = timers.values
         .where((t) =>
@@ -45,11 +51,22 @@ class TimerTick extends _$TimerTick {
     }
 
     final lines = running.map((t) {
-      final time = formatSeconds(t.remainingSeconds);
-      final status = t.status == TimerStatus.paused ? ' ⏸' : '';
-      return '${t.label}: $time$status';
+      if (t.status == TimerStatus.paused) {
+        return '${t.label}: ${formatSeconds(t.remainingSeconds)} ⏸';
+      }
+      return t.label;
     }).toList();
 
-    NotificationService.instance.showOngoingTimerNotification(lines);
+    // Nächste Endzeit für den Android-Chronometer-Countdown
+    final runningTimers =
+        running.where((t) => t.status == TimerStatus.running && t.endTime != null);
+    final nearestEndTime = runningTimers.isEmpty
+        ? null
+        : runningTimers.map((t) => t.endTime!).reduce((a, b) => a.isBefore(b) ? a : b);
+
+    NotificationService.instance.showOngoingTimerNotification(
+      lines,
+      nearestEndTime: nearestEndTime,
+    );
   }
 }
