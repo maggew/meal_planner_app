@@ -56,6 +56,8 @@ dependencies:
   flutter_dotenv: ^6.0.0
   flutter_local_notifications: ^20.1.0
   audioplayers: ^6.5.1
+  timezone: ^0.10.0
+  flutter_timezone: ^5.0.2
 
 
 dev_dependencies:

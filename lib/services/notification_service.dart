@@ -1,22 +1,33 @@
-import 'dart:async';
-
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 class NotificationService {
-  static final NotificationService _instance = NotificationService._();
+  static NotificationService _instance = NotificationService._();
   static NotificationService get instance => _instance;
-  NotificationService._();
+
+  @visibleForTesting
+  static set instance(NotificationService value) => _instance = value;
+
+  NotificationService._()
+      : _plugin = FlutterLocalNotificationsPlugin(),
+        _audioPlayer = AudioPlayer();
+
+  @visibleForTesting
+  NotificationService.forTesting({
+    required FlutterLocalNotificationsPlugin plugin,
+    required AudioPlayer audioPlayer,
+  })  : _plugin = plugin,
+        _audioPlayer = audioPlayer;
 
   static const int _ongoingNotificationId = 99999;
 
-  final FlutterLocalNotificationsPlugin _plugin =
-      FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _plugin;
 
   bool _initialized = false;
   bool _isPlaying = false;
-  final AudioPlayer _audioPlayer = AudioPlayer();
-  final Map<int, Timer> _scheduledTimers = {};
+  final AudioPlayer _audioPlayer;
 
   void Function(String payload)? onNotificationTapped;
 
@@ -61,45 +72,50 @@ class NotificationService {
     final delay = scheduledTime.difference(DateTime.now());
     if (delay.isNegative) return;
 
-    // Vorherigen Timer mit gleicher ID canceln falls vorhanden
-    _scheduledTimers[id]?.cancel();
+    // Vorherige Notification mit gleicher ID canceln falls vorhanden
+    await _plugin.cancel(id: id);
 
-    _scheduledTimers[id] = Timer(delay, () {
-      _plugin.show(
-        id: id,
-        title: title,
-        body: body,
-        payload: payload,
-        notificationDetails: const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'timer_channel',
-            'Koch-Timer',
-            channelDescription: 'Benachrichtigungen für Koch-Timer',
-            importance: Importance.max,
-            priority: Priority.high,
-            fullScreenIntent: true,
-          ),
-          iOS: DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          ),
+    final tzScheduledTime = tz.TZDateTime.from(scheduledTime, tz.local);
+
+    await _plugin.zonedSchedule(
+      id: id,
+      title: title,
+      body: body,
+      scheduledDate: tzScheduledTime,
+      payload: payload,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'timer_alarm_channel_v3',
+          'Koch-Timer Alarm',
+          channelDescription: 'Alarm wenn ein Koch-Timer abgelaufen ist',
+          importance: Importance.max,
+          priority: Priority.high,
+          sound: RawResourceAndroidNotificationSound('timer_alarm'),
+          playSound: true,
+          audioAttributesUsage: AudioAttributesUsage.alarm,
         ),
-      );
-      playAlarmSound();
-      _scheduledTimers.remove(id);
-    });
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+    );
   }
 
   Future<void> requestPermissions() async {
     final android = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
     await android?.requestNotificationsPermission();
+
+    final canSchedule = await android?.canScheduleExactNotifications();
+    if (canSchedule == false) {
+      await android?.requestExactAlarmsPermission();
+    }
   }
 
   Future<void> cancelNotification(int id) async {
-    _scheduledTimers[id]?.cancel();
-    _scheduledTimers.remove(id);
     await _plugin.cancel(id: id);
   }
 
@@ -116,7 +132,12 @@ class NotificationService {
     await _audioPlayer.stop();
   }
 
-  Future<void> showOngoingTimerNotification(List<String> timerLines) async {
+  Future<void> showOngoingTimerNotification(
+    List<String> timerLines, {
+    DateTime? nearestEndTime,
+  }) async {
+    final hasChronometer = nearestEndTime != null;
+
     await _plugin.show(
       id: _ongoingNotificationId,
       title: 'Timer läuft (${timerLines.length})',
@@ -130,8 +151,11 @@ class NotificationService {
           priority: Priority.low,
           ongoing: true,
           autoCancel: false,
-          showWhen: false,
           onlyAlertOnce: true,
+          showWhen: hasChronometer,
+          usesChronometer: hasChronometer,
+          chronometerCountDown: hasChronometer,
+          when: nearestEndTime?.millisecondsSinceEpoch,
           styleInformation: InboxStyleInformation(
             timerLines,
             contentTitle: 'Timer läuft (${timerLines.length})',

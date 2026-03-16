@@ -22,6 +22,9 @@ import 'package:meal_planner/services/providers/user/user_settings_provider.dart
 import 'package:meal_planner/services/shopping_list/shopping_list_sync_observer.dart';
 import 'package:meal_planner/services/timer_lifecycle_observer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz_local;
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:meal_planner/services/providers/shared_preferences_provider.dart';
 
@@ -63,6 +66,10 @@ void main() async {
   ]);
 
   final prefs = await SharedPreferences.getInstance();
+
+  tz.initializeTimeZones();
+  final deviceTimeZone = await FlutterTimezone.getLocalTimezone();
+  tz_local.setLocalLocation(tz_local.getLocation(deviceTimeZone.identifier));
 
   await NotificationService.instance.initialize();
   await NotificationService.instance.requestPermissions();
