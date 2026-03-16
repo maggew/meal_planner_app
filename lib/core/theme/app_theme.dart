@@ -9,7 +9,7 @@ class AppTheme {
     final isDark = brightness == Brightness.dark;
 
     // Farben
-    final primary = isDark ? Colors.green[300]! : Colors.green[400]!;
+    final primary = isDark ? Colors.green[300]! : Colors.green[700]!;
     final onPrimary = isDark ? Colors.black : Colors.white;
     final primaryContainer = isDark ? Colors.green[900]! : Colors.green[100]!;
     final onPrimaryContainer = isDark ? Colors.white : Colors.black;
@@ -142,6 +142,13 @@ class AppTheme {
       textStyle: bodyLarge,
     ));
 
+    final _outlinedButtonTheme = OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+      foregroundColor: onSurface,
+      side: BorderSide(color: onSurface.withValues(alpha: 0.4)),
+      textStyle: bodyLarge,
+    ));
+
     final _elevatedButtonTheme = ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
       backgroundColor: primaryContainer,
@@ -233,6 +240,7 @@ class AppTheme {
       cardTheme: CardThemeData(color: surfaceContainer),
       checkboxTheme: _checkboxTheme,
       textButtonTheme: _textButtonTheme,
+      outlinedButtonTheme: _outlinedButtonTheme,
       elevatedButtonTheme: _elevatedButtonTheme,
       inputDecorationTheme: _inputDecorationTheme,
       scrollbarTheme: _scrollbarTheme,
