@@ -4,6 +4,8 @@ A mobile application for managing and searching recipes – built with Flutter, 
 
 ## Screenshots
 
+### Light Mode
+
 <p float="left">
   <img src="screenshots/cookbook.png" width="250" />
   <img src="screenshots/add_recipe.png" width="250" />
@@ -13,21 +15,40 @@ A mobile application for managing and searching recipes – built with Flutter, 
 <p float="left">
   <img src="screenshots/show_recipe_cooking_mode.png" width="250" />
   <img src="screenshots/shopping_list.png" width="250" />
+  <img src="screenshots/weekplan.png" width="250" />
 </p>
+
+### Dark Mode
+
+<p float="left">
+  <img src="screenshots/cookbook_dark.png" width="250" />
+  <img src="screenshots/add_recipe_dark.png" width="250" />
+  <img src="screenshots/show_recipe_dark.png" width="250" />
+</p>
+
+<p float="left">
+  <img src="screenshots/show_recipe_cooking_mode_dark.png" width="250" />
+  <img src="screenshots/shopping_list_dark.png" width="250" />
+  <img src="screenshots/weekplan_dark.png" width="250" />
+</p>
+
 ## Motivation
 
 This project serves as a hands-on learning project to deepen my knowledge in Flutter, mobile app architecture, and backend integration – in preparation for a career as a software developer.
 
 ## Features (Current State)
 
-- Create, edit, and manage recipes with multi-category support
+- Weekly meal planner with calendar view and breakfast / lunch / dinner slots
+- Intelligent recipe suggestions based on ingredients, rotation, and carb variety
+- Create, edit, and manage recipes with custom categories and carb tagging
 - Search, filter, and sort recipes (alphabetical, newest, most cooked)
 - OCR-powered recipe extraction from images (Google ML Kit)
 - Ingredient management with intelligent quantity parsing
-- Cooking timers per recipe step with background support and audio alerts
-- Collaborative shopping lists with swipe-to-delete and optimistic UI
-- User authentication and profile management
+- Cooking timers per recipe step with push notifications and background support
+- Collaborative shopping list and meal plan with real-time sync (Supabase Realtime)
+- Offline-first architecture – local SQLite (Drift) synced to Supabase
 - Image upload for recipes (Firebase Storage)
+- User authentication and profile management
 - Light / Dark / System theme support
 
 ## Tech Stack
@@ -35,14 +56,15 @@ This project serves as a hands-on learning project to deepen my knowledge in Flu
 | Area             | Technology                         |
 | ---------------- | ---------------------------------- |
 | Framework        | Flutter (Dart)                     |
-| State Management | Riverpod (v2, Code Generation)     |
-| Database         | Supabase (PostgreSQL + RLS)        |
+| State Management | Riverpod (v3, Code Generation)     |
+| Database         | Supabase (PostgreSQL + RLS + Realtime) |
+| Local Storage    | Drift (SQLite, offline-first)      |
 | Auth             | Firebase Authentication            |
 | Storage          | Firebase Storage                   |
 | Navigation       | AutoRoute                          |
 | OCR              | Google ML Kit                      |
 | Notifications    | flutter_local_notifications        |
-| Local Storage    | SharedPreferences (UI preferences) |
+| Preferences      | SharedPreferences (UI preferences) |
 
 ## Architecture
 
@@ -54,8 +76,7 @@ lib/
 ├── domain/         # Entities, repository interfaces (business logic)
 ├── data/           # Repository implementations, data sources, DTOs
 ├── services/       # External services (auth, storage)
-├── presentation/   # UI layer (pages, providers)
-└── widgets/        # Reusable UI components from old state
+└── presentation/   # UI layer (pages, providers)
 ```
 
 **Data Flow:**
@@ -72,11 +93,12 @@ This structure enables:
 
 ## Tests
 
-The project includes unit tests for critical components:
+The project includes unit and widget tests for critical components, covering among others:
 
-- `SupabaseRecipeRepository` – repository logic
-- `RecipeUploadProvider` – state management
-- `SupabaseRecipeRemoteDataSource` – data source integration
+- `SupabaseRecipeRepository` – repository and data source logic
+- `RecipeUploadProvider` – async state management
+- Cooking mode widgets – timer interactions and step navigation
+- Notification & timer logic – background-safe scheduling and active timer state
 
 ```bash
 flutter test
@@ -104,9 +126,9 @@ flutter run
 
 ## Status
 
-🚧 **Work in Progress**
+🚧 **Active Development**
 
-The focus is on clean architecture and correct implementation of core features. Not all features are fully implemented yet.
+The focus is on clean architecture and correct implementation of core features.
 
 ## Learnings
 
