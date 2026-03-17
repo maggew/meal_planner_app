@@ -13,6 +13,8 @@
 .claude/
 
 android/app/google-services.json
+android/key.properties
+android/upload-keystore.jks
 ios/Runner/GoogleService-Info.plist
 
 # IntelliJ related
