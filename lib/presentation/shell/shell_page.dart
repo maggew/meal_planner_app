@@ -15,6 +15,7 @@ class ShellPage extends StatefulWidget {
 }
 
 class _ShellPageState extends State<ShellPage> {
+  int _activeIndex = 1;
   DateTime? _lastBackPress;
 
   void _handleBack(BuildContext innerContext) {
@@ -56,8 +57,11 @@ class _ShellPageState extends State<ShellPage> {
             backgroundColor: colors.surface,
             body: child,
             bottomNavigationBar: ShellBottomNavBar(
-              activeIndex: tabsRouter.activeIndex,
-              onTap: tabsRouter.setActiveIndex,
+              activeIndex: _activeIndex,
+              onTap: (index) {
+                setState(() => _activeIndex = index);
+                tabsRouter.setActiveIndex(index);
+              },
             ),
           ),
         );
