@@ -136,6 +136,20 @@ class AddEditRecipeButton extends ConsumerWidget {
       await recipeRepo.createRecipe(recipe, image);
     }
 
+    // Bei Fehler abbrechen — Button zeigt "Erneut versuchen"
+    final uploadState = ref.read(recipeUploadProvider);
+    if (uploadState is AsyncError) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Rezept konnte nicht gespeichert werden. Bitte erneut versuchen.'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+      return;
+    }
+
     final oldCategoryIds = allGroupCategories
         .where((c) => (existingRecipe?.categories ?? []).contains(c.name))
         .map((c) => c.id);

@@ -37,14 +37,20 @@ class AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
   late final TextEditingController _recipeNameController;
   late final TextEditingController _recipeInstructionsController;
   late final AddEditRecipeIngredientsProvider ingredientsProvider;
-  // Notifier-Referenz früh sichern, damit dispose() kein ref benutzen muss
+  // Notifier-Referenzen früh sichern, damit dispose() kein ref benutzen muss
   // (ref ist in dispose() laut Riverpod unsafe).
   late final ImageManager _imageManagerNotifier;
+  late final SelectedCategories _categoriesNotifier;
+  late final SelectedPortions _portionsNotifier;
+  late final CarbTagSelectionNotifier _carbTagNotifier;
 
   @override
   void initState() {
     super.initState();
     _imageManagerNotifier = ref.read(imageManagerProvider.notifier);
+    _categoriesNotifier = ref.read(selectedCategoriesProvider.notifier);
+    _portionsNotifier = ref.read(selectedPortionsProvider.notifier);
+    _carbTagNotifier = ref.read(carbTagSelectionProvider.notifier);
     _recipeNameController =
         TextEditingController(text: widget.existingRecipe?.name ?? '');
     _recipeInstructionsController =
@@ -64,7 +70,6 @@ class AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
             .map((c) => c.id)
             .toList();
         ref.read(selectedCategoriesProvider.notifier).set(categoryIds);
-        // setting intial portions
         ref
             .read(selectedPortionsProvider.notifier)
             .set(widget.existingRecipe!.portions);
@@ -163,6 +168,13 @@ class AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
     // Beim Abbrechen: hochgeladenes Foto aus Firebase Storage löschen.
     // Nach erfolgreichem Speichern ist pendingPhotoUpload bereits null (clearPhoto in _resetForm).
     _imageManagerNotifier.cleanupPendingPhoto();
+    // Provider dürfen nicht synchron in dispose() geändert werden —
+    // Future.microtask verzögert bis nach dem Widget-Tree-Finalize.
+    Future.microtask(() {
+      _categoriesNotifier.clear();
+      _portionsNotifier.set(defaultPortions);
+      _carbTagNotifier.clear();
+    });
     super.dispose();
   }
 }

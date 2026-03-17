@@ -265,19 +265,31 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
             row[SupabaseConstants.ingredientId] as String,
     };
 
-    // 2. Neue Zutaten in einem Batch anlegen
-    final newRows = [
-      for (final ingredient in ingredients)
-        if (!idMap.containsKey(ingredient.name))
-          {
-            SupabaseConstants.ingredientId: generateUuid(),
-            SupabaseConstants.ingredientName: ingredient.name,
-          },
-    ];
+    // 2. Neue Zutaten in einem Batch anlegen (dedupliziert)
+    final seenNames = <String>{...idMap.keys};
+    final newRows = <Map<String, String>>[];
+    for (final ingredient in ingredients) {
+      if (seenNames.add(ingredient.name)) {
+        newRows.add({
+          SupabaseConstants.ingredientId: generateUuid(),
+          SupabaseConstants.ingredientName: ingredient.name,
+        });
+      }
+    }
 
     if (newRows.isNotEmpty) {
-      await supabase.from(SupabaseConstants.ingredientsTable).insert(newRows);
-      for (final row in newRows) {
+      await supabase.from(SupabaseConstants.ingredientsTable).upsert(
+        newRows,
+        onConflict: SupabaseConstants.ingredientName,
+        ignoreDuplicates: true,
+      );
+      // IDs der tatsächlich eingefügten/existierenden Zutaten nachladen
+      final newNames = newRows.map((r) => r[SupabaseConstants.ingredientName]!).toList();
+      final inserted = await supabase
+          .from(SupabaseConstants.ingredientsTable)
+          .select('${SupabaseConstants.ingredientId}, ${SupabaseConstants.ingredientName}')
+          .inFilter(SupabaseConstants.ingredientName, newNames);
+      for (final row in inserted as List) {
         idMap[row[SupabaseConstants.ingredientName] as String] =
             row[SupabaseConstants.ingredientId] as String;
       }
