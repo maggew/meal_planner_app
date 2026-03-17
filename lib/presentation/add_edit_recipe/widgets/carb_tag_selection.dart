@@ -31,11 +31,11 @@ class CarbTagSelection extends ConsumerWidget {
               selected: isSelected,
               onSelected: (_) =>
                   ref.read(carbTagSelectionProvider.notifier).toggle(tag.value),
-              selectedColor: colorScheme.primaryContainer,
-              checkmarkColor: colorScheme.onPrimaryContainer,
+              selectedColor: colorScheme.primary,
+              checkmarkColor: colorScheme.onPrimary,
               labelStyle: TextStyle(
                 color: isSelected
-                    ? colorScheme.onPrimaryContainer
+                    ? colorScheme.onPrimary
                     : colorScheme.onSurface,
               ),
             );

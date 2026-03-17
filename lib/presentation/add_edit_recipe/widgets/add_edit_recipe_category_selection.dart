@@ -38,17 +38,28 @@ class _AddRecipeCategorySelection
               spacing: 8,
               runSpacing: 4,
               children: categories
-                  .map((category) => FilterChip(
-                        labelStyle: textTheme.bodyMedium,
-                        label: Text(category.name),
-                        selected: selectedCategories.contains(category.id),
-                        onSelected: (_) {
-                          FocusScope.of(context).unfocus();
-                          ref
-                              .read(selectedCategoriesProvider.notifier)
-                              .toggle(category.id);
-                        },
-                      ))
+                  .map((category) {
+                        final isSelected =
+                            selectedCategories.contains(category.id);
+                        final colorScheme = Theme.of(context).colorScheme;
+                        return FilterChip(
+                          labelStyle: textTheme.bodyMedium?.copyWith(
+                            color: isSelected
+                                ? colorScheme.onPrimary
+                                : colorScheme.onSurface,
+                          ),
+                          label: Text(category.name),
+                          selected: isSelected,
+                          selectedColor: colorScheme.primary,
+                          checkmarkColor: colorScheme.onPrimary,
+                          onSelected: (_) {
+                            FocusScope.of(context).unfocus();
+                            ref
+                                .read(selectedCategoriesProvider.notifier)
+                                .toggle(category.id);
+                          },
+                        );
+                      })
                   .toList(),
             ),
           ),
