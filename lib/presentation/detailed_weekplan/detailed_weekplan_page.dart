@@ -47,6 +47,8 @@ class _DetailedWeekplanPageState extends ConsumerState<DetailedWeekplanPage> {
         onPressed: () =>
             context.router.push(const RecipeSuggestionRoute()),
         tooltip: 'Vorschläge',
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         child: const Icon(Icons.auto_awesome),
       ),
     );

@@ -1,11 +1,9 @@
-import 'dart:ui';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/meal_plan_entry.dart';
+import 'package:meal_planner/presentation/common/glass_card.dart';
 import 'package:meal_planner/domain/enums/meal_type.dart';
 import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_recipe_picker.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
@@ -99,7 +97,6 @@ class WeekplanMealCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Resolve display name
     final String? displayName;
@@ -126,24 +123,9 @@ class WeekplanMealCard extends ConsumerWidget {
           : null,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 7),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? colorScheme.surface.withValues(alpha: 0.3)
-                    : colorScheme.surface.withValues(alpha: 0.6),
-                borderRadius:
-                    BorderRadius.circular(AppDimensions.borderRadius),
-                border: Border.all(
-                  color: colorScheme.onSurface.withValues(alpha: 0.1),
-                ),
-              ),
-              child: Row(
+        child: GlassCard(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          child: Row(
                 children: [
                   _MealTypeIcon(
                     icon: _icons[mealType]!,
@@ -234,8 +216,6 @@ class WeekplanMealCard extends ConsumerWidget {
               ),
             ),
           ),
-        ),
-      ),
     );
   }
 }

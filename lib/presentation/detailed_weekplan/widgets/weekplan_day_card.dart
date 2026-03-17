@@ -1,10 +1,8 @@
-import 'dart:ui';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/meal_plan_entry.dart';
+import 'package:meal_planner/presentation/common/glass_card.dart';
 import 'package:meal_planner/domain/enums/meal_type.dart';
 import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_recipe_picker.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
@@ -32,12 +30,12 @@ class WeekplanDayCard extends ConsumerWidget {
     final clipboard = ref.read(mealPlanClipboardProvider);
     if (clipboard == null) return;
     ref.read(mealPlanActionsProvider).addEntry(
-      date: date,
-      mealType: targetType,
-      recipeId: clipboard.entry.recipeId,
-      customName: clipboard.entry.customName,
-      cookIds: clipboard.entry.cookIds,
-    );
+          date: date,
+          mealType: targetType,
+          recipeId: clipboard.entry.recipeId,
+          customName: clipboard.entry.customName,
+          cookIds: clipboard.entry.cookIds,
+        );
     if (clipboard.isCut) {
       ref.read(mealPlanActionsProvider).removeEntry(clipboard.entry.id);
     }
@@ -68,7 +66,6 @@ class WeekplanDayCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final today = DateTime.now();
     final isToday = date.year == today.year &&
         date.month == today.month &&
@@ -84,26 +81,12 @@ class WeekplanDayCard extends ConsumerWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 7),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(16, 18, 8, 18),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? colorScheme.surface.withValues(alpha: 0.3)
-                  : colorScheme.surface.withValues(alpha: 0.6),
-              borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
-              border: Border.all(
-                color: isToday
-                    ? colorScheme.secondary
-                    : colorScheme.onSurface.withValues(alpha: 0.1),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+      child: GlassCard(
+        padding: const EdgeInsets.fromLTRB(16, 18, 8, 18),
+        borderColor: isToday ? colorScheme.secondary : null,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
                 Row(
                   children: [
                     Text(
@@ -166,8 +149,6 @@ class WeekplanDayCard extends ConsumerWidget {
               ],
             ),
           ),
-        ),
-      ),
     );
   }
 }
@@ -319,127 +300,127 @@ class _MealRow extends ConsumerWidget {
     return Opacity(
       opacity: isCut ? 0.4 : 1.0,
       child: GestureDetector(
-      onTap: () {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          builder: (_) => WeekplanRecipePicker(
-            date: date,
-            mealType: entry.mealType,
-            initialLabel: displayName,
-            initialRecipeId: entry.recipeId,
-            initialCustomName: entry.customName,
-            initialCookIds: entry.cookIds,
-            onSelected: (recipeId, customName, cookIds) {
-              ref.read(mealPlanActionsProvider).updateEntry(
-                    entry.id,
-                    recipeId: recipeId,
-                    customName: customName,
-                    cookIds: cookIds,
-                  );
-            },
-          ),
-        );
-      },
-      onLongPressStart: (details) async {
-        final size = MediaQuery.sizeOf(context);
-        final dx = details.globalPosition.dx;
-        final dy = details.globalPosition.dy;
-        final result = await showMenu<String>(
-          context: context,
-          position: RelativeRect.fromLTRB(
-              dx, dy, size.width - dx, size.height - dy),
-          items: [
-            if (entry.recipeId != null)
+        onTap: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (_) => WeekplanRecipePicker(
+              date: date,
+              mealType: entry.mealType,
+              initialLabel: displayName,
+              initialRecipeId: entry.recipeId,
+              initialCustomName: entry.customName,
+              initialCookIds: entry.cookIds,
+              onSelected: (recipeId, customName, cookIds) {
+                ref.read(mealPlanActionsProvider).updateEntry(
+                      entry.id,
+                      recipeId: recipeId,
+                      customName: customName,
+                      cookIds: cookIds,
+                    );
+              },
+            ),
+          );
+        },
+        onLongPressStart: (details) async {
+          final size = MediaQuery.sizeOf(context);
+          final dx = details.globalPosition.dx;
+          final dy = details.globalPosition.dy;
+          final result = await showMenu<String>(
+            context: context,
+            position: RelativeRect.fromLTRB(
+                dx, dy, size.width - dx, size.height - dy),
+            items: [
+              if (entry.recipeId != null)
+                PopupMenuItem(
+                  value: 'navigate',
+                  child: Row(children: [
+                    const Icon(Icons.menu_book_outlined, size: 16),
+                    const SizedBox(width: 8),
+                    const Text('Zum Rezept'),
+                  ]),
+                ),
               PopupMenuItem(
-                value: 'navigate',
+                value: 'copy',
                 child: Row(children: [
-                  const Icon(Icons.menu_book_outlined, size: 16),
+                  const Icon(Icons.content_copy, size: 16),
                   const SizedBox(width: 8),
-                  const Text('Zum Rezept'),
+                  const Text('Kopieren'),
                 ]),
               ),
-            PopupMenuItem(
-              value: 'copy',
-              child: Row(children: [
-                const Icon(Icons.content_copy, size: 16),
-                const SizedBox(width: 8),
-                const Text('Kopieren'),
-              ]),
-            ),
-            PopupMenuItem(
-              value: 'cut',
-              child: Row(children: [
-                const Icon(Icons.content_cut, size: 16),
-                const SizedBox(width: 8),
-                const Text('Ausschneiden'),
-              ]),
-            ),
-          ],
-        );
-        if (!context.mounted) return;
-        switch (result) {
-          case 'navigate':
-            context.router.root
-                .push(ShowRecipeRoute(recipeId: entry.recipeId!));
-          case 'copy':
-            ref
-                .read(mealPlanClipboardProvider.notifier)
-                .copy(entry, displayName: displayName);
-          case 'cut':
-            ref
-                .read(mealPlanClipboardProvider.notifier)
-                .cut(entry, displayName: displayName);
-        }
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            if (showIcon)
-              Icon(icon, size: 20, color: colorScheme.primary)
-            else
-              const SizedBox(width: 20),
-            if (entry.cookIds.isNotEmpty) ...[
-              const SizedBox(width: 6),
-              _CookAvatarStack(cookIds: entry.cookIds),
+              PopupMenuItem(
+                value: 'cut',
+                child: Row(children: [
+                  const Icon(Icons.content_cut, size: 16),
+                  const SizedBox(width: 8),
+                  const Text('Ausschneiden'),
+                ]),
+              ),
             ],
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                displayName ?? '…',
-                style: textTheme.bodyLarge?.copyWith(
-                  color: entry.recipeId != null
-                      ? colorScheme.primary
-                      : colorScheme.onSurface,
+          );
+          if (!context.mounted) return;
+          switch (result) {
+            case 'navigate':
+              context.router.root
+                  .push(ShowRecipeRoute(recipeId: entry.recipeId!));
+            case 'copy':
+              ref
+                  .read(mealPlanClipboardProvider.notifier)
+                  .copy(entry, displayName: displayName);
+            case 'cut':
+              ref
+                  .read(mealPlanClipboardProvider.notifier)
+                  .cut(entry, displayName: displayName);
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (showIcon)
+                Icon(icon, size: 20, color: colorScheme.primary)
+              else
+                const SizedBox(width: 20),
+              if (entry.cookIds.isNotEmpty) ...[
+                const SizedBox(width: 6),
+                _CookAvatarStack(cookIds: entry.cookIds),
+              ],
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  displayName ?? '…',
+                  style: textTheme.bodyLarge?.copyWith(
+                    color: entry.recipeId != null
+                        ? colorScheme.primary
+                        : colorScheme.onSurface,
+                  ),
                 ),
               ),
-            ),
-            if (entry.recipeId != null) ...[
+              if (entry.recipeId != null) ...[
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.menu_book_outlined,
+                  size: 15,
+                  color: colorScheme.onSurface.withValues(alpha: 0.35),
+                ),
+              ],
               const SizedBox(width: 4),
-              Icon(
-                Icons.menu_book_outlined,
-                size: 15,
-                color: colorScheme.onSurface.withValues(alpha: 0.35),
-              ),
-            ],
-            const SizedBox(width: 4),
-            GestureDetector(
-              onTap: () => _showDeleteDialog(context, ref),
-              child: Padding(
-                padding: const EdgeInsets.all(4),
-                child: Icon(
-                  Icons.close,
-                  size: 18,
-                  color: colorScheme.onSurface.withValues(alpha: 0.4),
+              GestureDetector(
+                onTap: () => _showDeleteDialog(context, ref),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Icon(
+                    Icons.close,
+                    size: 18,
+                    color: colorScheme.onSurface.withValues(alpha: 0.4),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 }
@@ -491,12 +472,10 @@ class _CookAvatarStack extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    final avatars = cookIds
-        .map((id) => ref.watch(cookUserProvider(id)).value)
-        .toList();
+    final avatars =
+        cookIds.map((id) => ref.watch(cookUserProvider(id)).value).toList();
 
-    final width =
-        _radius * 2 + (cookIds.length - 1) * (_radius * 2 - _overlap);
+    final width = _radius * 2 + (cookIds.length - 1) * (_radius * 2 - _overlap);
 
     return SizedBox(
       width: width,
@@ -509,9 +488,8 @@ class _CookAvatarStack extends ConsumerWidget {
             child: CircleAvatar(
               radius: _radius,
               backgroundColor: colorScheme.primaryContainer,
-              backgroundImage: user?.imageUrl != null
-                  ? NetworkImage(user!.imageUrl!)
-                  : null,
+              backgroundImage:
+                  user?.imageUrl != null ? NetworkImage(user!.imageUrl!) : null,
               child: user?.imageUrl == null
                   ? Text(
                       user?.name.isNotEmpty == true

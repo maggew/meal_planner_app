@@ -5,11 +5,13 @@ import 'package:meal_planner/core/constants/app_dimensions.dart';
 class GlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
+  final Color? borderColor;
 
   const GlassCard({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(16),
+    this.borderColor,
   });
 
   @override
@@ -28,7 +30,7 @@ class GlassCard extends StatelessWidget {
                 : colorScheme.surface.withValues(alpha: 0.6),
             borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
             border: Border.all(
-              color: colorScheme.onSurface.withValues(alpha: 0.1),
+              color: borderColor ?? colorScheme.onSurface.withValues(alpha: 0.1),
             ),
           ),
           padding: padding,
