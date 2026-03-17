@@ -29,6 +29,7 @@ class RecipeExtractor {
     split = split.map(normalizeLineSpacing).toList();
     split = splitInlineIngredients(split);
     List<String> ingredients = mergeHyphenatedLines(split);
+    ingredients = mergeUnbalancedParentheses(ingredients);
     ingredients = pairOrphanAmountsWithNames(ingredients);
     ingredients = mergeContinuationLines(ingredients);
     return _parseIngredients(createSections(ingredients));
@@ -306,25 +307,70 @@ class RecipeExtractor {
     return _sectionPatterns.any((p) => lowerLine.contains(p));
   }
 
+  /// Strips parenthetical content from section header names.
+  /// "Chilimischung (s Tipp)" → "Chilimischung"
+  static String _stripParentheses(String text) =>
+      text.replaceAll(RegExp(r'\s*\([^)]*\)\s*'), ' ').trim();
+
+  /// Detects section headers by structural context: a non-ingredient word
+  /// followed by at least 2 lines with amounts in the next 3 lines.
+  @visibleForTesting
+  static bool isStructuralHeader(
+      String line, List<String> allLines, int index) {
+    // (a) Must start with uppercase letter
+    if (line.isEmpty ||
+        line[0] != line[0].toUpperCase() ||
+        line[0] == line[0].toLowerCase()) {
+      return false;
+    }
+
+    // (b) Must not contain digits (lines with amounts are ingredients)
+    if (RegExp(r'\d').hasMatch(line)) {
+      return false;
+    }
+
+    // (c) Must not be a known standalone ingredient (word-level match)
+    final words = line
+        .toLowerCase()
+        .split(RegExp(r'[\s,()+]+'))
+        .where((w) => w.isNotEmpty);
+    if (_standaloneIngredients.any((ing) => words.contains(ing))) {
+      return false;
+    }
+
+    // (d) At least 2 of the next 3 lines must start with a digit
+    int amountLines = 0;
+    final lookAhead = (index + 4).clamp(0, allLines.length);
+    for (int j = index + 1; j < lookAhead; j++) {
+      if (allLines[j].isNotEmpty && RegExp(r'^\d').hasMatch(allLines[j])) {
+        amountLines++;
+      }
+    }
+
+    return amountLines >= 2;
+  }
+
   @visibleForTesting
   static Map<String, List<String>> createSections(List<String> lines) {
     Map<String, List<String>> output = {};
     String currentSection = "Zutaten";
 
-    for (String line in lines) {
-      if (isSectionHeader(line)) {
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      if (isSectionHeader(line) ||
+          isStructuralHeader(line, lines, i)) {
         // "Außerdem: Backpapier" → header="Außerdem", item="Backpapier"
         final colonIdx = line.indexOf(':');
         final String header;
         final String? inlineItem;
         if (colonIdx > 0 && colonIdx < line.length - 1) {
-          header = line.substring(0, colonIdx).trim();
+          header = _stripParentheses(line.substring(0, colonIdx).trim());
           final rest = line.substring(colonIdx + 1).trim();
           inlineItem = rest.isNotEmpty ? rest : null;
         } else {
-          header = line.endsWith(':')
+          header = _stripParentheses(line.endsWith(':')
               ? line.substring(0, line.length - 1).trim()
-              : line;
+              : line);
           inlineItem = null;
         }
         output[header] = [];
@@ -477,6 +523,15 @@ class RecipeExtractor {
     'zucker',
   ];
 
+  /// Ingredients that must never be promoted to structural section headers.
+  /// Checked via exact word match (not substring).
+  static const _standaloneIngredients = [
+    'salz', 'pfeffer', 'muskat', 'muskatnuss', 'zimt', 'paprikapulver',
+    'curry', 'kreuzkümmel', 'kumin', 'oregano', 'basilikum', 'thymian',
+    'rosmarin', 'petersilie', 'schnittlauch', 'dill', 'koriander',
+    'majoran', 'chiliflocken', 'cayennepfeffer', 'zucker', 'vanillezucker',
+  ];
+
   @visibleForTesting
   static List<String> mergeHyphenatedLines(List<String> lines) {
     List<String> output = [];
@@ -499,6 +554,52 @@ class RecipeExtractor {
     }
 
     return output;
+  }
+
+  /// Merges lines when parentheses are not balanced.
+  /// "Rohrohrzucker (oder" + "flüssiger" + "Honig)" → single line.
+  /// Escape: if two consecutive lines with amounts appear while searching
+  /// for the closing ")", the ")" was likely lost by OCR — stop merging.
+  @visibleForTesting
+  static List<String> mergeUnbalancedParentheses(List<String> lines) {
+    final output = <String>[];
+
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      if (output.isNotEmpty && _hasUnclosedParen(output.last)) {
+        // Line contains ')' → merge (closes the paren)
+        if (line.contains(')')) {
+          output[output.length - 1] += ' $line';
+        }
+        // Escape: this line AND next line both start with a digit →
+        // two valid ingredients in a row, OCR probably lost the ')'
+        else if (_startsWithDigit(line) &&
+            i + 1 < lines.length &&
+            _startsWithDigit(lines[i + 1])) {
+          output.add(line);
+        }
+        // Otherwise keep merging
+        else {
+          output[output.length - 1] += ' $line';
+        }
+      } else {
+        output.add(line);
+      }
+    }
+
+    return output;
+  }
+
+  static bool _startsWithDigit(String s) =>
+      s.isNotEmpty && RegExp(r'^\d').hasMatch(s);
+
+  static bool _hasUnclosedParen(String text) {
+    int depth = 0;
+    for (int i = 0; i < text.length; i++) {
+      if (text[i] == '(') depth++;
+      if (text[i] == ')') depth--;
+    }
+    return depth > 0;
   }
 
   static List<IngredientSection> _parseIngredients(

@@ -432,6 +432,214 @@ void main() {
   });
 
   // ═══════════════════════════════════════════════════════════════════
+  // Pipeline step: isStructuralHeader
+  // ═══════════════════════════════════════════════════════════════════
+  group('isStructuralHeader', () {
+    test('"Gemüse" followed by 3 amount lines → header', () {
+      final lines = [
+        'Gemüse',
+        '700 g Chinakohl',
+        '100 g Möhren',
+        '2 Stk Knoblauchzehen',
+      ];
+      expect(RecipeExtractor.isStructuralHeader(lines[0], lines, 0), isTrue);
+    });
+
+    test('"Chilimischung" followed by amount lines → header', () {
+      final lines = [
+        'Chilimischung',
+        '2 TL Chiliflocken',
+        '6 TL Sojasoße',
+        '1 TL flüssiger Honig',
+      ];
+      expect(RecipeExtractor.isStructuralHeader(lines[0], lines, 0), isTrue);
+    });
+
+    test('"Salz" is excluded (standalone ingredient)', () {
+      final lines = [
+        'Salz',
+        '80 ml Sojasoße',
+        '1/2 EL Rohrohrzucker',
+        '4 TL Sesamöl',
+      ];
+      expect(RecipeExtractor.isStructuralHeader(lines[0], lines, 0), isFalse);
+    });
+
+    test('"Tofu" followed by amount lines → header (not a spice)', () {
+      final lines = [
+        'Tofu',
+        '80 ml Sojasoße',
+        '1/2 EL Rohrohrzucker',
+        '4 TL Sesamöl',
+      ];
+      expect(RecipeExtractor.isStructuralHeader(lines[0], lines, 0), isTrue);
+    });
+
+    test('line with digits is not a structural header', () {
+      final lines = [
+        '200 g Mehl',
+        '3 Eier',
+        '100 ml Milch',
+      ];
+      expect(RecipeExtractor.isStructuralHeader(lines[0], lines, 0), isFalse);
+    });
+
+    test('lowercase line is not a structural header', () {
+      final lines = [
+        'gemüse',
+        '700 g Chinakohl',
+        '100 g Möhren',
+      ];
+      expect(RecipeExtractor.isStructuralHeader(lines[0], lines, 0), isFalse);
+    });
+
+    test('only 1 following amount line → not enough (threshold is 2)', () {
+      final lines = [
+        'Gemüse',
+        '700 g Chinakohl',
+        'Salz',
+      ];
+      expect(RecipeExtractor.isStructuralHeader(lines[0], lines, 0), isFalse);
+    });
+
+    test('2 of next 3 lines have amounts → header', () {
+      final lines = [
+        'Gemüse',
+        '700 g Chinakohl',
+        'Salz',
+        '100 g Möhren',
+      ];
+      expect(RecipeExtractor.isStructuralHeader(lines[0], lines, 0), isTrue);
+    });
+
+    test('last line in list → no following lines → not a header', () {
+      final lines = ['Gemüse'];
+      expect(RecipeExtractor.isStructuralHeader(lines[0], lines, 0), isFalse);
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // createSections with structural headers (end-to-end)
+  // ═══════════════════════════════════════════════════════════════════
+  group('createSections – structural headers', () {
+    test('Chili recipe: Chilimischung + Gemüse detected as sections', () {
+      final lines = [
+        'Chilimischung',
+        '2 TL Chiliflocken',
+        '6 TL Sojasoße',
+        '1 TL flüssiger Honig',
+        'Gemüse',
+        '700 g Chinakohl',
+        '100 g Möhren',
+        '2 Stk Knoblauchzehen',
+        '3 EL Bratölivenöl',
+        'Salz',
+        'Tofu',
+        '80 ml Sojasoße',
+        'Außerdem',
+        '300 g Milchreis',
+        '2 TL Sesam',
+      ];
+      final sections = RecipeExtractor.createSections(lines);
+      expect(sections.keys, containsAll([
+        'Chilimischung',
+        'Gemüse',
+        'Tofu',
+        'Außerdem',
+      ]));
+      expect(sections['Chilimischung'], [
+        '2 TL Chiliflocken',
+        '6 TL Sojasoße',
+        '1 TL flüssiger Honig',
+      ]);
+      expect(sections['Gemüse'], contains('700 g Chinakohl'));
+      expect(sections['Gemüse'], contains('Salz'));
+      expect(sections['Tofu'], contains('80 ml Sojasoße'));
+    });
+
+    test('standalone ingredients are NOT split into sections', () {
+      final lines = [
+        '200 g Mehl',
+        'Salz',
+        'Pfeffer',
+        '3 Eier',
+        '100 ml Milch',
+      ];
+      final sections = RecipeExtractor.createSections(lines);
+      expect(sections.keys.length, 1);
+      expect(sections.keys.first, 'Zutaten');
+      expect(sections['Zutaten']!.length, 5);
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // Pipeline step: mergeUnbalancedParentheses
+  // ═══════════════════════════════════════════════════════════════════
+  group('mergeUnbalancedParentheses', () {
+    test('merges lines until parentheses are balanced', () {
+      expect(
+        RecipeExtractor.mergeUnbalancedParentheses([
+          '1/2 EL Rohrohrzucker (oder',
+          'flüssiger',
+          'Honig)',
+        ]),
+        ['1/2 EL Rohrohrzucker (oder flüssiger Honig)'],
+      );
+    });
+
+    test('balanced lines pass through unchanged', () {
+      expect(
+        RecipeExtractor.mergeUnbalancedParentheses([
+          '200 g Mehl',
+          '3 Eier',
+          '100 ml Milch (Bio)',
+        ]),
+        ['200 g Mehl', '3 Eier', '100 ml Milch (Bio)'],
+      );
+    });
+
+    test('single unclosed paren merges only next line', () {
+      expect(
+        RecipeExtractor.mergeUnbalancedParentheses([
+          'Bohnen (250 g,',
+          'abgetropft)',
+          '3 Eier',
+        ]),
+        ['Bohnen (250 g, abgetropft)', '3 Eier'],
+      );
+    });
+
+    test('no parentheses at all passes through unchanged', () {
+      expect(
+        RecipeExtractor.mergeUnbalancedParentheses(['Salz', 'Pfeffer']),
+        ['Salz', 'Pfeffer'],
+      );
+    });
+
+    test('escape: two consecutive amount lines abort merge (OCR lost ")")', () {
+      expect(
+        RecipeExtractor.mergeUnbalancedParentheses([
+          'Zutat (ohne Klammer erkannt',
+          '200 g Mehl',
+          '3 Eier',
+        ]),
+        ['Zutat (ohne Klammer erkannt', '200 g Mehl', '3 Eier'],
+      );
+    });
+
+    test('escape does not trigger when line contains ")"', () {
+      expect(
+        RecipeExtractor.mergeUnbalancedParentheses([
+          'Bohnen (ca.',
+          '250 g)',
+          '3 Eier',
+        ]),
+        ['Bohnen (ca. 250 g)', '3 Eier'],
+      );
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
   // Pipeline step: splitInlineIngredients — edge cases
   // ═══════════════════════════════════════════════════════════════════
   group('splitInlineIngredients – edge cases', () {
