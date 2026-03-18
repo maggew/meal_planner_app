@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/domain/entities/meal_plan_entry.dart';
 import 'package:meal_planner/domain/entities/user.dart';
 import 'package:meal_planner/domain/enums/meal_type.dart';
@@ -61,14 +62,26 @@ class MealPlanActionsNotifier {
   }
 }
 
-// Recipe name lookup from local cache – auto-disposes when not watched.
-// Pass a non-empty recipeId; returns null if recipe not found.
+// Recipe name lookup — checks local Drift cache first, falls back to Supabase.
+// Pass a non-empty recipeId; returns null if recipe not found anywhere.
 final recipeNameProvider =
     FutureProvider.autoDispose.family<String?, String>((ref, recipeId) async {
   if (recipeId.isEmpty) return null;
   final dao = ref.watch(recipeCacheDaoProvider);
   final recipe = await dao.getRecipeById(recipeId);
-  return recipe?.name;
+  if (recipe != null) return recipe.name;
+
+  // Fallback: recipe not in local cache yet (e.g. fresh install before cookbook sync)
+  final supabase = ref.watch(supabaseProvider);
+  final groupId = ref.watch(sessionProvider).groupId;
+  if (groupId == null) return null;
+  final response = await supabase
+      .from(SupabaseConstants.recipesTable)
+      .select(SupabaseConstants.recipeTitle)
+      .eq(SupabaseConstants.recipeId, recipeId)
+      .eq(SupabaseConstants.recipeGroupId, groupId)
+      .maybeSingle();
+  return response?[SupabaseConstants.recipeTitle] as String?;
 });
 
 // Cook (User) lookup by userId within the current group
