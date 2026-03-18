@@ -10,7 +10,7 @@ class UserSettings {
   final RecipeSortOption recipeSortOption;
 
   const UserSettings({
-    this.tabPosition = TabPosition.left,
+    this.tabPosition = TabPosition.right,
     this.themeOption = ThemeOption.system,
     this.recipeSortOption = RecipeSortOption.alphabetical,
   });
@@ -20,7 +20,7 @@ class UserSettings {
   factory UserSettings.fromJson(Map<String, dynamic> json) {
     return UserSettings(
       tabPosition: TabPosition.values.byName(
-        json['tab_position'] as String? ?? 'left',
+        json['tab_position'] as String? ?? 'right',
       ),
       themeOption: ThemeOption.values.byName(
         json['theme_option'] as String? ?? 'system',
