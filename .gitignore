@@ -12,6 +12,8 @@
 .env
 .claude/
 
+screenshots/debug*.png
+
 android/app/google-services.json
 android/key.properties
 android/upload-keystore.jks
