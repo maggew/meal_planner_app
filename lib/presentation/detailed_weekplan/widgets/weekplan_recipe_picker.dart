@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +6,7 @@ import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/core/database/app_database.dart';
 import 'package:meal_planner/domain/entities/user.dart';
 import 'package:meal_planner/domain/enums/meal_type.dart';
+import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/groups/group_members_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
@@ -53,6 +55,7 @@ class _WeekplanRecipePickerState extends ConsumerState<WeekplanRecipePicker> {
   String _searchQuery = '';
   late final TextEditingController _customController;
   late final Set<String> _selectedCookIds;
+  final _sheetController = DraggableScrollableController();
 
   static const _weekdayLong = [
     'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag',
@@ -86,6 +89,7 @@ class _WeekplanRecipePickerState extends ConsumerState<WeekplanRecipePicker> {
   @override
   void dispose() {
     _customController.dispose();
+    _sheetController.dispose();
     super.dispose();
   }
 
@@ -113,6 +117,7 @@ class _WeekplanRecipePickerState extends ConsumerState<WeekplanRecipePicker> {
     return Padding(
       padding: EdgeInsets.only(bottom: bottomInset),
       child: DraggableScrollableSheet(
+        controller: _sheetController,
         initialChildSize: 0.85,
         minChildSize: 0.5,
         maxChildSize: 1.0,
@@ -128,22 +133,59 @@ class _WeekplanRecipePickerState extends ConsumerState<WeekplanRecipePicker> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Drag handle
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(top: 12, bottom: 8),
-                decoration: BoxDecoration(
-                  color: colorScheme.onSurface.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(2),
+            GestureDetector(
+              onVerticalDragUpdate: (details) {
+                final delta = details.primaryDelta! /
+                    MediaQuery.sizeOf(context).height;
+                _sheetController.jumpTo(
+                  (_sheetController.size - delta).clamp(0.5, 1.0),
+                );
+              },
+              child: Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(top: 12, bottom: 8),
+                  decoration: BoxDecoration(
+                    color: colorScheme.onSurface.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
             ),
 
-            // Title + subtitle
+            // Title + suggestion button
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 2),
-              child: Text('Mahlzeit planen', style: textTheme.titleSmall),
+              padding: const EdgeInsets.fromLTRB(20, 4, 12, 2),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text('Mahlzeit planen', style: textTheme.titleSmall),
+                  ),
+                  if (widget.date != null && widget.mealType != null)
+                    IconButton(
+                      onPressed: () {
+                        final cookIds = _selectedCookIds.toList();
+                        Navigator.of(context).pop();
+                        context.router.push(
+                          RecipeSuggestionRoute(
+                            referenceDate: widget.date!,
+                            mealType: widget.mealType!,
+                            cookIds: cookIds,
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.auto_awesome, size: 20),
+                      tooltip: 'Vorschläge',
+                      style: IconButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                        padding: const EdgeInsets.all(8),
+                        minimumSize: const Size(36, 36),
+                      ),
+                    ),
+                ],
+              ),
             ),
             if (_subtitle != null)
               Padding(
@@ -269,7 +311,7 @@ class _WeekplanRecipePickerState extends ConsumerState<WeekplanRecipePicker> {
               ),
             ],
 
-            // Free-text input
+            // Search / free-text input
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -277,16 +319,19 @@ class _WeekplanRecipePickerState extends ConsumerState<WeekplanRecipePicker> {
                   Expanded(
                     child: TextField(
                       controller: _customController,
+                      autofocus: false,
                       decoration: InputDecoration(
-                        hintText: 'Freitext (z. B. Reste) …',
-                        prefixIcon: const Icon(Icons.edit_note),
+                        hintText: 'Rezept suchen oder Freitext …',
+                        prefixIcon: const Icon(Icons.search),
                         hintStyle: textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurface.withValues(alpha: 0.45),
                         ),
                       ),
                       textInputAction: TextInputAction.done,
                       onSubmitted: (_) => _submitCustom(),
-                      onChanged: (_) => setState(() {}),
+                      onChanged: (v) => setState(() {
+                        _searchQuery = v.toLowerCase();
+                      }),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -302,47 +347,6 @@ class _WeekplanRecipePickerState extends ConsumerState<WeekplanRecipePicker> {
                     child: const Icon(Icons.arrow_forward, size: 20),
                   ),
                 ],
-              ),
-            ),
-
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Divider(
-                        color:
-                            colorScheme.onSurface.withValues(alpha: 0.15)),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Text(
-                      'oder Rezept wählen',
-                      style: textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurface.withValues(alpha: 0.45),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Divider(
-                        color:
-                            colorScheme.onSurface.withValues(alpha: 0.15)),
-                  ),
-                ],
-              ),
-            ),
-
-            // Search field
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: TextField(
-                autofocus: false,
-                decoration: const InputDecoration(
-                  hintText: 'Rezept suchen …',
-                  prefixIcon: Icon(Icons.search),
-                ),
-                onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
               ),
             ),
             const SizedBox(height: 8),

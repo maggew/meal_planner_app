@@ -31,7 +31,10 @@ class WeekplanMealCard extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => WeekplanRecipePicker(
+        date: selectedDay,
+        mealType: mealType,
         onSelected: (recipeId, customName, cookIds) {
           ref.read(mealPlanActionsProvider).addEntry(
                 date: selectedDay,
@@ -50,7 +53,10 @@ class WeekplanMealCard extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => WeekplanRecipePicker(
+        date: selectedDay,
+        mealType: mealType,
         initialLabel: displayName,
         initialRecipeId: entry!.recipeId,
         initialCustomName: entry!.customName,

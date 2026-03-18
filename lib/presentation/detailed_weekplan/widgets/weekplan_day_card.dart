@@ -46,6 +46,7 @@ class WeekplanDayCard extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => WeekplanRecipePicker(
         date: date,
         mealType: mealType,
@@ -304,6 +305,7 @@ class _MealRow extends ConsumerWidget {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
+            useSafeArea: true,
             builder: (_) => WeekplanRecipePicker(
               date: date,
               mealType: entry.mealType,
