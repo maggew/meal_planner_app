@@ -40,7 +40,7 @@ final class TimerTickProvider extends $NotifierProvider<TimerTick, int> {
   }
 }
 
-String _$timerTickHash() => r'66887512c6f3d66f32d574adf6ed48064adf5abe';
+String _$timerTickHash() => r'81e2c98d4f5c892599e813fe1d947adb5c12b353';
 
 abstract class _$TimerTick extends $Notifier<int> {
   int build();

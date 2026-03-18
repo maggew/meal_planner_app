@@ -149,6 +149,19 @@ class _MyAppState extends ConsumerState<MyApp> {
     NotificationService.instance.stopAlarmSound();
     ref.read(activeTimerProvider.notifier).markAsFinished(payload);
 
+    // Prüfen ob wir schon auf dem richtigen Rezept sind
+    final stack = _appRouter.stack;
+    if (stack.isNotEmpty) {
+      final topRoute = stack.last;
+      if (topRoute.name == ShowRecipeRoute.name) {
+        final args = topRoute.routeData.args as ShowRecipeRouteArgs?;
+        if (args != null &&
+            (args.recipeId == recipeId || args.recipe?.id == recipeId)) {
+          return; // Schon auf dem richtigen Rezept
+        }
+      }
+    }
+
     _appRouter.push(ShowRecipeRoute(
       recipeId: recipeId,
       initialStep: stepIndex,

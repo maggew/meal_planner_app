@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -83,17 +85,18 @@ class NotificationService {
       body: body,
       scheduledDate: tzScheduledTime,
       payload: payload,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      notificationDetails: const NotificationDetails(
+      androidScheduleMode: AndroidScheduleMode.alarmClock,
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           'timer_alarm_channel_v3',
           'Koch-Timer Alarm',
           channelDescription: 'Alarm wenn ein Koch-Timer abgelaufen ist',
           importance: Importance.max,
           priority: Priority.high,
-          sound: RawResourceAndroidNotificationSound('timer_alarm'),
+          sound: const RawResourceAndroidNotificationSound('timer_alarm'),
           playSound: true,
           audioAttributesUsage: AudioAttributesUsage.alarm,
+          additionalFlags: Int32List.fromList([4]), // FLAG_INSISTENT
         ),
         iOS: DarwinNotificationDetails(
           presentAlert: true,

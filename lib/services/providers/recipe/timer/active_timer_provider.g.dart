@@ -42,7 +42,7 @@ final class ActiveTimerNotifierProvider
 }
 
 String _$activeTimerNotifierHash() =>
-    r'1c0fc61d85826aa89ac736571f12121ebae495a5';
+    r'7838da13117d7df5cfb4e124e9842e3ab26315e7';
 
 abstract class _$ActiveTimerNotifier
     extends $Notifier<Map<String, ActiveTimer>> {
