@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meal_planner/presentation/common/glass_card.dart';
 import 'package:meal_planner/presentation/settings/widgets/account_section.dart';
 import 'package:meal_planner/presentation/settings/widgets/group_settings_section.dart';
 import 'package:meal_planner/presentation/settings/widgets/user_settings_section.dart';
@@ -21,13 +22,21 @@ class SettingsBody extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
+        spacing: 20,
         children: [
-          AccountSection(onEditingChanged: onAccountEditingChanged),
-          const Divider(height: 32),
-          const UserSettingsSection(),
-          const Divider(height: 32),
-          GroupSettingsSection(onEditingChanged: onGroupEditingChanged),
-          const Divider(height: 32),
+          GlassCard(
+            child: Column(
+              children: [
+                AccountSection(onEditingChanged: onAccountEditingChanged),
+                const Divider(height: 32),
+                const UserSettingsSection(),
+              ],
+            ),
+          ),
+          GlassCard(
+            child: GroupSettingsSection(
+                onEditingChanged: onGroupEditingChanged),
+          ),
           OutlinedButton(
             onPressed: onLogout,
             style: OutlinedButton.styleFrom(
