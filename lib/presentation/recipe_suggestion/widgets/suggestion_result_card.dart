@@ -4,23 +4,38 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/recipe_suggestion.dart';
 import 'package:meal_planner/domain/enums/carb_tag.dart';
-import 'package:meal_planner/presentation/recipe_suggestion/widgets/quick_assign_dialog.dart';
+import 'package:meal_planner/domain/enums/meal_type.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
+import 'package:meal_planner/services/providers/meal_plan/meal_plan_provider.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
 
 class SuggestionResultCard extends ConsumerWidget {
   final RecipeSuggestion suggestion;
+  final DateTime targetDate;
+  final MealType targetMealType;
+  final List<String> cookIds;
 
-  const SuggestionResultCard({super.key, required this.suggestion});
+  const SuggestionResultCard({
+    super.key,
+    required this.suggestion,
+    required this.targetDate,
+    required this.targetMealType,
+    this.cookIds = const [],
+  });
 
-  void _showQuickAssign(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  void _assignDirect(BuildContext context, WidgetRef ref) {
+    ref.read(mealPlanActionsProvider).addEntry(
+          date: targetDate,
+          mealType: targetMealType,
+          recipeId: suggestion.recipe.id,
+          cookIds: cookIds,
+        );
+    context.router.maybePop();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${suggestion.recipe.name} eingeplant!'),
+        behavior: SnackBarBehavior.floating,
       ),
-      builder: (_) => QuickAssignDialog(recipe: suggestion.recipe),
     );
   }
 
@@ -136,11 +151,11 @@ class SuggestionResultCard extends ConsumerWidget {
                   ],
                 ),
               ),
-              // Quick-assign button
+              // Assign button
               IconButton(
-                icon: const Icon(Icons.calendar_month_outlined),
-                tooltip: 'Einplanen',
-                onPressed: () => _showQuickAssign(context),
+                icon: const Icon(Icons.check_circle_outline),
+                tooltip: 'Übernehmen',
+                onPressed: () => _assignDirect(context, ref),
               ),
             ],
           ),

@@ -2,13 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/recipe_suggestion.dart';
+import 'package:meal_planner/domain/enums/meal_type.dart';
 import 'package:meal_planner/presentation/common/glass_card.dart';
 import 'package:meal_planner/presentation/recipe_suggestion/widgets/ingredient_input_widget.dart';
 import 'package:meal_planner/presentation/recipe_suggestion/widgets/suggestion_result_card.dart';
 import 'package:meal_planner/services/providers/suggestion/recipe_suggestion_provider.dart';
 
 class RecipeSuggestionBody extends ConsumerStatefulWidget {
-  const RecipeSuggestionBody({super.key});
+  final DateTime referenceDate;
+  final MealType mealType;
+  final List<String> cookIds;
+
+  const RecipeSuggestionBody({
+    super.key,
+    required this.referenceDate,
+    required this.mealType,
+    this.cookIds = const [],
+  });
 
   @override
   ConsumerState<RecipeSuggestionBody> createState() =>
@@ -67,7 +77,7 @@ class _RecipeSuggestionBodyState extends ConsumerState<RecipeSuggestionBody> {
                             FocusScope.of(context).unfocus();
                             ref
                                 .read(recipeSuggestionProvider.notifier)
-                                .suggest(_ingredients);
+                                .suggest(_ingredients, referenceDate: widget.referenceDate);
                           },
                     icon: suggestionState.isLoading
                         ? const SizedBox(
@@ -100,20 +110,35 @@ class _RecipeSuggestionBodyState extends ConsumerState<RecipeSuggestionBody> {
             if (perfect.isNotEmpty) ...[
               _SectionHeader(title: 'Beste Treffer'),
               ...perfect
-                  .map((s) => SuggestionResultCard(suggestion: s)),
+                  .map((s) => SuggestionResultCard(
+                    suggestion: s,
+                    targetDate: widget.referenceDate,
+                    targetMealType: widget.mealType,
+                    cookIds: widget.cookIds,
+                  )),
             ],
             if (partial.isNotEmpty) ...[
               if (perfect.isNotEmpty) const SizedBox(height: 8),
               _SectionHeader(title: 'Teilweise passend'),
               ...partial
-                  .map((s) => SuggestionResultCard(suggestion: s)),
+                  .map((s) => SuggestionResultCard(
+                    suggestion: s,
+                    targetDate: widget.referenceDate,
+                    targetMealType: widget.mealType,
+                    cookIds: widget.cookIds,
+                  )),
             ],
             if (other.isNotEmpty) ...[
               if (perfect.isNotEmpty || partial.isNotEmpty)
                 const SizedBox(height: 8),
               _SectionHeader(title: 'Weitere Vorschläge'),
               ...other
-                  .map((s) => SuggestionResultCard(suggestion: s)),
+                  .map((s) => SuggestionResultCard(
+                    suggestion: s,
+                    targetDate: widget.referenceDate,
+                    targetMealType: widget.mealType,
+                    cookIds: widget.cookIds,
+                  )),
             ],
           ] else if (!suggestionState.isLoading &&
               suggestionState.error == null) ...[

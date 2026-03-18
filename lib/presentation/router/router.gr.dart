@@ -10,9 +10,11 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:auto_route/auto_route.dart' as _i21;
+import 'package:collection/collection.dart' as _i26;
 import 'package:flutter/material.dart' as _i22;
 import 'package:meal_planner/domain/entities/group.dart' as _i24;
 import 'package:meal_planner/domain/entities/recipe.dart' as _i23;
+import 'package:meal_planner/domain/enums/meal_type.dart' as _i25;
 import 'package:meal_planner/presentation/add_edit_recipe/add_edit_recipe_page.dart'
     as _i1;
 import 'package:meal_planner/presentation/cookbook/cookbook_page.dart' as _i2;
@@ -276,18 +278,78 @@ class ProfileRoute extends _i21.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i11.RecipeSuggestionPage]
-class RecipeSuggestionRoute extends _i21.PageRouteInfo<void> {
-  const RecipeSuggestionRoute({List<_i21.PageRouteInfo>? children})
-      : super(RecipeSuggestionRoute.name, initialChildren: children);
+class RecipeSuggestionRoute
+    extends _i21.PageRouteInfo<RecipeSuggestionRouteArgs> {
+  RecipeSuggestionRoute({
+    _i22.Key? key,
+    required DateTime referenceDate,
+    required _i25.MealType mealType,
+    List<String> cookIds = const [],
+    List<_i21.PageRouteInfo>? children,
+  }) : super(
+          RecipeSuggestionRoute.name,
+          args: RecipeSuggestionRouteArgs(
+            key: key,
+            referenceDate: referenceDate,
+            mealType: mealType,
+            cookIds: cookIds,
+          ),
+          initialChildren: children,
+        );
 
   static const String name = 'RecipeSuggestionRoute';
 
   static _i21.PageInfo page = _i21.PageInfo(
     name,
     builder: (data) {
-      return const _i11.RecipeSuggestionPage();
+      final args = data.argsAs<RecipeSuggestionRouteArgs>();
+      return _i11.RecipeSuggestionPage(
+        key: args.key,
+        referenceDate: args.referenceDate,
+        mealType: args.mealType,
+        cookIds: args.cookIds,
+      );
     },
   );
+}
+
+class RecipeSuggestionRouteArgs {
+  const RecipeSuggestionRouteArgs({
+    this.key,
+    required this.referenceDate,
+    required this.mealType,
+    this.cookIds = const [],
+  });
+
+  final _i22.Key? key;
+
+  final DateTime referenceDate;
+
+  final _i25.MealType mealType;
+
+  final List<String> cookIds;
+
+  @override
+  String toString() {
+    return 'RecipeSuggestionRouteArgs{key: $key, referenceDate: $referenceDate, mealType: $mealType, cookIds: $cookIds}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! RecipeSuggestionRouteArgs) return false;
+    return key == other.key &&
+        referenceDate == other.referenceDate &&
+        mealType == other.mealType &&
+        const _i26.ListEquality<String>().equals(cookIds, other.cookIds);
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^
+      referenceDate.hashCode ^
+      mealType.hashCode ^
+      const _i26.ListEquality<String>().hash(cookIds);
 }
 
 /// generated route for

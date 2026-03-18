@@ -3,12 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
 import 'package:meal_planner/presentation/common/common_appbar.dart';
+import 'package:meal_planner/domain/enums/meal_type.dart';
 import 'package:meal_planner/presentation/recipe_suggestion/widgets/recipe_suggestion_body.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
 
 @RoutePage()
 class RecipeSuggestionPage extends ConsumerWidget {
-  const RecipeSuggestionPage({super.key});
+  final DateTime referenceDate;
+  final MealType mealType;
+  final List<String> cookIds;
+
+  const RecipeSuggestionPage({
+    super.key,
+    required this.referenceDate,
+    required this.mealType,
+    this.cookIds = const [],
+  });
 
   void _showScoringInfo(
     BuildContext context, {
@@ -88,7 +98,11 @@ class RecipeSuggestionPage extends ConsumerWidget {
           ),
         ],
       ),
-      scaffoldBody: const RecipeSuggestionBody(),
+      scaffoldBody: RecipeSuggestionBody(
+        referenceDate: referenceDate,
+        mealType: mealType,
+        cookIds: cookIds,
+      ),
     );
   }
 }

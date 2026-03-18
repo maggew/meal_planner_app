@@ -33,7 +33,7 @@ class RecipeSuggestionNotifier extends Notifier<RecipeSuggestionState> {
   @override
   RecipeSuggestionState build() => const RecipeSuggestionState();
 
-  Future<void> suggest(List<String> ingredients) async {
+  Future<void> suggest(List<String> ingredients, {DateTime? referenceDate}) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -46,8 +46,8 @@ class RecipeSuggestionNotifier extends Notifier<RecipeSuggestionState> {
       final recipes =
           localRecipes.map((r) => RecipeCacheConverter.toRecipe(r)).toList();
 
-      // 2. Load meal plan entries in a ±14-day window around today
-      final today = DateTime.now();
+      // 2. Load meal plan entries in a ±14-day window around reference date
+      final today = referenceDate ?? DateTime.now();
       final fromDate = today.subtract(const Duration(days: 14));
       final toDate = today.add(const Duration(days: 14));
       final rangeEntries = await mealPlanDao.getEntriesInRange(
