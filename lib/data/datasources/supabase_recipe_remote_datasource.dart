@@ -19,7 +19,7 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
         .select('''
           *,
           recipe_categories(categories(id, name)),
-          recipe_ingredients(amount, unit, ingredients(name))
+          recipe_ingredients(amount, unit, sort_order, group_name, ingredients(name))
         ''')
         .eq(SupabaseConstants.recipeId, recipeId)
         .eq(SupabaseConstants.recipeGroupId, groupId)
@@ -89,7 +89,7 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
         .select('''
           *,
           recipe_categories!inner(categories!inner(name)),
-          recipe_ingredients(amount, unit, ingredients(name))
+          recipe_ingredients(amount, unit, sort_order, group_name, ingredients(name))
         ''')
         .eq(SupabaseConstants.recipeGroupId, groupId)
         .inFilter('recipe_categories.categories.name', categories)
