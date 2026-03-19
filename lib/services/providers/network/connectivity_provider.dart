@@ -10,6 +10,6 @@ final connectivityProvider = StreamProvider<bool>((ref) {
 final isOnlineProvider = Provider<bool>((ref) {
   return ref.watch(connectivityProvider).maybeWhen(
         data: (isOnline) => isOnline,
-        orElse: () => true,
+        orElse: () => false,
       );
 });

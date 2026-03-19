@@ -15,12 +15,14 @@ import 'package:meal_planner/services/providers/network/connectivity_provider.da
 import 'package:meal_planner/services/providers/recipe/timer/active_timer_provider.dart';
 import 'package:meal_planner/services/providers/router_provider.dart';
 import 'package:meal_planner/services/meal_plan/meal_plan_sync_observer.dart';
+import 'package:meal_planner/services/subscription/subscription_refresh_observer.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_sync_provider.dart';
 import 'package:meal_planner/services/providers/shopping_list/shopping_list_sync_provider.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
 import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
 import 'package:meal_planner/services/shopping_list/shopping_list_sync_observer.dart';
 import 'package:meal_planner/services/timer_lifecycle_observer.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz_local;
@@ -71,6 +73,8 @@ void main() async {
   final deviceTimeZone = await FlutterTimezone.getLocalTimezone();
   tz_local.setLocalLocation(tz_local.getLocation(deviceTimeZone.identifier));
 
+  await MobileAds.instance.initialize();
+
   await NotificationService.instance.initialize();
   await NotificationService.instance.requestPermissions();
   runApp(
@@ -112,6 +116,7 @@ class _MyAppState extends ConsumerState<MyApp> {
   late final TimerLifecycleObserver _lifecycleObserver;
   late final ShoppingListSyncObserver _shoppingListSyncObserver;
   late final MealPlanSyncObserver _mealPlanSyncObserver;
+  late final SubscriptionRefreshObserver _subscriptionRefreshObserver;
   late final AppRouter _appRouter;
 
   @override
@@ -128,6 +133,9 @@ class _MyAppState extends ConsumerState<MyApp> {
     _mealPlanSyncObserver = MealPlanSyncObserver(ref);
     WidgetsBinding.instance.addObserver(_mealPlanSyncObserver);
 
+    _subscriptionRefreshObserver = SubscriptionRefreshObserver(ref);
+    WidgetsBinding.instance.addObserver(_subscriptionRefreshObserver);
+
     NotificationService.instance.onNotificationTapped = _onTimerTapped;
   }
 
@@ -136,6 +144,7 @@ class _MyAppState extends ConsumerState<MyApp> {
     WidgetsBinding.instance.removeObserver(_lifecycleObserver);
     WidgetsBinding.instance.removeObserver(_shoppingListSyncObserver);
     WidgetsBinding.instance.removeObserver(_mealPlanSyncObserver);
+    WidgetsBinding.instance.removeObserver(_subscriptionRefreshObserver);
     super.dispose();
   }
 

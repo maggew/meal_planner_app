@@ -7,6 +7,8 @@ import 'package:meal_planner/data/repositories/firebase_storage_repository.dart'
 import 'package:meal_planner/data/repositories/offline_first_meal_plan_repository.dart';
 import 'package:meal_planner/data/repositories/offline_first_shopping_list_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_group_category_repository.dart';
+import 'package:meal_planner/data/repositories/supabase_subscription_repository.dart';
+import 'package:meal_planner/data/repositories/supabase_suggestion_usage_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_group_repository.dart';
 import 'package:meal_planner/data/repositories/cached_recipe_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_recipe_repository.dart';
@@ -15,6 +17,8 @@ import 'package:meal_planner/data/repositories/supabase_shopping_list_repository
 import 'package:meal_planner/data/repositories/supabase_user_repository.dart';
 import 'package:meal_planner/domain/repositories/auth_repository.dart';
 import 'package:meal_planner/domain/repositories/group_category_repository.dart';
+import 'package:meal_planner/domain/repositories/subscription_repository.dart';
+import 'package:meal_planner/domain/repositories/suggestion_usage_repository.dart';
 import 'package:meal_planner/domain/repositories/group_repository.dart';
 import 'package:meal_planner/domain/repositories/meal_plan_repository.dart';
 import 'package:meal_planner/domain/repositories/recipe_repository.dart';
@@ -144,6 +148,19 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 
 final groupCategoryRepositoryProvider = Provider<GroupCategoryRepository>((ref) {
   return SupabaseGroupCategoryRepository(
+    supabase: ref.watch(supabaseProvider),
+  );
+});
+
+final subscriptionRepositoryProvider = Provider<SubscriptionRepository>((ref) {
+  return SupabaseSubscriptionRepository(
+    supabase: ref.watch(supabaseProvider),
+  );
+});
+
+final suggestionUsageRepositoryProvider =
+    Provider<SuggestionUsageRepository>((ref) {
+  return SupabaseSuggestionUsageRepository(
     supabase: ref.watch(supabaseProvider),
   );
 });

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
+import 'package:meal_planner/presentation/common/native_ad_widget.dart';
 import 'package:meal_planner/presentation/cookbook/widgets/cookbook_recipe_list_item.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_pagination_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_search_provider.dart';
@@ -76,17 +77,22 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList>
         color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.3),
         borderRadius: containerBorderRadius,
       ),
-      child: RefreshIndicator(
-        onRefresh: () async {
-          ref.read(recipesPaginationProvider(categoryId).notifier).refresh();
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return RefreshIndicator(
+            onRefresh: () async {
+              ref.read(recipesPaginationProvider(categoryId).notifier).refresh();
+            },
+            child: _buildContent(
+              recipes: recipes,
+              isLoading: paginationState.isLoading,
+              hasMore: paginationState.hasMore,
+              error: paginationState.error,
+              isSearching: isSearching,
+              availableHeight: constraints.maxHeight,
+            ),
+          );
         },
-        child: _buildContent(
-          recipes: recipes,
-          isLoading: paginationState.isLoading,
-          hasMore: paginationState.hasMore,
-          error: paginationState.error,
-          isSearching: isSearching,
-        ),
       ),
     );
   }
@@ -97,6 +103,7 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList>
     required bool hasMore,
     required String? error,
     required bool isSearching,
+    required double availableHeight,
   }) {
     if (recipes.isEmpty && isLoading) {
       return _alwaysScrollableListView(children: [
@@ -111,7 +118,11 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList>
           ? Icons.search_off_rounded
           : Icons.restaurant_menu_rounded;
       return _alwaysScrollableListView(children: [
-        SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          child: NativeAdWidget(height: 100),
+        ),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.1),
         Icon(
           icon,
           size: 48,
@@ -157,12 +168,26 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList>
     // Bei aktiver Suche keine Pagination anzeigen
     final showLoadingIndicator = !isSearching && hasMore;
 
+    // Ad frequency: every 3 recipes on small lists, every 4 on larger
+    final adInterval = availableHeight < 500 ? 3 : 4;
+
+    // Few recipes (<adInterval): just append 1 ad at the end
+    // Otherwise: insert an ad after every adInterval-th recipe
+    final adCount = recipes.length < adInterval
+        ? 1
+        : (recipes.length ~/ adInterval);
+    final trailingAd = recipes.length < adInterval;
+    final totalItems =
+        recipes.length + adCount + (showLoadingIndicator ? 1 : 0);
+    final groupSize = adInterval + 1; // recipes + 1 ad slot
+
     return ListView.builder(
       controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
-      itemCount: recipes.length + (showLoadingIndicator ? 1 : 0),
+      itemCount: totalItems,
       itemBuilder: (context, index) {
-        if (index == recipes.length) {
+        // Loading indicator at the end
+        if (index == totalItems - 1 && showLoadingIndicator) {
           return const Padding(
             padding: EdgeInsets.all(16.0),
             child: Center(
@@ -170,7 +195,37 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList>
             ),
           );
         }
-        return CookbookRecipeListItem(recipe: recipes[index]);
+
+        // Few recipes: all recipes first, then 1 trailing ad
+        if (trailingAd) {
+          if (index < recipes.length) {
+            return CookbookRecipeListItem(recipe: recipes[index]);
+          }
+          return const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            child: NativeAdWidget(height: 100),
+          );
+        }
+
+        // Ad slot: after every adInterval-th recipe
+        final adsBefore = index ~/ groupSize;
+        final effectiveAdsBefore =
+            adsBefore > adCount ? adCount : adsBefore;
+        final recipeIndex = index - effectiveAdsBefore;
+
+        if (index >= adInterval &&
+            (index - adInterval) % groupSize == 0) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            child: NativeAdWidget(height: 100),
+          );
+        }
+
+        if (recipeIndex >= recipes.length) {
+          return const SizedBox.shrink();
+        }
+
+        return CookbookRecipeListItem(recipe: recipes[recipeIndex]);
       },
     );
   }

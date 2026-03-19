@@ -10,6 +10,7 @@ import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/domain/entities/recipe_timer.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/domain/repositories/recipe_repository.dart';
+import 'package:meal_planner/services/providers/groups/group_category_provider.dart';
 import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
 
 const Duration _staleDuration = Duration(minutes: 5);
@@ -347,11 +348,24 @@ class CachedRecipeRepository implements RecipeRepository {
     var recipes = cached.map(RecipeCacheConverter.toRecipe).toList();
 
     // Filter by category (empty = "Alle")
+    // category is a UUID (category ID), but recipe.categories stores names.
+    // Resolve ID → name via the already-loaded groupCategoriesProvider.
     if (category.isNotEmpty) {
-      recipes = recipes
-          .where((r) => r.categories
-              .any((c) => c.toLowerCase() == category.toLowerCase()))
-          .toList();
+      final categoryName = _ref
+          .read(groupCategoriesProvider)
+          .asData?.value
+          ?.where((c) => c.id == category)
+          .map((c) => c.name)
+          .firstOrNull;
+
+      if (categoryName != null) {
+        recipes = recipes
+            .where((r) => r.categories
+                .any((c) => c.toLowerCase() == categoryName.toLowerCase()))
+            .toList();
+      }
+      // If category name couldn't be resolved (provider not loaded),
+      // return all recipes rather than filtering to 0.
     }
 
     // Sort

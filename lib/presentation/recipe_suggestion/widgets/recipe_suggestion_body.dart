@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/recipe_suggestion.dart';
+import 'package:meal_planner/domain/entities/suggestion_usage.dart';
 import 'package:meal_planner/domain/enums/meal_type.dart';
 import 'package:meal_planner/presentation/common/glass_card.dart';
 import 'package:meal_planner/presentation/recipe_suggestion/widgets/ingredient_input_widget.dart';
 import 'package:meal_planner/presentation/recipe_suggestion/widgets/suggestion_result_card.dart';
+import 'package:meal_planner/presentation/subscription/widgets/paywall_sheet.dart';
+import 'package:meal_planner/services/providers/subscription/subscription_provider.dart';
+import 'package:meal_planner/services/providers/subscription/suggestion_usage_provider.dart';
 import 'package:meal_planner/services/providers/suggestion/recipe_suggestion_provider.dart';
 
 class RecipeSuggestionBody extends ConsumerStatefulWidget {
@@ -32,6 +36,8 @@ class _RecipeSuggestionBodyState extends ConsumerState<RecipeSuggestionBody> {
   Widget build(BuildContext context) {
     final suggestionState = ref.watch(recipeSuggestionProvider);
     final colorScheme = Theme.of(context).colorScheme;
+    final isPremium = ref.watch(isPremiumProvider);
+    final usageAsync = ref.watch(suggestionUsageProvider);
 
     final perfect = suggestionState.suggestions
         .where((s) => s.matchQuality == MatchQuality.perfect)
@@ -68,6 +74,20 @@ class _RecipeSuggestionBodyState extends ConsumerState<RecipeSuggestionBody> {
                       setState(() => _ingredients = updated),
                 ),
                 const SizedBox(height: 16),
+                if (!isPremium)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: usageAsync.when(
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                      data: (usage) => Text(
+                        '${usage.usageCount} von ${SuggestionUsage.freeWeeklyLimit} Vorschläge diese Woche',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                    ),
+                  ),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
@@ -98,7 +118,44 @@ class _RecipeSuggestionBodyState extends ConsumerState<RecipeSuggestionBody> {
               ],
             ),
           ),
-          if (suggestionState.error != null) ...[
+          if (suggestionState.error == 'limit_reached') ...[
+            const SizedBox(height: 16),
+            GlassCard(
+              borderColor: colorScheme.primary.withValues(alpha: 0.3),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.workspace_premium,
+                    size: 36,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Wöchentliches Limit erreicht',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Mit Premium erhältst du unbegrenzte Vorschläge und alle Rezepte.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () => showPaywallSheet(context),
+                      child: const Text('Premium holen'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else if (suggestionState.error != null) ...[
             const SizedBox(height: 16),
             Text(
               'Fehler: ${suggestionState.error}',

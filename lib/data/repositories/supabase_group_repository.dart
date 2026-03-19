@@ -30,6 +30,12 @@ class SupabaseGroupRepository implements GroupRepository {
         SupabaseConstants.memberUserId: creatorUserId,
         SupabaseConstants.memberRole: SupabaseConstants.roleAdmin,
       });
+
+      await _supabase.from(SupabaseConstants.subscriptionsTable).insert({
+        SupabaseConstants.subscriptionGroupId: groupId,
+        // TODO: change to 'free' when ads go live
+        SupabaseConstants.subscriptionStatus: 'premium',
+      });
     } on PostgrestException catch (e) {
       throw GroupCreationException("Datenbankfehler: $e");
     } on SocketException {

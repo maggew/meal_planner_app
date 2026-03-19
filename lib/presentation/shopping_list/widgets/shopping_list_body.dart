@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/presentation/common/native_ad_widget.dart';
 import 'package:meal_planner/presentation/shopping_list/widgets/shopping_list_input.dart';
 import 'package:meal_planner/presentation/shopping_list/widgets/shopping_list_item_tile.dart';
 import 'package:meal_planner/services/providers/shopping_list/shopping_list_provider.dart';
@@ -21,8 +22,18 @@ class ShoppingListBody extends ConsumerWidget {
             error: (error, _) => Center(child: Text('Fehler: $error')),
             data: (items) {
               if (items.isEmpty) {
-                return const Center(
-                  child: Text('Deine Einkaufsliste ist leer'),
+                return Column(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      child: NativeAdWidget(),
+                    ),
+                    const Expanded(
+                      child: Center(
+                        child: Text('Deine Einkaufsliste ist leer'),
+                      ),
+                    ),
+                  ],
                 );
               }
 
@@ -48,6 +59,13 @@ class ShoppingListBody extends ConsumerWidget {
                           .map((item) => ShoppingListItemTile(
                               key: ValueKey(item.id), item: item))
                           .toList(),
+                    ),
+                  ),
+                  // Ad between unchecked and checked sections
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      child: NativeAdWidget(),
                     ),
                   ),
                   if (checked.isNotEmpty) ...[

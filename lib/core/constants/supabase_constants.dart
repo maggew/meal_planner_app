@@ -87,6 +87,25 @@ class SupabaseConstants {
   static const String recipeTimerName = 'timer_name';
   static const String recipeTimerDurationSeconds = 'duration_seconds';
 
+  // Tables: Subscriptions
+  static const String subscriptionsTable = 'subscriptions';
+  static const String suggestionUsageTable = 'suggestion_usage';
+
+  // Columns: Subscriptions
+  static const String subscriptionGroupId = 'group_id';
+  static const String subscriptionStatus = 'status';
+  static const String subscriptionSubscriberUserId = 'subscriber_user_id';
+  static const String subscriptionProductId = 'product_id';
+  static const String subscriptionExpiresAt = 'expires_at';
+  static const String subscriptionUpdatedAt = 'updated_at';
+
+  // Columns: Suggestion Usage
+  static const String suggestionUsageId = 'id';
+  static const String suggestionUsageGroupId = 'group_id';
+  static const String suggestionUsageWeekYear = 'week_year';
+  static const String suggestionUsageWeekNumber = 'week_number';
+  static const String suggestionUsageCount = 'usage_count';
+
   // Tables: Meal Plan
   static const String mealPlanEntriesTable = 'meal_plan_entries';
 

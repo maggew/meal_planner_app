@@ -1,9 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/database/converters/recipe_cache_converter.dart';
 import 'package:meal_planner/domain/entities/recipe_suggestion.dart';
+import 'package:meal_planner/domain/entities/suggestion_usage.dart';
 import 'package:meal_planner/domain/services/recipe_suggestion_service.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
+import 'package:meal_planner/services/providers/subscription/subscription_provider.dart';
+import 'package:meal_planner/services/providers/subscription/suggestion_usage_provider.dart';
 
 class RecipeSuggestionState {
   final List<RecipeSuggestion> suggestions;
@@ -37,6 +40,13 @@ class RecipeSuggestionNotifier extends Notifier<RecipeSuggestionState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
+      // Check usage limit for free tier
+      final usageNotifier = ref.read(suggestionUsageProvider.notifier);
+      if (!usageNotifier.canUseSuggestion()) {
+        state = state.copyWith(isLoading: false, error: 'limit_reached');
+        return;
+      }
+
       final groupId = ref.read(sessionProvider).groupId ?? '';
       final recipeDao = ref.read(recipeCacheDaoProvider);
       final mealPlanDao = ref.read(mealPlanDaoProvider);
@@ -98,7 +108,16 @@ class RecipeSuggestionNotifier extends Notifier<RecipeSuggestionState> {
         carbVarietyWeight: carbVarietyWeight,
       );
 
-      state = state.copyWith(suggestions: results, isLoading: false);
+      // Limit results for free tier
+      final isPremium = ref.read(isPremiumProvider);
+      final limitedResults = isPremium
+          ? results
+          : results.take(SuggestionUsage.freeResultLimit).toList();
+
+      // Record usage after successful suggestion
+      await usageNotifier.recordUsage();
+
+      state = state.copyWith(suggestions: limitedResults, isLoading: false);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
