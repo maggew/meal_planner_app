@@ -763,7 +763,7 @@ void main() {
             body: 'Nudeln',
             scheduledDate: any(named: 'scheduledDate'),
             notificationDetails: any(named: 'notificationDetails'),
-            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            androidScheduleMode: AndroidScheduleMode.alarmClock,
             payload: 'r1:0',
           ),
         ).called(1);
@@ -931,7 +931,7 @@ void main() {
             body: 'Nudeln',
             scheduledDate: any(named: 'scheduledDate'),
             notificationDetails: any(named: 'notificationDetails'),
-            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            androidScheduleMode: AndroidScheduleMode.alarmClock,
             payload: 'r1:0',
           ),
         ).called(1);

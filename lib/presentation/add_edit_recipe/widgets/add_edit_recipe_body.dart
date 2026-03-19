@@ -61,6 +61,7 @@ class AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
     );
     if (widget.existingRecipe != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
         // Kategorie-Namen → IDs konvertieren für robuste Auswahl (unabhängig von Umbenennungen)
         final allCategories = ref.read(groupCategoriesProvider).value ?? [];
         final existingNames =
@@ -170,10 +171,16 @@ class AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
     _imageManagerNotifier.cleanupPendingPhoto();
     // Provider dürfen nicht synchron in dispose() geändert werden —
     // Future.microtask verzögert bis nach dem Widget-Tree-Finalize.
+    // Try-catch because the ProviderScope may already be disposed
+    // (e.g. when navigating away removes the entire scope).
     Future.microtask(() {
-      _categoriesNotifier.clear();
-      _portionsNotifier.set(defaultPortions);
-      _carbTagNotifier.clear();
+      try {
+        _categoriesNotifier.clear();
+        _portionsNotifier.set(defaultPortions);
+        _carbTagNotifier.clear();
+      } catch (_) {
+        // ProviderScope may already be disposed — nothing to clean up.
+      }
     });
     super.dispose();
   }
