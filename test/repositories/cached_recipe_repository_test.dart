@@ -8,9 +8,19 @@ import 'package:meal_planner/data/repositories/supabase_recipe_repository.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/domain/entities/recipe_timer.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
+import 'package:meal_planner/domain/entities/group_category.dart';
+import 'package:meal_planner/services/providers/groups/group_category_provider.dart';
 import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:mocktail/mocktail.dart';
+
+class _FixedGroupCategories extends GroupCategories {
+  final List<GroupCategory> _categories;
+  _FixedGroupCategories(this._categories);
+
+  @override
+  Future<List<GroupCategory>> build() async => _categories;
+}
 
 // ==================== Mocks ====================
 
@@ -668,6 +678,22 @@ void main() {
 
     test('nicht-leere categoryId filtert gecachte Rezepte nach Kategorie',
         () async {
+      const categoryUuid = '11111111-1111-1111-1111-111111111111';
+      // Rebuild container with groupCategoriesProvider returning our category
+      container.dispose();
+      container = ProviderContainer(overrides: [
+        isOnlineProvider.overrideWithValue(false),
+        groupCategoriesProvider.overrideWith(() => _FixedGroupCategories([
+              const GroupCategory(
+                  id: categoryUuid,
+                  groupId: 'gruppe-1',
+                  name: 'Pasta',
+                  sortOrder: 0),
+            ])),
+      ]);
+      // Wait for the async provider to resolve before using the repo
+      await container.read(groupCategoriesProvider.future);
+
       final repo = _buildRepo(groupId: 'gruppe-1');
       when(() => mockDao.getRecipesByGroup(
             'gruppe-1',
@@ -682,7 +708,7 @@ void main() {
           ]);
 
       final result = await repo.getRecipesByCategoryId(
-        categoryId: 'Pasta',
+        categoryId: categoryUuid,
         offset: 0,
         limit: 20,
         sortOption: RecipeSortOption.alphabetical,
