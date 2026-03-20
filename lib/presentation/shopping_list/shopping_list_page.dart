@@ -6,9 +6,8 @@ import 'package:meal_planner/presentation/common/common_appbar.dart';
 import 'package:meal_planner/presentation/shopping_list/widgets/shopping_list_body.dart';
 import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
 import 'package:meal_planner/services/providers/shopping_list/shopping_list_provider.dart';
-import 'package:meal_planner/services/providers/shopping_list/shopping_list_realtime_service_provider.dart';
 import 'package:meal_planner/services/providers/shopping_list/shopping_list_sync_provider.dart';
-import 'package:meal_planner/services/shopping_list/shopping_list_realtime_service.dart';
+import 'package:meal_planner/services/shopping_list/shopping_list_sync_service.dart';
 
 @RoutePage()
 class ShoppingListPage extends ConsumerStatefulWidget {
@@ -19,21 +18,20 @@ class ShoppingListPage extends ConsumerStatefulWidget {
 }
 
 class _ShoppingListPageState extends ConsumerState<ShoppingListPage> {
-  ShoppingListRealtimeService? _realtimeService;
+  ShoppingListSyncService? _syncService;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(shoppingListSyncServiceProvider).sync();
-      _realtimeService = ref.read(shoppingListRealtimeServiceProvider);
-      _realtimeService!.subscribe();
+      _syncService = ref.read(shoppingListSyncServiceProvider);
+      _syncService!.start();
     });
   }
 
   @override
   void dispose() {
-    _realtimeService?.unsubscribe();
+    _syncService?.stop();
     super.dispose();
   }
 

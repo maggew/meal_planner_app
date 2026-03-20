@@ -13,7 +13,6 @@ import 'package:meal_planner/data/repositories/supabase_group_repository.dart';
 import 'package:meal_planner/data/repositories/cached_recipe_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_recipe_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_trash_repository.dart';
-import 'package:meal_planner/data/repositories/supabase_shopping_list_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_user_repository.dart';
 import 'package:meal_planner/domain/repositories/auth_repository.dart';
 import 'package:meal_planner/domain/repositories/group_category_repository.dart';
@@ -117,12 +116,7 @@ final shoppingListRepositoryProvider = Provider<ShoppingListRepository>((ref) {
 
   return OfflineFirstShoppingListRepository(
     groupId: groupId,
-    ref: ref,
     dao: ref.watch(shoppingItemDaoProvider),
-    remote: SupabaseShoppingListRepository(
-      supabase: ref.watch(supabaseProvider),
-      groupId: groupId,
-    ),
   );
 });
 
@@ -130,9 +124,7 @@ final mealPlanRepositoryProvider = Provider<MealPlanRepository>((ref) {
   final groupId = ref.watch(sessionProvider.select((s) => s.groupId)) ?? '';
   return OfflineFirstMealPlanRepository(
     dao: ref.watch(mealPlanDaoProvider),
-    supabase: ref.watch(supabaseProvider),
     groupId: groupId,
-    ref: ref,
   );
 });
 

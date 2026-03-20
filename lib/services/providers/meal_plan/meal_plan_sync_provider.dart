@@ -5,9 +5,11 @@ import 'package:meal_planner/services/providers/session_provider.dart';
 
 final mealPlanSyncServiceProvider = Provider<MealPlanSyncService>((ref) {
   final session = ref.watch(sessionProvider);
-  return MealPlanSyncService(
+  final service = MealPlanSyncService(
     dao: ref.watch(mealPlanDaoProvider),
     supabase: ref.watch(supabaseProvider),
     groupId: session.groupId ?? '',
   );
+  ref.onDispose(() => service.stop());
+  return service;
 });

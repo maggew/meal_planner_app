@@ -8,7 +8,7 @@ final shoppingListSyncServiceProvider =
     Provider<ShoppingListSyncService>((ref) {
   final session = ref.watch(sessionProvider);
   final groupId = session.groupId ?? '';
-  return ShoppingListSyncService(
+  final service = ShoppingListSyncService(
     dao: ref.watch(shoppingItemDaoProvider),
     remote: SupabaseShoppingListRepository(
       supabase: ref.watch(supabaseProvider),
@@ -16,4 +16,6 @@ final shoppingListSyncServiceProvider =
     ),
     groupId: groupId,
   );
+  ref.onDispose(() => service.stop());
+  return service;
 });

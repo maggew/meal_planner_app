@@ -4,7 +4,6 @@ import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/domain/enums/group_role.dart';
 import 'package:meal_planner/domain/exceptions/group_exceptions.dart';
-import 'package:meal_planner/services/providers/realtime_auth_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -72,12 +71,6 @@ class SessionNotifier extends _$SessionNotifier {
         // Offline: gecachte Gruppe laden
         group = await storage.loadGroup(groupId);
       }
-    }
-
-    try {
-      await ref.read(realtimeAuthServiceProvider).initialize();
-    } catch (_) {
-      // Offline: Token-Refresh ignorieren, Session trotzdem setzen
     }
 
     state = SessionState(
@@ -162,7 +155,6 @@ class SessionNotifier extends _$SessionNotifier {
     final storage = LocalStorageService();
     await storage.clearActiveGroup();
     if (groupId != null) await storage.clearGroup(groupId);
-    ref.read(realtimeAuthServiceProvider).dispose();
     state = const SessionState();
   }
 }

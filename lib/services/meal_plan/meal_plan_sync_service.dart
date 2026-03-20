@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
@@ -13,6 +14,11 @@ class MealPlanSyncService {
   final SupabaseClient _supabase;
   final String _groupId;
 
+  Timer? _timer;
+  bool _isSyncing = false;
+  int _currentYear = 0;
+  int _currentMonth = 0;
+
   MealPlanSyncService({
     required MealPlanDao dao,
     required SupabaseClient supabase,
@@ -20,6 +26,30 @@ class MealPlanSyncService {
   })  : _dao = dao,
         _supabase = supabase,
         _groupId = groupId;
+
+  bool get isRunning => _timer?.isActive ?? false;
+
+  void start(int year, int month) {
+    _currentYear = year;
+    _currentMonth = month;
+    _timer?.cancel();
+    sync(_currentYear, _currentMonth);
+    _timer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => sync(_currentYear, _currentMonth),
+    );
+  }
+
+  void updateMonth(int year, int month) {
+    _currentYear = year;
+    _currentMonth = month;
+    sync(_currentYear, _currentMonth);
+  }
+
+  void stop() {
+    _timer?.cancel();
+    _timer = null;
+  }
 
   Future<void> syncPending() async {
     final pending = await _dao.getPendingEntries(_groupId);
@@ -123,8 +153,15 @@ class MealPlanSyncService {
     }
   }
 
+  // Beide zusammen – wird periodisch und bei App-Resume aufgerufen
   Future<void> sync(int year, int month) async {
-    await syncPending();
-    await pullRemoteForMonth(year, month);
+    if (_isSyncing) return;
+    _isSyncing = true;
+    try {
+      await syncPending();
+      await pullRemoteForMonth(year, month);
+    } finally {
+      _isSyncing = false;
+    }
   }
 }

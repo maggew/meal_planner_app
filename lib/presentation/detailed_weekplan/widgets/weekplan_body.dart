@@ -169,10 +169,10 @@ class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
 
   void _syncForWeek(DateTime weekStart) {
     final sync = ref.read(mealPlanSyncServiceProvider);
-    sync.sync(weekStart.year, weekStart.month);
+    sync.updateMonth(weekStart.year, weekStart.month);
     final weekEnd = weekStart.add(const Duration(days: 6));
     if (weekEnd.month != weekStart.month) {
-      sync.sync(weekEnd.year, weekEnd.month);
+      sync.pullRemoteForMonth(weekEnd.year, weekEnd.month);
     }
   }
 

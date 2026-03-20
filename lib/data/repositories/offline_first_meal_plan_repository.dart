@@ -1,36 +1,23 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/core/database/app_database.dart';
 import 'package:meal_planner/core/database/daos/meal_plan_dao.dart';
 import 'package:meal_planner/domain/entities/meal_plan_entry.dart';
 import 'package:meal_planner/domain/enums/meal_type.dart';
 import 'package:meal_planner/domain/repositories/meal_plan_repository.dart';
-import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 class OfflineFirstMealPlanRepository implements MealPlanRepository {
   final MealPlanDao _dao;
-  final SupabaseClient _supabase;
   final String _groupId;
-  final Ref _ref;
   final _uuid = const Uuid();
 
   OfflineFirstMealPlanRepository({
     required MealPlanDao dao,
-    required SupabaseClient supabase,
     required String groupId,
-    required Ref ref,
   })  : _dao = dao,
-        _supabase = supabase,
-        _groupId = groupId,
-        _ref = ref;
-
-  bool get _isOnline => _ref.read(isOnlineProvider);
+        _groupId = groupId;
 
   @override
   Stream<List<MealPlanEntry>> watchEntriesForDate(DateTime date) {
@@ -61,29 +48,6 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
       syncStatus: const Value('pendingCreate'),
       updatedAt: Value(now),
     ));
-
-    if (_isOnline) {
-      try {
-        final response = await _supabase
-            .from(SupabaseConstants.mealPlanEntriesTable)
-            .insert({
-              SupabaseConstants.mealPlanEntryGroupId: _groupId,
-              SupabaseConstants.mealPlanEntryRecipeId: recipeId,
-              SupabaseConstants.mealPlanEntryCustomName: customName,
-              SupabaseConstants.mealPlanEntryDate: dateStr,
-              SupabaseConstants.mealPlanEntryMealType: mealType.value,
-              SupabaseConstants.mealPlanEntryCookIds: cookIds,
-              SupabaseConstants.mealPlanEntryUpdatedAt: now.toIso8601String(),
-            })
-            .select()
-            .single();
-
-        final remoteId = response[SupabaseConstants.mealPlanEntryId] as String;
-        await _dao.updateSyncStatus(localId, 'synced', remoteId: remoteId);
-      } catch (e) {
-        debugPrint('[MealPlan] Supabase insert fehlgeschlagen: $e');
-      }
-    }
   }
 
   @override
@@ -103,43 +67,11 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
       cookIdsJson: _encodeCookIds(cookIds),
       keepPendingCreate: existing.remoteId == null,
     );
-
-    if (_isOnline && existing.remoteId != null) {
-      try {
-        final now = DateTime.now();
-        await _supabase.from(SupabaseConstants.mealPlanEntriesTable).update({
-          SupabaseConstants.mealPlanEntryRecipeId: recipeId,
-          SupabaseConstants.mealPlanEntryCustomName: customName,
-          SupabaseConstants.mealPlanEntryCookIds: cookIds,
-          SupabaseConstants.mealPlanEntryUpdatedAt: now.toIso8601String(),
-        }).eq(SupabaseConstants.mealPlanEntryId, existing.remoteId!);
-        await _dao.updateSyncStatus(localId, 'synced',
-            remoteId: existing.remoteId);
-      } catch (e) {
-        debugPrint('[MealPlan] updateEntry Supabase fehlgeschlagen: $e');
-      }
-    }
   }
 
   @override
   Future<void> setCookIds(String localId, List<String> cookIds) async {
     await _dao.updateCookIds(localId, _encodeCookIds(cookIds));
-
-    final entry = await _dao.getEntryByLocalId(localId);
-    if (entry == null || entry.remoteId == null) return;
-
-    if (_isOnline) {
-      try {
-        await _supabase
-            .from(SupabaseConstants.mealPlanEntriesTable)
-            .update({SupabaseConstants.mealPlanEntryCookIds: cookIds}).eq(
-                SupabaseConstants.mealPlanEntryId, entry.remoteId!);
-        await _dao.updateSyncStatus(localId, 'synced',
-            remoteId: entry.remoteId);
-      } catch (e) {
-        debugPrint('[MealPlan] setCookIds Supabase fehlgeschlagen: $e');
-      }
-    }
   }
 
   @override
@@ -148,18 +80,6 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
     if (entry == null) return;
 
     await _dao.markAsDeleted(localId);
-
-    if (_isOnline && entry.remoteId != null) {
-      try {
-        await _supabase
-            .from(SupabaseConstants.mealPlanEntriesTable)
-            .delete()
-            .eq(SupabaseConstants.mealPlanEntryId, entry.remoteId!);
-        await _dao.hardDeleteEntry(localId);
-      } catch (_) {
-        // bleibt pendingDelete
-      }
-    }
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────

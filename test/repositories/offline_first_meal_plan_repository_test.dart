@@ -240,23 +240,16 @@ void main() {
   tearDown(() => container.dispose());
 
   OfflineFirstMealPlanRepository _buildRepo({
-    required bool isOnline,
-    _FakeSupabaseClient? supabase,
+    bool isOnline = true,
     String groupId = _kGroupId,
   }) {
-    final client = supabase ?? _FakeSupabaseClient();
     container = ProviderContainer(overrides: [
       isOnlineProvider.overrideWithValue(isOnline),
     ]);
-    final testProvider = Provider<OfflineFirstMealPlanRepository>((ref) {
-      return OfflineFirstMealPlanRepository(
-        dao: mockDao,
-        supabase: client,
-        groupId: groupId,
-        ref: ref,
-      );
-    });
-    return container.read(testProvider);
+    return OfflineFirstMealPlanRepository(
+      dao: mockDao,
+      groupId: groupId,
+    );
   }
 
   // Stubt alle häufig verwendeten DAO-Methoden ohne Rückgabewert.
@@ -440,44 +433,23 @@ void main() {
       verify(() => mockDao.upsertEntry(any())).called(1);
     });
 
-    test('10 — Online: Supabase.from() wird aufgerufen', () async {
+    test('10 — syncStatus ist pendingCreate nach addEntry', () async {
       _stubDaoVoids();
-      final supabase = _FakeSupabaseClient();
-      final repo = _buildRepo(isOnline: true, supabase: supabase);
+      final repo = _buildRepo(isOnline: true);
 
       await repo.addEntry(date: _kDateTime, mealType: MealType.lunch);
 
-      expect(supabase.fromCalls, greaterThan(0));
+      final captured = verify(() => mockDao.upsertEntry(captureAny())).captured;
+      final companion = captured.first as LocalMealPlanEntriesCompanion;
+      expect(companion.syncStatus.value, 'pendingCreate');
     });
 
-    test(
-        '11 — Online + erfolgreicher Insert: remoteId wird gesetzt und syncStatus=synced',
+    test('11 — kein updateSyncStatus nach addEntry (Sync-Service zuständig)',
         () async {
       _stubDaoVoids();
-      final supabase = _FakeSupabaseClient(remoteId: 'remote-xyz');
-      final repo = _buildRepo(isOnline: true, supabase: supabase);
+      final repo = _buildRepo(isOnline: true);
 
       await repo.addEntry(date: _kDateTime, mealType: MealType.lunch);
-
-      verify(() => mockDao.updateSyncStatus(
-            any(),
-            'synced',
-            remoteId: 'remote-xyz',
-          )).called(1);
-    });
-
-    test(
-
-        '12 — Online + Supabase-Fehler: kein Absturz, syncStatus bleibt pendingCreate',
-        () async {
-      _stubDaoVoids();
-      final supabase = _FakeSupabaseClient(throws: true);
-      final repo = _buildRepo(isOnline: true, supabase: supabase);
-
-      await expectLater(
-        repo.addEntry(date: _kDateTime, mealType: MealType.lunch),
-        completes,
-      );
 
       verifyNever(() => mockDao.updateSyncStatus(
             any(),
@@ -501,14 +473,12 @@ void main() {
       verify(() => mockDao.upsertEntry(any())).called(1);
     });
 
-    test('14 — Offline: Supabase wird nicht kontaktiert', () async {
+    test('14 — kein updateSyncStatus nach addEntry', () async {
       _stubDaoVoids();
-      final supabase = _FakeSupabaseClient();
-      final repo = _buildRepo(isOnline: false, supabase: supabase);
+      final repo = _buildRepo(isOnline: false);
 
       await repo.addEntry(date: _kDateTime, mealType: MealType.lunch);
 
-      expect(supabase.fromCalls, 0);
       verifyNever(() => mockDao.updateSyncStatus(
             any(),
             'synced',
@@ -629,15 +599,12 @@ void main() {
           keepPendingCreate: any(named: 'keepPendingCreate')));
     });
 
-    test(
-        '21 — Online + Eintrag hat remoteId: lokales Update + syncStatus=synced',
-        () async {
+    test('21 — lokales Update wird durchgeführt', () async {
       _stubDaoVoids();
-      final supabase = _FakeSupabaseClient();
       when(() => mockDao.getEntryByLocalId('local-1'))
           .thenAnswer((_) async => _fakeEntry(remoteId: 'remote-1'));
 
-      final repo = _buildRepo(isOnline: true, supabase: supabase);
+      final repo = _buildRepo(isOnline: true);
       await repo.updateEntry('local-1', recipeId: 'r-neu');
 
       verify(() => mockDao.updateEntry(
@@ -647,74 +614,26 @@ void main() {
             cookIdsJson: any(named: 'cookIdsJson'),
             keepPendingCreate: any(named: 'keepPendingCreate'),
           )).called(1);
-      verify(() => mockDao.updateSyncStatus('local-1', 'synced',
-          remoteId: 'remote-1')).called(1);
-    });
-
-    test(
-        '22 — Offline + Eintrag hat remoteId: nur lokales Update, kein Supabase-Aufruf',
-        () async {
-      _stubDaoVoids();
-      final supabase = _FakeSupabaseClient();
-      when(() => mockDao.getEntryByLocalId('local-1'))
-          .thenAnswer((_) async => _fakeEntry(remoteId: 'remote-1'));
-
-      final repo = _buildRepo(isOnline: false, supabase: supabase);
-      await repo.updateEntry('local-1', recipeId: 'r-neu');
-
-      verify(() => mockDao.updateEntry(
-            'local-1',
-            recipeId: any(named: 'recipeId'),
-            customName: any(named: 'customName'),
-            cookIdsJson: any(named: 'cookIdsJson'),
-            keepPendingCreate: any(named: 'keepPendingCreate'),
-          )).called(1);
-      expect(supabase.fromCalls, 0);
       verifyNever(() => mockDao.updateSyncStatus(any(), 'synced',
           remoteId: any(named: 'remoteId')));
     });
 
     test(
-        '23 — Online + kein remoteId (pendingCreate): syncStatus bleibt pendingCreate, kein Supabase-Aufruf',
-        () async {
+        '22 — kein remoteId (pendingCreate): keepPendingCreate=true', () async {
       _stubDaoVoids();
-      final supabase = _FakeSupabaseClient();
       when(() => mockDao.getEntryByLocalId('local-1')).thenAnswer(
           (_) async => _fakeEntry(remoteId: null, syncStatus: 'pendingCreate'));
 
-      final repo = _buildRepo(isOnline: true, supabase: supabase);
+      final repo = _buildRepo(isOnline: true);
       await repo.updateEntry('local-1', recipeId: 'r-neu');
-
-      expect(supabase.fromCalls, 0);
-      verifyNever(() => mockDao.updateSyncStatus(any(), 'synced',
-          remoteId: any(named: 'remoteId')));
-    });
-
-    test(
-
-        '24 — Online + Supabase-Fehler: lokales Update bleibt erhalten, kein Absturz',
-        () async {
-      _stubDaoVoids();
-      final supabase = _FakeSupabaseClient(throws: true);
-      when(() => mockDao.getEntryByLocalId('local-1'))
-          .thenAnswer((_) async => _fakeEntry(remoteId: 'remote-1'));
-
-      final repo = _buildRepo(isOnline: true, supabase: supabase);
-
-      await expectLater(
-        repo.updateEntry('local-1', recipeId: 'r-neu'),
-        completes,
-      );
 
       verify(() => mockDao.updateEntry(
             'local-1',
             recipeId: any(named: 'recipeId'),
             customName: any(named: 'customName'),
             cookIdsJson: any(named: 'cookIdsJson'),
-            keepPendingCreate: any(named: 'keepPendingCreate'),
+            keepPendingCreate: true,
           )).called(1);
-      verifyNever(() => mockDao.updateSyncStatus(any(), 'synced',
-          remoteId: any(named: 'remoteId')));
     });
   });
 
@@ -735,68 +654,25 @@ void main() {
       verifyNever(() => mockDao.hardDeleteEntry(any()));
     });
 
-    test(
-        '26 — Online + hat remoteId: Reihenfolge markAsDeleted → Supabase → hardDelete',
-        () async {
-      _stubDaoVoids();
-      final callOrder = <String>[];
-      when(() => mockDao.getEntryByLocalId('local-1'))
-          .thenAnswer((_) async => _fakeEntry(remoteId: 'remote-1'));
-      when(() => mockDao.markAsDeleted('local-1'))
-          .thenAnswer((_) async => callOrder.add('markAsDeleted'));
-      when(() => mockDao.hardDeleteEntry('local-1'))
-          .thenAnswer((_) async => callOrder.add('hardDelete'));
-
-      final supabase = _FakeSupabaseClient();
-      final repo = _buildRepo(isOnline: true, supabase: supabase);
-      await repo.removeEntry('local-1');
-
-      expect(callOrder, ['markAsDeleted', 'hardDelete']);
-      expect(supabase.fromCalls, greaterThan(0));
-    });
-
-    test(
-        '27 — Offline + hat remoteId: nur markAsDeleted, kein Supabase, kein hardDelete',
-        () async {
+    test('26 — markAsDeleted wird aufgerufen, kein hardDelete', () async {
       _stubDaoVoids();
       when(() => mockDao.getEntryByLocalId('local-1'))
           .thenAnswer((_) async => _fakeEntry(remoteId: 'remote-1'));
-      final supabase = _FakeSupabaseClient();
 
-      final repo = _buildRepo(isOnline: false, supabase: supabase);
+      final repo = _buildRepo(isOnline: true);
       await repo.removeEntry('local-1');
 
       verify(() => mockDao.markAsDeleted('local-1')).called(1);
-      expect(supabase.fromCalls, 0);
       verifyNever(() => mockDao.hardDeleteEntry(any()));
     });
 
-    test('28 — Online + kein remoteId: nur markAsDeleted, kein Supabase-Aufruf',
-        () async {
+    test('27 — Entry ohne remoteId: markAsDeleted wird aufgerufen', () async {
       _stubDaoVoids();
       when(() => mockDao.getEntryByLocalId('local-1'))
           .thenAnswer((_) async => _fakeEntry(remoteId: null));
-      final supabase = _FakeSupabaseClient();
 
-      final repo = _buildRepo(isOnline: true, supabase: supabase);
+      final repo = _buildRepo(isOnline: true);
       await repo.removeEntry('local-1');
-
-      verify(() => mockDao.markAsDeleted('local-1')).called(1);
-      expect(supabase.fromCalls, 0);
-      verifyNever(() => mockDao.hardDeleteEntry(any()));
-    });
-
-    test(
-        '29 — Online + Supabase-Fehler: Eintrag bleibt pendingDelete (kein hardDelete)',
-        () async {
-      _stubDaoVoids();
-      when(() => mockDao.getEntryByLocalId('local-1'))
-          .thenAnswer((_) async => _fakeEntry(remoteId: 'remote-1'));
-      final supabase = _FakeSupabaseClient(throws: true);
-
-      final repo = _buildRepo(isOnline: true, supabase: supabase);
-
-      await expectLater(repo.removeEntry('local-1'), completes);
 
       verify(() => mockDao.markAsDeleted('local-1')).called(1);
       verifyNever(() => mockDao.hardDeleteEntry(any()));
@@ -808,60 +684,16 @@ void main() {
   // ═══════════════════════════════════════════════════════════════════════════
 
   group('setCookIds', () {
-    test('30 — Online + hat remoteId: lokales Update + syncStatus=synced',
-        () async {
+    test('30 — lokales Update wird durchgeführt', () async {
       _stubDaoVoids();
-      when(() => mockDao.getEntryByLocalId('local-1'))
-          .thenAnswer((_) async => _fakeEntry(remoteId: 'remote-1'));
-      final supabase = _FakeSupabaseClient();
-
-      final repo = _buildRepo(isOnline: true, supabase: supabase);
+      final repo = _buildRepo(isOnline: true);
       await repo.setCookIds('local-1', ['user-x']);
 
       verify(() => mockDao.updateCookIds('local-1', any())).called(1);
-      verify(() => mockDao.updateSyncStatus('local-1', 'synced',
-          remoteId: 'remote-1')).called(1);
-      expect(supabase.fromCalls, greaterThan(0));
     });
 
-    test(
-
-        '31 — Online + kein remoteId: nur lokales Update, kein Supabase-Aufruf',
-        () async {
+    test('31 — Leere cookIds werden als null gespeichert', () async {
       _stubDaoVoids();
-      when(() => mockDao.getEntryByLocalId('local-1'))
-          .thenAnswer((_) async => _fakeEntry(remoteId: null));
-      final supabase = _FakeSupabaseClient();
-
-      final repo = _buildRepo(isOnline: true, supabase: supabase);
-      await repo.setCookIds('local-1', ['user-x']);
-
-      verify(() => mockDao.updateCookIds('local-1', any())).called(1);
-      expect(supabase.fromCalls, 0);
-      verifyNever(() => mockDao.updateSyncStatus(any(), 'synced',
-          remoteId: any(named: 'remoteId')));
-    });
-
-    test('32 — Offline: nur lokales Update, kein Supabase-Aufruf', () async {
-      _stubDaoVoids();
-      when(() => mockDao.getEntryByLocalId('local-1'))
-          .thenAnswer((_) async => _fakeEntry(remoteId: 'remote-1'));
-      final supabase = _FakeSupabaseClient();
-
-      final repo = _buildRepo(isOnline: false, supabase: supabase);
-      await repo.setCookIds('local-1', ['user-x']);
-
-      verify(() => mockDao.updateCookIds('local-1', any())).called(1);
-      expect(supabase.fromCalls, 0);
-      verifyNever(() => mockDao.updateSyncStatus(any(), 'synced',
-          remoteId: any(named: 'remoteId')));
-    });
-
-    test('33 — Leere cookIds werden als null gespeichert', () async {
-      _stubDaoVoids();
-      when(() => mockDao.getEntryByLocalId('local-1'))
-          .thenAnswer((_) async => _fakeEntry(remoteId: null));
-
       final repo = _buildRepo(isOnline: false);
       await repo.setCookIds('local-1', []);
 
@@ -870,35 +702,14 @@ void main() {
       expect(captured.first, isNull);
     });
 
-    test(
-        '34 — Online + Supabase-Fehler: lokales Update bleibt, kein syncStatus=synced',
-        () async {
+    test('32 — Nicht-leere cookIds werden als JSON gespeichert', () async {
       _stubDaoVoids();
-      when(() => mockDao.getEntryByLocalId('local-1'))
-          .thenAnswer((_) async => _fakeEntry(remoteId: 'remote-1'));
-      final supabase = _FakeSupabaseClient(throws: true);
-
-      final repo = _buildRepo(isOnline: true, supabase: supabase);
+      final repo = _buildRepo(isOnline: true);
       await repo.setCookIds('local-1', ['user-x']);
 
-      verify(() => mockDao.updateCookIds('local-1', any())).called(1);
-      verifyNever(() => mockDao.updateSyncStatus(any(), 'synced',
-          remoteId: any(named: 'remoteId')));
-    });
-
-    test(
-        '35 — Nicht-existente localId: updateCookIds aufgerufen, kein Supabase-Aufruf',
-        () async {
-      _stubDaoVoids();
-      when(() => mockDao.getEntryByLocalId('ghost'))
-          .thenAnswer((_) async => null);
-      final supabase = _FakeSupabaseClient();
-
-      final repo = _buildRepo(isOnline: true, supabase: supabase);
-      await repo.setCookIds('ghost', ['user-x']);
-
-      verify(() => mockDao.updateCookIds('ghost', any())).called(1);
-      expect(supabase.fromCalls, 0);
+      final captured =
+          verify(() => mockDao.updateCookIds('local-1', captureAny())).captured;
+      expect(captured.first, '["user-x"]');
     });
   });
 }

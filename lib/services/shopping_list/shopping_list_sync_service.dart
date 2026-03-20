@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:meal_planner/core/database/app_database.dart';
@@ -9,6 +11,9 @@ class ShoppingListSyncService {
   final SupabaseShoppingListRepository _remote;
   final String _groupId;
 
+  Timer? _timer;
+  bool _isSyncing = false;
+
   ShoppingListSyncService({
     required ShoppingItemDao dao,
     required SupabaseShoppingListRepository remote,
@@ -16,6 +21,19 @@ class ShoppingListSyncService {
   })  : _dao = dao,
         _remote = remote,
         _groupId = groupId;
+
+  bool get isRunning => _timer?.isActive ?? false;
+
+  void start() {
+    if (_timer?.isActive ?? false) return;
+    sync();
+    _timer = Timer.periodic(const Duration(seconds: 10), (_) => sync());
+  }
+
+  void stop() {
+    _timer?.cancel();
+    _timer = null;
+  }
 
   Future<void> syncPendingItems() async {
     final pending = await _dao.getPendingItems(_groupId);
@@ -75,9 +93,15 @@ class ShoppingListSyncService {
     }
   }
 
-  // Beide zusammen – wird bei App-Start und Reconnect aufgerufen
+  // Beide zusammen – wird periodisch und bei App-Resume aufgerufen
   Future<void> sync() async {
-    await syncPendingItems();
-    await pullRemoteItems();
+    if (_isSyncing) return;
+    _isSyncing = true;
+    try {
+      await syncPendingItems();
+      await pullRemoteItems();
+    } finally {
+      _isSyncing = false;
+    }
   }
 }

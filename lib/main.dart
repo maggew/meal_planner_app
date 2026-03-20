@@ -198,7 +198,7 @@ class _MyAppState extends ConsumerState<MyApp> {
         final wasOffline = previous?.asData?.value == false;
         if (isOnline && wasOffline) {
           ref.read(sessionProvider.notifier).reloadActiveGroup();
-          ref.read(shoppingListSyncServiceProvider).syncPendingItems();
+          ref.read(shoppingListSyncServiceProvider).sync();
           final now = DateTime.now();
           ref.read(mealPlanSyncServiceProvider).sync(now.year, now.month);
         }

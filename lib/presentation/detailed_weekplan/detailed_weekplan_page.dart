@@ -4,8 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
 import 'package:meal_planner/presentation/common/common_appbar.dart';
 import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_body.dart';
-import 'package:meal_planner/services/meal_plan/meal_plan_realtime_service.dart';
-import 'package:meal_planner/services/providers/meal_plan/meal_plan_realtime_provider.dart';
+import 'package:meal_planner/services/meal_plan/meal_plan_sync_service.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_sync_provider.dart';
 
 @RoutePage()
@@ -18,22 +17,21 @@ class DetailedWeekplanPage extends ConsumerStatefulWidget {
 }
 
 class _DetailedWeekplanPageState extends ConsumerState<DetailedWeekplanPage> {
-  MealPlanRealtimeService? _realtimeService;
+  MealPlanSyncService? _syncService;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final now = DateTime.now();
-      ref.read(mealPlanSyncServiceProvider).sync(now.year, now.month);
-      _realtimeService = ref.read(mealPlanRealtimeServiceProvider);
-      _realtimeService!.subscribe();
+      _syncService = ref.read(mealPlanSyncServiceProvider);
+      _syncService!.start(now.year, now.month);
     });
   }
 
   @override
   void dispose() {
-    _realtimeService?.unsubscribe();
+    _syncService?.stop();
     super.dispose();
   }
 

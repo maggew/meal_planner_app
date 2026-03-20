@@ -75,21 +75,16 @@ void main() {
   tearDown(() => container.dispose());
 
   OfflineFirstShoppingListRepository _buildRepo({
-    required bool isOnline,
+    bool isOnline = true,
     String groupId = _kGroupId,
   }) {
     container = ProviderContainer(overrides: [
       isOnlineProvider.overrideWithValue(isOnline),
     ]);
-    final testProvider = Provider<OfflineFirstShoppingListRepository>((ref) {
-      return OfflineFirstShoppingListRepository(
-        dao: mockDao,
-        remote: mockRemote,
-        groupId: groupId,
-        ref: ref,
-      );
-    });
-    return container.read(testProvider);
+    return OfflineFirstShoppingListRepository(
+      dao: mockDao,
+      groupId: groupId,
+    );
   }
 
   void _stubDaoVoids() {
@@ -246,52 +241,29 @@ void main() {
       verify(() => mockDao.upsertItem(any())).called(1);
     });
 
-    test('9 — Online: Remote wird aufgerufen', () async {
+    test('9 — syncStatus ist pendingCreate nach addItem', () async {
       _stubDaoVoids();
-      when(() => mockRemote.addItem('Brot', null))
-          .thenAnswer((_) async => _fakeRemoteItem(id: 'remote-new'));
       final repo = _buildRepo(isOnline: true);
 
       await repo.addItem('Brot', null);
 
-      verify(() => mockRemote.addItem('Brot', null)).called(1);
+      final captured = verify(() => mockDao.upsertItem(captureAny())).captured;
+      final companion = captured.first as LocalShoppingItemsCompanion;
+      expect(companion.syncStatus.value, 'pendingCreate');
     });
 
-    test(
-        '10 — Online + Erfolg: updateSyncStatus mit synced und remoteId aufgerufen',
-        () async {
+    test('10 — Rückgabewert ist lokales Item mit localId', () async {
       _stubDaoVoids();
-      when(() => mockRemote.addItem(any(), any()))
-          .thenAnswer((_) async => _fakeRemoteItem(id: 'remote-new'));
-      final repo = _buildRepo(isOnline: true);
-
-      await repo.addItem('Brot', null);
-
-      verify(() => mockDao.updateSyncStatus(
-            any(),
-            'synced',
-            remoteId: 'remote-new',
-          )).called(1);
-    });
-
-    test('11 — Online + Erfolg: Rückgabewert ist das Remote-Item', () async {
-      _stubDaoVoids();
-      final remoteItem = _fakeRemoteItem(id: 'remote-xyz', information: 'Brot');
-      when(() => mockRemote.addItem(any(), any()))
-          .thenAnswer((_) async => remoteItem);
       final repo = _buildRepo(isOnline: true);
 
       final result = await repo.addItem('Brot', null);
 
-      expect(result.id, 'remote-xyz');
+      expect(result.information, 'Brot');
+      expect(result.id, isNotEmpty);
     });
 
-    test(
-        '12 — Online + Remote-Fehler: Rückgabewert ist lokales Item, kein Absturz',
-        () async {
+    test('11 — Rückgabewert enthält korrekte Felder', () async {
       _stubDaoVoids();
-      when(() => mockRemote.addItem(any(), any()))
-          .thenThrow(Exception('Netzwerkfehler'));
       final repo = _buildRepo(isOnline: true);
 
       final result = await repo.addItem('Brot', '2 Stück');
@@ -299,7 +271,16 @@ void main() {
       expect(result.information, 'Brot');
       expect(result.quantity, '2 Stück');
       expect(result.isChecked, false);
-      // syncStatus bleibt pendingCreate — kein updateSyncStatus('synced') aufgerufen
+      expect(result.groupId, _kGroupId);
+    });
+
+    test('12 — kein updateSyncStatus nach addItem (Sync-Service zuständig)',
+        () async {
+      _stubDaoVoids();
+      final repo = _buildRepo(isOnline: true);
+
+      await repo.addItem('Brot', '2 Stück');
+
       verifyNever(() => mockDao.updateSyncStatus(
             any(),
             'synced',
@@ -384,19 +365,17 @@ void main() {
       verify(() => mockDao.upsertItem(any())).called(1);
     });
 
-    test('18 — Online + Erfolg: Remote aufgerufen und syncStatus=synced',
+    test('18 — syncStatus wird auf pendingUpdate gesetzt für synced Items',
         () async {
       _stubDaoVoids();
-      _stubDaoList([_fakeLocal(remoteId: 'remote-1')]);
-      when(() => mockRemote.updateItem(any(), any(), any()))
-          .thenAnswer((_) async {});
+      _stubDaoList([_fakeLocal(remoteId: 'remote-1', syncStatus: 'synced')]);
       final repo = _buildRepo(isOnline: true);
 
       await repo.updateItem('remote-1', 'Milch 2%', '1L');
 
-      verify(() => mockRemote.updateItem('remote-1', 'Milch 2%', '1L'))
-          .called(1);
-      verify(() => mockDao.updateSyncStatus('local-1', 'synced')).called(1);
+      final captured = verify(() => mockDao.upsertItem(captureAny())).captured;
+      final companion = captured.first as LocalShoppingItemsCompanion;
+      expect(companion.syncStatus.value, 'pendingUpdate');
     });
 
     test(
@@ -485,17 +464,17 @@ void main() {
       expect(companion.isChecked.value, true);
     });
 
-    test('23 — Online + Erfolg: Remote aufgerufen und syncStatus=synced',
+    test('23 — syncStatus wird auf pendingUpdate gesetzt für synced Items',
         () async {
       _stubDaoVoids();
-      _stubDaoList([_fakeLocal(remoteId: 'remote-1')]);
-      when(() => mockRemote.toggleItem(any(), any())).thenAnswer((_) async {});
+      _stubDaoList([_fakeLocal(remoteId: 'remote-1', syncStatus: 'synced')]);
       final repo = _buildRepo(isOnline: true);
 
       await repo.toggleItem('remote-1', true);
 
-      verify(() => mockRemote.toggleItem('remote-1', true)).called(1);
-      verify(() => mockDao.updateSyncStatus('local-1', 'synced')).called(1);
+      final captured = verify(() => mockDao.upsertItem(captureAny())).captured;
+      final companion = captured.first as LocalShoppingItemsCompanion;
+      expect(companion.syncStatus.value, 'pendingUpdate');
     });
 
     test('24 — Online + Remote-Fehler: lokaler Toggle bleibt, kein Absturz',
@@ -567,24 +546,15 @@ void main() {
   // ═══════════════════════════════════════════════════════════════════════════
 
   group('removeItem', () {
-    test(
-        '26 — Online + Erfolg: Reihenfolge markAsDeleted → Remote → hardDelete',
-        () async {
+    test('26 — removeItem markiert Item als deleted', () async {
       _stubDaoVoids();
       _stubDaoList([_fakeLocal(localId: 'local-1', remoteId: 'remote-1')]);
-      when(() => mockRemote.removeItem(any())).thenAnswer((_) async {});
-      final callOrder = <String>[];
-      when(() => mockDao.markAsDeleted('local-1'))
-          .thenAnswer((_) async => callOrder.add('markAsDeleted'));
-      when(() => mockRemote.removeItem(any()))
-          .thenAnswer((_) async => callOrder.add('remote'));
-      when(() => mockDao.hardDeleteItem(any()))
-          .thenAnswer((_) async => callOrder.add('hardDelete'));
       final repo = _buildRepo(isOnline: true);
 
       await repo.removeItem('remote-1');
 
-      expect(callOrder, ['markAsDeleted', 'remote', 'hardDelete']);
+      verify(() => mockDao.markAsDeleted('local-1')).called(1);
+      verifyNever(() => mockDao.hardDeleteItem(any()));
     });
 
     test('27 — Offline: nur markAsDeleted, kein Remote, kein hardDelete',
@@ -649,24 +619,19 @@ void main() {
       verifyNever(() => mockDao.markAsDeleted('unchecked-1'));
     });
 
-    test(
-        '31 — Online + Erfolg: markAsDeleted → Remote → hardDelete für alle abgehakten',
-        () async {
+    test('31 — Alle abgehakten Items werden als deleted markiert', () async {
       _stubDaoVoids();
       _stubDaoList([
         _fakeLocal(localId: 'checked-1', isChecked: true),
         _fakeLocal(localId: 'checked-2', isChecked: true),
       ]);
-      when(() => mockRemote.removeCheckedItems()).thenAnswer((_) async {});
       final repo = _buildRepo(isOnline: true);
 
       await repo.removeCheckedItems();
 
       verify(() => mockDao.markAsDeleted('checked-1')).called(1);
       verify(() => mockDao.markAsDeleted('checked-2')).called(1);
-      verify(() => mockRemote.removeCheckedItems()).called(1);
-      verify(() => mockDao.hardDeleteItem('checked-1')).called(1);
-      verify(() => mockDao.hardDeleteItem('checked-2')).called(1);
+      verifyNever(() => mockDao.hardDeleteItem(any()));
     });
 
     test(
