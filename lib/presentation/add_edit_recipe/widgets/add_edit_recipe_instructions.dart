@@ -135,6 +135,16 @@ class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
             ),
             keyboardType: TextInputType.multiline,
             maxLines: null,
+            // Android-Workaround: Verhindert, dass ein Tap die Selektion
+            // erweitert statt den Cursor zu platzieren.
+            onTap: () {
+              final ctrl = widget.recipeInstructionsController;
+              if (!ctrl.selection.isCollapsed) {
+                ctrl.selection = TextSelection.collapsed(
+                  offset: ctrl.selection.extentOffset,
+                );
+              }
+            },
           ),
         ),
       ],
