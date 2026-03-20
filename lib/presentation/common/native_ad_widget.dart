@@ -53,7 +53,9 @@ class _NativeAdWidgetState extends ConsumerState<NativeAdWidget>
       parent: _slideController,
       curve: Curves.easeOut,
     ));
-    _loadAd();
+    if (!ref.read(isPremiumProvider)) {
+      _loadAd();
+    }
   }
 
   void _loadAd() {
