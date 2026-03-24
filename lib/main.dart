@@ -44,6 +44,9 @@ void main() async {
   //  Supabase: custom HttpClient with public-key pin on Dart level.
   //  Firebase: native config (Android network_security_config.xml, iOS TrustKit).
   //  Pin root CA public keys (not leaf certs) to avoid breakage on rotation.
+  // TODO(security): Add server-side input length constraints before store release.
+  //  Supabase CHECK constraints on text columns (recipe name, ingredients, etc.)
+  //  to prevent DB spam via direct API access bypassing client-side validation.
   await Supabase.initialize(
       url: Env.supabaseUrl,
       anonKey: Env.supabaseAnonKey,
