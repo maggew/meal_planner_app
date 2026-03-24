@@ -10,6 +10,7 @@
 .svn/
 
 .env
+**/env.g.dart
 .claude/
 
 screenshots/debug*.png

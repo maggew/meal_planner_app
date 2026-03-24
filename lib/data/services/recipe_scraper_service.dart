@@ -184,6 +184,7 @@ class RecipeScraperService {
 
   Future<String?> _downloadImage(String url) async {
     try {
+      if (!url.startsWith('https://')) return null;
       final tempDir = Directory.systemTemp;
       final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       final filePath = '${tempDir.path}/$fileName';

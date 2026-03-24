@@ -79,10 +79,15 @@ class MealPlanSyncService {
 
           case 'pendingUpdate':
             if (entry.remoteId != null) {
-              final cookIds = entry.cookIdsJson != null
-                  ? (jsonDecode(entry.cookIdsJson!) as List<dynamic>)
-                      .cast<String>()
-                  : <String>[];
+              List<String> cookIds;
+              try {
+                cookIds = entry.cookIdsJson != null
+                    ? (jsonDecode(entry.cookIdsJson!) as List<dynamic>)
+                        .cast<String>()
+                    : <String>[];
+              } catch (_) {
+                cookIds = <String>[];
+              }
               await _supabase
                   .from(SupabaseConstants.mealPlanEntriesTable)
                   .update({

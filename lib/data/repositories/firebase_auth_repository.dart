@@ -12,7 +12,7 @@ import 'package:meal_planner/domain/exceptions/auth_exceptions.dart';
 import 'package:meal_planner/domain/repositories/auth_repository.dart';
 import 'package:meal_planner/domain/repositories/storage_repository.dart';
 import 'package:meal_planner/domain/repositories/user_repository.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:meal_planner/core/env/env.dart';
 
 class FirebaseAuthRepository implements AuthRepository {
   final FirebaseAuth _auth;
@@ -54,7 +54,7 @@ class FirebaseAuthRepository implements AuthRepository {
       final firebaseIdToken = await user.getIdToken(true);
 
       final supabaseResponse = await _dio.post(
-        'https://esreihfibhoueesrlmxj.functions.supabase.co/bootstrap-user',
+        Env.bootstrapUserUrl,
         options: Options(
           headers: {
             'Authorization': 'Bearer $firebaseIdToken',
@@ -113,7 +113,7 @@ class FirebaseAuthRepository implements AuthRepository {
       // Supabase User ID holen (wie bei Google Login)
       final firebaseIdToken = await user.getIdToken(true);
       final supabaseResponse = await _dio.post(
-        'https://esreihfibhoueesrlmxj.functions.supabase.co/bootstrap-user',
+        Env.bootstrapUserUrl,
         options: Options(
           headers: {
             'Authorization': 'Bearer $firebaseIdToken',
@@ -173,7 +173,7 @@ class FirebaseAuthRepository implements AuthRepository {
       final signIn = _googleSignIn;
 
       await signIn.initialize(
-        serverClientId: dotenv.env['GOOGLE_LOGIN_SERVER_CLIENT_ID'],
+        serverClientId: Env.googleLoginServerClientId,
       );
 
       if (!signIn.supportsAuthenticate()) {
@@ -201,7 +201,7 @@ class FirebaseAuthRepository implements AuthRepository {
       final firebaseIdToken = await user.getIdToken(true);
 
       final supabaseResponse = await _dio.post(
-        'https://esreihfibhoueesrlmxj.functions.supabase.co/bootstrap-user',
+        Env.bootstrapUserUrl,
         options: Options(
           headers: {
             'Authorization': 'Bearer $firebaseIdToken',

@@ -12,11 +12,13 @@
 
     <application
         android:label="meal_planner"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false">
 		<activity
 
-    android:name="com.yalantis.ucrop.UCropActivity" 
-    android:screenOrientation="portrait" 
+    android:name="com.yalantis.ucrop.UCropActivity"
+    android:exported="false"
+    android:screenOrientation="portrait"
 	android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
         <activity

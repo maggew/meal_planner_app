@@ -42,11 +42,12 @@ class AppRouter extends RootStackRouter {
           ],
         ),
 
-        /// Sub-Pages (Root-Level — außerhalb der Shell)
-        AutoRoute(page: SettingsRoute.page),
-        AutoRoute(page: ShowRecipeRoute.page),
+        /// Sub-Pages (Root-Level — außerhalb der Shell, aber auth-geschützt)
+        AutoRoute(page: SettingsRoute.page, guards: [authGuard]),
+        AutoRoute(page: ShowRecipeRoute.page, guards: [authGuard]),
         AutoRoute(
           page: AddEditRecipeRoute.page,
+          guards: [authGuard],
           type: RouteType.custom(
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) => child,
@@ -54,7 +55,7 @@ class AppRouter extends RootStackRouter {
             reverseDuration: const Duration(milliseconds: 50),
           ),
         ),
-AutoRoute(page: TrashRoute.page),
-        AutoRoute(page: RecipeSuggestionRoute.page),
+        AutoRoute(page: TrashRoute.page, guards: [authGuard]),
+        AutoRoute(page: RecipeSuggestionRoute.page, guards: [authGuard]),
       ];
 }

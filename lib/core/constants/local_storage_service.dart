@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:meal_planner/core/constants/local_keys.dart';
 import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/domain/entities/group_settings.dart';
@@ -9,31 +10,50 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LocalStorageService {
   const LocalStorageService();
 
-  // ------ Group ------
+  static const _secure = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  );
+
+  // ------ Group (secure) ------
   Future<void> saveActiveGroup(String groupId) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(LocalKeys.activeGroupId, groupId);
+    await _secure.write(key: LocalKeys.activeGroupId, value: groupId);
   }
 
   Future<String?> loadActiveGroup() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(LocalKeys.activeGroupId);
+    var value = await _secure.read(key: LocalKeys.activeGroupId);
+    if (value == null) {
+      // One-time migration from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      value = prefs.getString(LocalKeys.activeGroupId);
+      if (value != null) {
+        await _secure.write(key: LocalKeys.activeGroupId, value: value);
+        await prefs.remove(LocalKeys.activeGroupId);
+      }
+    }
+    return value;
   }
 
   Future<void> clearActiveGroup() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(LocalKeys.activeGroupId);
+    await _secure.delete(key: LocalKeys.activeGroupId);
   }
 
-  // ------ Supabase User ID ------
+  // ------ Supabase User ID (secure) ------
   Future<void> saveSupabaseUserId(String userId) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(LocalKeys.supabaseUserId, userId);
+    await _secure.write(key: LocalKeys.supabaseUserId, value: userId);
   }
 
   Future<String?> loadSupabaseUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(LocalKeys.supabaseUserId);
+    var value = await _secure.read(key: LocalKeys.supabaseUserId);
+    if (value == null) {
+      // One-time migration from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      value = prefs.getString(LocalKeys.supabaseUserId);
+      if (value != null) {
+        await _secure.write(key: LocalKeys.supabaseUserId, value: value);
+        await prefs.remove(LocalKeys.supabaseUserId);
+      }
+    }
+    return value;
   }
 
   // ------ Cached Group (per groupId) ------

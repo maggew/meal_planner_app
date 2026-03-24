@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:meal_planner/core/constants/firebase_constants.dart';
 import 'package:meal_planner/data/datasources/recipe_remote_datasource.dart';
 import 'package:meal_planner/data/model/ingredient_model.dart';
@@ -177,8 +178,8 @@ class SupabaseRecipeRepository implements RecipeRepository {
           .map(
               (recipeData) => RecipeModel.fromSupabaseWithRelations(recipeData))
           .toList();
-    } catch (e, stackTrace) {
-      print("Error fetching recipes by category: $e\n$stackTrace");
+    } catch (e) {
+      debugPrint("Error fetching recipes by category: $e");
       throw RecipeNotFoundException('Kategorie: $categoryId');
     }
   }
@@ -192,8 +193,8 @@ class SupabaseRecipeRepository implements RecipeRepository {
           .map(
               (recipeData) => RecipeModel.fromSupabaseWithRelations(recipeData))
           .toList();
-    } catch (e, stackTrace) {
-      print("Error fetching recipes by categories: $e\n$stackTrace");
+    } catch (e) {
+      debugPrint("Error fetching recipes by categories: $e");
       throw RecipeNotFoundException('Kategorien: $categories');
     }
   }

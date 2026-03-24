@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:meal_planner/core/env/env.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/theme/app_theme.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
@@ -34,21 +34,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
-    await dotenv.load();
-  } catch (e) {
-    runApp(ErrorApp('dotenv load failed: $e'));
-    return;
-  }
-
-  final supabaseUrl = dotenv.env['SUPABASE_URL'];
-  final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'];
-
-  if (supabaseUrl == null || supabaseAnonKey == null) {
-    runApp(ErrorApp('Supabase env vars missing'));
-    return;
-  }
-
-  try {
     await Firebase.initializeApp();
   } catch (e) {
     runApp(ErrorApp('Firebase init failed: $e'));
@@ -56,8 +41,8 @@ void main() async {
   }
 
   await Supabase.initialize(
-      url: supabaseUrl,
-      anonKey: supabaseAnonKey,
+      url: Env.supabaseUrl,
+      anonKey: Env.supabaseAnonKey,
       accessToken: () async {
         final firebaseUser = FirebaseAuth.instance.currentUser;
         if (firebaseUser == null) return null;

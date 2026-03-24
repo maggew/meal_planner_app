@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:meal_planner/data/repositories/firebase_auth_repository.dart';
@@ -62,9 +61,6 @@ void main() {
   setUpAll(() async {
     registerFallbackValue(FakeAuthCredential());
     registerFallbackValue(File(''));
-    // Initialize dotenv so dotenv.env access doesn't throw in signInWithGoogle
-    dotenv.loadFromString(
-        envString: 'GOOGLE_LOGIN_SERVER_CLIENT_ID=test-client-id');
   });
 
   setUp(() {

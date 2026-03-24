@@ -53,7 +53,8 @@ dependencies:
   supabase_flutter: ^2.12.0
   uuid: ^4.5.2
   image_cropper: ^11.0.0
-  flutter_dotenv: ^6.0.0
+  envied: ^1.1.1
+  flutter_secure_storage: ^9.2.4
   google_mobile_ads: ^5.2.0
   flutter_local_notifications: ^20.1.0
   audioplayers: ^6.5.1
@@ -69,6 +70,7 @@ dev_dependencies:
   riverpod_generator: ^4.0.3
   auto_route_generator: ^10.4.0
   drift_dev: ^2.31.0
+  envied_generator: ^1.1.1
   flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
@@ -83,7 +85,6 @@ flutter:
   uses-material-design: true
 
   assets:
-      - .env
       - assets/images/avocado.png
       - assets/images/group.png
       - assets/images/team.png
