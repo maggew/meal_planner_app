@@ -36,6 +36,9 @@ class GroupSettings {
             .toList()
         : MealType.values.toList();
 
+    // Always sort by enum declaration order (breakfast → lunch → dinner)
+    parsedSlots.sort((a, b) => a.index.compareTo(b.index));
+
     return GroupSettings(
       weekStartDay: WeekStartDay.values.byName(
         json['week_start_day'] as String? ?? 'monday',
