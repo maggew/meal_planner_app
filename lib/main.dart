@@ -40,6 +40,10 @@ void main() async {
     return;
   }
 
+  // TODO(security): Implement certificate pinning for Supabase & Firebase.
+  //  Supabase: custom HttpClient with public-key pin on Dart level.
+  //  Firebase: native config (Android network_security_config.xml, iOS TrustKit).
+  //  Pin root CA public keys (not leaf certs) to avoid breakage on rotation.
   await Supabase.initialize(
       url: Env.supabaseUrl,
       anonKey: Env.supabaseAnonKey,
@@ -58,6 +62,8 @@ void main() async {
   final deviceTimeZone = await FlutterTimezone.getLocalTimezone();
   tz_local.setLocalLocation(tz_local.getLocation(deviceTimeZone.identifier));
 
+  // TODO(security): Replace test AdMob IDs with production IDs before store release.
+  //  Affected: AndroidManifest.xml, ios/Runner/Info.plist, native_ad_widget.dart.
   await MobileAds.instance.initialize();
 
   await NotificationService.instance.initialize();
