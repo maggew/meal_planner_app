@@ -172,7 +172,11 @@ class AddEditRecipeButton extends ConsumerWidget {
     );
 
     if (context.mounted) {
-      context.router.replace(const CookbookRoute());
+      if (existingRecipe != null) {
+        context.router.replace(ShowRecipeRoute(recipeId: existingRecipe.id));
+      } else {
+        context.router.replace(const CookbookRoute());
+      }
     }
   }
 
