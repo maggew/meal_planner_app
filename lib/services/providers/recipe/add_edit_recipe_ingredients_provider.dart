@@ -122,6 +122,31 @@ class AddEditRecipeIngredients extends _$AddEditRecipeIngredients {
     state = state.copyWith(sections: [...state.sections]);
   }
 
+  void scaleIngredients({
+    required int referenceSectionIndex,
+    required int referenceItemIndex,
+    required String newReferenceAmount,
+    required double factor,
+  }) {
+    for (int s = 0; s < state.sections.length; s++) {
+      final section = state.sections[s];
+      for (int i = 0; i < section.items.length; i++) {
+        final item = section.items[i];
+
+        if (s == referenceSectionIndex && i == referenceItemIndex) {
+          item.ingredient = item.ingredient.copyWith(amount: newReferenceAmount);
+          item.amountController.text = newReferenceAmount;
+        } else {
+          final scaled = item.ingredient.scale(factor);
+          item.ingredient = scaled;
+          item.amountController.text = scaled.amount ?? '';
+        }
+      }
+    }
+
+    state = state.copyWith(sections: [...state.sections]);
+  }
+
   void editIngredient(int flatIndex) {
     final mapping = _getFlatMapping(flatIndex: flatIndex);
     final section = state.sections[mapping.sectionIndex];

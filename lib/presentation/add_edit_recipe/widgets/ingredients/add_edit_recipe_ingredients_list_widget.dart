@@ -111,9 +111,7 @@ class AddEditRecipeIngredientsListWidget extends ConsumerWidget {
                           .read(ingredientsProvider.notifier)
                           .deleteIngredient(index),
                       onChecked: () {
-                        // unfocus the textformfields
                         FocusScope.of(context).unfocus();
-                        // Lock the current ingredient
                         ref
                             .read(ingredientsProvider.notifier)
                             .confirmIngredient(index);
@@ -211,3 +209,4 @@ Future<void> _handleDeletePressed(
     excludeInstructionsFocusNotifier.value = false;
   });
 }
+

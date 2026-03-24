@@ -30,4 +30,25 @@ class AmountScaler {
     if (v % 1 == 0) return v.toInt().toString();
     return v.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
   }
+
+  /// Tries to parse an amount string as a numeric value.
+  /// Handles plain numbers and fractions. Returns null for
+  /// ranges, text, or empty strings.
+  static double? tryParse(String amount) {
+    final trimmed = amount.trim().replaceAll(',', '.');
+    if (trimmed.isEmpty) return null;
+
+    if (RegExp(r'^\d+(\.\d+)?$').hasMatch(trimmed)) {
+      return double.tryParse(trimmed);
+    }
+
+    final frac = RegExp(r'^(\d+)/(\d+)$').firstMatch(trimmed);
+    if (frac != null) {
+      final denom = int.parse(frac.group(2)!);
+      if (denom == 0) return null;
+      return int.parse(frac.group(1)!) / denom;
+    }
+
+    return null;
+  }
 }

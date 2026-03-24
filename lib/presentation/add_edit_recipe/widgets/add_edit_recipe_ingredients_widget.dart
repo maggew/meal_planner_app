@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/add_edit_recipe/widgets/ingredients/add_edit_recipe_ingredients_list_widget.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/ingredients/ingredient_scale_sheet.dart';
 import 'package:meal_planner/services/providers/recipe/add_edit_recipe_ingredients_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_analysis_provider.dart';
 
@@ -49,6 +50,47 @@ class AddEditRecipeIngredientsWidget extends ConsumerWidget {
                 ref
                     .read(ingredientsProvider.notifier)
                     .analyzeIngredientsFromImage(pickImageFromCamera: false);
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.tune),
+              tooltip: 'Mengen anpassen',
+              onPressed: () {
+                final state = ref.read(ingredientsProvider);
+                final sections = state.sections
+                    .asMap()
+                    .entries
+                    .map((e) => (
+                          items: e.value.items
+                              .asMap()
+                              .entries
+                              .map((item) => (
+                                    sectionIndex: e.key,
+                                    itemIndex: item.key,
+                                    ingredient: item.value.ingredient,
+                                  ))
+                              .toList(),
+                        ))
+                    .toList();
+                showIngredientScaleSheet(
+                  context: context,
+                  sections: sections,
+                  onScale: ({
+                    required sectionIndex,
+                    required itemIndex,
+                    required newAmount,
+                    required factor,
+                  }) {
+                    ref
+                        .read(ingredientsProvider.notifier)
+                        .scaleIngredients(
+                          referenceSectionIndex: sectionIndex,
+                          referenceItemIndex: itemIndex,
+                          newReferenceAmount: newAmount,
+                          factor: factor,
+                        );
+                  },
+                );
               },
             ),
             Tooltip(
