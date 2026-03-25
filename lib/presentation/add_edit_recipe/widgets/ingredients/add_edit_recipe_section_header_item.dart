@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
 
 class AddEditRecipeSectionHeaderItem extends StatefulWidget {
@@ -85,6 +86,7 @@ class _AddEditRecipeSectionHeaderItemState
                     controller: widget.titleController,
                     textAlign: TextAlign.center,
                     onSubmitted: (_) => widget.onConfirmPressed(),
+                    inputFormatters: [LengthLimitingTextInputFormatter(100)],
                   )
                 : Center(
                     child: Text(

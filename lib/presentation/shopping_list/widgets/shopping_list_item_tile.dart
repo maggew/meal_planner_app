@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
@@ -92,11 +93,13 @@ class _ShoppingListItemTileState extends ConsumerState<ShoppingListItemTile>
                 autofocus: true,
                 decoration: const InputDecoration(labelText: 'Name'),
                 textCapitalization: TextCapitalization.sentences,
+                inputFormatters: [LengthLimitingTextInputFormatter(300)],
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: quantityController,
                 decoration: const InputDecoration(labelText: 'Menge'),
+                inputFormatters: [LengthLimitingTextInputFormatter(20)],
               ),
               const SizedBox(height: 16),
               Row(

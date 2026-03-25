@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:meal_planner/domain/entities/user_profile.dart';
 
 class ProfileNameWidget extends StatelessWidget {
@@ -24,6 +25,7 @@ class ProfileNameWidget extends StatelessWidget {
             labelText: 'Name',
             border: OutlineInputBorder(),
           ),
+          inputFormatters: [LengthLimitingTextInputFormatter(100)],
         ),
       );
     }

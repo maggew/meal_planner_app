@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:meal_planner/presentation/common/extensions/text_theme_extensions.dart';
 
 class CookingModeTimerDurationPicker extends StatefulWidget {
@@ -81,6 +82,7 @@ class _CookingModeTimerDurationPickerState
                   borderSide: BorderSide(
                 color: inputBorderColor,
               ))),
+          inputFormatters: [LengthLimitingTextInputFormatter(100)],
         ),
         Row(
           children: [

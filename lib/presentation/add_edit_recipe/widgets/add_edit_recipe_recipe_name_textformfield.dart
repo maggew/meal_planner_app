@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AddEditRecipeRecipeNameTextformfield extends StatelessWidget {
   final TextEditingController recipeNameController;
@@ -26,6 +27,7 @@ class AddEditRecipeRecipeNameTextformfield extends StatelessWidget {
             hintText: 'Rezeptname',
           ),
           keyboardType: TextInputType.text,
+          inputFormatters: [LengthLimitingTextInputFormatter(200)],
         ),
       ],
     );

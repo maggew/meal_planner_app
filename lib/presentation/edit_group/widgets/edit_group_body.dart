@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/presentation/common/placeholder_image.dart';
 import 'package:meal_planner/presentation/edit_group/widgets/edit_group_image.dart';
@@ -38,7 +39,10 @@ class EditGroupBody extends StatelessWidget {
           Text("Gruppenname", style: textTheme.headlineMedium),
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: 300),
-            child: TextField(controller: groupNameController),
+            child: TextField(
+              controller: groupNameController,
+              inputFormatters: [LengthLimitingTextInputFormatter(100)],
+            ),
           ),
           EditGroupImage(image: image),
           EditGroupSelectImageButtons(),

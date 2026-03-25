@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:meal_planner/core/constants/categories.dart';
 import 'package:meal_planner/domain/entities/group_category.dart';
 
@@ -143,6 +144,7 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
             autofocus: widget.initialName.isEmpty,
             decoration: const InputDecoration(hintText: 'Kategoriename'),
             textCapitalization: TextCapitalization.sentences,
+            inputFormatters: [LengthLimitingTextInputFormatter(50)],
           ),
           const SizedBox(height: 16),
           Text(

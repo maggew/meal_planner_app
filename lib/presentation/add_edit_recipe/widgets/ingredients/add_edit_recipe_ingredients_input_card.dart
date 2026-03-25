@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
@@ -87,6 +88,7 @@ class _AddEditRecipeIngredientsInputCardState
                       hintText: 'Zutat eingeben…',
                       fillColor: colorScheme.surface,
                     ),
+                    inputFormatters: [LengthLimitingTextInputFormatter(200)],
                   ),
                 ),
                 IconButton(
@@ -115,6 +117,7 @@ class _AddEditRecipeIngredientsInputCardState
                     ),
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [LengthLimitingTextInputFormatter(20)],
                     onChanged: (value) {
                       final normalized = value.replaceAll(',', '.');
                       if (normalized != value) {

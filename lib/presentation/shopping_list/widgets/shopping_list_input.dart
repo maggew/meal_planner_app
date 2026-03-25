@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/services/providers/shopping_list/shopping_list_provider.dart';
@@ -85,6 +86,7 @@ class _ShoppingListInputState extends ConsumerState<ShoppingListInput> {
                       ),
                     ),
                     textInputAction: TextInputAction.done,
+                    inputFormatters: [LengthLimitingTextInputFormatter(300)],
                     onSubmitted: (_) => _submit(),
                   ),
                 ),

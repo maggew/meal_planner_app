@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/presentation/common/loading_overlay.dart';
@@ -135,6 +136,7 @@ class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
             ),
             keyboardType: TextInputType.multiline,
             maxLines: null,
+            inputFormatters: [LengthLimitingTextInputFormatter(10000)],
             // Android-Workaround: Verhindert, dass ein Tap die Selektion
             // erweitert statt den Cursor zu platzieren.
             onTap: () {

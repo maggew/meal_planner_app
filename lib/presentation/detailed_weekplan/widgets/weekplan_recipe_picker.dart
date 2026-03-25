@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/core/database/app_database.dart';
@@ -328,6 +329,7 @@ class _WeekplanRecipePickerState extends ConsumerState<WeekplanRecipePicker> {
                         ),
                       ),
                       textInputAction: TextInputAction.done,
+                      inputFormatters: [LengthLimitingTextInputFormatter(200)],
                       onSubmitted: (_) => _submitCustom(),
                       onChanged: (v) => setState(() {
                         _searchQuery = v.toLowerCase();
