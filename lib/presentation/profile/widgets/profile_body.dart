@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/presentation/common/native_ad_widget.dart';
 import 'package:meal_planner/presentation/profile/widgets/active_group_card.dart';
 import 'package:meal_planner/presentation/profile/widgets/profile_groups_list.dart';
 import 'package:meal_planner/presentation/profile/widgets/profile_picture.dart';
@@ -40,6 +41,7 @@ class ProfileBody extends ConsumerWidget {
                             .withValues(alpha: 0.6),
                       ),
                 ),
+                const NativeAdWidget(),
                 const ActiveGroupCard(),
                 const ProfileGroupsList(),
               ],
