@@ -42,7 +42,7 @@ final class UserSettingsNotifierProvider
 }
 
 String _$userSettingsNotifierHash() =>
-    r'86cef926321425bda77f766c1ef5c198a7d6ee15';
+    r'e6679102f433967e68e2602735db02cc630bbac7';
 
 abstract class _$UserSettingsNotifier extends $Notifier<UserSettings> {
   UserSettings build();

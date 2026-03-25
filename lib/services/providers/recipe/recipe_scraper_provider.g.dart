@@ -42,7 +42,7 @@ final class RecipeScraperProvider
   }
 }
 
-String _$recipeScraperHash() => r'0daec7d2bc2f3d02a30d0949618e7c19df757111';
+String _$recipeScraperHash() => r'bec6aada64988fec750d565c13bf3ab35ac56faa';
 
 abstract class _$RecipeScraper
     extends $Notifier<AsyncValue<ScrapedRecipeData?>> {

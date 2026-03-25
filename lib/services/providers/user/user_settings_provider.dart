@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:meal_planner/domain/entities/user_settings.dart';
+import 'package:meal_planner/domain/enums/shopping_list_view_mode.dart';
 import 'package:meal_planner/domain/enums/tab_position.dart';
 import 'package:meal_planner/services/providers/shared_preferences_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -36,6 +37,11 @@ class UserSettingsNotifier extends _$UserSettingsNotifier {
 
   void updateRecipeSort(RecipeSortOption option) {
     state = state.copyWith(recipeSortOption: option);
+    _save();
+  }
+
+  void updateShoppingListViewMode(ShoppingListViewMode mode) {
+    state = state.copyWith(shoppingListViewMode: mode);
     _save();
   }
 
