@@ -21,9 +21,9 @@ class _ShoppingListInputState extends ConsumerState<ShoppingListInput> {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
-    ref.read(shoppingListActionsProvider.notifier).addItem(text);
     _controller.clear();
     _focusNode.requestFocus();
+    ref.read(shoppingListActionsProvider.notifier).addItem(text);
   }
 
   @override

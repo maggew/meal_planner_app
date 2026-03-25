@@ -185,10 +185,10 @@ class _AddToShoppingListSheetState
                                   widget.sections[entry.key].ingredients[i]);
                             }
                           }
+                          context.router.pop();
                           ref
                               .read(shoppingListActionsProvider.notifier)
                               .addItemsFromIngredients(ingredients);
-                          context.router.pop();
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(

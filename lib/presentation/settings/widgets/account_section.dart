@@ -177,7 +177,7 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
                       child: const Text('Abbrechen'),
                     ),
                     FilledButton(
-                      onPressed: _saveChanges,
+                      onPressed: _isLoading ? null : _saveChanges,
                       child: const Text('Speichern'),
                     ),
                   ],

@@ -65,6 +65,7 @@ class AddEditRecipeButton extends ConsumerWidget {
 
   Future<void> _handleUpload(
       BuildContext context, WidgetRef ref, Recipe? existingRecipe) async {
+    if (ref.read(recipeUploadProvider).isLoading) return;
     // Provider speichert IDs → in Namen für Recipe-Entity und Cache-Invalidierung umwandeln
     final selectedCategoryIds = ref.read(selectedCategoriesProvider);
     final allGroupCategories = await ref.read(groupCategoriesProvider.future);

@@ -70,8 +70,11 @@ class _PlanRecipeSheetState extends ConsumerState<PlanRecipeSheet> {
     }
   }
 
+  bool _isSubmitting = false;
+
   Future<void> _submit() async {
-    if (_selectedMealType == null) return;
+    if (_selectedMealType == null || _isSubmitting) return;
+    setState(() => _isSubmitting = true);
 
     final entries =
         ref.read(mealPlanStreamProvider(_selectedDate)).value ?? [];
@@ -260,7 +263,7 @@ class _PlanRecipeSheetState extends ConsumerState<PlanRecipeSheet> {
 
             // Submit
             ElevatedButton(
-              onPressed: _selectedMealType != null ? _submit : null,
+              onPressed: _selectedMealType != null && !_isSubmitting ? _submit : null,
               child: const Text('Eintragen'),
             ),
           ],
