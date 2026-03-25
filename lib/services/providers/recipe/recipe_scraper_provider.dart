@@ -13,7 +13,7 @@ class RecipeScraper extends _$RecipeScraper {
   Future<ScrapedRecipeData?> scrape(String url) async {
     state = const AsyncLoading();
     try {
-      final service = RecipeScraperService(ref.read(dioProvider));
+      final service = RecipeScraperService(ref.read(scrapingDioProvider));
       final data = await service.scrape(url);
       state = AsyncData(data);
       return data;

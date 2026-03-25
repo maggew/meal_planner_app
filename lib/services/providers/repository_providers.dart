@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:meal_planner/core/security/pinned_http_client.dart';
 import 'package:meal_planner/core/database/app_database.dart';
 import 'package:meal_planner/data/repositories/firebase_auth_repository.dart';
 import 'package:meal_planner/data/repositories/firebase_storage_repository.dart';
@@ -49,8 +51,21 @@ final supabaseProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
 
-// Supabase Instances
-final dioProvider = Provider<Dio>((ref) {
+// Pinned Dio — for requests to Supabase Edge Functions (e.g. Firebase auth bootstrap).
+final pinnedDioProvider = Provider<Dio>((ref) {
+  final dio = Dio(BaseOptions(
+    connectTimeout: const Duration(seconds: 15),
+    receiveTimeout: const Duration(seconds: 15),
+    sendTimeout: const Duration(seconds: 15),
+  ));
+  dio.httpClientAdapter = IOHttpClientAdapter(
+    createHttpClient: () => PinnedHttpClientFactory.createSupabaseHttpClient(),
+  );
+  return dio;
+});
+
+// Unpinned Dio — for recipe scraping (arbitrary external websites, can't pin).
+final scrapingDioProvider = Provider<Dio>((ref) {
   return Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 15),
     receiveTimeout: const Duration(seconds: 15),
@@ -137,7 +152,7 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
     auth: ref.watch(firebaseAuthProvider),
     googleSignIn: ref.watch(googleSignInProvider),
     userRepository: ref.watch(userRepositoryProvider),
-    dio: ref.watch(dioProvider),
+    dio: ref.watch(pinnedDioProvider),
     storageRepository: ref.watch(storageRepositoryProvider),
   );
 });
