@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:html/parser.dart' as html_parser;
 import 'package:meal_planner/data/model/scraped_recipe_data.dart';
 import 'package:meal_planner/services/recipe_extractor.dart';
 
@@ -58,15 +60,11 @@ class RecipeScraperService {
 
     final name = recipeJson['name'] as String?;
 
-    final List<String> rawIngredients = [];
-    final ingredientsRaw = recipeJson['recipeIngredient'];
-    if (ingredientsRaw is List) {
-      for (final item in ingredientsRaw) {
-        if (item is String && item.trim().isNotEmpty) {
-          rawIngredients.add(item.trim());
-        }
-      }
-    }
+    // Try structured HTML extraction first (preserves ingredient sections),
+    // fall back to flat JSON-LD list.
+    final rawIngredients = _tryExtractWprmIngredients(html) ??
+        _tryExtractTastyRecipesIngredients(html) ??
+        _extractJsonLdIngredients(recipeJson);
 
     final instructions = _extractInstructions(recipeJson['recipeInstructions']);
     final servings = _extractServings(recipeJson['recipeYield']);
@@ -84,6 +82,99 @@ class RecipeScraperService {
       servings: servings,
       localImagePath: localImagePath,
     );
+  }
+
+  List<String> _extractJsonLdIngredients(Map<String, dynamic> recipeJson) {
+    final List<String> result = [];
+    final raw = recipeJson['recipeIngredient'];
+    if (raw is List) {
+      for (final item in raw) {
+        if (item is String && item.trim().isNotEmpty) {
+          result.add(item.trim());
+        }
+      }
+    }
+    return result;
+  }
+
+  /// Extracts ingredients with section headers from WPRM HTML.
+  /// Returns null if no WPRM structure is found.
+  @visibleForTesting
+  List<String>? tryExtractWprmIngredients(String html) =>
+      _tryExtractWprmIngredients(html);
+
+  List<String>? _tryExtractWprmIngredients(String html) {
+    final document = html_parser.parse(html);
+    final groups = document.querySelectorAll('.wprm-recipe-ingredient-group');
+    if (groups.isEmpty) return null;
+
+    final List<String> lines = [];
+    for (final group in groups) {
+      final headerEl = group.querySelector('.wprm-recipe-group-name');
+      if (headerEl != null) {
+        final headerText = headerEl.text.trim();
+        if (headerText.isNotEmpty) {
+          lines.add('$headerText:');
+        }
+      }
+
+      final items = group.querySelectorAll('.wprm-recipe-ingredient');
+      for (final item in items) {
+        final amount =
+            item.querySelector('.wprm-recipe-ingredient-amount')?.text.trim();
+        final unit =
+            item.querySelector('.wprm-recipe-ingredient-unit')?.text.trim();
+        final name =
+            item.querySelector('.wprm-recipe-ingredient-name')?.text.trim();
+        final notes =
+            item.querySelector('.wprm-recipe-ingredient-notes')?.text.trim();
+
+        final parts = [amount, unit, name, notes]
+            .where((p) => p != null && p.isNotEmpty)
+            .join(' ');
+
+        if (parts.isNotEmpty) {
+          lines.add(parts);
+        }
+      }
+    }
+
+    return lines.isNotEmpty ? lines : null;
+  }
+
+  /// Extracts ingredients with section headers from Tasty Recipes HTML.
+  /// Sections are marked by h3/h4 headings before each ingredient ul.
+  /// Returns null if no Tasty Recipes structure is found.
+  @visibleForTesting
+  List<String>? tryExtractTastyRecipesIngredients(String html) =>
+      _tryExtractTastyRecipesIngredients(html);
+
+  List<String>? _tryExtractTastyRecipesIngredients(String html) {
+    final document = html_parser.parse(html);
+    final container = document.querySelector('.tasty-recipes-ingredients-body') ??
+        document.querySelector('.tasty-recipes-ingredients');
+    if (container == null) return null;
+
+    final List<String> lines = [];
+    for (final child in container.children) {
+      final tag = child.localName;
+
+      if (tag == 'h3' || tag == 'h4' || tag == 'h5') {
+        final headerText = child.text.trim();
+        if (headerText.isNotEmpty) {
+          lines.add('$headerText:');
+        }
+      } else if (tag == 'ul' || tag == 'ol') {
+        for (final li in child.querySelectorAll('li')) {
+          final text = li.text.trim();
+          if (text.isNotEmpty) {
+            lines.add(text);
+          }
+        }
+      }
+    }
+
+    return lines.isNotEmpty ? lines : null;
   }
 
   Map<String, dynamic>? _findRecipe(dynamic decoded) {
