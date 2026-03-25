@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/local_keys.dart';
 import 'package:meal_planner/domain/entities/group_subscription.dart';
 import 'package:meal_planner/domain/enums/subscription_status.dart';
+import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
 import 'package:meal_planner/services/providers/shared_preferences_provider.dart';
@@ -29,6 +30,9 @@ class SubscriptionNotifier extends Notifier<AsyncValue<GroupSubscription>> {
   }
 
   Future<void> _load(String groupId) async {
+    final isOnline = ref.read(isOnlineProvider);
+    if (!isOnline) return;
+
     try {
       final repo = ref.read(subscriptionRepositoryProvider);
       final subscription = await repo.getSubscription(groupId);
