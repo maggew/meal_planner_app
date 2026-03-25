@@ -149,6 +149,15 @@ class SessionNotifier extends _$SessionNotifier {
     await storage.saveUserSettings(settings);
   }
 
+  /// Aktive Gruppe verlassen (User bleibt eingeloggt)
+  Future<void> leaveActiveGroup() async {
+    final groupId = state.groupId;
+    final storage = LocalStorageService();
+    await storage.clearActiveGroup();
+    if (groupId != null) await storage.clearGroup(groupId);
+    state = SessionState(userId: state.userId);
+  }
+
   /// Session zurücksetzen (Logout)
   Future<void> clearSession() async {
     final groupId = state.groupId;

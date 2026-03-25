@@ -45,3 +45,16 @@ class GroupDeletionException implements Exception {
   @override
   String toString() => 'Gruppe konnte nicht gelöscht werden: $message';
 }
+
+class InvitationExpiredException implements Exception {
+  @override
+  String toString() => 'Einladung abgelaufen oder ungültig';
+}
+
+class AlreadyGroupMemberException implements Exception {
+  final String? groupId;
+  AlreadyGroupMemberException({this.groupId});
+
+  @override
+  String toString() => 'Du bist bereits Mitglied dieser Gruppe';
+}

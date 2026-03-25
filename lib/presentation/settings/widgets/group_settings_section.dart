@@ -171,9 +171,25 @@ class _GroupSettingsSectionState extends ConsumerState<GroupSettingsSection> {
                 ),
               ),
               const Spacer(),
-              if (!_isEditing)
+              if (_isEditing) ...[
+                IconButton(
+                  key: const ValueKey('cancel'),
+                  icon: const Icon(Icons.close, size: 18),
+                  visualDensity: VisualDensity.compact,
+                  tooltip: 'Abbrechen',
+                  onPressed: _isSaving ? null : _cancelEditing,
+                ),
+                IconButton(
+                  key: const ValueKey('save'),
+                  icon: const Icon(Icons.save_outlined, size: 18),
+                  visualDensity: VisualDensity.compact,
+                  tooltip: 'Speichern',
+                  onPressed: _isSaving ? null : _save,
+                ),
+              ] else
                 isOnline
                     ? IconButton(
+                        key: const ValueKey('edit'),
                         icon: const Icon(Icons.edit_outlined, size: 18),
                         visualDensity: VisualDensity.compact,
                         tooltip: 'Bearbeiten',

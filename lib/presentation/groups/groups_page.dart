@@ -27,13 +27,23 @@ class _GroupsPageState extends ConsumerState<GroupsPage> {
   }
 
   Future<void> _loadGroups() async {
-    final session = ref.read(sessionProvider);
-    final groupRepo = ref.read(groupRepositoryProvider);
-    final loadedGroups = await groupRepo.getUserGroups(session.userId!);
-    setState(() {
-      groups = loadedGroups;
-      isLoading = false;
-    });
+    try {
+      final session = ref.read(sessionProvider);
+      if (session.userId == null) {
+        setState(() => isLoading = false);
+        return;
+      }
+      final groupRepo = ref.read(groupRepositoryProvider);
+      final loadedGroups = await groupRepo.getUserGroups(session.userId!);
+      if (mounted) {
+        setState(() {
+          groups = loadedGroups;
+          isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => isLoading = false);
+    }
   }
 
   @override

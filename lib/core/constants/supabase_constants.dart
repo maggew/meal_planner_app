@@ -106,6 +106,18 @@ class SupabaseConstants {
   static const String suggestionUsageWeekNumber = 'week_number';
   static const String suggestionUsageCount = 'usage_count';
 
+  // Tables: Group Invitations
+  static const String groupInvitationsTable = 'group_invitations';
+
+  // Columns: Group Invitations
+  static const String invitationId = 'id';
+  static const String invitationGroupId = 'group_id';
+  static const String invitationCode = 'code';
+  static const String invitationCreatedBy = 'created_by';
+  static const String invitationExpiresAt = 'expires_at';
+  static const String invitationUseCount = 'use_count';
+  static const String invitationCreatedAt = 'created_at';
+
   // Tables: Meal Plan
   static const String mealPlanEntriesTable = 'meal_plan_entries';
 
