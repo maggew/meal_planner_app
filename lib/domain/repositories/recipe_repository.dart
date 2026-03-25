@@ -24,6 +24,9 @@ abstract class RecipeRepository {
 
   Future<List<String>> getAllCategories();
 
+  /// Returns the recipe title for the given [recipeId], or null if not found.
+  Future<String?> getRecipeTitle(String recipeId);
+
   // Timer logic
   Future<List<RecipeTimer>> getTimersForRecipe(String recipeId);
   Future<RecipeTimer> upsertTimer(RecipeTimer timer);

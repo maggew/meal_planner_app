@@ -78,69 +78,6 @@ class SupabaseRecipeRepository implements RecipeRepository {
     }
   }
 
-  // Future<void> _saveCategories(String recipeId, List<String> categories) async {
-  //   for (final categoryName in categories) {
-  //     final categoryId = await _upsertCategory(categoryName);
-  //
-  //     await _supabase.from(SupabaseConstants.recipeCategoriesTable).insert({
-  //       SupabaseConstants.recipeCategoryRecipeId: recipeId,
-  //       SupabaseConstants.recipeCategoryCategoryId: categoryId,
-  //     });
-  //   }
-  // }
-  //
-  // Future<String> _upsertCategory(String name) async {
-  //   final existing = await _supabase
-  //       .from(SupabaseConstants.categoriesTable)
-  //       .select(SupabaseConstants.categoryId)
-  //       .eq(SupabaseConstants.categoryName, name.toLowerCase())
-  //       .maybeSingle();
-  //
-  //   if (existing != null) {
-  //     return existing[SupabaseConstants.categoryId] as String;
-  //   }
-  //
-  //   final categoryId = generateUuid();
-  //   await _supabase.from(SupabaseConstants.categoriesTable).insert({
-  //     SupabaseConstants.categoryId: categoryId,
-  //     SupabaseConstants.categoryName: name.toLowerCase(),
-  //   });
-  //
-  //   return categoryId;
-  // }
-
-  // Future<void> _saveIngredients(
-  //     String recipeId, List<Ingredient> ingredients) async {
-  //   for (final ingredient in ingredients) {
-  //     final ingredientId = await _upsertIngredient(ingredient.name);
-  //     final model = IngredientModel.fromEntity(ingredient);
-  //
-  //     await _supabase
-  //         .from(SupabaseConstants.recipeIngredientsTable)
-  //         .insert(model.toSupabaseRecipeIngredient(recipeId, ingredientId));
-  //   }
-  // }
-  //
-  // Future<String> _upsertIngredient(String name) async {
-  //   final existing = await _supabase
-  //       .from(SupabaseConstants.ingredientsTable)
-  //       .select(SupabaseConstants.ingredientId)
-  //       .eq(SupabaseConstants.ingredientName, name)
-  //       .maybeSingle();
-  //
-  //   if (existing != null) {
-  //     return existing[SupabaseConstants.ingredientId] as String;
-  //   }
-  //
-  //   final ingredientId = generateUuid();
-  //   await _supabase.from(SupabaseConstants.ingredientsTable).insert({
-  //     SupabaseConstants.ingredientId: ingredientId,
-  //     SupabaseConstants.ingredientName: name,
-  //   });
-  //
-  //   return ingredientId;
-  // }
-
   // ==================== READ ====================
 
   @override
@@ -205,6 +142,16 @@ class SupabaseRecipeRepository implements RecipeRepository {
       return await _remote.getAllCategories(groupId: _groupId);
     } catch (e) {
       return [];
+    }
+  }
+
+  @override
+  Future<String?> getRecipeTitle(String recipeId) async {
+    try {
+      return await _remote.getRecipeTitle(
+          recipeId: recipeId, groupId: _groupId);
+    } catch (e) {
+      return null;
     }
   }
 

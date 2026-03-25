@@ -191,6 +191,22 @@ class CachedRecipeRepository implements RecipeRepository {
     return categories.toList()..sort();
   }
 
+  @override
+  Future<String?> getRecipeTitle(String recipeId) async {
+    final cached = await _dao.getRecipeById(recipeId);
+    if (cached != null) return cached.name;
+
+    if (_isOnline) {
+      try {
+        return await _remote.getRecipeTitle(recipeId);
+      } catch (e) {
+        log('getRecipeTitle remote fallback failed for $recipeId', error: e);
+      }
+    }
+
+    return null;
+  }
+
   // ==================== WRITE (pass-through + cache update) ====================
 
   @override

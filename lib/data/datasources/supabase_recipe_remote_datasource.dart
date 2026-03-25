@@ -346,6 +346,20 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
     }).eq(SupabaseConstants.recipeId, recipeId);
   }
 
+  @override
+  Future<String?> getRecipeTitle({
+    required String recipeId,
+    required String groupId,
+  }) async {
+    final response = await supabase
+        .from(SupabaseConstants.recipesTable)
+        .select(SupabaseConstants.recipeTitle)
+        .eq(SupabaseConstants.recipeId, recipeId)
+        .eq(SupabaseConstants.recipeGroupId, groupId)
+        .maybeSingle();
+    return response?[SupabaseConstants.recipeTitle] as String?;
+  }
+
   // Timer
   @override
   Future<List<Map<String, dynamic>>> getTimersForRecipe(String recipeId) async {

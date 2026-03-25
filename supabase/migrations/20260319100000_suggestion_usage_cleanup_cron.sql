@@ -13,7 +13,14 @@ SELECT cron.schedule(
 );
 
 -- Simplify existing ingredients cleanup: remove logging, just delete
-SELECT cron.unschedule('cleanup-unused-ingredients');
+-- Use DO block to ignore error when the job does not exist yet (fresh setup)
+DO $$
+BEGIN
+  PERFORM cron.unschedule('cleanup-unused-ingredients');
+EXCEPTION WHEN OTHERS THEN
+  -- Job does not exist — ignore
+END;
+$$;
 
 SELECT cron.schedule(
   'cleanup-unused-ingredients',
