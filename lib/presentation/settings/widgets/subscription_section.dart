@@ -40,7 +40,7 @@ class SubscriptionSection extends ConsumerWidget {
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: isPremium
-                        ? colors.primaryContainer
+                        ? colors.primary
                         : colors.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -48,7 +48,7 @@ class SubscriptionSection extends ConsumerWidget {
                     isPremium ? 'Premium' : 'Kostenlos',
                     style: textTheme.labelSmall?.copyWith(
                       color: isPremium
-                          ? colors.onPrimaryContainer
+                          ? colors.onPrimary
                           : colors.onSurfaceVariant,
                       fontWeight: FontWeight.w600,
                     ),
