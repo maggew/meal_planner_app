@@ -145,12 +145,42 @@ class _CookingModeIngredientsListState
                         bool isLastSection = section ==
                             widget.ingredientSections[
                                 widget.ingredientSections.length - 1];
+                        final hasMultipleSections =
+                            widget.ingredientSections.length > 1;
                         return Padding(
                           padding: const EdgeInsets.only(top: 12),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              //Text(section.title),
+                              if (hasMultipleSections &&
+                                  section.title.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 6),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        section.title.toUpperCase(),
+                                        style: themeData
+                                            .textTheme.labelSmall
+                                            ?.copyWith(
+                                          color: themeData
+                                              .colorScheme.primary,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 1.5,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Container(
+                                        height: 1,
+                                        width: 40,
+                                        color: themeData.colorScheme.primary
+                                            .withValues(alpha: 0.5),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               Text.rich(
                                 TextSpan(
                                   style: themeData.textTheme.bodyMedium,
@@ -163,7 +193,7 @@ class _CookingModeIngredientsListState
                                     return [
                                       if (index != 0)
                                         TextSpan(
-                                          text: "  \u2022  ", // this char: •
+                                          text: "  \u2022  ",
                                         ),
                                       ...ing.toInlineTextSpans(
                                         nameStyle: themeData
