@@ -5,7 +5,6 @@ class FirebaseConstants {
   static const String usersCollection = 'users';
   static const String groupsCollection = 'groups';
   static const String recipesCollection = 'recipes';
-  static const String fridgeCollection = 'refrigerator';
 
   // Storage paths
   static const String imagePathRecipe = 'images/recipes';

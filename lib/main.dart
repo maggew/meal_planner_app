@@ -1,5 +1,8 @@
+import 'dart:ui';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -40,6 +43,12 @@ void main() async {
     runApp(ErrorApp('Firebase init failed: $e'));
     return;
   }
+
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
 
   await Supabase.initialize(
       url: Env.supabaseUrl,
@@ -91,8 +100,6 @@ class ErrorApp extends StatelessWidget {
     );
   }
 }
-
-//TODO: dart run build_runner watch --delete-conflicting-outputs
 
 class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
