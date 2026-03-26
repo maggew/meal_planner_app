@@ -21,7 +21,7 @@ class ShoppingListInputParser {
         final hasName = rest != null && rest.isNotEmpty;
         return (
           quantity: hasName ? '$number$unitStr' : null,
-          information: hasName ? rest! : trimmed,
+          information: hasName ? rest : trimmed,
         );
       }
 

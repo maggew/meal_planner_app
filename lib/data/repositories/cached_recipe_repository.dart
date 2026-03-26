@@ -370,7 +370,7 @@ class CachedRecipeRepository implements RecipeRepository {
       final categoryName = _ref
           .read(groupCategoriesProvider)
           .asData?.value
-          ?.where((c) => c.id == category)
+          .where((c) => c.id == category)
           .map((c) => c.name)
           .firstOrNull;
 

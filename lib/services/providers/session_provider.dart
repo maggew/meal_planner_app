@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/local_storage_service.dart';
 import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';

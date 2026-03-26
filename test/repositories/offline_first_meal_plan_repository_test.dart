@@ -156,10 +156,8 @@ class _FakeFilterBuilder extends Fake
 
 /// Fake SupabaseQueryBuilder returned by _FakeSupabaseClient.from().
 class _FakeQueryBuilder extends Fake implements SupabaseQueryBuilder {
-  final bool throws;
-  final String remoteId;
-
-  _FakeQueryBuilder({this.throws = false, this.remoteId = 'remote-1'});
+  final bool throws = false;
+  final String remoteId = 'remote-1';
 
   @override
   PostgrestFilterBuilder<dynamic> insert(
@@ -182,16 +180,9 @@ class _FakeQueryBuilder extends Fake implements SupabaseQueryBuilder {
 
 /// Top-level fake SupabaseClient. Tracks how often from() is called.
 class _FakeSupabaseClient extends Fake implements SupabaseClient {
-  final bool throws;
-  final String remoteId;
-  int fromCalls = 0;
-
-  _FakeSupabaseClient({this.throws = false, this.remoteId = 'remote-1'});
-
   @override
   SupabaseQueryBuilder from(String table) {
-    fromCalls++;
-    return _FakeQueryBuilder(throws: throws, remoteId: remoteId);
+    return _FakeQueryBuilder();
   }
 }
 
