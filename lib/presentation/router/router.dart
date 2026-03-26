@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/presentation/router/auth_guard.dart';
 
@@ -7,6 +8,11 @@ class AppRouter extends RootStackRouter {
   AppRouter(this.authGuard);
 
   final AuthGuard authGuard;
+
+  @override
+  List<NavigatorObserver> get navigatorObservers => [
+        FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+      ];
 
   @override
   List<AutoRoute> get routes => [
