@@ -83,6 +83,7 @@ void main() {
     ]);
     return OfflineFirstShoppingListRepository(
       dao: mockDao,
+      remote: MockRemote(),
       groupId: groupId,
     );
   }

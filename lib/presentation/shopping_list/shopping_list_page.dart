@@ -9,7 +9,6 @@ import 'package:meal_planner/services/providers/network/connectivity_provider.da
 import 'package:meal_planner/services/providers/shopping_list/shopping_list_provider.dart';
 import 'package:meal_planner/services/providers/shopping_list/shopping_list_sync_provider.dart';
 import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
-import 'package:meal_planner/services/shopping_list/shopping_list_sync_service.dart';
 
 @RoutePage()
 class ShoppingListPage extends ConsumerStatefulWidget {
@@ -20,20 +19,17 @@ class ShoppingListPage extends ConsumerStatefulWidget {
 }
 
 class _ShoppingListPageState extends ConsumerState<ShoppingListPage> {
-  ShoppingListSyncService? _syncService;
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _syncService = ref.read(shoppingListSyncServiceProvider);
-      _syncService!.start();
+      ref.read(shoppingListSyncServiceProvider).startPeriodicSync();
     });
   }
 
   @override
   void dispose() {
-    _syncService?.stop();
+    ref.read(shoppingListSyncServiceProvider).stopPeriodicSync();
     super.dispose();
   }
 

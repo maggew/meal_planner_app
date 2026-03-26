@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meal_planner/core/database/app_database.dart';
 import 'package:meal_planner/core/database/daos/shopping_item_dao.dart';
+import 'package:meal_planner/data/repositories/offline_first_shopping_list_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_shopping_list_repository.dart';
 import 'package:meal_planner/domain/entities/shopping_list_item.dart';
-import 'package:meal_planner/services/shopping_list/shopping_list_sync_service.dart';
 import 'package:mocktail/mocktail.dart';
 
 // --- Mocks ---
@@ -53,7 +53,7 @@ ShoppingListItem _remoteItem({String id = 'remote-1', String information = 'Toma
 void main() {
   late MockShoppingItemDao dao;
   late MockSupabaseShoppingListRepository remote;
-  late ShoppingListSyncService service;
+  late OfflineFirstShoppingListRepository repo;
 
   setUpAll(() {
     registerFallbackValue(FakeLocalShoppingItemsCompanion());
@@ -62,7 +62,7 @@ void main() {
   setUp(() {
     dao = MockShoppingItemDao();
     remote = MockSupabaseShoppingListRepository();
-    service = ShoppingListSyncService(dao: dao, remote: remote, groupId: 'g1');
+    repo = OfflineFirstShoppingListRepository(dao: dao, remote: remote, groupId: 'g1');
   });
 
   // ---------------------------------------------------------------------------
@@ -78,7 +78,7 @@ void main() {
       when(() => dao.updateSyncStatus(any(), any(), remoteId: any(named: 'remoteId')))
           .thenAnswer((_) async {});
 
-      await service.syncPendingItems();
+      await repo.syncPendingItems();
 
       verify(() => remote.addItem('Tomaten', null)).called(1);
       verify(() =>
@@ -103,7 +103,7 @@ void main() {
       when(() => dao.updateSyncStatus(any(), any(), remoteId: any(named: 'remoteId')))
           .thenAnswer((_) async {});
 
-      await service.syncPendingItems();
+      await repo.syncPendingItems();
 
       verify(() => remote.addItem(any(), any())).called(2);
       // Nur l2 wird als synced markiert
@@ -138,7 +138,7 @@ void main() {
       when(() => remote.toggleItem(any(), any())).thenAnswer((_) async {});
       when(() => dao.updateSyncStatus(any(), any())).thenAnswer((_) async {});
 
-      await service.syncPendingItems();
+      await repo.syncPendingItems();
 
       // updateItem synct Name + Menge
       verify(() => remote.updateItem('remote-1', 'Rispentomaten', '500g')).called(1);
@@ -168,7 +168,7 @@ void main() {
       when(() => dao.updateSyncStatus(any(), any(), remoteId: any(named: 'remoteId')))
           .thenAnswer((_) async {});
 
-      await service.syncPendingItems();
+      await repo.syncPendingItems();
 
       verify(() => remote.addItem('Offline-Item', null)).called(1);
       verify(() => dao.updateSyncStatus('local-1', 'synced', remoteId: 'remote-fallback'))
@@ -189,7 +189,7 @@ void main() {
       when(() => remote.toggleItem(any(), any())).thenAnswer((_) async {});
       when(() => dao.updateSyncStatus(any(), any())).thenAnswer((_) async {});
 
-      await service.syncPendingItems();
+      await repo.syncPendingItems();
 
       verify(() => remote.updateItem('remote-1', 'Tomaten', null)).called(1);
       verify(() => remote.toggleItem('remote-1', true)).called(1);
@@ -209,7 +209,7 @@ void main() {
       when(() => remote.removeItem(any())).thenAnswer((_) async {});
       when(() => dao.hardDeleteItem(any())).thenAnswer((_) async {});
 
-      await service.syncPendingItems();
+      await repo.syncPendingItems();
 
       verify(() => remote.removeItem('remote-1')).called(1);
       verify(() => dao.hardDeleteItem('local-1')).called(1);
@@ -223,7 +223,7 @@ void main() {
       );
       when(() => dao.hardDeleteItem(any())).thenAnswer((_) async {});
 
-      await service.syncPendingItems();
+      await repo.syncPendingItems();
 
       verifyNever(() => remote.removeItem(any()));
       verify(() => dao.hardDeleteItem('local-1')).called(1);

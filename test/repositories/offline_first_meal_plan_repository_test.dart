@@ -248,6 +248,7 @@ void main() {
     ]);
     return OfflineFirstMealPlanRepository(
       dao: mockDao,
+      supabase: _FakeSupabaseClient(),
       groupId: groupId,
     );
   }
