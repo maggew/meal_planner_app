@@ -8,8 +8,13 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
+DECLARE
+  v_uid text := public.supabase_uid();
 BEGIN
-  NEW.created_by := public.supabase_uid();
+  -- Skip for service-role (no auth context) — keep the value provided by the caller
+  IF v_uid IS NOT NULL THEN
+    NEW.created_by := v_uid;
+  END IF;
   RETURN NEW;
 END;
 $$;
@@ -27,10 +32,16 @@ SECURITY DEFINER
 AS $$
 DECLARE
   recent_count integer;
+  v_uid text := public.supabase_uid();
 BEGIN
+  -- Skip rate limiting for service-role / admin operations
+  IF v_uid IS NULL THEN
+    RETURN NEW;
+  END IF;
+
   SELECT count(*) INTO recent_count
   FROM public.recipes
-  WHERE created_by = public.supabase_uid()
+  WHERE created_by = v_uid
     AND created_at > now() - interval '1 minute';
 
   IF recent_count >= 5 THEN

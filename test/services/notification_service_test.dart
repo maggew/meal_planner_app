@@ -186,10 +186,10 @@ void main() {
     );
 
     test(
-      '[RED→GREEN] verwendet exactAllowWhileIdle — feuert auch im Android Doze-Mode',
+      '[RED→GREEN] verwendet alarmClock — feuert auch im Android Doze-Mode',
       () async {
-        // Ohne exactAllowWhileIdle könnte Android die Notification im Doze-Mode
-        // zurückhalten — der Timer würde zu spät oder gar nicht erscheinen.
+        // alarmClock ist der stärkste Modus: nutzt AlarmManager.setAlarmClock(),
+        // überlebt Doze Mode und zeigt ein Alarm-Icon in der Statusleiste.
         await service.scheduleNotification(
           id: 1,
           title: 'T',
@@ -210,7 +210,7 @@ void main() {
           ),
         ).captured;
 
-        expect(captured.first, equals(AndroidScheduleMode.exactAllowWhileIdle));
+        expect(captured.first, equals(AndroidScheduleMode.alarmClock));
       },
     );
 
@@ -336,7 +336,7 @@ void main() {
             body: 'Nudeln',
             scheduledDate: any(named: 'scheduledDate'),
             notificationDetails: any(named: 'notificationDetails'),
-            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            androidScheduleMode: AndroidScheduleMode.alarmClock,
             payload: 'r1:0',
           ),
         ).called(1);
@@ -344,11 +344,11 @@ void main() {
     );
 
     test(
-      '[ARCHITECTURE] exactAllowWhileIdle garantiert Zustellung im gesperrten Zustand',
+      '[ARCHITECTURE] alarmClock garantiert Zustellung im gesperrten Zustand',
       () async {
         // Android Doze Mode schränkt App-Aktivität stark ein wenn der Screen gesperrt ist.
-        // exactAllowWhileIdle weist das OS an, die Notification trotzdem exakt zur
-        // geplanten Zeit zu liefern — auch wenn das Gerät schläft.
+        // alarmClock nutzt AlarmManager.setAlarmClock() — höchste Priorität, überlebt
+        // Doze Mode und zeigt ein Alarm-Icon in der Statusleiste.
         //
         // Manuell zu prüfen: Timer starten → Handy sperren → Timer abwarten.
         // Nach dem zonedSchedule-Refactor erscheint die Notification auch im Locked-State.
@@ -374,9 +374,9 @@ void main() {
 
         expect(
           captured.first,
-          equals(AndroidScheduleMode.exactAllowWhileIdle),
+          equals(AndroidScheduleMode.alarmClock),
           reason:
-              'exactAllowWhileIdle garantiert Zustellung auch im Doze Mode / gesperrten Handy',
+              'alarmClock garantiert Zustellung auch im Doze Mode / gesperrten Handy',
         );
       },
     );

@@ -3,10 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/shopping_list_item.dart';
+import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
 import 'package:meal_planner/presentation/shopping_list/widgets/shopping_list_body.dart';
 import 'package:meal_planner/presentation/shopping_list/widgets/shopping_list_item_tile.dart';
+import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
 import 'package:meal_planner/services/providers/shopping_list/shopping_list_provider.dart';
+import 'package:meal_planner/services/providers/subscription/subscription_provider.dart';
+import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
 
 // --- Fake Notifier ---
 
@@ -39,6 +43,11 @@ class FakeShoppingListActions extends ShoppingListActions {
 
   @override
   Future<void> removeCheckedItems() async {}
+}
+
+class FakeUserSettingsNotifier extends UserSettingsNotifier {
+  @override
+  UserSettings build() => UserSettings.defaultSettings;
 }
 
 // --- Helpers ---
@@ -83,6 +92,10 @@ Widget _buildBody(List<ShoppingListItem> items) {
           .overrideWith((ref) => Stream.value(items)),
       shoppingListActionsProvider
           .overrideWith(() => FakeShoppingListActions()),
+      userSettingsProvider
+          .overrideWith(() => FakeUserSettingsNotifier()),
+      isPremiumProvider.overrideWithValue(true),
+      isOnlineProvider.overrideWithValue(true),
     ],
     child: const MaterialApp(
       home: Scaffold(body: ShoppingListBody()),
@@ -160,6 +173,10 @@ void main() {
               .overrideWith((ref) => const Stream.empty()),
           shoppingListActionsProvider
               .overrideWith(() => FakeShoppingListActions()),
+          userSettingsProvider
+              .overrideWith(() => FakeUserSettingsNotifier()),
+          isPremiumProvider.overrideWithValue(true),
+          isOnlineProvider.overrideWithValue(true),
         ],
         child: const MaterialApp(home: Scaffold(body: ShoppingListBody())),
       ));

@@ -37,6 +37,11 @@ DECLARE
   recent_count integer;
   v_uid text := public.supabase_uid();
 BEGIN
+  -- Skip rate limiting for service-role / admin operations (no auth context)
+  IF v_uid IS NULL THEN
+    RETURN;
+  END IF;
+
   -- Purge stale events (older than 2 minutes)
   DELETE FROM public.rate_limit_events
   WHERE created_at < now() - interval '2 minutes';
