@@ -1,4 +1,4 @@
-import 'package:meal_planner/core/constants/local_storage_service.dart';
+import 'package:meal_planner/core/services/local_storage_service.dart';
 import 'package:meal_planner/domain/entities/group.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/domain/enums/group_role.dart';

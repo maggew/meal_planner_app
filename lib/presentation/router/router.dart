@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
-import 'package:meal_planner/services/auth_guard.dart';
+import 'package:meal_planner/presentation/router/auth_guard.dart';
 
 @AutoRouterConfig()
 class AppRouter extends RootStackRouter {
