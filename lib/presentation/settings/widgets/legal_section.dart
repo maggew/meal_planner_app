@@ -5,7 +5,7 @@ class LegalSection extends StatelessWidget {
   const LegalSection({super.key});
 
   static const _privacyPolicyUrl =
-      'https://maggew.github.io/meal-planner-app/de.html';
+      'https://maggew.github.io/meal_planner_app/de.html';
 
   @override
   Widget build(BuildContext context) {
