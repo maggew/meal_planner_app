@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/material.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/presentation/router/auth_guard.dart';
 
