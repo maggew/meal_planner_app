@@ -1,4 +1,6 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class LegalSection extends StatelessWidget {
@@ -27,6 +29,13 @@ class LegalSection extends StatelessWidget {
           title: const Text('Datenschutzerklärung'),
           trailing: Icon(Icons.open_in_new, size: 18, color: colorScheme.onSurfaceVariant),
           onTap: () => _openPrivacyPolicy(),
+        ),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: Icon(Icons.article_outlined, color: colorScheme.primary),
+          title: const Text('Open Source Lizenzen'),
+          trailing: Icon(Icons.chevron_right, size: 18, color: colorScheme.onSurfaceVariant),
+          onTap: () => context.router.push(LicensesRoute()),
         ),
       ],
     );
