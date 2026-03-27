@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/presentation/common/loading_overlay.dart';
@@ -95,6 +96,98 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
     widget.onEditingChanged?.call(false);
   }
 
+  Future<void> _showDeleteAccountDialog(BuildContext context) async {
+    final repo = ref.read(deleteAccountRepositoryProvider);
+    final isGoogleUser = !repo.requiresPasswordReauth;
+
+    final passwordController = TextEditingController();
+    bool confirmed = false;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            24, 24, 24, 16 + MediaQuery.viewInsetsOf(ctx).bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Account löschen',
+                style: Theme.of(ctx).textTheme.titleLarge),
+            const SizedBox(height: 12),
+            Text(
+              'Dein Account wird dauerhaft gelöscht. '
+              'Rezepte in geteilten Gruppen bleiben erhalten, '
+              'aber werden nicht mehr dir zugeordnet.',
+              style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            if (!isGoogleUser) ...[
+              const SizedBox(height: 16),
+              TextField(
+                controller: passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Passwort zur Bestätigung',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: const Text('Abbrechen'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () {
+                      confirmed = true;
+                      Navigator.of(ctx).pop();
+                    },
+                    style: FilledButton.styleFrom(
+                        backgroundColor: Colors.red),
+                    child: const Text('Löschen'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (!confirmed || !mounted) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await repo.deleteAccount(
+        password: isGoogleUser ? null : passwordController.text,
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(e.code == 'wrong-password'
+            ? 'Falsches Passwort'
+            : 'Fehler: ${e.message}'),
+      ));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Account konnte nicht gelöscht werden')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+      passwordController.dispose();
+    }
+  }
+
   Future<void> _pickImage({required bool pickFromCamera}) async {
     final imageManagerNotifier = ref.read(imageManagerProvider.notifier);
     if (pickFromCamera) {
@@ -167,6 +260,12 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
                               .withValues(alpha: 0.4),
                         ),
                   ),
+                TextButton.icon(
+                  onPressed: isOnline ? () => _showDeleteAccountDialog(context) : null,
+                  icon: const Icon(Icons.delete_forever_outlined, size: 16),
+                  label: const Text('Account löschen'),
+                  style: TextButton.styleFrom(foregroundColor: Colors.red),
+                ),
               ] else
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

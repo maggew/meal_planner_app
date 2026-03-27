@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:meal_planner/core/security/pinned_http_client.dart';
 import 'package:meal_planner/core/database/app_database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:meal_planner/data/repositories/delete_account_repository_impl.dart';
 import 'package:meal_planner/data/repositories/firebase_auth_repository.dart';
 import 'package:meal_planner/data/repositories/firebase_storage_repository.dart';
 import 'package:meal_planner/data/repositories/offline_first_meal_plan_repository.dart';
@@ -19,6 +21,7 @@ import 'package:meal_planner/data/repositories/supabase_recipe_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_trash_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_user_repository.dart';
 import 'package:meal_planner/domain/repositories/auth_repository.dart';
+import 'package:meal_planner/domain/repositories/delete_account_repository.dart';
 import 'package:meal_planner/domain/repositories/group_category_repository.dart';
 import 'package:meal_planner/domain/repositories/group_invitation_repository.dart';
 import 'package:meal_planner/domain/repositories/subscription_repository.dart';
@@ -201,6 +204,16 @@ final subscriptionRepositoryProvider = Provider<SubscriptionRepository>((ref) {
 final suggestionUsageRepositoryProvider =
     Provider<SuggestionUsageRepository>((ref) {
   return SupabaseSuggestionUsageRepository(
+    supabase: ref.watch(supabaseProvider),
+  );
+});
+
+final deleteAccountRepositoryProvider =
+    Provider<DeleteAccountRepository>((ref) {
+  return DeleteAccountRepositoryImpl(
+    db: ref.watch(appDatabaseProvider),
+    auth: FirebaseAuth.instance,
+    googleSignIn: ref.watch(googleSignInProvider),
     supabase: ref.watch(supabaseProvider),
   );
 });
