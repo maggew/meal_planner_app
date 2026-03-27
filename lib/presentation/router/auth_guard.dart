@@ -23,9 +23,18 @@ class AuthGuard extends AutoRouteGuard {
       return;
     }
 
+    // Fast path: session already loaded with a group → no network call needed
+    final currentSession = ref.read(sessionProvider);
+    if (currentSession.userId != null &&
+        currentSession.userId!.isNotEmpty &&
+        currentSession.group != null) {
+      resolver.next(true);
+      return;
+    }
+
     final storage = LocalStorageService();
 
-    // Supabase-UserId holen: erst online versuchen, dann Cache
+    // Session not yet loaded: resolve Supabase user ID (online first, then cache)
     String? supabaseUserId;
     try {
       final userRepo = ref.read(userRepositoryProvider);
@@ -37,8 +46,6 @@ class AuthGuard extends AutoRouteGuard {
     } catch (_) {
       // Netzwerkfehler: gecachte ID verwenden
     }
-    // Fallback: wenn getUserByFirebaseUid null zurückgab (Fehler intern schluckt),
-    // aus Cache laden
     supabaseUserId ??= await storage.loadSupabaseUserId();
 
     if (supabaseUserId == null) {
@@ -46,11 +53,7 @@ class AuthGuard extends AutoRouteGuard {
       return;
     }
 
-    final currentSession = ref.read(sessionProvider);
-    if (currentSession.userId != supabaseUserId ||
-        currentSession.group == null) {
-      await ref.read(sessionProvider.notifier).loadSession(supabaseUserId);
-    }
+    await ref.read(sessionProvider.notifier).loadSession(supabaseUserId);
 
     final session = ref.read(sessionProvider);
 
