@@ -65,6 +65,11 @@
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
             </intent-filter>
         </receiver>
+        <!-- Disable Firebase Analytics collection by default; enabled only after user consent. -->
+        <meta-data
+            android:name="firebase_analytics_collection_deactivated"
+            android:value="true" />
+
         <!-- AdMob App ID (replace with real ID for production) -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"

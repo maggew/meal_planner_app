@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -25,13 +26,14 @@ import 'package:meal_planner/services/providers/session_provider.dart';
 import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
 import 'package:meal_planner/services/shopping_list/shopping_list_sync_observer.dart';
 import 'package:meal_planner/services/timer_lifecycle_observer.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz_local;
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:meal_planner/core/security/pinned_http_client.dart';
+import 'package:meal_planner/presentation/common/analytics_consent_sheet.dart';
+import 'package:meal_planner/services/providers/consent_provider.dart';
 import 'package:meal_planner/services/providers/shared_preferences_provider.dart';
 
 void main() async {
@@ -69,9 +71,9 @@ void main() async {
   final deviceTimeZone = await FlutterTimezone.getLocalTimezone();
   tz_local.setLocalLocation(tz_local.getLocation(deviceTimeZone.identifier));
 
+  // MobileAds is initialized by ConsentService after the UMP consent flow.
   // TODO(security): Replace test AdMob IDs with production IDs before store release.
   //  Affected: AndroidManifest.xml, ios/Runner/Info.plist, native_ad_widget.dart.
-  await MobileAds.instance.initialize();
 
   await NotificationService.instance.initialize();
   await NotificationService.instance.requestPermissions();
@@ -133,6 +135,42 @@ class _MyAppState extends ConsumerState<MyApp> {
     WidgetsBinding.instance.addObserver(_subscriptionRefreshObserver);
 
     NotificationService.instance.onNotificationTapped = _onTimerTapped;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _runConsentFlow());
+  }
+
+  Future<void> _runConsentFlow() async {
+    // Wait for auth state to be determined so the AuthGuard navigation
+    // has already completed before we try to show any dialog.
+    await ref.read(authStateProvider.future);
+
+    // Wait one more frame to let the auth-triggered navigation finish.
+    final frameCompleter = Completer<void>();
+    WidgetsBinding.instance.addPostFrameCallback(
+        (_) => frameCompleter.complete());
+    await frameCompleter.future;
+
+    final consentService = ref.read(consentServiceProvider);
+    await consentService.applyStoredAnalyticsConsent();
+    await consentService.requestAdsConsent();
+
+    if (consentService.analyticsConsentAsked) return;
+    if (!mounted) return;
+
+    final ctx = _appRouter.navigatorKey.currentContext;
+    if (ctx == null || !ctx.mounted) return;
+
+    final result = await showModalBottomSheet<bool>(
+      context: ctx,
+      isDismissible: false,
+      enableDrag: false,
+      builder: (_) => const AnalyticsConsentSheet(),
+    );
+
+    if (!ctx.mounted) return;
+    await ref
+        .read(analyticsConsentProvider.notifier)
+        .setConsent(result ?? false);
   }
 
   @override
