@@ -13,9 +13,27 @@ class ShoppingListInput extends ConsumerStatefulWidget {
   ConsumerState<ShoppingListInput> createState() => _ShoppingListInputState();
 }
 
-class _ShoppingListInputState extends ConsumerState<ShoppingListInput> {
+class _ShoppingListInputState extends ConsumerState<ShoppingListInput>
+    with WidgetsBindingObserver {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
+  double _lastBottomInset = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeMetrics() {
+    final bottomInset = WidgetsBinding
+        .instance.platformDispatcher.views.first.viewInsets.bottom;
+    if (_lastBottomInset > 0 && bottomInset == 0 && _focusNode.hasFocus) {
+      _focusNode.unfocus();
+    }
+    _lastBottomInset = bottomInset;
+  }
 
   void _submit() {
     final text = _controller.text.trim();
@@ -28,6 +46,7 @@ class _ShoppingListInputState extends ConsumerState<ShoppingListInput> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
