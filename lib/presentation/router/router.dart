@@ -65,5 +65,6 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: TrashRoute.page, guards: [authGuard]),
         AutoRoute(page: RecipeSuggestionRoute.page, guards: [authGuard]),
         AutoRoute(page: LicensesRoute.page, guards: [authGuard]),
+        AutoRoute(page: IconPreviewRoute.page, guards: [authGuard]),
       ];
 }

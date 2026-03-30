@@ -16,6 +16,10 @@ class CookbookPage extends StatelessWidget {
       scaffoldAppBar: CommonAppbar(
         title: "Kochbuch",
         automaticallyImplyLeading: false,
+        leading: IconButton(
+          onPressed: () => context.router.root.push(IconPreviewRoute()),
+          icon: const Icon(Icons.bug_report, size: 28),
+        ),
         actionsButtons: [
           IconButton(
             onPressed: () => context.router.root.push(TrashRoute()),
