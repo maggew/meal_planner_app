@@ -9,7 +9,8 @@ enum Unit {
   PRISE("Prise"),
   KNIFETIP("Msp."),
   CAN("Dose"),
-  BUNCH("Bund");
+  BUNCH("Bund"),
+  PACK("Pck.");
 
   final String displayName;
   const Unit(this.displayName);
@@ -41,6 +42,9 @@ class UnitParser {
     'bund': Unit.BUNCH,
     'bunch': Unit.BUNCH,
     'dose': Unit.CAN,
+    'pck': Unit.PACK,
+    'packung': Unit.PACK,
+    'pack': Unit.PACK,
   };
 
   static List<String> get patterns => _unitMap.keys.toList();
