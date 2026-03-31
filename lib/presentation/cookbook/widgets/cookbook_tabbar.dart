@@ -24,8 +24,6 @@ class CookbookTabbar extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Fehler: $e')),
       data: (categories) {
-        final allCategories = categories.map((c) => c.id).toList();
-
         final (:categoryId, :generation) =
             ref.watch(cookbookInitialCategoryProvider);
         int initialIndex = 0;
@@ -74,7 +72,6 @@ class CookbookTabbar extends ConsumerWidget {
             ...categories.map(
               (category) => CookbookRecipeList(
                   categoryId: category.id,
-                  allCategories: allCategories,
                   tabsLeft: tabsLeft),
             ),
             Container(

@@ -54,98 +54,51 @@ abstract class _$SearchQuery extends $Notifier<String> {
   }
 }
 
-@ProviderFor(SearchAllCategories)
-final searchAllCategoriesProvider = SearchAllCategoriesProvider._();
+@ProviderFor(categoryRecipes)
+final categoryRecipesProvider = CategoryRecipesFamily._();
 
-final class SearchAllCategoriesProvider
-    extends $NotifierProvider<SearchAllCategories, bool> {
-  SearchAllCategoriesProvider._()
+final class CategoryRecipesProvider extends $FunctionalProvider<
+        AsyncValue<List<Recipe>>, List<Recipe>, FutureOr<List<Recipe>>>
+    with $FutureModifier<List<Recipe>>, $FutureProvider<List<Recipe>> {
+  CategoryRecipesProvider._(
+      {required CategoryRecipesFamily super.from,
+      required String super.argument})
       : super(
-          from: null,
-          argument: null,
           retry: null,
-          name: r'searchAllCategoriesProvider',
-          isAutoDispose: true,
+          name: r'categoryRecipesProvider',
+          isAutoDispose: false,
           dependencies: null,
           $allTransitiveDependencies: null,
         );
 
   @override
-  String debugGetCreateSourceHash() => _$searchAllCategoriesHash();
-
-  @$internal
-  @override
-  SearchAllCategories create() => SearchAllCategories();
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(bool value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<bool>(value),
-    );
-  }
-}
-
-String _$searchAllCategoriesHash() =>
-    r'0c93395c8bbafae3781f3781b8074987ca54a968';
-
-abstract class _$SearchAllCategories extends $Notifier<bool> {
-  bool build();
-  @$mustCallSuper
-  @override
-  void runBuild() {
-    final ref = this.ref as $Ref<bool, bool>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<bool, bool>, bool, Object?, Object?>;
-    element.handleCreate(ref, build);
-  }
-}
-
-@ProviderFor(FilteredRecipes)
-final filteredRecipesProvider = FilteredRecipesFamily._();
-
-final class FilteredRecipesProvider
-    extends $NotifierProvider<FilteredRecipes, List<Recipe>> {
-  FilteredRecipesProvider._(
-      {required FilteredRecipesFamily super.from,
-      required ({
-        String category,
-        List<String> allCategories,
-      })
-          super.argument})
-      : super(
-          retry: null,
-          name: r'filteredRecipesProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
-
-  @override
-  String debugGetCreateSourceHash() => _$filteredRecipesHash();
+  String debugGetCreateSourceHash() => _$categoryRecipesHash();
 
   @override
   String toString() {
-    return r'filteredRecipesProvider'
+    return r'categoryRecipesProvider'
         ''
-        '$argument';
+        '($argument)';
   }
 
   @$internal
   @override
-  FilteredRecipes create() => FilteredRecipes();
+  $FutureProviderElement<List<Recipe>> $createElement(
+          $ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
 
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(List<Recipe> value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<List<Recipe>>(value),
+  @override
+  FutureOr<List<Recipe>> create(Ref ref) {
+    final argument = this.argument as String;
+    return categoryRecipes(
+      ref,
+      argument,
     );
   }
 
   @override
   bool operator ==(Object other) {
-    return other is FilteredRecipesProvider && other.argument == argument;
+    return other is CategoryRecipesProvider && other.argument == argument;
   }
 
   @override
@@ -154,69 +107,26 @@ final class FilteredRecipesProvider
   }
 }
 
-String _$filteredRecipesHash() => r'049b6fc9f15fa4bda774778a64c42cb022c08631';
+String _$categoryRecipesHash() => r'5485979002d3025ad36b4397ec46bccd1c4b58bc';
 
-final class FilteredRecipesFamily extends $Family
-    with
-        $ClassFamilyOverride<
-            FilteredRecipes,
-            List<Recipe>,
-            List<Recipe>,
-            List<Recipe>,
-            ({
-              String category,
-              List<String> allCategories,
-            })> {
-  FilteredRecipesFamily._()
+final class CategoryRecipesFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<Recipe>>, String> {
+  CategoryRecipesFamily._()
       : super(
           retry: null,
-          name: r'filteredRecipesProvider',
+          name: r'categoryRecipesProvider',
           dependencies: null,
           $allTransitiveDependencies: null,
-          isAutoDispose: true,
+          isAutoDispose: false,
         );
 
-  FilteredRecipesProvider call({
-    required String category,
-    required List<String> allCategories,
-  }) =>
-      FilteredRecipesProvider._(argument: (
-        category: category,
-        allCategories: allCategories,
-      ), from: this);
+  CategoryRecipesProvider call(
+    String categoryId,
+  ) =>
+      CategoryRecipesProvider._(argument: categoryId, from: this);
 
   @override
-  String toString() => r'filteredRecipesProvider';
-}
-
-abstract class _$FilteredRecipes extends $Notifier<List<Recipe>> {
-  late final _$args = ref.$arg as ({
-    String category,
-    List<String> allCategories,
-  });
-  String get category => _$args.category;
-  List<String> get allCategories => _$args.allCategories;
-
-  List<Recipe> build({
-    required String category,
-    required List<String> allCategories,
-  });
-  @$mustCallSuper
-  @override
-  void runBuild() {
-    final ref = this.ref as $Ref<List<Recipe>, List<Recipe>>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<List<Recipe>, List<Recipe>>,
-        List<Recipe>,
-        Object?,
-        Object?>;
-    element.handleCreate(
-        ref,
-        () => build(
-              category: _$args.category,
-              allCategories: _$args.allCategories,
-            ));
-  }
+  String toString() => r'categoryRecipesProvider';
 }
 
 @ProviderFor(IsSearchActive)
@@ -264,3 +174,37 @@ abstract class _$IsSearchActive extends $Notifier<bool> {
     element.handleCreate(ref, build);
   }
 }
+
+@ProviderFor(searchResults)
+final searchResultsProvider = SearchResultsProvider._();
+
+final class SearchResultsProvider extends $FunctionalProvider<
+        AsyncValue<List<Recipe>>, List<Recipe>, FutureOr<List<Recipe>>>
+    with $FutureModifier<List<Recipe>>, $FutureProvider<List<Recipe>> {
+  SearchResultsProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'searchResultsProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$searchResultsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<Recipe>> $createElement(
+          $ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<Recipe>> create(Ref ref) {
+    return searchResults(ref);
+  }
+}
+
+String _$searchResultsHash() => r'bfa246394e6c19be2e76e8f6f42a42b3013f777b';

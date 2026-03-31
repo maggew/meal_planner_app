@@ -5,17 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/common/native_ad_widget.dart';
 import 'package:meal_planner/presentation/cookbook/widgets/cookbook_recipe_list_item.dart';
-import 'package:meal_planner/services/providers/recipe/recipe_pagination_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_search_provider.dart';
 
 class CookbookRecipeList extends ConsumerStatefulWidget {
   final String categoryId;
-  final List<String> allCategories;
   final bool tabsLeft;
 
   const CookbookRecipeList({
     required this.categoryId,
-    required this.allCategories,
     required this.tabsLeft,
     super.key,
   });
@@ -28,41 +25,13 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
-  final ScrollController _scrollController = ScrollController();
-  late final String categoryId;
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-    categoryId = widget.categoryId;
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      ref.read(recipesPaginationProvider(categoryId).notifier).loadMore();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final paginationState = ref.watch(recipesPaginationProvider(categoryId));
+    final recipesAsync = ref.watch(categoryRecipesProvider(widget.categoryId));
     final isSearching = ref.watch(isSearchActiveProvider);
 
-    final recipes = ref.watch(
-      filteredRecipesProvider(
-        category: categoryId,
-        allCategories: widget.allCategories,
-      ),
-    );
     final margin = widget.tabsLeft
         ? EdgeInsets.only(left: 10)
         : EdgeInsets.only(right: 10);
@@ -81,15 +50,39 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList>
         builder: (context, constraints) {
           return RefreshIndicator(
             onRefresh: () async {
-              ref.read(recipesPaginationProvider(categoryId).notifier).refresh();
+              ref.invalidate(categoryRecipesProvider(widget.categoryId));
+              await ref.read(
+                  categoryRecipesProvider(widget.categoryId).future);
             },
-            child: _buildContent(
-              recipes: recipes,
-              isLoading: paginationState.isLoading,
-              hasMore: paginationState.hasMore,
-              error: paginationState.error,
-              isSearching: isSearching,
-              availableHeight: constraints.maxHeight,
+            child: recipesAsync.when(
+              loading: () => _alwaysScrollableListView(children: [
+                SizedBox(height: 100),
+                Center(child: CircularProgressIndicator()),
+              ]),
+              error: (error, _) => _alwaysScrollableListView(children: [
+                const SizedBox(height: 100),
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Error: $error'),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          ref.invalidate(
+                              categoryRecipesProvider(widget.categoryId));
+                        },
+                        child: const Text('Erneut versuchen'),
+                      ),
+                    ],
+                  ),
+                ),
+              ]),
+              data: (recipes) => _buildContent(
+                recipes: recipes,
+                isSearching: isSearching,
+                availableHeight: constraints.maxHeight,
+              ),
             ),
           );
         },
@@ -99,18 +92,10 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList>
 
   Widget _buildContent({
     required List<Recipe> recipes,
-    required bool isLoading,
-    required bool hasMore,
-    required String? error,
     required bool isSearching,
     required double availableHeight,
   }) {
-    if (recipes.isEmpty && isLoading) {
-      return _alwaysScrollableListView(children: [
-        SizedBox(height: 100),
-        Center(child: CircularProgressIndicator()),
-      ]);
-    } else if (recipes.isEmpty && !isLoading) {
+    if (recipes.isEmpty) {
       final message = isSearching
           ? "Keine Rezepte gefunden"
           : "Noch keine Rezepte in\ndieser Kategorie";
@@ -142,31 +127,7 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList>
           ),
         ),
       ]);
-    } else if (error != null && recipes.isEmpty) {
-      return _alwaysScrollableListView(children: [
-        const SizedBox(height: 100),
-        Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Error: $error'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  ref
-                      .read(recipesPaginationProvider(categoryId).notifier)
-                      .refresh();
-                },
-                child: const Text('Erneut versuchen'),
-              ),
-            ],
-          ),
-        ),
-      ]);
     }
-
-    // Bei aktiver Suche keine Pagination anzeigen
-    final showLoadingIndicator = !isSearching && hasMore;
 
     // Ad frequency: every 3 recipes on small lists, every 4 on larger
     final adInterval = availableHeight < 500 ? 3 : 4;
@@ -177,25 +138,13 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList>
         ? 1
         : (recipes.length ~/ adInterval);
     final trailingAd = recipes.length < adInterval;
-    final totalItems =
-        recipes.length + adCount + (showLoadingIndicator ? 1 : 0);
+    final totalItems = recipes.length + adCount;
     final groupSize = adInterval + 1; // recipes + 1 ad slot
 
     return ListView.builder(
-      controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: totalItems,
       itemBuilder: (context, index) {
-        // Loading indicator at the end
-        if (index == totalItems - 1 && showLoadingIndicator) {
-          return const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Center(
-              child: CircularProgressIndicator(color: Colors.green),
-            ),
-          );
-        }
-
         // Few recipes: all recipes first, then 1 trailing ad
         if (trailingAd) {
           if (index < recipes.length) {

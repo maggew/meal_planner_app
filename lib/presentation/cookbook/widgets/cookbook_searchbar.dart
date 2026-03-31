@@ -21,7 +21,6 @@ class _CookbookSearchbarState extends ConsumerState<CookbookSearchbar> {
 
   @override
   Widget build(BuildContext context) {
-    final searchAll = ref.watch(searchAllCategoriesProvider);
     final query = ref.watch(searchQueryProvider);
 
     if (_controller.text != query) {
@@ -76,16 +75,6 @@ class _CookbookSearchbarState extends ConsumerState<CookbookSearchbar> {
                       filled: true,
                       contentPadding: EdgeInsets.symmetric(vertical: 0),
                     ),
-                  ),
-                ),
-                Tooltip(
-                  message: 'In allen Kategorien suchen',
-                  child: FilterChip(
-                    label: Text('Alle'),
-                    selected: searchAll,
-                    onSelected: (_) {
-                      ref.read(searchAllCategoriesProvider.notifier).toggle();
-                    },
                   ),
                 ),
                 CookbookSortingButton(),

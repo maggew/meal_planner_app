@@ -4,6 +4,7 @@ import 'package:meal_planner/presentation/cookbook/widgets/cookbook_search_resul
 import 'package:meal_planner/presentation/cookbook/widgets/cookbook_searchbar.dart';
 import 'package:meal_planner/presentation/cookbook/widgets/cookbook_tabbar.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_search_provider.dart';
+import 'package:meal_planner/services/providers/recipe/recipe_sync_provider.dart';
 
 class CookbookBody extends ConsumerWidget {
   const CookbookBody({super.key});
@@ -11,6 +12,8 @@ class CookbookBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isSearching = ref.watch(isSearchActiveProvider);
+    // Trigger delta-sync when cookbook is opened
+    ref.watch(recipeDeltaSyncProvider);
 
     return Padding(
       padding: const EdgeInsets.only(top: 10),
