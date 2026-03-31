@@ -14,7 +14,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -34,6 +34,10 @@ class AppDatabase extends _$AppDatabase {
             // Local data is lost but will be re-pulled from Supabase.
             await migrator.drop(localMealPlanEntries);
             await migrator.createTable(localMealPlanEntries);
+          }
+          if (from < 8) {
+            await migrator.addColumn(
+                localRecipes, localRecipes.updatedAt);
           }
         },
       );

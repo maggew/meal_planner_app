@@ -12,6 +12,7 @@ class LocalRecipes extends Table {
   TextColumn get ingredientSectionsJson => text()();
   TextColumn get timersJson => text()();
   TextColumn get carbTagsJson => text().withDefault(const Constant('[]'))();
+  DateTimeColumn get updatedAt => dateTime().nullable()();
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
   DateTimeColumn get cachedAt => dateTime()();
 

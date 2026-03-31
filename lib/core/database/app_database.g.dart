@@ -515,6 +515,12 @@ class $LocalRecipesTable extends LocalRecipes
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultValue: const Constant('[]'));
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
   static const VerificationMeta _isDeletedMeta =
       const VerificationMeta('isDeleted');
   @override
@@ -544,6 +550,7 @@ class $LocalRecipesTable extends LocalRecipes
         ingredientSectionsJson,
         timersJson,
         carbTagsJson,
+        updatedAt,
         isDeleted,
         cachedAt
       ];
@@ -628,6 +635,10 @@ class $LocalRecipesTable extends LocalRecipes
           carbTagsJson.isAcceptableOrUnknown(
               data['carb_tags_json']!, _carbTagsJsonMeta));
     }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
     if (data.containsKey('is_deleted')) {
       context.handle(_isDeletedMeta,
           isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta));
@@ -670,6 +681,8 @@ class $LocalRecipesTable extends LocalRecipes
           .read(DriftSqlType.string, data['${effectivePrefix}timers_json'])!,
       carbTagsJson: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}carb_tags_json'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at']),
       isDeleted: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_deleted'])!,
       cachedAt: attachedDatabase.typeMapping
@@ -695,6 +708,7 @@ class LocalRecipe extends DataClass implements Insertable<LocalRecipe> {
   final String ingredientSectionsJson;
   final String timersJson;
   final String carbTagsJson;
+  final DateTime? updatedAt;
   final bool isDeleted;
   final DateTime cachedAt;
   const LocalRecipe(
@@ -709,6 +723,7 @@ class LocalRecipe extends DataClass implements Insertable<LocalRecipe> {
       required this.ingredientSectionsJson,
       required this.timersJson,
       required this.carbTagsJson,
+      this.updatedAt,
       required this.isDeleted,
       required this.cachedAt});
   @override
@@ -727,6 +742,9 @@ class LocalRecipe extends DataClass implements Insertable<LocalRecipe> {
     map['ingredient_sections_json'] = Variable<String>(ingredientSectionsJson);
     map['timers_json'] = Variable<String>(timersJson);
     map['carb_tags_json'] = Variable<String>(carbTagsJson);
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
     map['is_deleted'] = Variable<bool>(isDeleted);
     map['cached_at'] = Variable<DateTime>(cachedAt);
     return map;
@@ -747,6 +765,9 @@ class LocalRecipe extends DataClass implements Insertable<LocalRecipe> {
       ingredientSectionsJson: Value(ingredientSectionsJson),
       timersJson: Value(timersJson),
       carbTagsJson: Value(carbTagsJson),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
       isDeleted: Value(isDeleted),
       cachedAt: Value(cachedAt),
     );
@@ -768,6 +789,7 @@ class LocalRecipe extends DataClass implements Insertable<LocalRecipe> {
           serializer.fromJson<String>(json['ingredientSectionsJson']),
       timersJson: serializer.fromJson<String>(json['timersJson']),
       carbTagsJson: serializer.fromJson<String>(json['carbTagsJson']),
+      updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
       isDeleted: serializer.fromJson<bool>(json['isDeleted']),
       cachedAt: serializer.fromJson<DateTime>(json['cachedAt']),
     );
@@ -788,6 +810,7 @@ class LocalRecipe extends DataClass implements Insertable<LocalRecipe> {
           serializer.toJson<String>(ingredientSectionsJson),
       'timersJson': serializer.toJson<String>(timersJson),
       'carbTagsJson': serializer.toJson<String>(carbTagsJson),
+      'updatedAt': serializer.toJson<DateTime?>(updatedAt),
       'isDeleted': serializer.toJson<bool>(isDeleted),
       'cachedAt': serializer.toJson<DateTime>(cachedAt),
     };
@@ -805,6 +828,7 @@ class LocalRecipe extends DataClass implements Insertable<LocalRecipe> {
           String? ingredientSectionsJson,
           String? timersJson,
           String? carbTagsJson,
+          Value<DateTime?> updatedAt = const Value.absent(),
           bool? isDeleted,
           DateTime? cachedAt}) =>
       LocalRecipe(
@@ -820,6 +844,7 @@ class LocalRecipe extends DataClass implements Insertable<LocalRecipe> {
             ingredientSectionsJson ?? this.ingredientSectionsJson,
         timersJson: timersJson ?? this.timersJson,
         carbTagsJson: carbTagsJson ?? this.carbTagsJson,
+        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
         isDeleted: isDeleted ?? this.isDeleted,
         cachedAt: cachedAt ?? this.cachedAt,
       );
@@ -845,6 +870,7 @@ class LocalRecipe extends DataClass implements Insertable<LocalRecipe> {
       carbTagsJson: data.carbTagsJson.present
           ? data.carbTagsJson.value
           : this.carbTagsJson,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
       cachedAt: data.cachedAt.present ? data.cachedAt.value : this.cachedAt,
     );
@@ -864,6 +890,7 @@ class LocalRecipe extends DataClass implements Insertable<LocalRecipe> {
           ..write('ingredientSectionsJson: $ingredientSectionsJson, ')
           ..write('timersJson: $timersJson, ')
           ..write('carbTagsJson: $carbTagsJson, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('isDeleted: $isDeleted, ')
           ..write('cachedAt: $cachedAt')
           ..write(')'))
@@ -883,6 +910,7 @@ class LocalRecipe extends DataClass implements Insertable<LocalRecipe> {
       ingredientSectionsJson,
       timersJson,
       carbTagsJson,
+      updatedAt,
       isDeleted,
       cachedAt);
   @override
@@ -900,6 +928,7 @@ class LocalRecipe extends DataClass implements Insertable<LocalRecipe> {
           other.ingredientSectionsJson == this.ingredientSectionsJson &&
           other.timersJson == this.timersJson &&
           other.carbTagsJson == this.carbTagsJson &&
+          other.updatedAt == this.updatedAt &&
           other.isDeleted == this.isDeleted &&
           other.cachedAt == this.cachedAt);
 }
@@ -916,6 +945,7 @@ class LocalRecipesCompanion extends UpdateCompanion<LocalRecipe> {
   final Value<String> ingredientSectionsJson;
   final Value<String> timersJson;
   final Value<String> carbTagsJson;
+  final Value<DateTime?> updatedAt;
   final Value<bool> isDeleted;
   final Value<DateTime> cachedAt;
   final Value<int> rowid;
@@ -931,6 +961,7 @@ class LocalRecipesCompanion extends UpdateCompanion<LocalRecipe> {
     this.ingredientSectionsJson = const Value.absent(),
     this.timersJson = const Value.absent(),
     this.carbTagsJson = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
     this.cachedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -947,6 +978,7 @@ class LocalRecipesCompanion extends UpdateCompanion<LocalRecipe> {
     required String ingredientSectionsJson,
     required String timersJson,
     this.carbTagsJson = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
     required DateTime cachedAt,
     this.rowid = const Value.absent(),
@@ -972,6 +1004,7 @@ class LocalRecipesCompanion extends UpdateCompanion<LocalRecipe> {
     Expression<String>? ingredientSectionsJson,
     Expression<String>? timersJson,
     Expression<String>? carbTagsJson,
+    Expression<DateTime>? updatedAt,
     Expression<bool>? isDeleted,
     Expression<DateTime>? cachedAt,
     Expression<int>? rowid,
@@ -989,6 +1022,7 @@ class LocalRecipesCompanion extends UpdateCompanion<LocalRecipe> {
         'ingredient_sections_json': ingredientSectionsJson,
       if (timersJson != null) 'timers_json': timersJson,
       if (carbTagsJson != null) 'carb_tags_json': carbTagsJson,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (isDeleted != null) 'is_deleted': isDeleted,
       if (cachedAt != null) 'cached_at': cachedAt,
       if (rowid != null) 'rowid': rowid,
@@ -1007,6 +1041,7 @@ class LocalRecipesCompanion extends UpdateCompanion<LocalRecipe> {
       Value<String>? ingredientSectionsJson,
       Value<String>? timersJson,
       Value<String>? carbTagsJson,
+      Value<DateTime?>? updatedAt,
       Value<bool>? isDeleted,
       Value<DateTime>? cachedAt,
       Value<int>? rowid}) {
@@ -1023,6 +1058,7 @@ class LocalRecipesCompanion extends UpdateCompanion<LocalRecipe> {
           ingredientSectionsJson ?? this.ingredientSectionsJson,
       timersJson: timersJson ?? this.timersJson,
       carbTagsJson: carbTagsJson ?? this.carbTagsJson,
+      updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
       cachedAt: cachedAt ?? this.cachedAt,
       rowid: rowid ?? this.rowid,
@@ -1066,6 +1102,9 @@ class LocalRecipesCompanion extends UpdateCompanion<LocalRecipe> {
     if (carbTagsJson.present) {
       map['carb_tags_json'] = Variable<String>(carbTagsJson.value);
     }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (isDeleted.present) {
       map['is_deleted'] = Variable<bool>(isDeleted.value);
     }
@@ -1092,6 +1131,7 @@ class LocalRecipesCompanion extends UpdateCompanion<LocalRecipe> {
           ..write('ingredientSectionsJson: $ingredientSectionsJson, ')
           ..write('timersJson: $timersJson, ')
           ..write('carbTagsJson: $carbTagsJson, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('isDeleted: $isDeleted, ')
           ..write('cachedAt: $cachedAt, ')
           ..write('rowid: $rowid')
@@ -1868,6 +1908,7 @@ typedef $$LocalRecipesTableCreateCompanionBuilder = LocalRecipesCompanion
   required String ingredientSectionsJson,
   required String timersJson,
   Value<String> carbTagsJson,
+  Value<DateTime?> updatedAt,
   Value<bool> isDeleted,
   required DateTime cachedAt,
   Value<int> rowid,
@@ -1885,6 +1926,7 @@ typedef $$LocalRecipesTableUpdateCompanionBuilder = LocalRecipesCompanion
   Value<String> ingredientSectionsJson,
   Value<String> timersJson,
   Value<String> carbTagsJson,
+  Value<DateTime?> updatedAt,
   Value<bool> isDeleted,
   Value<DateTime> cachedAt,
   Value<int> rowid,
@@ -1933,6 +1975,9 @@ class $$LocalRecipesTableFilterComposer
 
   ColumnFilters<String> get carbTagsJson => $composableBuilder(
       column: $table.carbTagsJson, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isDeleted => $composableBuilder(
       column: $table.isDeleted, builder: (column) => ColumnFilters(column));
@@ -1987,6 +2032,9 @@ class $$LocalRecipesTableOrderingComposer
       column: $table.carbTagsJson,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<bool> get isDeleted => $composableBuilder(
       column: $table.isDeleted, builder: (column) => ColumnOrderings(column));
 
@@ -2036,6 +2084,9 @@ class $$LocalRecipesTableAnnotationComposer
   GeneratedColumn<String> get carbTagsJson => $composableBuilder(
       column: $table.carbTagsJson, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
   GeneratedColumn<bool> get isDeleted =>
       $composableBuilder(column: $table.isDeleted, builder: (column) => column);
 
@@ -2080,6 +2131,7 @@ class $$LocalRecipesTableTableManager extends RootTableManager<
             Value<String> ingredientSectionsJson = const Value.absent(),
             Value<String> timersJson = const Value.absent(),
             Value<String> carbTagsJson = const Value.absent(),
+            Value<DateTime?> updatedAt = const Value.absent(),
             Value<bool> isDeleted = const Value.absent(),
             Value<DateTime> cachedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -2096,6 +2148,7 @@ class $$LocalRecipesTableTableManager extends RootTableManager<
             ingredientSectionsJson: ingredientSectionsJson,
             timersJson: timersJson,
             carbTagsJson: carbTagsJson,
+            updatedAt: updatedAt,
             isDeleted: isDeleted,
             cachedAt: cachedAt,
             rowid: rowid,
@@ -2112,6 +2165,7 @@ class $$LocalRecipesTableTableManager extends RootTableManager<
             required String ingredientSectionsJson,
             required String timersJson,
             Value<String> carbTagsJson = const Value.absent(),
+            Value<DateTime?> updatedAt = const Value.absent(),
             Value<bool> isDeleted = const Value.absent(),
             required DateTime cachedAt,
             Value<int> rowid = const Value.absent(),
@@ -2128,6 +2182,7 @@ class $$LocalRecipesTableTableManager extends RootTableManager<
             ingredientSectionsJson: ingredientSectionsJson,
             timersJson: timersJson,
             carbTagsJson: carbTagsJson,
+            updatedAt: updatedAt,
             isDeleted: isDeleted,
             cachedAt: cachedAt,
             rowid: rowid,

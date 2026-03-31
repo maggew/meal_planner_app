@@ -6,4 +6,5 @@ class LocalKeys {
   static const supabaseUserId = 'supabase_user_id';
   static const cachedGroupPrefix = 'cached_group_';
   static const premiumPrefix = 'premium_';
+  static const recipeSyncPrefix = 'recipe_sync_';
 }

@@ -13,6 +13,7 @@ class RecipeCacheConverter {
     Recipe recipe, {
     required String groupId,
     required List<RecipeTimer> timers,
+    DateTime? updatedAt,
   }) {
     return LocalRecipesCompanion(
       id: Value(recipe.id!),
@@ -26,6 +27,7 @@ class RecipeCacheConverter {
       ingredientSectionsJson: Value(_encodeIngredientSections(recipe.ingredientSections)),
       timersJson: Value(_encodeTimers(timers)),
       carbTagsJson: Value(jsonEncode(recipe.carbTags)),
+      updatedAt: Value(updatedAt),
       isDeleted: const Value(false),
       cachedAt: Value(DateTime.now()),
     );
