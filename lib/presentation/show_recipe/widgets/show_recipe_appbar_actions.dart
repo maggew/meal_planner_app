@@ -6,7 +6,7 @@ import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/detailed_weekplan/widgets/plan_recipe_sheet.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/groups/group_category_provider.dart';
-import 'package:meal_planner/services/providers/recipe/recipe_pagination_provider.dart';
+import 'package:meal_planner/services/providers/recipe/recipe_search_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 
 class ShowRecipeAppBarActions extends ConsumerWidget {
@@ -119,7 +119,7 @@ class ShowRecipeAppBarActions extends ConsumerWidget {
 
       final allCategories = await ref.read(groupCategoriesProvider.future);
       for (final category in allCategories) {
-        ref.invalidate(recipesPaginationProvider(category.id));
+        ref.invalidate(categoryRecipesProvider(category.id));
       }
 
       if (context.mounted) context.router.pop();

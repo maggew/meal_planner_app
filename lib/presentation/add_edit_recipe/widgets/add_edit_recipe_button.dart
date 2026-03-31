@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
@@ -11,7 +14,7 @@ import 'package:meal_planner/services/providers/recipe/add_edit_recipe_ingredien
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
 import 'package:meal_planner/services/providers/recipe/carb_tag_selection_provider.dart';
 import 'package:meal_planner/services/providers/recipe/cookbook_initial_category_provider.dart';
-import 'package:meal_planner/services/providers/recipe/recipe_pagination_provider.dart';
+import 'package:meal_planner/services/providers/recipe/recipe_search_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_upload_provider.dart';
 
 class AddEditRecipeButton extends ConsumerWidget {
@@ -132,6 +135,13 @@ class AddEditRecipeButton extends ConsumerWidget {
 
     final recipeRepo = ref.read(recipeUploadProvider.notifier);
     if (existingRecipe != null) {
+      // Skip upload if nothing changed
+      if (!hasRecipeChanged(existingRecipe!, recipe, image)) {
+        if (context.mounted) {
+          context.router.replace(ShowRecipeRoute(recipeId: existingRecipe!.id));
+        }
+        return;
+      }
       await recipeRepo.updateRecipe(recipe, image);
     } else {
       await recipeRepo.createRecipe(recipe, image);
@@ -156,7 +166,7 @@ class AddEditRecipeButton extends ConsumerWidget {
         .map((c) => c.id);
 
     for (final id in {...selectedCategoryIds, ...oldCategoryIds}) {
-      ref.invalidate(recipesPaginationProvider(id));
+      ref.invalidate(categoryRecipesProvider(id));
     }
 
     // Kochbuch zur ersten Kategorie des Rezepts navigieren
@@ -193,4 +203,47 @@ class AddEditRecipeButton extends ConsumerWidget {
     recipeNameController.clear();
     recipeInstructionsController.clear();
   }
+}
+
+// ==================== PURE OPERATION (IOSP) ====================
+
+/// Compares old and new recipe to determine if an upload is needed.
+bool hasRecipeChanged(Recipe old, Recipe updated, File? newImage) {
+  if (newImage != null) return true;
+  if (old.name != updated.name) return true;
+  if (old.instructions != updated.instructions) return true;
+  if (old.portions != updated.portions) return true;
+  if (old.imageUrl != updated.imageUrl) return true;
+
+  if (!listEquals(old.categories.toList()..sort(), updated.categories.toList()..sort())) {
+    return true;
+  }
+  if (!listEquals(old.carbTags.toList()..sort(), updated.carbTags.toList()..sort())) {
+    return true;
+  }
+
+  if (!_ingredientSectionsEqual(old.ingredientSections, updated.ingredientSections)) {
+    return true;
+  }
+
+  return false;
+}
+
+bool _ingredientSectionsEqual(
+  List<IngredientSection> a,
+  List<IngredientSection> b,
+) {
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i].title != b[i].title) return false;
+    if (a[i].ingredients.length != b[i].ingredients.length) return false;
+    for (var j = 0; j < a[i].ingredients.length; j++) {
+      final ia = a[i].ingredients[j];
+      final ib = b[i].ingredients[j];
+      if (ia.name != ib.name || ia.amount != ib.amount || ia.unit != ib.unit) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
