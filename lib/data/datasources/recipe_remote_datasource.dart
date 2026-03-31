@@ -15,8 +15,6 @@ abstract class RecipeRemoteDatasource {
     required String categoryId,
     required String groupId,
     required bool isDeleted,
-    required int limit,
-    required int offset,
     required RecipeSortOption sortOption,
   });
 
@@ -71,6 +69,15 @@ abstract class RecipeRemoteDatasource {
 
   Future<String?> getRecipeTitle({
     required String recipeId,
+    required String groupId,
+  });
+
+  Future<List<Map<String, dynamic>>> getRecipeManifest({
+    required String groupId,
+  });
+
+  Future<List<Map<String, dynamic>>> getRecipesByIds({
+    required List<String> ids,
     required String groupId,
   });
 

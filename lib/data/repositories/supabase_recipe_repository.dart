@@ -96,8 +96,6 @@ class SupabaseRecipeRepository implements RecipeRepository {
   @override
   Future<List<Recipe>> getRecipesByCategoryId({
     required String categoryId,
-    required int limit,
-    required int offset,
     required RecipeSortOption sortOption,
     required bool isDeleted,
   }) async {
@@ -106,8 +104,6 @@ class SupabaseRecipeRepository implements RecipeRepository {
         categoryId: categoryId,
         groupId: _groupId,
         isDeleted: isDeleted,
-        limit: limit,
-        offset: offset,
         sortOption: sortOption,
       );
 
@@ -153,6 +149,19 @@ class SupabaseRecipeRepository implements RecipeRepository {
     } catch (e) {
       return null;
     }
+  }
+
+  // ==================== MANIFEST / BATCH (for delta-sync) ====================
+
+  Future<List<Map<String, dynamic>>> getRecipeManifest() {
+    return _remote.getRecipeManifest(groupId: _groupId);
+  }
+
+  Future<List<Recipe>> getRecipesByIds(List<String> ids) async {
+    final data = await _remote.getRecipesByIds(ids: ids, groupId: _groupId);
+    return data
+        .map((d) => RecipeModel.fromSupabaseWithRelations(d))
+        .toList();
   }
 
   // ==================== UPDATE ====================
@@ -219,6 +228,15 @@ class SupabaseRecipeRepository implements RecipeRepository {
     } catch (e) {
       throw RecipeDeletionException(e.toString());
     }
+  }
+
+  // ==================== SEARCH ====================
+
+  @override
+  Future<List<Recipe>> searchRecipes(String query) async {
+    // SupabaseRecipeRepository has no local cache — not supported.
+    // Use CachedRecipeRepository for search.
+    return [];
   }
 
   // ==================== TIMER ====================

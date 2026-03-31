@@ -46,6 +46,47 @@ class RecipeCacheDao extends DatabaseAccessor<AppDatabase>
     return result.read(count) ?? 0;
   }
 
+  /// Returns a lightweight manifest of all cached recipes for delta-sync.
+  Future<List<({String id, DateTime? updatedAt})>> getManifest(
+    String groupId,
+  ) async {
+    final query = selectOnly(localRecipes)
+      ..addColumns([localRecipes.id, localRecipes.updatedAt])
+      ..where(localRecipes.groupId.equals(groupId))
+      ..where(localRecipes.isDeleted.equals(false));
+    final rows = await query.get();
+    return rows
+        .map((row) => (
+              id: row.read(localRecipes.id)!,
+              updatedAt: row.read(localRecipes.updatedAt),
+            ))
+        .toList();
+  }
+
+  /// Deletes recipes by a list of IDs (batch delete for removed recipes).
+  Future<void> deleteByIds(List<String> ids) {
+    return (delete(localRecipes)..where((t) => t.id.isIn(ids))).go();
+  }
+
+  /// Searches recipes by name (case-insensitive LIKE query).
+  Future<List<LocalRecipe>> searchByName(String groupId, String query) {
+    return (select(localRecipes)
+          ..where((t) => t.groupId.equals(groupId))
+          ..where((t) => t.isDeleted.equals(false))
+          ..where((t) => t.name.like('%$query%'))
+          ..orderBy([(t) => OrderingTerm(expression: t.name)]))
+        .get();
+  }
+
+  /// Returns all non-deleted recipes for a group (no pagination).
+  Future<List<LocalRecipe>> getAllByGroup(String groupId) {
+    return (select(localRecipes)
+          ..where((t) => t.groupId.equals(groupId))
+          ..where((t) => t.isDeleted.equals(false))
+          ..orderBy([(t) => OrderingTerm(expression: t.name)]))
+        .get();
+  }
+
   // ==================== WRITE ====================
 
   Future<void> upsertRecipe(LocalRecipesCompanion companion) {

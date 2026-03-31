@@ -8,8 +8,6 @@ abstract class RecipeRepository {
 
   Future<List<Recipe>> getRecipesByCategoryId({
     required String categoryId,
-    required int offset,
-    required int limit,
     required RecipeSortOption sortOption,
     required bool isDeleted,
   });
@@ -26,6 +24,9 @@ abstract class RecipeRepository {
 
   /// Returns the recipe title for the given [recipeId], or null if not found.
   Future<String?> getRecipeTitle(String recipeId);
+
+  /// Searches all recipes by name (case-insensitive) from the local cache.
+  Future<List<Recipe>> searchRecipes(String query);
 
   // Timer logic
   Future<List<RecipeTimer>> getTimersForRecipe(String recipeId);

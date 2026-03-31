@@ -46,8 +46,6 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
     required String categoryId,
     required String groupId,
     required bool isDeleted,
-    required int limit,
-    required int offset,
     required RecipeSortOption sortOption,
   }) async {
     final baseQuery = supabase
@@ -65,7 +63,7 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
           null,
         );
 
-    final sortedQuery = switch (sortOption) {
+    final response = await switch (sortOption) {
       RecipeSortOption.alphabetical =>
         baseQuery.order(SupabaseConstants.recipeTitle, ascending: true),
       RecipeSortOption.newest =>
@@ -75,8 +73,6 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
       RecipeSortOption.mostCooked =>
         baseQuery.order('times_cooked', ascending: false),
     };
-
-    final response = await sortedQuery.range(offset, offset + limit - 1);
 
     return (response as List).cast<Map<String, dynamic>>();
   }
@@ -358,6 +354,39 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
         .eq(SupabaseConstants.recipeGroupId, groupId)
         .maybeSingle();
     return response?[SupabaseConstants.recipeTitle] as String?;
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getRecipeManifest({
+    required String groupId,
+  }) async {
+    final response = await supabase
+        .from(SupabaseConstants.recipesTable)
+        .select('${SupabaseConstants.recipeId}, ${SupabaseConstants.recipeUpdatedAt}')
+        .eq(SupabaseConstants.recipeGroupId, groupId)
+        .filter(SupabaseConstants.recipeDeletedAt, 'is', null);
+
+    return (response as List).cast<Map<String, dynamic>>();
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getRecipesByIds({
+    required List<String> ids,
+    required String groupId,
+  }) async {
+    if (ids.isEmpty) return [];
+
+    final response = await supabase
+        .from(SupabaseConstants.recipesTable)
+        .select('''
+          *,
+          recipe_categories(categories(id, name)),
+          recipe_ingredients(amount, unit, sort_order, group_name, ingredients(name))
+        ''')
+        .eq(SupabaseConstants.recipeGroupId, groupId)
+        .inFilter(SupabaseConstants.recipeId, ids);
+
+    return (response as List).cast<Map<String, dynamic>>();
   }
 
   // Timer

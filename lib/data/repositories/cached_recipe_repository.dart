@@ -2,9 +2,12 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/core/constants/local_keys.dart';
+import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/core/database/converters/recipe_cache_converter.dart';
 import 'package:meal_planner/core/database/daos/recipe_cache_dao.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
+import 'package:meal_planner/services/providers/shared_preferences_provider.dart';
 import 'package:meal_planner/data/repositories/supabase_recipe_repository.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/domain/entities/recipe_timer.dart';
@@ -14,7 +17,7 @@ import 'package:meal_planner/services/providers/groups/group_category_provider.d
 import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
 
 const Duration _staleDuration = Duration(minutes: 5);
-const int _fullSyncLimit = 2000;
+const Duration _syncCooldown = Duration(seconds: 30);
 
 class CachedRecipeRepository implements RecipeRepository {
   final SupabaseRecipeRepository _remote;
@@ -82,40 +85,17 @@ class CachedRecipeRepository implements RecipeRepository {
   @override
   Future<List<Recipe>> getRecipesByCategoryId({
     required String categoryId,
-    required int offset,
-    required int limit,
     required RecipeSortOption sortOption,
     required bool isDeleted,
   }) async {
     if (_isOnline) {
       try {
-        // Full sync: no category filter + first page → fetch all and atomically
-        // replace the group cache so remote-deleted recipes are purged locally.
-        if (categoryId.isEmpty && offset == 0) {
-          final allRecipes = await _remote.getRecipesByCategoryId(
-            categoryId: categoryId,
-            offset: 0,
-            limit: _fullSyncLimit,
-            sortOption: sortOption,
-            isDeleted: isDeleted,
-          );
-
-          // Atomically replace cache in background
-          _replaceGroupCache(allRecipes);
-
-          return allRecipes.take(limit).toList();
-        }
-
-        // Paginated or filtered fetch — additive cache update
         final recipes = await _remote.getRecipesByCategoryId(
           categoryId: categoryId,
-          offset: offset,
-          limit: limit,
           sortOption: sortOption,
           isDeleted: isDeleted,
         );
 
-        // Cache results in background (don't await to avoid slowing UI)
         _cacheRecipeList(recipes);
 
         return recipes;
@@ -124,8 +104,6 @@ class CachedRecipeRepository implements RecipeRepository {
         return _getFromCacheFiltered(
           category: categoryId,
           isDeleted: isDeleted,
-          offset: offset,
-          limit: limit,
           sortOption: sortOption,
         );
       }
@@ -135,8 +113,6 @@ class CachedRecipeRepository implements RecipeRepository {
     return _getFromCacheFiltered(
       category: categoryId,
       isDeleted: isDeleted,
-      offset: offset,
-      limit: limit,
       sortOption: sortOption,
     );
   }
@@ -154,12 +130,7 @@ class CachedRecipeRepository implements RecipeRepository {
     }
 
     // Offline fallback — filter from all cached recipes
-    final cached = await _dao.getRecipesByGroup(
-      _groupId,
-      limit: 1000,
-      offset: 0,
-      isDeleted: false,
-    );
+    final cached = await _dao.getAllByGroup(_groupId);
 
     final categoriesLower = categories.map((c) => c.toLowerCase()).toSet();
     return cached
@@ -176,12 +147,7 @@ class CachedRecipeRepository implements RecipeRepository {
     }
 
     // Offline — extract unique categories from cache
-    final cached = await _dao.getRecipesByGroup(
-      _groupId,
-      limit: 1000,
-      offset: 0,
-      isDeleted: false,
-    );
+    final cached = await _dao.getAllByGroup(_groupId);
 
     final categories = <String>{};
     for (final row in cached) {
@@ -312,6 +278,75 @@ class CachedRecipeRepository implements RecipeRepository {
     }
   }
 
+  // ==================== SEARCH ====================
+
+  @override
+  Future<List<Recipe>> searchRecipes(String query) async {
+    final rows = await _dao.searchByName(_groupId, query);
+    return rows.map(RecipeCacheConverter.toRecipe).toList();
+  }
+
+  // ==================== DELTA-SYNC ====================
+
+  /// Syncs local Drift cache with remote Supabase data.
+  /// Integration method (IOSP): orchestrates I/O, delegates logic to [computeSyncDelta].
+  Future<void> deltaSync() async {
+    if (!_isOnline) return;
+
+    // Staleness check
+    final prefs = _ref.read(sharedPreferencesProvider);
+    final syncKey = '${LocalKeys.recipeSyncPrefix}$_groupId';
+    final lastSyncMs = prefs.getInt(syncKey) ?? 0;
+    final lastSync = DateTime.fromMillisecondsSinceEpoch(lastSyncMs);
+    if (DateTime.now().difference(lastSync) < _syncCooldown) return;
+
+    try {
+      // 1. Fetch remote manifest (lightweight: id + updated_at)
+      final remoteManifestRaw = await _remote.getRecipeManifest();
+      final remoteManifest = remoteManifestRaw.map((row) => (
+            id: row[SupabaseConstants.recipeId] as String,
+            updatedAt: row[SupabaseConstants.recipeUpdatedAt] != null
+                ? DateTime.parse(row[SupabaseConstants.recipeUpdatedAt] as String)
+                : null,
+          )).toList();
+
+      // 2. Fetch local manifest
+      final localManifest = await _dao.getManifest(_groupId);
+
+      // 3. Compute delta (pure operation)
+      final delta = computeSyncDelta(
+        remoteManifest: remoteManifest,
+        localManifest: localManifest,
+      );
+
+      // 4. Fetch and upsert changed/new recipes
+      if (delta.idsToFetch.isNotEmpty) {
+        final recipes = await _remote.getRecipesByIds(delta.idsToFetch);
+        final remoteMap = {for (final e in remoteManifest) e.id: e.updatedAt};
+        for (final recipe in recipes) {
+          if (recipe.id == null) continue;
+          final companion = RecipeCacheConverter.toCompanion(
+            recipe,
+            groupId: _groupId,
+            timers: [],
+            updatedAt: remoteMap[recipe.id],
+          );
+          await _dao.upsertRecipe(companion);
+        }
+      }
+
+      // 5. Delete locally cached recipes that were removed remotely
+      if (delta.idsToDelete.isNotEmpty) {
+        await _dao.deleteByIds(delta.idsToDelete);
+      }
+
+      // 6. Update sync timestamp
+      await prefs.setInt(syncKey, DateTime.now().millisecondsSinceEpoch);
+    } catch (e) {
+      log('Delta sync failed for group $_groupId', error: e);
+    }
+  }
+
   // ==================== PRIVATE ====================
 
   Future<void> _cacheRecipe(Recipe recipe, List<RecipeTimer> timers) async {
@@ -334,38 +369,16 @@ class CachedRecipeRepository implements RecipeRepository {
     }
   }
 
-  Future<void> _replaceGroupCache(List<Recipe> recipes) async {
-    try {
-      final companions = recipes
-          .where((r) => r.id != null)
-          .map((r) => RecipeCacheConverter.toCompanion(r,
-              groupId: _groupId, timers: []))
-          .toList();
-      await _dao.replaceAllForGroup(_groupId, companions);
-    } catch (e) {
-      log('Failed to replace group cache for $_groupId', error: e);
-    }
-  }
-
   Future<List<Recipe>> _getFromCacheFiltered({
     required String category,
     required bool isDeleted,
-    required int offset,
-    required int limit,
     required RecipeSortOption sortOption,
   }) async {
-    final cached = await _dao.getRecipesByGroup(
-      _groupId,
-      limit: 1000,
-      offset: 0,
-      isDeleted: isDeleted,
-    );
+    final cached = await _dao.getAllByGroup(_groupId);
 
     var recipes = cached.map(RecipeCacheConverter.toRecipe).toList();
 
-    // Filter by category (empty = "Alle")
-    // category is a UUID (category ID), but recipe.categories stores names.
-    // Resolve ID → name via the already-loaded groupCategoriesProvider.
+    // Filter by category — resolve UUID → name via groupCategoriesProvider.
     if (category.isNotEmpty) {
       final categoryName = _ref
           .read(groupCategoriesProvider)
@@ -380,8 +393,6 @@ class CachedRecipeRepository implements RecipeRepository {
                 .any((c) => c.toLowerCase() == categoryName.toLowerCase()))
             .toList();
       }
-      // If category name couldn't be resolved (provider not loaded),
-      // return all recipes rather than filtering to 0.
     }
 
     // Sort
@@ -397,9 +408,40 @@ class CachedRecipeRepository implements RecipeRepository {
         recipes.sort((a, b) => a.name.compareTo(b.name));
     }
 
-    // Paginate
-    if (offset >= recipes.length) return [];
-    final end = (offset + limit).clamp(0, recipes.length);
-    return recipes.sublist(offset, end);
+    return recipes;
   }
+}
+
+// ==================== PURE OPERATION (IOSP) ====================
+
+/// Result of comparing remote and local manifests.
+typedef SyncDelta = ({List<String> idsToFetch, List<String> idsToDelete});
+
+/// Pure operation: compares remote and local manifests to determine which
+/// recipes need to be fetched (new or updated) and which should be deleted.
+SyncDelta computeSyncDelta({
+  required List<({String id, DateTime? updatedAt})> remoteManifest,
+  required List<({String id, DateTime? updatedAt})> localManifest,
+}) {
+  final remoteMap = {for (final e in remoteManifest) e.id: e.updatedAt};
+  final localMap = {for (final e in localManifest) e.id: e.updatedAt};
+
+  final idsToFetch = <String>[];
+  for (final entry in remoteManifest) {
+    final localUpdatedAt = localMap[entry.id];
+    if (localUpdatedAt == null) {
+      // New recipe — not in local cache
+      idsToFetch.add(entry.id);
+    } else if (entry.updatedAt != null && entry.updatedAt != localUpdatedAt) {
+      // Updated recipe — timestamps differ
+      idsToFetch.add(entry.id);
+    }
+  }
+
+  final remoteIds = remoteMap.keys.toSet();
+  final idsToDelete = localMap.keys
+      .where((id) => !remoteIds.contains(id))
+      .toList();
+
+  return (idsToFetch: idsToFetch, idsToDelete: idsToDelete);
 }
