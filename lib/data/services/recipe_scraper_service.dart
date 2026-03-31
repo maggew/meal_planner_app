@@ -341,11 +341,17 @@ class RecipeScraperService {
         }
       }
       if (steps.isEmpty) return null;
-      final numbered = steps
-          .asMap()
-          .entries
-          .map((e) => '${e.key + 1}. ${e.value}')
-          .toList();
+      final alreadyNumbered = RegExp(r'^\s*1\s*[:\.\)\-]').hasMatch(steps.first);
+      final List<String> numbered;
+      if (alreadyNumbered) {
+        numbered = steps;
+      } else {
+        numbered = steps
+            .asMap()
+            .entries
+            .map((e) => '${e.key + 1}. ${e.value}')
+            .toList();
+      }
       return RecipeExtractor.assembleNumberedSteps(numbered);
     }
     if (raw is Map) return raw['text'] as String?;

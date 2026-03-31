@@ -196,7 +196,14 @@ class RecipeExtractor {
   static List<String> splitInlineIngredients(List<String> lines) {
     final List<String> output = [];
     for (final line in lines) {
-      output.addAll(_splitLineOnIngredients(line));
+      // Lines that already look like section headers (e.g. "Für den Teig:")
+      // must not be split — they would be mangled because their text contains
+      // section keywords like "teig", "creme", "streusel", etc.
+      if (line.endsWith(':') && !RegExp(r'\d').hasMatch(line)) {
+        output.add(line);
+      } else {
+        output.addAll(_splitLineOnIngredients(line));
+      }
     }
     return output;
   }
@@ -401,7 +408,7 @@ class RecipeExtractor {
         output.insert(0, list[i - 1] + " " + line);
         i--;
       } else if (i > 0 &&
-          _flourType.any((z) => line.toLowerCase().contains(z))) {
+          _flourType.any((z) => line.toLowerCase().startsWith(z))) {
         output.insert(0, list[i - 1] + " " + line);
         i--;
       } else if (i > 0 && line.startsWith('(')) {
