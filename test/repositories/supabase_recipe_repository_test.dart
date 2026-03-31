@@ -175,16 +175,12 @@ void main() {
             categoryId: 'cat-1',
             groupId: 'group-1',
             isDeleted: false,
-            limit: 20,
-            offset: 0,
             sortOption: RecipeSortOption.alphabetical,
           )).thenAnswer((_) async => fakeResponse);
 
       // act
       final result = await repository.getRecipesByCategoryId(
         categoryId: 'cat-1',
-        limit: 20,
-        offset: 0,
         sortOption: RecipeSortOption.alphabetical,
         isDeleted: false,
       );
@@ -201,16 +197,12 @@ void main() {
             categoryId: 'cat-1',
             groupId: 'group-1',
             isDeleted: false,
-            limit: 20,
-            offset: 0,
             sortOption: RecipeSortOption.alphabetical,
           )).thenAnswer((_) async => []);
 
       // act
       final result = await repository.getRecipesByCategoryId(
         categoryId: 'cat-1',
-        limit: 20,
-        offset: 0,
         sortOption: RecipeSortOption.alphabetical,
         isDeleted: false,
       );
@@ -225,8 +217,6 @@ void main() {
             categoryId: 'cat-1',
             groupId: 'group-1',
             isDeleted: false,
-            limit: 20,
-            offset: 0,
             sortOption: RecipeSortOption.alphabetical,
           )).thenThrow(Exception('boom'));
 
@@ -234,8 +224,6 @@ void main() {
       expect(
         repository.getRecipesByCategoryId(
           categoryId: 'cat-1',
-          limit: 20,
-          offset: 0,
           sortOption: RecipeSortOption.alphabetical,
           isDeleted: false,
         ),
