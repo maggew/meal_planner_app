@@ -88,9 +88,11 @@ class _AddEditRecipeSectionHeaderItemState
                     onSubmitted: (_) => widget.onConfirmPressed(),
                     inputFormatters: [LengthLimitingTextInputFormatter(100)],
                   )
-                : Center(
+                : Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: Text(
                       widget.titleController.text,
+                      textAlign: TextAlign.center,
                       style: textTheme.bodyLarge?.copyWith(
                         color: colorScheme.onSecondaryContainer,
                       ),
