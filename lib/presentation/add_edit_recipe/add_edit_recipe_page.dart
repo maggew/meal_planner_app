@@ -19,31 +19,64 @@ class AddEditRecipePage extends StatefulWidget {
 class _AddEditRecipePageState extends State<AddEditRecipePage> {
   final _bodyKey = GlobalKey<AddEditRecipeBodyState>();
 
+  Future<void> _onBackPressed() async {
+    final body = _bodyKey.currentState;
+    if (body != null && body.hasUnsavedChanges()) {
+      final shouldLeave = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Änderungen verwerfen?'),
+          content: const Text(
+            'Du hast bereits Daten eingegeben. Möchtest du die Seite wirklich verlassen?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Abbrechen'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Verwerfen'),
+            ),
+          ],
+        ),
+      );
+      if (shouldLeave != true || !mounted) return;
+    }
+    if (mounted) context.router.pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isEditMode = widget.existingRecipe != null;
-    return AppBackground(
-      applyScreenPadding: true,
-      scaffoldAppBar: CommonAppbar(
-        leading: IconButton(
-          icon: const Icon(Icons.keyboard_arrow_left),
-          onPressed: () => context.router.pop(),
-        ),
-        title: isEditMode ? "Rezept bearbeiten" : "Neues Rezept erstellen",
-        actionsButtons: [
-          IconButton(
-            icon: const Icon(Icons.link),
-            tooltip: 'Von URL importieren',
-            onPressed: () => showRecipeUrlImportSheet(
-              context,
-              (data) => _bodyKey.currentState?.applyScrapedData(data),
-            ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _onBackPressed();
+      },
+      child: AppBackground(
+        applyScreenPadding: true,
+        scaffoldAppBar: CommonAppbar(
+          leading: IconButton(
+            icon: const Icon(Icons.keyboard_arrow_left),
+            onPressed: _onBackPressed,
           ),
-        ],
-      ),
-      scaffoldBody: AddEditRecipeBody(
-        key: _bodyKey,
-        existingRecipe: widget.existingRecipe,
+          title: isEditMode ? "Rezept bearbeiten" : "Neues Rezept erstellen",
+          actionsButtons: [
+            IconButton(
+              icon: const Icon(Icons.link),
+              tooltip: 'Von URL importieren',
+              onPressed: () => showRecipeUrlImportSheet(
+                context,
+                (data) => _bodyKey.currentState?.applyScrapedData(data),
+              ),
+            ),
+          ],
+        ),
+        scaffoldBody: AddEditRecipeBody(
+          key: _bodyKey,
+          existingRecipe: widget.existingRecipe,
+        ),
       ),
     );
   }

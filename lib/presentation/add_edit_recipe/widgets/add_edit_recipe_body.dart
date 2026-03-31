@@ -162,6 +162,72 @@ class AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
     }
   }
 
+  bool hasUnsavedChanges() {
+    final existing = widget.existingRecipe;
+
+    if (existing != null) {
+      // Edit mode: check if anything was changed from the original
+      if (_recipeNameController.text.trim() != (existing.name).trim()) {
+        return true;
+      }
+      if (_recipeInstructionsController.text.trim() !=
+          existing.instructions.trim()) {
+        return true;
+      }
+      if (ref.read(selectedPortionsProvider) != existing.portions) return true;
+
+      final imgState = ref.read(imageManagerProvider);
+      if (imgState.photo != null || imgState.existingImageRemoved) return true;
+
+      final carbTags = ref.read(carbTagSelectionProvider);
+      if (!_listEquals(carbTags, existing.carbTags)) return true;
+
+      // Categories: compare current IDs vs initial IDs
+      final allCategories = ref.read(groupCategoriesProvider).value ?? [];
+      final existingIds = allCategories
+          .where((c) => existing.categories.contains(c.name))
+          .map((c) => c.id)
+          .toSet();
+      final currentIds = ref.read(selectedCategoriesProvider).toSet();
+      if (!existingIds.containsAll(currentIds) ||
+          !currentIds.containsAll(existingIds)) {
+        return true;
+      }
+
+      return false;
+    }
+
+    // Create mode: check if anything was filled in
+    if (_recipeNameController.text.trim().isNotEmpty) return true;
+    if (_recipeInstructionsController.text.trim().isNotEmpty) return true;
+    if (ref.read(selectedCategoriesProvider).isNotEmpty) return true;
+    if (ref.read(selectedPortionsProvider) != defaultPortions) return true;
+
+    final imgState = ref.read(imageManagerProvider);
+    if (imgState.photo != null) return true;
+
+    final carbTags = ref.read(carbTagSelectionProvider);
+    if (carbTags.isNotEmpty) return true;
+
+    final ingredientsState = ref.read(ingredientsProvider);
+    final hasIngredient = ingredientsState.sections.any(
+      (s) => s.items.any((item) =>
+          item.nameController.text.trim().isNotEmpty ||
+          item.amountController.text.trim().isNotEmpty),
+    );
+    if (hasIngredient) return true;
+
+    return false;
+  }
+
+  static bool _listEquals(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
   @override
   void dispose() {
     _recipeNameController.dispose();
