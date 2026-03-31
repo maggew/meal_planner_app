@@ -17,8 +17,12 @@ class AddEditRecipePicture extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final images = ref.watch(imageManagerProvider);
     final newImage = images.photo;
+    final imageRemoved = images.existingImageRemoved;
     final TextTheme textTheme = Theme.of(context).textTheme;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+    final hasImage = newImage != null ||
+        (existingImageUrl != null && !imageRemoved);
 
     return Column(
       spacing: 10,
@@ -32,24 +36,66 @@ class AddEditRecipePicture extends ConsumerWidget {
           "(optional)",
           style: textTheme.bodySmall,
         ),
-        _buildImageArea(context, ref, newImage, colorScheme),
-        TextButton.icon(
-          onPressed: () {
-            ref
-                .read(imageManagerProvider.notifier)
-                .pickImageFromCamera(imageType: AnalysisImageType.photo);
-          },
-          icon: const Icon(Icons.camera_alt_outlined),
-          label: const Text("Kamera"),
+        _buildImageArea(context, ref, newImage, imageRemoved, colorScheme),
+        Row(
+          children: [
+            TextButton.icon(
+              onPressed: () {
+                ref
+                    .read(imageManagerProvider.notifier)
+                    .pickImageFromCamera(imageType: AnalysisImageType.photo);
+              },
+              icon: const Icon(Icons.camera_alt_outlined),
+              label: const Text("Kamera"),
+            ),
+            if (hasImage)
+              TextButton.icon(
+                onPressed: () => _confirmRemoveImage(context, ref),
+                icon: Icon(Icons.delete_outline, color: colorScheme.error),
+                label: Text(
+                  "Entfernen",
+                  style: TextStyle(color: colorScheme.error),
+                ),
+              ),
+          ],
         ),
       ],
     );
+  }
+
+  Future<void> _confirmRemoveImage(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Foto entfernen?"),
+        content: const Text(
+          "Möchtest du das Rezeptfoto wirklich entfernen?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text("Abbrechen"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(
+              "Entfernen",
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      ref.read(imageManagerProvider.notifier).removeExistingImage();
+    }
   }
 
   Widget _buildImageArea(
     BuildContext context,
     WidgetRef ref,
     File? newImage,
+    bool imageRemoved,
     ColorScheme colorScheme,
   ) {
     if (newImage != null) {
@@ -66,7 +112,7 @@ class AddEditRecipePicture extends ConsumerWidget {
           ),
         ),
       );
-    } else if (existingImageUrl != null) {
+    } else if (existingImageUrl != null && !imageRemoved) {
       return GestureDetector(
         onTap: () => ref
             .read(imageManagerProvider.notifier)

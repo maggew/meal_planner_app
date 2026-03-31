@@ -122,6 +122,9 @@ class AddEditRecipeButton extends ConsumerWidget {
           .toList();
     }
 
+    final imageState = ref.read(imageManagerProvider);
+    final existingImageRemoved = imageState.existingImageRemoved;
+
     Recipe recipe = Recipe(
       id: existingRecipe?.id,
       name: recipeNameController.text,
@@ -129,7 +132,7 @@ class AddEditRecipeButton extends ConsumerWidget {
       portions: selectedPortions,
       ingredientSections: ingredientSections,
       instructions: recipeInstructionsController.text,
-      imageUrl: existingRecipe?.imageUrl,
+      imageUrl: existingImageRemoved ? null : existingRecipe?.imageUrl,
       carbTags: selectedCarbTags,
     );
 
@@ -142,7 +145,12 @@ class AddEditRecipeButton extends ConsumerWidget {
         }
         return;
       }
-      await recipeRepo.updateRecipe(recipe, image);
+      await recipeRepo.updateRecipe(
+        recipe,
+        image,
+        oldImageUrlToDelete:
+            existingImageRemoved ? existingRecipe!.imageUrl : null,
+      );
     } else {
       await recipeRepo.createRecipe(recipe, image);
     }

@@ -18,6 +18,8 @@ class CustomImages {
   final String? error;
   // Laufender/abgeschlossener Upload-Future für das Rezeptfoto
   final Future<String?>? pendingPhotoUpload;
+  // True wenn ein bereits gespeichertes Bild entfernt werden soll
+  final bool existingImageRemoved;
 
   const CustomImages({
     this.ingredientsImage,
@@ -25,6 +27,7 @@ class CustomImages {
     this.photo,
     this.error,
     this.pendingPhotoUpload,
+    this.existingImageRemoved = false,
   });
 
   CustomImages copyWith({
@@ -33,6 +36,7 @@ class CustomImages {
     File? Function()? photo,
     String? Function()? error,
     Future<String?>? Function()? pendingPhotoUpload,
+    bool? existingImageRemoved,
   }) {
     return CustomImages(
       ingredientsImage:
@@ -45,6 +49,8 @@ class CustomImages {
       pendingPhotoUpload: pendingPhotoUpload != null
           ? pendingPhotoUpload()
           : this.pendingPhotoUpload,
+      existingImageRemoved:
+          existingImageRemoved ?? this.existingImageRemoved,
     );
   }
 }
@@ -128,6 +134,15 @@ class ImageManager extends _$ImageManager {
 
   void clearPhoto() {
     state = state.copyWith(photo: () => null, pendingPhotoUpload: () => null);
+  }
+
+  /// Markiert ein bereits gespeichertes Bild zum Entfernen.
+  void removeExistingImage() {
+    state = state.copyWith(
+      photo: () => null,
+      pendingPhotoUpload: () => null,
+      existingImageRemoved: true,
+    );
   }
 
   void setPhoto(File file) {

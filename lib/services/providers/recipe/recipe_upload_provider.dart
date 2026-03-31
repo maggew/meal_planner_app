@@ -39,11 +39,19 @@ class RecipeUpload extends _$RecipeUpload {
     });
   }
 
-  Future<void> updateRecipe(Recipe recipe, File? image) async {
+  Future<void> updateRecipe(Recipe recipe, File? image,
+      {String? oldImageUrlToDelete}) async {
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
       final recipeRepo = ref.read(recipeRepositoryProvider);
+
+      // Altes Bild aus Storage löschen, wenn es explizit entfernt wurde
+      if (oldImageUrlToDelete != null) {
+        await ref
+            .read(storageRepositoryProvider)
+            .deleteImage(oldImageUrlToDelete);
+      }
 
       // Bild wurde ggf. schon beim Auswählen hochgeladen — dann URL nehmen
       // und kein erneutes Hochladen auslösen. Altes Bild manuell löschen,
