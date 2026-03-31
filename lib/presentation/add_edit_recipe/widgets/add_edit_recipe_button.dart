@@ -139,9 +139,9 @@ class AddEditRecipeButton extends ConsumerWidget {
     final recipeRepo = ref.read(recipeUploadProvider.notifier);
     if (existingRecipe != null) {
       // Skip upload if nothing changed
-      if (!hasRecipeChanged(existingRecipe!, recipe, image)) {
+      if (!hasRecipeChanged(existingRecipe, recipe, image)) {
         if (context.mounted) {
-          context.router.replace(ShowRecipeRoute(recipeId: existingRecipe!.id));
+          context.router.replace(ShowRecipeRoute(recipeId: existingRecipe.id));
         }
         return;
       }
@@ -149,7 +149,7 @@ class AddEditRecipeButton extends ConsumerWidget {
         recipe,
         image,
         oldImageUrlToDelete:
-            existingImageRemoved ? existingRecipe!.imageUrl : null,
+            existingImageRemoved ? existingRecipe.imageUrl : null,
       );
     } else {
       await recipeRepo.createRecipe(recipe, image);
