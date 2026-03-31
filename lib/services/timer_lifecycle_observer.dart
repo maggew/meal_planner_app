@@ -26,7 +26,18 @@ class TimerLifecycleObserver extends WidgetsBindingObserver {
     // Abgelaufene Timer erkennen
     ref.read(activeTimerProvider.notifier).checkExpiredTimers();
 
-    final hasActive = ref.read(activeTimerProvider).values.any(
+    // Re-read state after checkExpiredTimers may have changed it
+    final updatedTimers = ref.read(activeTimerProvider);
+
+    // Start alarm sound if timers expired while backgrounded
+    final hasFinished = updatedTimers.values.any(
+      (t) => t.status == TimerStatus.finished,
+    );
+    if (hasFinished) {
+      NotificationService.instance.playAlarmSound();
+    }
+
+    final hasActive = updatedTimers.values.any(
           (t) =>
               t.status == TimerStatus.running ||
               t.status == TimerStatus.paused,
@@ -37,7 +48,7 @@ class TimerLifecycleObserver extends WidgetsBindingObserver {
       ref.read(timerTickProvider.notifier).updateOngoingNotification();
 
       // Tick neu starten falls noch laufende Timer da sind
-      if (ref.read(activeTimerProvider).values.any(
+      if (updatedTimers.values.any(
             (t) => t.status == TimerStatus.running,
           )) {
         ref.read(timerTickProvider.notifier).start();

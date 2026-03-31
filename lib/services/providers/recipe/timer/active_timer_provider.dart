@@ -132,9 +132,15 @@ class ActiveTimerNotifier extends _$ActiveTimerNotifier {
   }
 
   void dismissFinished(String key) {
+    final timer = state[key];
     final newState = Map<String, ActiveTimer>.from(state);
     newState.remove(key);
     state = newState;
+
+    // Cancel the "Timer abgelaufen" notification for this timer
+    if (timer != null) {
+      NotificationService.instance.cancelNotification(timer.notificationId);
+    }
 
     final hasFinished = state.values.any(
       (t) => t.status == TimerStatus.finished,
@@ -173,9 +179,18 @@ class ActiveTimerNotifier extends _$ActiveTimerNotifier {
     final updates = <String, ActiveTimer>{};
     for (final entry in state.entries) {
       if (entry.value.isExpired) {
-        updates[entry.key] = entry.value.copyWith(
+        final timer = entry.value;
+        updates[entry.key] = timer.copyWith(
           status: TimerStatus.finished,
           endTime: null,
+        );
+        // Cancel the scheduled alarm notification (in-app sound takes over)
+        NotificationService.instance.cancelNotification(timer.notificationId);
+        // Show a static "Timer abgelaufen" notification
+        NotificationService.instance.showTimerFinishedNotification(
+          id: timer.notificationId,
+          timerName: timer.label,
+          payload: '${timer.recipeId}:${timer.stepIndex}',
         );
       }
     }

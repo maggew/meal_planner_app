@@ -189,8 +189,7 @@ class _MyAppState extends ConsumerState<MyApp> {
     final stepIndex = int.tryParse(parts[1]);
     if (stepIndex == null) return;
 
-    NotificationService.instance.stopAlarmSound();
-    ref.read(activeTimerProvider.notifier).markAsFinished(payload);
+    ref.read(activeTimerProvider.notifier).dismissFinished(payload);
 
     // Prüfen ob wir schon auf dem richtigen Rezept sind
     final stack = _appRouter.stack;

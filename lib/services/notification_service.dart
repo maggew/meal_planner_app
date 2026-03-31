@@ -12,7 +12,15 @@ class NotificationService {
 
   NotificationService._()
       : _plugin = FlutterLocalNotificationsPlugin(),
-        _audioPlayer = AudioPlayer();
+        _audioPlayer = AudioPlayer() {
+    // Auto-resume alarm if the system interrupts playback
+    // (e.g. notification shade pull-down causing audio focus loss)
+    _audioPlayer.onPlayerStateChanged.listen((playerState) {
+      if (_isPlaying && playerState != PlayerState.playing) {
+        _audioPlayer.resume();
+      }
+    });
+  }
 
   @visibleForTesting
   NotificationService.forTesting({
@@ -123,6 +131,15 @@ class NotificationService {
   Future<void> playAlarmSound() async {
     if (_isPlaying) return;
     _isPlaying = true;
+    // Use alarm audio stream so the sound is not interrupted by
+    // notification shade, audio focus changes, or silent mode
+    await _audioPlayer.setAudioContext(AudioContext(
+      android: const AudioContextAndroid(
+        usageType: AndroidUsageType.alarm,
+        contentType: AndroidContentType.sonification,
+        audioFocus: AndroidAudioFocus.gainTransientExclusive,
+      ),
+    ));
     await _audioPlayer.setReleaseMode(ReleaseMode.loop);
     await _audioPlayer.setSourceAsset('sounds/timer.mp3');
     await _audioPlayer.resume();
@@ -169,5 +186,35 @@ class NotificationService {
 
   Future<void> cancelOngoingTimerNotification() async {
     await _plugin.cancel(id: _ongoingNotificationId);
+  }
+
+  /// Shows a persistent notification for a finished timer.
+  /// Uses the timer's notificationId so tapping it triggers the same handler.
+  Future<void> showTimerFinishedNotification({
+    required int id,
+    required String timerName,
+    required String payload,
+  }) async {
+    await _plugin.show(
+      id: id,
+      title: 'Timer abgelaufen',
+      body: timerName,
+      payload: payload,
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'timer_alarm_channel_v3',
+          'Koch-Timer Alarm',
+          channelDescription: 'Alarm wenn ein Koch-Timer abgelaufen ist',
+          importance: Importance.max,
+          priority: Priority.high,
+          autoCancel: true,
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+    );
   }
 }
