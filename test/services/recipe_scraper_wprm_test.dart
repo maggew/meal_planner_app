@@ -317,4 +317,107 @@ void main() {
       expect(sections[1].ingredients[0].name, 'Frischkäse');
     });
   });
+
+  group('ingredientBlocks extraction (Drupal/Next.js)', () {
+    test('extracts grouped ingredients with section headers', () {
+      final html = '''
+<html><body>
+<script>{"ingredientBlocks":[{"__typename":"ParagraphIngredientsBlock","title":"Für den Teig","ingredients":[{"prefix":null,"quantity":200,"quantityEnd":null,"suffix":"(Type 405)","unit":{"name":"g"},"ingredient":{"name":"Weizenmehl"}},{"prefix":null,"quantity":2,"quantityEnd":null,"suffix":null,"unit":{"name":"TL"},"ingredient":{"name":"Backpulver"}}]},{"__typename":"ParagraphIngredientsBlock","title":"Für die Creme","ingredients":[{"prefix":"veganes","quantity":1,"quantityEnd":null,"suffix":"(ca. 35 g)","unit":{"name":"Pck."},"ingredient":{"name":"Puddingpulver"}},{"prefix":null,"quantity":400,"quantityEnd":null,"suffix":null,"unit":{"name":"ml"},"ingredient":{"name":"Pflanzendrink"}}]},{"__typename":"ParagraphIngredientsBlock","title":"Außerdem","ingredients":[{"prefix":"vegane","quantity":null,"quantityEnd":null,"suffix":"für die Form","unit":null,"ingredient":{"name":"Butter"}}]}]}</script>
+</body></html>
+''';
+
+      final result = service.tryExtractIngredientBlocks(html);
+
+      expect(result, isNotNull);
+      expect(result, [
+        'Für den Teig:',
+        '200 g Weizenmehl (Type 405)',
+        '2 TL Backpulver',
+        'Für die Creme:',
+        '1 Pck. veganes Puddingpulver (ca. 35 g)',
+        '400 ml Pflanzendrink',
+        'Außerdem:',
+        'vegane Butter für die Form',
+      ]);
+    });
+
+    test('returns null when no ingredientBlocks found', () {
+      final html = '<html><body><p>Just a normal page</p></body></html>';
+
+      final result = service.tryExtractIngredientBlocks(html);
+
+      expect(result, isNull);
+    });
+
+    test('handles escaped JSON (backslash-escaped quotes)', () {
+      // Real-world format: the JSON is embedded inside a JS string with
+      // escaped quotes (\") but unescaped brackets
+      final html =
+          r'<script>{"data":"\"ingredientBlocks\":[{\"__typename\":\"ParagraphIngredientsBlock\",\"title\":\"Zutaten\",\"ingredients\":[{\"prefix\":null,\"quantity\":500,\"quantityEnd\":null,\"suffix\":null,\"unit\":{\"name\":\"g\"},\"ingredient\":{\"name\":\"Mehl\"}}]}]"}</script>';
+
+      final result = service.tryExtractIngredientBlocks(html);
+
+      expect(result, isNotNull);
+      expect(result, [
+        'Zutaten:',
+        '500 g Mehl',
+      ]);
+    });
+
+    test('handles quantity range (quantityEnd)', () {
+      final html = '''
+<script>{"ingredientBlocks":[{"title":"Zutaten","ingredients":[{"prefix":null,"quantity":2,"quantityEnd":3,"suffix":null,"unit":{"name":"EL"},"ingredient":{"name":"Öl"}}]}]}</script>
+''';
+
+      final result = service.tryExtractIngredientBlocks(html);
+
+      expect(result, [
+        'Zutaten:',
+        '2-3 EL Öl',
+      ]);
+    });
+
+    test('handles ingredient without unit', () {
+      final html = '''
+<script>{"ingredientBlocks":[{"title":"Außerdem","ingredients":[{"prefix":null,"quantity":1,"quantityEnd":null,"suffix":null,"unit":null,"ingredient":{"name":"Zitrone"}}]}]}</script>
+''';
+
+      final result = service.tryExtractIngredientBlocks(html);
+
+      expect(result, [
+        'Außerdem:',
+        '1 Zitrone',
+      ]);
+    });
+
+    test('handles block without title', () {
+      final html = '''
+<script>{"ingredientBlocks":[{"title":null,"ingredients":[{"prefix":null,"quantity":100,"quantityEnd":null,"suffix":null,"unit":{"name":"g"},"ingredient":{"name":"Zucker"}}]}]}</script>
+''';
+
+      final result = service.tryExtractIngredientBlocks(html);
+
+      expect(result, [
+        '100 g Zucker',
+      ]);
+    });
+
+    test('sections feed correctly into RecipeExtractor', () {
+      final html = '''
+<script>{"ingredientBlocks":[{"title":"Für den Teig","ingredients":[{"prefix":null,"quantity":200,"quantityEnd":null,"suffix":null,"unit":{"name":"g"},"ingredient":{"name":"Mehl"}},{"prefix":null,"quantity":100,"quantityEnd":null,"suffix":null,"unit":{"name":"g"},"ingredient":{"name":"Zucker"}}]},{"title":"Für die Glasur","ingredients":[{"prefix":null,"quantity":50,"quantityEnd":null,"suffix":null,"unit":{"name":"g"},"ingredient":{"name":"Puderzucker"}}]}]}</script>
+''';
+
+      final lines = service.tryExtractIngredientBlocks(html)!;
+      final sections = RecipeExtractor.processRawLines(lines);
+
+      expect(sections, hasLength(2));
+      expect(sections[0].title, 'Für den Teig');
+      expect(sections[0].ingredients, hasLength(2));
+      expect(sections[0].ingredients[0].name, 'Mehl');
+      expect(sections[0].ingredients[1].name, 'Zucker');
+      expect(sections[1].title, 'Für die Glasur');
+      expect(sections[1].ingredients, hasLength(1));
+      expect(sections[1].ingredients[0].name, 'Puderzucker');
+    });
+  });
 }

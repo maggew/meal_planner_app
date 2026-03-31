@@ -64,6 +64,7 @@ class RecipeScraperService {
     // fall back to flat JSON-LD list.
     final rawIngredients = _tryExtractWprmIngredients(html) ??
         _tryExtractTastyRecipesIngredients(html) ??
+        _tryExtractIngredientBlocks(html) ??
         _extractJsonLdIngredients(recipeJson);
 
     final instructions = _extractInstructions(recipeJson['recipeInstructions']);
@@ -171,6 +172,111 @@ class RecipeScraperService {
             lines.add(text);
           }
         }
+      }
+    }
+
+    return lines.isNotEmpty ? lines : null;
+  }
+
+  /// Extracts ingredients with section headers from embedded ingredientBlocks
+  /// JSON (used by Drupal/Next.js recipe sites like einfachkochen.de).
+  /// Returns null if no such structure is found.
+  @visibleForTesting
+  List<String>? tryExtractIngredientBlocks(String html) =>
+      _tryExtractIngredientBlocks(html);
+
+  List<String>? _tryExtractIngredientBlocks(String html) {
+    // The key may appear unescaped ("ingredientBlocks":) or with escaped
+    // quotes (\"ingredientBlocks\":) when embedded inside a JSON string.
+    // Brackets are not escaped in either case.
+    var marker = '"ingredientBlocks":';
+    var idx = html.indexOf(marker);
+    bool escaped = false;
+    if (idx < 0) {
+      marker = r'\"ingredientBlocks\":';
+      idx = html.indexOf(marker);
+      escaped = true;
+    }
+    if (idx < 0) return null;
+
+    final arrayStart = html.indexOf('[', idx + marker.length);
+    if (arrayStart < 0) return null;
+
+    // Find matching closing bracket
+    int depth = 0;
+    int? arrayEnd;
+    for (int i = arrayStart; i < html.length && i < arrayStart + 40000; i++) {
+      if (html[i] == '[') depth++;
+      if (html[i] == ']') depth--;
+      if (depth == 0) {
+        arrayEnd = i + 1;
+        break;
+      }
+    }
+    if (arrayEnd == null) return null;
+
+    var raw = html.substring(arrayStart, arrayEnd);
+    // Unescape quotes if the JSON was inside a JSON string
+    if (escaped) {
+      raw = raw.replaceAll(r'\"', '"');
+    }
+
+    List<dynamic> blocks;
+    try {
+      blocks = jsonDecode(raw) as List<dynamic>;
+    } catch (_) {
+      return null;
+    }
+
+    final List<String> lines = [];
+    for (final block in blocks) {
+      if (block is! Map<String, dynamic>) continue;
+
+      final title = block['title'] as String?;
+      if (title != null && title.isNotEmpty) {
+        lines.add('$title:');
+      }
+
+      final ingredients = block['ingredients'];
+      if (ingredients is! List) continue;
+
+      for (final ing in ingredients) {
+        if (ing is! Map<String, dynamic>) continue;
+
+        final prefix = ing['prefix'] as String?;
+        final quantity = ing['quantity'];
+        final quantityEnd = ing['quantityEnd'];
+        final unitMap = ing['unit'];
+        final unit = unitMap is Map ? unitMap['name'] as String? : null;
+        final ingMap = ing['ingredient'];
+        final name = ingMap is Map ? ingMap['name'] as String? : null;
+        final suffix = ing['suffix'] as String?;
+
+        final parts = <String>[];
+        if (quantity != null) {
+          final qStr = quantity is int
+              ? quantity.toString()
+              : quantity is double
+                  ? (quantity == quantity.truncateToDouble()
+                      ? quantity.toInt().toString()
+                      : quantity.toString())
+                  : quantity.toString();
+          if (quantityEnd != null) {
+            parts.add('$qStr-$quantityEnd');
+          } else {
+            parts.add(qStr);
+          }
+        }
+        if (unit != null && unit.isNotEmpty) parts.add(unit);
+        if (prefix != null && prefix.isNotEmpty) {
+          parts.add('$prefix ${name ?? ''}');
+        } else if (name != null && name.isNotEmpty) {
+          parts.add(name);
+        }
+        if (suffix != null && suffix.isNotEmpty) parts.add(suffix);
+
+        final line = parts.join(' ').trim();
+        if (line.isNotEmpty) lines.add(line);
       }
     }
 
