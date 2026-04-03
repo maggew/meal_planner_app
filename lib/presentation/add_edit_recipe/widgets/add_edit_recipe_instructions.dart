@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/recipe_mention_overlay.dart';
 import 'package:meal_planner/presentation/common/loading_overlay.dart';
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_analysis_provider.dart';
@@ -12,9 +13,11 @@ final excludeInstructionsFocusNotifier = ValueNotifier<bool>(false);
 
 class AddEditRecipeInstructions extends ConsumerStatefulWidget {
   final TextEditingController recipeInstructionsController;
+  final String? currentRecipeId;
   const AddEditRecipeInstructions({
     super.key,
     required this.recipeInstructionsController,
+    this.currentRecipeId,
   });
   @override
   ConsumerState<AddEditRecipeInstructions> createState() =>
@@ -116,37 +119,41 @@ class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
             ),
           ],
         ),
-        LoadingOverlay(
-          isLoading: isAnalyzing,
-          child: TextFormField(
-            focusNode: _focusNode,
-            controller: widget.recipeInstructionsController,
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: colorScheme.surfaceContainer,
-              enabledBorder: OutlineInputBorder(
-                borderRadius: AppDimensions.borderRadiusAll,
-                borderSide: BorderSide.none,
+        RecipeMentionOverlay(
+          controller: widget.recipeInstructionsController,
+          currentRecipeId: widget.currentRecipeId,
+          child: LoadingOverlay(
+            isLoading: isAnalyzing,
+            child: TextFormField(
+              focusNode: _focusNode,
+              controller: widget.recipeInstructionsController,
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: colorScheme.surfaceContainer,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: AppDimensions.borderRadiusAll,
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: AppDimensions.borderRadiusAll,
+                  borderSide: BorderSide(color: colorScheme.primary, width: 2.5),
+                ),
+                hintText: 'Hier ist Platz für die Kochanweisungen...',
               ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: AppDimensions.borderRadiusAll,
-                borderSide: BorderSide(color: colorScheme.primary, width: 2.5),
-              ),
-              hintText: 'Hier ist Platz für die Kochanweisungen...',
+              keyboardType: TextInputType.multiline,
+              maxLines: null,
+              inputFormatters: [LengthLimitingTextInputFormatter(10000)],
+              // Android-Workaround: Verhindert, dass ein Tap die Selektion
+              // erweitert statt den Cursor zu platzieren.
+              onTap: () {
+                final ctrl = widget.recipeInstructionsController;
+                if (!ctrl.selection.isCollapsed) {
+                  ctrl.selection = TextSelection.collapsed(
+                    offset: ctrl.selection.extentOffset,
+                  );
+                }
+              },
             ),
-            keyboardType: TextInputType.multiline,
-            maxLines: null,
-            inputFormatters: [LengthLimitingTextInputFormatter(10000)],
-            // Android-Workaround: Verhindert, dass ein Tap die Selektion
-            // erweitert statt den Cursor zu platzieren.
-            onTap: () {
-              final ctrl = widget.recipeInstructionsController;
-              if (!ctrl.selection.isCollapsed) {
-                ctrl.selection = TextSelection.collapsed(
-                  offset: ctrl.selection.extentOffset,
-                );
-              }
-            },
           ),
         ),
       ],

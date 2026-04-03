@@ -116,11 +116,13 @@ class AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: AddEditRecipeIngredientsWidget(
               ingredientsProvider: ingredientsProvider,
+              currentRecipeId: widget.existingRecipe?.id,
             ),
           ),
           GlassCard(
             child: AddEditRecipeInstructions(
               recipeInstructionsController: _recipeInstructionsController,
+              currentRecipeId: widget.existingRecipe?.id,
             ),
           ),
           GlassCard(

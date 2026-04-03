@@ -9,6 +9,8 @@ class AddEditRecipeSectionHeaderItem extends StatefulWidget {
   final VoidCallback onEditPressed;
   final VoidCallback onDeletePressed;
   final VoidCallback onConfirmPressed;
+  final VoidCallback? onMoveUpPressed;
+  final VoidCallback? onMoveDownPressed;
   final bool shouldRequestFocus;
   final bool isFirstSection;
   const AddEditRecipeSectionHeaderItem({
@@ -18,6 +20,8 @@ class AddEditRecipeSectionHeaderItem extends StatefulWidget {
     required this.onEditPressed,
     required this.onDeletePressed,
     required this.onConfirmPressed,
+    this.onMoveUpPressed,
+    this.onMoveDownPressed,
     required this.sectionHasNoIngredient,
     required this.shouldRequestFocus,
     required this.isFirstSection,
@@ -115,6 +119,41 @@ class _AddEditRecipeSectionHeaderItemState
                 key: const ValueKey("edit"),
                 onPressed: widget.onEditPressed,
                 icon: Icon(Icons.edit, color: colorScheme.onSecondaryContainer)),
+            if (widget.onMoveUpPressed != null ||
+                widget.onMoveDownPressed != null)
+              PopupMenuButton<String>(
+                icon: Icon(Icons.swap_vert,
+                    color: colorScheme.onSecondaryContainer),
+                padding: EdgeInsets.zero,
+                onSelected: (value) {
+                  if (value == 'up') widget.onMoveUpPressed?.call();
+                  if (value == 'down') widget.onMoveDownPressed?.call();
+                },
+                itemBuilder: (context) => [
+                  if (widget.onMoveUpPressed != null)
+                    const PopupMenuItem(
+                      value: 'up',
+                      child: Row(
+                        children: [
+                          Icon(Icons.arrow_upward, size: 20),
+                          SizedBox(width: 8),
+                          Text('Nach oben'),
+                        ],
+                      ),
+                    ),
+                  if (widget.onMoveDownPressed != null)
+                    const PopupMenuItem(
+                      value: 'down',
+                      child: Row(
+                        children: [
+                          Icon(Icons.arrow_downward, size: 20),
+                          SizedBox(width: 8),
+                          Text('Nach unten'),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
           ]
         ],
       ),

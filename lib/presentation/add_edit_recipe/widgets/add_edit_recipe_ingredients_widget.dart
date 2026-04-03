@@ -7,9 +7,11 @@ import 'package:meal_planner/services/providers/recipe/recipe_analysis_provider.
 
 class AddEditRecipeIngredientsWidget extends ConsumerWidget {
   final AddEditRecipeIngredientsProvider ingredientsProvider;
+  final String? currentRecipeId;
   const AddEditRecipeIngredientsWidget({
     super.key,
     required this.ingredientsProvider,
+    this.currentRecipeId,
   });
 
   @override
@@ -110,6 +112,7 @@ class AddEditRecipeIngredientsWidget extends ConsumerWidget {
 
         AddEditRecipeIngredientsListWidget(
           ingredientsProvider: ingredientsProvider,
+          currentRecipeId: currentRecipeId,
         ),
       ],
     );

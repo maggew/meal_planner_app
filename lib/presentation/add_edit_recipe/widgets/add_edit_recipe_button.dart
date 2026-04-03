@@ -111,6 +111,7 @@ class AddEditRecipeButton extends ConsumerWidget {
             unit: item.unit,
           );
         }).toList(),
+        linkedRecipeId: section.linkedRecipeId,
       );
     }).toList();
 
