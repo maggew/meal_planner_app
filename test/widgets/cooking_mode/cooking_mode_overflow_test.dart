@@ -103,6 +103,7 @@ void main() {
                 body: ShowRecipeCookingMode(
                   recipe: _testRecipe,
                   scaledSections: [_testSection],
+                  currentPortions: 4,
                 ),
               ),
             ),

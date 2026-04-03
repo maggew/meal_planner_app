@@ -84,6 +84,7 @@ void main() {
           _wrap(ShowRecipeCookingMode(
             recipe: _unnumberedRecipe,
             scaledSections: [_testSection],
+            currentPortions: 4,
           )),
         );
         await tester.pump();
@@ -130,6 +131,7 @@ void main() {
             recipe: _unnumberedRecipe,
             scaledSections: [_testSection],
             initialStep: 5,
+            currentPortions: 4,
           )),
         );
         await tester.pump();
@@ -145,6 +147,7 @@ void main() {
             recipe: _normalRecipe,
             scaledSections: [_testSection],
             initialStep: 99,
+            currentPortions: 4,
           )),
         );
         await tester.pumpAndSettle();
@@ -254,6 +257,7 @@ void main() {
                     ingredientSections: [_testSection],
                     recipeId: _recipeId,
                     stepNumber: 0,
+                    currentPortions: 4,
                   ),
                 ),
               ),
@@ -289,6 +293,7 @@ void main() {
           _wrap(ShowRecipeCookingMode(
             recipe: _normalRecipe,
             scaledSections: [_testSection],
+            currentPortions: 4,
           )),
         );
         await tester.pumpAndSettle();
