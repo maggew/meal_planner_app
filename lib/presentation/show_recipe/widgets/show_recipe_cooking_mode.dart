@@ -14,11 +14,13 @@ class ShowRecipeCookingMode extends ConsumerStatefulWidget {
   final Recipe recipe;
   final int? initialStep;
   final List<IngredientSection> scaledSections;
+  final int currentPortions;
 
   const ShowRecipeCookingMode({
     super.key,
     required this.recipe,
     required this.scaledSections,
+    required this.currentPortions,
     this.initialStep,
   });
 
@@ -98,6 +100,7 @@ class _ShowRecipeCookingModeState extends ConsumerState<ShowRecipeCookingMode>
                       ingredientSections: widget.scaledSections,
                       recipeId: widget.recipe.id!,
                       stepNumber: _tabController.index,
+                      currentPortions: widget.currentPortions,
                     ),
                   ],
                 ),

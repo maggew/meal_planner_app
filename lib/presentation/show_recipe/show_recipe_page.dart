@@ -165,6 +165,7 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
             recipe: _recipe!,
             initialStep: widget.initialStep,
             scaledSections: _scaledSections,
+            currentPortions: _currentPortions,
           ),
         ],
       ),

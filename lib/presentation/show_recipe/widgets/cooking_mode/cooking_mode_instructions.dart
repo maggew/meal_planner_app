@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
+import 'package:meal_planner/presentation/common/recipe_link_text.dart';
 
 class CookingModeInstructions extends StatelessWidget {
   final String instructionStep;
@@ -18,10 +19,7 @@ class CookingModeInstructions extends StatelessWidget {
         color: themeData.colorScheme.surfaceContainer,
         borderRadius: AppDimensions.borderRadiusAll,
       ),
-      child: Text(
-        instructionStep,
-        style: themeData.textTheme.bodyLarge,
-      ),
+      child: RecipeLinkText(instructionStep, style: themeData.textTheme.bodyLarge),
     );
   }
 }

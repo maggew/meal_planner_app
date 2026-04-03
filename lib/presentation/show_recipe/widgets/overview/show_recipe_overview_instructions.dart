@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
+import 'package:meal_planner/presentation/common/recipe_link_text.dart';
 
 class ShowRecipeOverviewInstructions extends StatelessWidget {
   final Recipe recipe;
@@ -75,7 +76,7 @@ class ShowRecipeOverviewInstructions extends StatelessWidget {
                         Expanded(
                           child: Padding(
                             padding: EdgeInsets.symmetric(vertical: 4),
-                            child: Text(text, style: textTheme.bodyMedium),
+                            child: RecipeLinkText(text, style: textTheme.bodyMedium),
                           ),
                         ),
                       ],
@@ -85,7 +86,7 @@ class ShowRecipeOverviewInstructions extends StatelessWidget {
                 );
               }).toList(),
             )
-          : Text(instructions, style: textTheme.bodyMedium),
+          : RecipeLinkText(instructions, style: textTheme.bodyMedium),
     );
   }
 }

@@ -3,12 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/presentation/common/extensions/ingredient_inline_text_extenstion.dart';
+import 'package:meal_planner/services/providers/recipe/linked_recipe_provider.dart';
 import 'package:meal_planner/services/providers/shopping_list/shopping_list_provider.dart';
 
 class AddToShoppingListSheet extends ConsumerStatefulWidget {
   final List<IngredientSection> sections;
+  final int currentPortions;
 
-  const AddToShoppingListSheet({super.key, required this.sections});
+  const AddToShoppingListSheet({
+    super.key,
+    required this.sections,
+    required this.currentPortions,
+  });
 
   @override
   ConsumerState<AddToShoppingListSheet> createState() =>
@@ -17,18 +23,54 @@ class AddToShoppingListSheet extends ConsumerStatefulWidget {
 
 class _AddToShoppingListSheetState
     extends ConsumerState<AddToShoppingListSheet> {
-  late final Map<int, Set<int>> _selected;
+  late Map<int, Set<int>> _selected;
 
-  @override
-  void initState() {
-    super.initState();
+  List<IngredientSection> _resolveLinkedSections(WidgetRef ref) {
+    final resolved = <IngredientSection>[];
+    for (final section in widget.sections) {
+      if (!section.isLinked) {
+        resolved.add(section);
+        continue;
+      }
+      final asyncRecipe =
+          ref.watch(linkedRecipeProvider(section.linkedRecipeId!));
+      final linkedRecipe = asyncRecipe.asData?.value;
+      if (linkedRecipe == null) continue;
+      final scaleFactor = widget.currentPortions / linkedRecipe.portions;
+      final ingredients = linkedRecipe.ingredientSections
+          .expand((s) => s.ingredients)
+          .map((ing) => ing.scale(scaleFactor))
+          .toList();
+      resolved.add(IngredientSection(
+        title: linkedRecipe.name,
+        ingredients: ingredients,
+      ));
+    }
+    return resolved;
+  }
+
+  void _initSelected(List<IngredientSection> sections) {
     _selected = {
-      for (int s = 0; s < widget.sections.length; s++) s: <int>{},
+      for (int s = 0; s < sections.length; s++) s: <int>{},
     };
   }
 
   @override
+  void initState() {
+    super.initState();
+    // Initial selection will be rebuilt on first build with resolved sections
+    _selected = {};
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final resolvedSections = _resolveLinkedSections(ref);
+
+    // Re-init selection map when section count changes (e.g. linked recipes load)
+    if (_selected.length != resolvedSections.length) {
+      _initSelected(resolvedSections);
+    }
+
     final totalSelected =
         _selected.values.fold<int>(0, (sum, s) => sum + s.length);
 
@@ -52,9 +94,9 @@ class _AddToShoppingListSheetState
               Expanded(
                 child: ListView.builder(
                   controller: scrollController,
-                  itemCount: widget.sections.length,
+                  itemCount: resolvedSections.length,
                   itemBuilder: (context, sectionIndex) {
-                    final section = widget.sections[sectionIndex];
+                    final section = resolvedSections[sectionIndex];
                     final sectionSelected =
                         _selected[sectionIndex] ?? <int>{};
                     final allSelected =
@@ -164,7 +206,7 @@ class _AddToShoppingListSheetState
                             ),
                           );
                         }),
-                        if (sectionIndex < widget.sections.length - 1)
+                        if (sectionIndex < resolvedSections.length - 1)
                           const Divider(height: 16),
                       ],
                     );
@@ -182,7 +224,7 @@ class _AddToShoppingListSheetState
                           for (final entry in _selected.entries) {
                             for (final i in entry.value) {
                               ingredients.add(
-                                  widget.sections[entry.key].ingredients[i]);
+                                  resolvedSections[entry.key].ingredients[i]);
                             }
                           }
                           context.router.pop();
