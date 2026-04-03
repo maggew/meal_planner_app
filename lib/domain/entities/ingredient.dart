@@ -1,6 +1,8 @@
 import 'package:meal_planner/domain/enums/unit.dart';
 import 'package:meal_planner/domain/services/amount_scaler.dart';
 
+const _sentinel = _Sentinel();
+
 class Ingredient {
   final String name;
   final Unit? unit;
@@ -20,8 +22,6 @@ class Ingredient {
       amount: AmountScaler.scale(amount!, factor),
     );
   }
-
-  static const _sentinel = _Sentinel();
 
   Ingredient copyWith({
     String? name,
@@ -56,11 +56,50 @@ class Ingredient {
 class IngredientSection {
   final String title;
   final List<Ingredient> ingredients;
+  final String? linkedRecipeId;
 
   IngredientSection({
     required this.title,
     required this.ingredients,
+    this.linkedRecipeId,
   });
+
+  bool get isLinked => linkedRecipeId != null;
+
+  IngredientSection copyWith({
+    String? title,
+    List<Ingredient>? ingredients,
+    Object? linkedRecipeId = _sentinel,
+  }) {
+    return IngredientSection(
+      title: title ?? this.title,
+      ingredients: ingredients ?? this.ingredients,
+      linkedRecipeId: linkedRecipeId == _sentinel
+          ? this.linkedRecipeId
+          : linkedRecipeId as String?,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! IngredientSection) return false;
+    if (other.title != title || other.linkedRecipeId != linkedRecipeId) {
+      return false;
+    }
+    if (other.ingredients.length != ingredients.length) return false;
+    for (int i = 0; i < ingredients.length; i++) {
+      if (other.ingredients[i] != ingredients[i]) return false;
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        title,
+        linkedRecipeId,
+        Object.hashAll(ingredients),
+      );
 }
 
 class _Sentinel {

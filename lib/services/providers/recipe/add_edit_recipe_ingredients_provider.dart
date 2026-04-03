@@ -38,6 +38,36 @@ class AddEditRecipeIngredients extends _$AddEditRecipeIngredients {
     state = state.copyWith(sections: [...state.sections]);
   }
 
+  void addLinkedSection(String recipeId, String recipeName) {
+    // Prevent duplicate linked sections for the same recipe
+    if (state.sections.any((s) => s.linkedRecipeId == recipeId)) return;
+
+    state.sections.add(
+      IngredientSectionForm(
+        title: recipeName,
+        items: [],
+        linkedRecipeId: recipeId,
+      ),
+    );
+    state = state.copyWith(sections: [...state.sections]);
+  }
+
+  void moveSectionUp(int sectionIndex) {
+    if (sectionIndex <= 0) return;
+    final sections = [...state.sections];
+    final section = sections.removeAt(sectionIndex);
+    sections.insert(sectionIndex - 1, section);
+    state = state.copyWith(sections: sections);
+  }
+
+  void moveSectionDown(int sectionIndex) {
+    if (sectionIndex >= state.sections.length - 1) return;
+    final sections = [...state.sections];
+    final section = sections.removeAt(sectionIndex);
+    sections.insert(sectionIndex + 1, section);
+    state = state.copyWith(sections: sections);
+  }
+
   void removeSection(int sectionIndex) {
     if (sectionIndex == 0) return;
 

@@ -1,4 +1,5 @@
 import 'package:meal_planner/core/constants/supabase_constants.dart';
+import 'package:meal_planner/core/utils/recipe_link_parser.dart';
 import 'package:meal_planner/data/model/ingredient_model.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
@@ -73,13 +74,21 @@ class RecipeModel extends Recipe {
     }
 
     final ingredientSections = sectionMap.entries
-        .map(
-          (e) => IngredientSection(
+        .map((e) {
+          final link = RecipeLinkParser.extractFirst(e.key);
+          if (link != null) {
+            return IngredientSection(
+              title: link.displayName,
+              ingredients: [],
+              linkedRecipeId: link.recipeId,
+            );
+          }
+          return IngredientSection(
             title: e.key,
             ingredients: e.value
               ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)),
-          ),
-        )
+          );
+        })
         .toList();
 
     final carbTagsRaw = data['carb_tags'] as List? ?? [];

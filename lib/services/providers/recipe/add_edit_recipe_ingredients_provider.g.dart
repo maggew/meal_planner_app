@@ -61,7 +61,7 @@ final class AddEditRecipeIngredientsProvider extends $NotifierProvider<
 }
 
 String _$addEditRecipeIngredientsHash() =>
-    r'43a486f98d2701f18effa43b8d27c35f54821124';
+    r'368ce5adda5f1b9269d18d222b76654b2e6d754b';
 
 final class AddEditRecipeIngredientsFamily extends $Family
     with

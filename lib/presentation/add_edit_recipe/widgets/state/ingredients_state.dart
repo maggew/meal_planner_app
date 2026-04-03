@@ -36,6 +36,7 @@ class AddEditRecipeIngredientsState {
               items: section.ingredients
                   .map(IngredientFormItem.fromIngredient)
                   .toList(),
+              linkedRecipeId: section.linkedRecipeId,
             ),
           )
           .toList(),

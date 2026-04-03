@@ -69,6 +69,8 @@ class RecipeCacheConverter {
         'unit': ing.unit?.name,
         'amount': ing.amount,
       }).toList(),
+      if (section.linkedRecipeId != null)
+        'linkedRecipeId': section.linkedRecipeId,
     }).toList());
   }
 
@@ -113,6 +115,7 @@ class RecipeCacheConverter {
       return IngredientSection(
         title: sectionMap['title'] as String,
         ingredients: ingredients,
+        linkedRecipeId: sectionMap['linkedRecipeId'] as String?,
       );
     }).toList();
   }

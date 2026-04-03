@@ -8,6 +8,7 @@ import 'package:meal_planner/data/model/recipe_timer_model.dart';
 import 'package:meal_planner/domain/entities/recipe_timer.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:meal_planner/core/utils/recipe_link_parser.dart';
 import 'package:meal_planner/core/utils/uuid_generator.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/domain/repositories/recipe_repository.dart';
@@ -54,16 +55,7 @@ class SupabaseRecipeRepository implements RecipeRepository {
       );
 
       // 3+4. Categories + Ingredients parallel speichern
-      final List<IngredientModel> ingredientModels = [];
-      for (final section in recipe.ingredientSections) {
-        for (int i = 0; i < section.ingredients.length; i++) {
-          ingredientModels.add(IngredientModel.fromEntity(
-            section.ingredients[i],
-            groupName: section.title,
-            sortOrder: i,
-          ));
-        }
-      }
+      final ingredientModels = _buildIngredientModels(recipe);
 
       await Future.wait([
         _remote.saveRecipeCategories(
@@ -197,16 +189,7 @@ class SupabaseRecipeRepository implements RecipeRepository {
       ]);
 
       // Categories + Ingredients parallel speichern
-      final List<IngredientModel> ingredientModels = [];
-      for (final section in recipe.ingredientSections) {
-        for (int i = 0; i < section.ingredients.length; i++) {
-          ingredientModels.add(IngredientModel.fromEntity(
-            section.ingredients[i],
-            groupName: section.title,
-            sortOrder: i,
-          ));
-        }
-      }
+      final ingredientModels = _buildIngredientModels(updatedRecipe);
 
       await Future.wait([
         _remote.saveRecipeCategories(
@@ -270,5 +253,37 @@ class SupabaseRecipeRepository implements RecipeRepository {
     } catch (e) {
       throw RecipeTimerException('Fehler beim Löschen des Timers: $e');
     }
+  }
+
+  // ==================== HELPERS ====================
+
+  /// Builds IngredientModels from recipe sections.
+  /// Linked sections encode the recipe link in the group_name.
+  List<IngredientModel> _buildIngredientModels(Recipe recipe) {
+    final List<IngredientModel> models = [];
+    for (final section in recipe.ingredientSections) {
+      final groupName = section.isLinked
+          ? RecipeLinkParser.encode(section.title, section.linkedRecipeId!)
+          : section.title;
+      for (int i = 0; i < section.ingredients.length; i++) {
+        models.add(IngredientModel.fromEntity(
+          section.ingredients[i],
+          groupName: groupName,
+          sortOrder: i,
+        ));
+      }
+      // Linked sections have no own ingredients — insert a placeholder
+      // so the group_name is persisted in the junction table.
+      if (section.isLinked && section.ingredients.isEmpty) {
+        models.add(IngredientModel(
+          name: '',
+          unit: null,
+          amount: null,
+          groupName: groupName,
+          sortOrder: 0,
+        ));
+      }
+    }
+    return models;
   }
 }
