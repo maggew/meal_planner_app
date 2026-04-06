@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
+import 'package:meal_planner/domain/services/ingredient_merge_service.dart';
 import 'package:meal_planner/domain/entities/shopping_list_item.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
@@ -33,10 +34,10 @@ class FakeShoppingListActions extends ShoppingListActions {
   }
 
   @override
-  Future<void> addItem(String input) async {}
+  Future<List<MergeResult>> addItem(String input) async => [];
 
   @override
-  Future<void> addItemsFromIngredients(List<Ingredient> ingredients) async {}
+  Future<List<MergeResult>> addItemsFromIngredients(List<Ingredient> ingredients) async => [];
 
   @override
   Future<void> removeItem(String itemId) async {}

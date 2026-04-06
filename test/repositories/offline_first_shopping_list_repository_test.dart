@@ -90,6 +90,12 @@ void main() {
 
   void _stubDaoVoids() {
     when(() => mockDao.upsertItem(any())).thenAnswer((_) async {});
+    when(() => mockDao.updateItemFields(
+          any(),
+          information: any(named: 'information'),
+          quantity: any(named: 'quantity'),
+          syncStatus: any(named: 'syncStatus'),
+        )).thenAnswer((_) async {});
     when(() => mockDao.updateSyncStatus(any(), any(),
         remoteId: any(named: 'remoteId'))).thenAnswer((_) async {});
     when(() => mockDao.markAsDeleted(any())).thenAnswer((_) async {});
@@ -353,7 +359,7 @@ void main() {
   // ═══════════════════════════════════════════════════════════════════════════
 
   group('updateItem', () {
-    test('17 — Online: lokales Item wird aktualisiert (upsertItem aufgerufen)',
+    test('17 — Online: lokales Item wird aktualisiert (updateItemFields aufgerufen)',
         () async {
       _stubDaoVoids();
       _stubDaoList([_fakeLocal(remoteId: 'remote-1')]);
@@ -363,7 +369,12 @@ void main() {
 
       await repo.updateItem('remote-1', 'Milch 2%', '1L');
 
-      verify(() => mockDao.upsertItem(any())).called(1);
+      verify(() => mockDao.updateItemFields(
+            any(),
+            information: any(named: 'information'),
+            quantity: any(named: 'quantity'),
+            syncStatus: any(named: 'syncStatus'),
+          )).called(1);
     });
 
     test('18 — syncStatus wird auf pendingUpdate gesetzt für synced Items',
@@ -374,13 +385,15 @@ void main() {
 
       await repo.updateItem('remote-1', 'Milch 2%', '1L');
 
-      final captured = verify(() => mockDao.upsertItem(captureAny())).captured;
-      final companion = captured.first as LocalShoppingItemsCompanion;
-      expect(companion.syncStatus.value, 'pendingUpdate');
+      verify(() => mockDao.updateItemFields(
+            any(),
+            information: 'Milch 2%',
+            quantity: '1L',
+            syncStatus: 'pendingUpdate',
+          )).called(1);
     });
 
     test(
-
         '19 — Online + Remote-Fehler: lokales Update bleibt erhalten, kein Absturz',
         () async {
       _stubDaoVoids();
@@ -394,7 +407,12 @@ void main() {
         completes,
       );
 
-      verify(() => mockDao.upsertItem(any())).called(1);
+      verify(() => mockDao.updateItemFields(
+            any(),
+            information: any(named: 'information'),
+            quantity: any(named: 'quantity'),
+            syncStatus: any(named: 'syncStatus'),
+          )).called(1);
       verifyNever(() => mockDao.updateSyncStatus(any(), 'synced'));
     });
 
@@ -406,7 +424,12 @@ void main() {
 
       await repo.updateItem('remote-1', 'Milch 2%', '1L');
 
-      verify(() => mockDao.upsertItem(any())).called(1);
+      verify(() => mockDao.updateItemFields(
+            any(),
+            information: any(named: 'information'),
+            quantity: any(named: 'quantity'),
+            syncStatus: any(named: 'syncStatus'),
+          )).called(1);
       verifyNever(() => mockRemote.updateItem(any(), any(), any()));
     });
 
@@ -425,9 +448,12 @@ void main() {
 
       await repo.updateItem('local-unsynced', 'Neue Info', null);
 
-      final captured = verify(() => mockDao.upsertItem(captureAny())).captured;
-      final companion = captured.first as LocalShoppingItemsCompanion;
-      expect(companion.syncStatus.value, 'pendingCreate');
+      verify(() => mockDao.updateItemFields(
+            'local-unsynced',
+            information: 'Neue Info',
+            quantity: null,
+            syncStatus: 'pendingCreate',
+          )).called(1);
     });
 
     test(
@@ -441,9 +467,12 @@ void main() {
 
       await repo.updateItem('remote-1', 'Milch 2%', '1L');
 
-      final captured = verify(() => mockDao.upsertItem(captureAny())).captured;
-      final companion = captured.first as LocalShoppingItemsCompanion;
-      expect(companion.syncStatus.value, 'pendingUpdate');
+      verify(() => mockDao.updateItemFields(
+            any(),
+            information: any(named: 'information'),
+            quantity: any(named: 'quantity'),
+            syncStatus: 'pendingUpdate',
+          )).called(1);
     });
   });
 
@@ -696,10 +725,12 @@ void main() {
 
       await repo.updateItem('local-abc', 'Neue Info', '500g');
 
-      final captured = verify(() => mockDao.upsertItem(captureAny())).captured;
-      final companion = captured.first as LocalShoppingItemsCompanion;
-      expect(companion.localId.value, 'local-abc');
-      expect(companion.information.value, 'Neue Info');
+      verify(() => mockDao.updateItemFields(
+            'local-abc',
+            information: 'Neue Info',
+            quantity: '500g',
+            syncStatus: any(named: 'syncStatus'),
+          )).called(1);
     });
 
     test('39 — toggleItem: Lookup funktioniert nach localId', () async {
