@@ -219,7 +219,7 @@ class _AddToShoppingListSheetState
                 child: ElevatedButton(
                   onPressed: totalSelected == 0
                       ? null
-                      : () {
+                      : () async {
                           final ingredients = <Ingredient>[];
                           for (final entry in _selected.entries) {
                             for (final i in entry.value) {
@@ -227,16 +227,31 @@ class _AddToShoppingListSheetState
                                   resolvedSections[entry.key].ingredients[i]);
                             }
                           }
+                          final notifier = ref
+                              .read(shoppingListActionsProvider.notifier);
+                          final scaffoldMessenger =
+                              ScaffoldMessenger.of(context);
                           context.router.pop();
-                          ref
-                              .read(shoppingListActionsProvider.notifier)
+                          final merges = await notifier
                               .addItemsFromIngredients(ingredients);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                '${ingredients.length} Zutaten zur Einkaufsliste hinzugefügt',
-                              ),
-                            ),
+                          final added = ingredients.length - merges.length;
+                          final lines = <String>[];
+                          if (added > 0) {
+                            lines.add(
+                              '$added Zutaten zur Einkaufsliste hinzugefügt',
+                            );
+                          }
+                          for (final m in merges) {
+                            final old = m.oldQuantity ?? '';
+                            final merged = m.newQuantity ?? '';
+                            if (old.isEmpty && merged.isEmpty) {
+                              lines.add('${m.itemName} zusammengefasst');
+                            } else {
+                              lines.add('${m.itemName}: $old → $merged');
+                            }
+                          }
+                          scaffoldMessenger.showSnackBar(
+                            SnackBar(content: Text(lines.join('\n'))),
                           );
                         },
                   child: Text('Hinzufügen ($totalSelected Zutaten)'),

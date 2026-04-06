@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
+import 'package:meal_planner/domain/services/ingredient_merge_service.dart';
 import 'package:meal_planner/services/providers/shopping_list/shopping_list_provider.dart';
 
 class ShoppingListInput extends ConsumerStatefulWidget {
@@ -35,13 +36,30 @@ class _ShoppingListInputState extends ConsumerState<ShoppingListInput>
     _lastBottomInset = bottomInset;
   }
 
-  void _submit() {
+  void _submit() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
     _controller.clear();
     _focusNode.requestFocus();
-    ref.read(shoppingListActionsProvider.notifier).addItem(text);
+    final merges = await ref
+        .read(shoppingListActionsProvider.notifier)
+        .addItem(text);
+    if (merges.isNotEmpty && mounted) {
+      _showMergeSnackBar(merges);
+    }
+  }
+
+  void _showMergeSnackBar(List<MergeResult> merges) {
+    final lines = merges.map((m) {
+      final old = m.oldQuantity ?? '';
+      final merged = m.newQuantity ?? '';
+      if (old.isEmpty && merged.isEmpty) return m.itemName;
+      return '${m.itemName}: $old → $merged';
+    }).join('\n');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(lines)),
+    );
   }
 
   @override

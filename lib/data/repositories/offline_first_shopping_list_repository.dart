@@ -114,15 +114,12 @@ class OfflineFirstShoppingListRepository implements ShoppingListRepository {
     // pendingCreate beibehalten: Item noch nie synced, wird beim nächsten Sync mit den
     // aktuellen Daten erstellt – kein Überschreiben auf pendingUpdate nötig
     final newStatus = item.syncStatus == 'pendingCreate' ? 'pendingCreate' : 'pendingUpdate';
-    await _dao.upsertItem(LocalShoppingItemsCompanion(
-      localId: Value(item.localId),
-      groupId: Value(item.groupId),
-      information: Value(information),
-      quantity: Value(quantity),
-      isChecked: Value(item.isChecked),
-      syncStatus: Value(newStatus),
-      updatedAt: Value(DateTime.now()),
-    ));
+    await _dao.updateItemFields(
+      item.localId,
+      information: information,
+      quantity: quantity,
+      syncStatus: newStatus,
+    );
   }
 
   Future<void> _updateLocalByAnyId(String id, {required bool isChecked}) async {

@@ -1,6 +1,8 @@
 import 'package:meal_planner/core/utils/shopping_list_input_parser.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/shopping_list_item.dart';
+import 'package:meal_planner/domain/repositories/shopping_list_repository.dart';
+import 'package:meal_planner/domain/services/ingredient_merge_service.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -19,15 +21,26 @@ class ShoppingListActions extends _$ShoppingListActions {
   @override
   void build() {}
 
-  Future<void> addItem(String input) async {
+  final _mergeService = IngredientMergeService();
+
+  Future<List<MergeResult>> addItem(String input) async {
     final parsed = ShoppingListInputParser.parse(input);
     final repo = ref.read(shoppingListRepositoryProvider);
-    await repo.addItem(parsed.information, parsed.quantity);
-    // kein state update nötig – Drift Stream triggert UI automatisch
+
+    final mergeResult = await _tryMergeOrAdd(
+      parsed.information,
+      parsed.quantity,
+      repo,
+    );
+    return mergeResult != null ? [mergeResult] : [];
   }
 
-  Future<void> addItemsFromIngredients(List<Ingredient> ingredients) async {
+  Future<List<MergeResult>> addItemsFromIngredients(
+    List<Ingredient> ingredients,
+  ) async {
     final repo = ref.read(shoppingListRepositoryProvider);
+    final merges = <MergeResult>[];
+
     for (final ingredient in ingredients) {
       final name = ingredient.name.trim();
       if (name.isEmpty) continue;
@@ -35,11 +48,36 @@ class ShoppingListActions extends _$ShoppingListActions {
         if (ingredient.amount != null) '${ingredient.amount}',
         if (ingredient.unit != null) ingredient.unit!.displayName,
       ].join(' ');
-      await repo.addItem(
+
+      final mergeResult = await _tryMergeOrAdd(
         name,
         quantity.isEmpty ? null : quantity,
+        repo,
       );
+      if (mergeResult != null) merges.add(mergeResult);
     }
+    return merges;
+  }
+
+  Future<MergeResult?> _tryMergeOrAdd(
+    String information,
+    String? quantity,
+    ShoppingListRepository repo,
+  ) async {
+    final items = await repo.getItems();
+    final mergeResult = _mergeService.tryMerge(information, quantity, items);
+
+    if (mergeResult != null) {
+      await repo.updateItem(
+        mergeResult.itemId,
+        information,
+        mergeResult.newQuantity,
+      );
+      return mergeResult;
+    }
+
+    await repo.addItem(information, quantity);
+    return null;
   }
 
   Future<void> updateItem(String itemId, String information, String? quantity) async {

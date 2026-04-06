@@ -29,6 +29,21 @@ class ShoppingItemDao extends DatabaseAccessor<AppDatabase>
     return into(localShoppingItems).insertOnConflictUpdate(item);
   }
 
+  Future<void> updateItemFields(
+    String localId, {
+    required String information,
+    required String? quantity,
+    required String syncStatus,
+  }) {
+    return (update(localShoppingItems)..where((t) => t.localId.equals(localId)))
+        .write(LocalShoppingItemsCompanion(
+      information: Value(information),
+      quantity: Value(quantity),
+      syncStatus: Value(syncStatus),
+      updatedAt: Value(DateTime.now()),
+    ));
+  }
+
   Future<void> updateSyncStatus(
     String localId,
     String status, {
