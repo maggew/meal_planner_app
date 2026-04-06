@@ -15,6 +15,24 @@ class RecipeScrapingException implements Exception {
   String toString() => message;
 }
 
+/// Intermediate result from the heuristic parser. Holds the raw image URL
+/// (not yet downloaded) so the parser can stay synchronous and testable.
+class HeuristicRecipeData {
+  final String? name;
+  final List<String> ingredients;
+  final String? instructions;
+  final int? servings;
+  final String? imageUrl;
+
+  const HeuristicRecipeData({
+    this.name,
+    required this.ingredients,
+    this.instructions,
+    this.servings,
+    this.imageUrl,
+  });
+}
+
 class RecipeScraperService {
   final Dio _dio;
   RecipeScraperService(this._dio);
@@ -97,6 +115,14 @@ class RecipeScraperService {
     }
     return result;
   }
+
+  /// Heuristic recipe parser for unstructured WordPress prose pages
+  /// (no JSON-LD Recipe, no recipe plugin). Returns null if the page does
+  /// not contain identifiable ingredients/instructions sections.
+  ///
+  /// Stub — full implementation lands in the follow-up commit.
+  @visibleForTesting
+  HeuristicRecipeData? tryExtractHeuristicRecipe(String html) => null;
 
   /// Extracts ingredients with section headers from WPRM HTML.
   /// Returns null if no WPRM structure is found.
