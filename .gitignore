@@ -1,5 +1,7 @@
 # Miscellaneous
 *.class
+.agents/
+skills-lock.json
 *.log
 *.pyc
 *.swp
