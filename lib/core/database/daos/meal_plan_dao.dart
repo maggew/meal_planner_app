@@ -41,6 +41,18 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
         .get();
   }
 
+  /// Returns the remote ids of all locally-pending entries (any non-`synced`
+  /// status) that already have a remote counterpart. Used by `SyncEngine` to
+  /// implement local-pending-wins on the pull phase.
+  Future<Set<String>> getPendingRemoteIds(String groupId) async {
+    final rows = await (select(localMealPlanEntries)
+          ..where((t) => t.groupId.equals(groupId))
+          ..where((t) => t.syncStatus.equals('synced').not())
+          ..where((t) => t.remoteId.isNotNull()))
+        .get();
+    return rows.map((r) => r.remoteId!).toSet();
+  }
+
   Future<LocalMealPlanEntry?> getEntryByLocalId(String localId) {
     return (select(localMealPlanEntries)
           ..where((t) => t.localId.equals(localId)))

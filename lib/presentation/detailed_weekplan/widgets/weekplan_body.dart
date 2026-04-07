@@ -7,7 +7,7 @@ import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_day
 import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_week_list.dart';
 import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_week_strip.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_provider.dart';
-import 'package:meal_planner/services/providers/meal_plan/meal_plan_sync_provider.dart';
+import 'package:meal_planner/services/providers/sync/sync_providers.dart';
 import 'package:meal_planner/domain/entities/group_settings.dart';
 import 'package:meal_planner/services/providers/user/group_settings_provider.dart';
 
@@ -168,11 +168,13 @@ class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
   }
 
   void _syncForWeek(DateTime weekStart) {
-    final sync = ref.read(mealPlanSyncServiceProvider);
-    sync.updateMonth(weekStart.year, weekStart.month);
+    final coordinator = ref.read(syncCoordinatorProvider);
+    coordinator.updateMealPlanMonth(weekStart);
     final weekEnd = weekStart.add(const Duration(days: 6));
     if (weekEnd.month != weekStart.month) {
-      sync.pullRemoteForMonth(weekEnd.year, weekEnd.month);
+      // Week straddles a month boundary — also sync the next month so the
+      // calendar dots for the visible week reflect remote state.
+      coordinator.syncMealPlan(weekEnd);
     }
   }
 

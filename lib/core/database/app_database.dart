@@ -3,18 +3,22 @@ import 'package:drift_flutter/drift_flutter.dart';
 import 'package:meal_planner/core/database/daos/meal_plan_dao.dart';
 import 'package:meal_planner/core/database/daos/recipe_cache_dao.dart';
 import 'package:meal_planner/core/database/daos/shopping_item_dao.dart';
+import 'package:meal_planner/core/database/daos/sync_meta_dao.dart';
 import 'package:meal_planner/core/database/tables/local_meal_plan_entries_table.dart';
 import 'package:meal_planner/core/database/tables/local_recipes_table.dart';
 import 'package:meal_planner/core/database/tables/local_shopping_items_table.dart';
+import 'package:meal_planner/core/database/tables/sync_meta_table.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [LocalShoppingItems, LocalRecipes, LocalMealPlanEntries])
+@DriftDatabase(
+  tables: [LocalShoppingItems, LocalRecipes, LocalMealPlanEntries, SyncMeta],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -39,12 +43,16 @@ class AppDatabase extends _$AppDatabase {
             await migrator.addColumn(
                 localRecipes, localRecipes.updatedAt);
           }
+          if (from < 9) {
+            await migrator.createTable(syncMeta);
+          }
         },
       );
 
   ShoppingItemDao get shoppingItemDao => ShoppingItemDao(this);
   RecipeCacheDao get recipeCacheDao => RecipeCacheDao(this);
   MealPlanDao get mealPlanDao => MealPlanDao(this);
+  SyncMetaDao get syncMetaDao => SyncMetaDao(this);
 
   static QueryExecutor _openConnection() {
     return driftDatabase(name: 'meal_planner_db');

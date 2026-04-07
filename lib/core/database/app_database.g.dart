@@ -1659,6 +1659,249 @@ class LocalMealPlanEntriesCompanion
   }
 }
 
+class $SyncMetaTable extends SyncMeta
+    with TableInfo<$SyncMetaTable, SyncMetaData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SyncMetaTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _featureKeyMeta =
+      const VerificationMeta('featureKey');
+  @override
+  late final GeneratedColumn<String> featureKey = GeneratedColumn<String>(
+      'feature_key', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _scopeKeyMeta =
+      const VerificationMeta('scopeKey');
+  @override
+  late final GeneratedColumn<String> scopeKey = GeneratedColumn<String>(
+      'scope_key', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _lastPulledAtMeta =
+      const VerificationMeta('lastPulledAt');
+  @override
+  late final GeneratedColumn<DateTime> lastPulledAt = GeneratedColumn<DateTime>(
+      'last_pulled_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [featureKey, scopeKey, lastPulledAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sync_meta';
+  @override
+  VerificationContext validateIntegrity(Insertable<SyncMetaData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('feature_key')) {
+      context.handle(
+          _featureKeyMeta,
+          featureKey.isAcceptableOrUnknown(
+              data['feature_key']!, _featureKeyMeta));
+    } else if (isInserting) {
+      context.missing(_featureKeyMeta);
+    }
+    if (data.containsKey('scope_key')) {
+      context.handle(_scopeKeyMeta,
+          scopeKey.isAcceptableOrUnknown(data['scope_key']!, _scopeKeyMeta));
+    } else if (isInserting) {
+      context.missing(_scopeKeyMeta);
+    }
+    if (data.containsKey('last_pulled_at')) {
+      context.handle(
+          _lastPulledAtMeta,
+          lastPulledAt.isAcceptableOrUnknown(
+              data['last_pulled_at']!, _lastPulledAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {featureKey, scopeKey};
+  @override
+  SyncMetaData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SyncMetaData(
+      featureKey: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}feature_key'])!,
+      scopeKey: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}scope_key'])!,
+      lastPulledAt: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}last_pulled_at']),
+    );
+  }
+
+  @override
+  $SyncMetaTable createAlias(String alias) {
+    return $SyncMetaTable(attachedDatabase, alias);
+  }
+}
+
+class SyncMetaData extends DataClass implements Insertable<SyncMetaData> {
+  final String featureKey;
+  final String scopeKey;
+  final DateTime? lastPulledAt;
+  const SyncMetaData(
+      {required this.featureKey, required this.scopeKey, this.lastPulledAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['feature_key'] = Variable<String>(featureKey);
+    map['scope_key'] = Variable<String>(scopeKey);
+    if (!nullToAbsent || lastPulledAt != null) {
+      map['last_pulled_at'] = Variable<DateTime>(lastPulledAt);
+    }
+    return map;
+  }
+
+  SyncMetaCompanion toCompanion(bool nullToAbsent) {
+    return SyncMetaCompanion(
+      featureKey: Value(featureKey),
+      scopeKey: Value(scopeKey),
+      lastPulledAt: lastPulledAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastPulledAt),
+    );
+  }
+
+  factory SyncMetaData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SyncMetaData(
+      featureKey: serializer.fromJson<String>(json['featureKey']),
+      scopeKey: serializer.fromJson<String>(json['scopeKey']),
+      lastPulledAt: serializer.fromJson<DateTime?>(json['lastPulledAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'featureKey': serializer.toJson<String>(featureKey),
+      'scopeKey': serializer.toJson<String>(scopeKey),
+      'lastPulledAt': serializer.toJson<DateTime?>(lastPulledAt),
+    };
+  }
+
+  SyncMetaData copyWith(
+          {String? featureKey,
+          String? scopeKey,
+          Value<DateTime?> lastPulledAt = const Value.absent()}) =>
+      SyncMetaData(
+        featureKey: featureKey ?? this.featureKey,
+        scopeKey: scopeKey ?? this.scopeKey,
+        lastPulledAt:
+            lastPulledAt.present ? lastPulledAt.value : this.lastPulledAt,
+      );
+  SyncMetaData copyWithCompanion(SyncMetaCompanion data) {
+    return SyncMetaData(
+      featureKey:
+          data.featureKey.present ? data.featureKey.value : this.featureKey,
+      scopeKey: data.scopeKey.present ? data.scopeKey.value : this.scopeKey,
+      lastPulledAt: data.lastPulledAt.present
+          ? data.lastPulledAt.value
+          : this.lastPulledAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SyncMetaData(')
+          ..write('featureKey: $featureKey, ')
+          ..write('scopeKey: $scopeKey, ')
+          ..write('lastPulledAt: $lastPulledAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(featureKey, scopeKey, lastPulledAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SyncMetaData &&
+          other.featureKey == this.featureKey &&
+          other.scopeKey == this.scopeKey &&
+          other.lastPulledAt == this.lastPulledAt);
+}
+
+class SyncMetaCompanion extends UpdateCompanion<SyncMetaData> {
+  final Value<String> featureKey;
+  final Value<String> scopeKey;
+  final Value<DateTime?> lastPulledAt;
+  final Value<int> rowid;
+  const SyncMetaCompanion({
+    this.featureKey = const Value.absent(),
+    this.scopeKey = const Value.absent(),
+    this.lastPulledAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SyncMetaCompanion.insert({
+    required String featureKey,
+    required String scopeKey,
+    this.lastPulledAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : featureKey = Value(featureKey),
+        scopeKey = Value(scopeKey);
+  static Insertable<SyncMetaData> custom({
+    Expression<String>? featureKey,
+    Expression<String>? scopeKey,
+    Expression<DateTime>? lastPulledAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (featureKey != null) 'feature_key': featureKey,
+      if (scopeKey != null) 'scope_key': scopeKey,
+      if (lastPulledAt != null) 'last_pulled_at': lastPulledAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SyncMetaCompanion copyWith(
+      {Value<String>? featureKey,
+      Value<String>? scopeKey,
+      Value<DateTime?>? lastPulledAt,
+      Value<int>? rowid}) {
+    return SyncMetaCompanion(
+      featureKey: featureKey ?? this.featureKey,
+      scopeKey: scopeKey ?? this.scopeKey,
+      lastPulledAt: lastPulledAt ?? this.lastPulledAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (featureKey.present) {
+      map['feature_key'] = Variable<String>(featureKey.value);
+    }
+    if (scopeKey.present) {
+      map['scope_key'] = Variable<String>(scopeKey.value);
+    }
+    if (lastPulledAt.present) {
+      map['last_pulled_at'] = Variable<DateTime>(lastPulledAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SyncMetaCompanion(')
+          ..write('featureKey: $featureKey, ')
+          ..write('scopeKey: $scopeKey, ')
+          ..write('lastPulledAt: $lastPulledAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1667,12 +1910,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $LocalRecipesTable localRecipes = $LocalRecipesTable(this);
   late final $LocalMealPlanEntriesTable localMealPlanEntries =
       $LocalMealPlanEntriesTable(this);
+  late final $SyncMetaTable syncMeta = $SyncMetaTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [localShoppingItems, localRecipes, localMealPlanEntries];
+      [localShoppingItems, localRecipes, localMealPlanEntries, syncMeta];
 }
 
 typedef $$LocalShoppingItemsTableCreateCompanionBuilder
@@ -2463,6 +2707,142 @@ typedef $$LocalMealPlanEntriesTableProcessedTableManager
         ),
         LocalMealPlanEntry,
         PrefetchHooks Function()>;
+typedef $$SyncMetaTableCreateCompanionBuilder = SyncMetaCompanion Function({
+  required String featureKey,
+  required String scopeKey,
+  Value<DateTime?> lastPulledAt,
+  Value<int> rowid,
+});
+typedef $$SyncMetaTableUpdateCompanionBuilder = SyncMetaCompanion Function({
+  Value<String> featureKey,
+  Value<String> scopeKey,
+  Value<DateTime?> lastPulledAt,
+  Value<int> rowid,
+});
+
+class $$SyncMetaTableFilterComposer
+    extends Composer<_$AppDatabase, $SyncMetaTable> {
+  $$SyncMetaTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get featureKey => $composableBuilder(
+      column: $table.featureKey, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get scopeKey => $composableBuilder(
+      column: $table.scopeKey, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get lastPulledAt => $composableBuilder(
+      column: $table.lastPulledAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$SyncMetaTableOrderingComposer
+    extends Composer<_$AppDatabase, $SyncMetaTable> {
+  $$SyncMetaTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get featureKey => $composableBuilder(
+      column: $table.featureKey, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get scopeKey => $composableBuilder(
+      column: $table.scopeKey, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastPulledAt => $composableBuilder(
+      column: $table.lastPulledAt,
+      builder: (column) => ColumnOrderings(column));
+}
+
+class $$SyncMetaTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SyncMetaTable> {
+  $$SyncMetaTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get featureKey => $composableBuilder(
+      column: $table.featureKey, builder: (column) => column);
+
+  GeneratedColumn<String> get scopeKey =>
+      $composableBuilder(column: $table.scopeKey, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastPulledAt => $composableBuilder(
+      column: $table.lastPulledAt, builder: (column) => column);
+}
+
+class $$SyncMetaTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $SyncMetaTable,
+    SyncMetaData,
+    $$SyncMetaTableFilterComposer,
+    $$SyncMetaTableOrderingComposer,
+    $$SyncMetaTableAnnotationComposer,
+    $$SyncMetaTableCreateCompanionBuilder,
+    $$SyncMetaTableUpdateCompanionBuilder,
+    (SyncMetaData, BaseReferences<_$AppDatabase, $SyncMetaTable, SyncMetaData>),
+    SyncMetaData,
+    PrefetchHooks Function()> {
+  $$SyncMetaTableTableManager(_$AppDatabase db, $SyncMetaTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SyncMetaTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SyncMetaTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SyncMetaTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> featureKey = const Value.absent(),
+            Value<String> scopeKey = const Value.absent(),
+            Value<DateTime?> lastPulledAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              SyncMetaCompanion(
+            featureKey: featureKey,
+            scopeKey: scopeKey,
+            lastPulledAt: lastPulledAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String featureKey,
+            required String scopeKey,
+            Value<DateTime?> lastPulledAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              SyncMetaCompanion.insert(
+            featureKey: featureKey,
+            scopeKey: scopeKey,
+            lastPulledAt: lastPulledAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$SyncMetaTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $SyncMetaTable,
+    SyncMetaData,
+    $$SyncMetaTableFilterComposer,
+    $$SyncMetaTableOrderingComposer,
+    $$SyncMetaTableAnnotationComposer,
+    $$SyncMetaTableCreateCompanionBuilder,
+    $$SyncMetaTableUpdateCompanionBuilder,
+    (SyncMetaData, BaseReferences<_$AppDatabase, $SyncMetaTable, SyncMetaData>),
+    SyncMetaData,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2473,4 +2853,6 @@ class $AppDatabaseManager {
       $$LocalRecipesTableTableManager(_db, _db.localRecipes);
   $$LocalMealPlanEntriesTableTableManager get localMealPlanEntries =>
       $$LocalMealPlanEntriesTableTableManager(_db, _db.localMealPlanEntries);
+  $$SyncMetaTableTableManager get syncMeta =>
+      $$SyncMetaTableTableManager(_db, _db.syncMeta);
 }

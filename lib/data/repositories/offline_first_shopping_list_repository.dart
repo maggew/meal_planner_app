@@ -1,29 +1,23 @@
-import 'dart:async';
-
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart';
 import 'package:meal_planner/core/database/app_database.dart';
 import 'package:meal_planner/core/database/daos/shopping_item_dao.dart';
-import 'package:meal_planner/data/repositories/supabase_shopping_list_repository.dart';
 import 'package:meal_planner/domain/entities/shopping_list_item.dart';
 import 'package:meal_planner/domain/repositories/shopping_list_repository.dart';
 import 'package:uuid/uuid.dart';
 
+/// Local-only write path for shopping list items. All persistence happens
+/// against the Drift DAO; remote sync is owned by `SyncCoordinator` +
+/// `SyncEngine` and runs out-of-band against the same DAO. This class no
+/// longer talks to Supabase directly.
 class OfflineFirstShoppingListRepository implements ShoppingListRepository {
   final ShoppingItemDao _dao;
-  final SupabaseShoppingListRepository _remote;
   final String _groupId;
   final _uuid = const Uuid();
 
-  Timer? _timer;
-  bool _isSyncing = false;
-
   OfflineFirstShoppingListRepository({
     required ShoppingItemDao dao,
-    required SupabaseShoppingListRepository remote,
     required String groupId,
   })  : _dao = dao,
-        _remote = remote,
         _groupId = groupId;
 
   @override
@@ -84,7 +78,6 @@ class OfflineFirstShoppingListRepository implements ShoppingListRepository {
 
   @override
   Future<void> toggleItem(String itemId, bool isChecked) async {
-    // itemId kann localId oder remoteId sein – wir suchen beides
     await _updateLocalByAnyId(itemId, isChecked: isChecked);
   }
 
@@ -149,86 +142,5 @@ class OfflineFirstShoppingListRepository implements ShoppingListRepository {
       orElse: () => throw Exception('Item nicht gefunden: $id'),
     );
     await _dao.markAsDeleted(item.localId);
-  }
-
-  // ── Sync ───────────────────────────────────────────────────────────────────
-
-  void startPeriodicSync() {
-    if (_timer?.isActive ?? false) return;
-    sync();
-    _timer = Timer.periodic(const Duration(seconds: 10), (_) => sync());
-  }
-
-  void stopPeriodicSync() {
-    _timer?.cancel();
-    _timer = null;
-  }
-
-  Future<void> sync() async {
-    if (_isSyncing) return;
-    _isSyncing = true;
-    try {
-      await syncPendingItems();
-      await pullRemoteItems();
-    } finally {
-      _isSyncing = false;
-    }
-  }
-
-  Future<void> syncPendingItems() async {
-    final pending = await _dao.getPendingItems(_groupId);
-
-    for (final item in pending) {
-      try {
-        switch (item.syncStatus) {
-          case 'pendingCreate':
-            final created =
-                await _remote.addItem(item.information, item.quantity);
-            await _dao.updateSyncStatus(item.localId, 'synced',
-                remoteId: created.id);
-          case 'pendingUpdate':
-            if (item.remoteId == null) {
-              final created = await _remote.addItem(item.information, item.quantity);
-              await _dao.updateSyncStatus(item.localId, 'synced', remoteId: created.id);
-              break;
-            }
-            await _remote.updateItem(item.remoteId!, item.information, item.quantity);
-            await _remote.toggleItem(item.remoteId!, item.isChecked);
-            await _dao.updateSyncStatus(item.localId, 'synced');
-
-          case 'pendingDelete':
-            if (item.remoteId != null) {
-              await _remote.removeItem(item.remoteId!);
-            }
-            await _dao.hardDeleteItem(item.localId);
-        }
-      } catch (e) {
-        debugPrint('Shopping-Sync fehlgeschlagen für Item ${item.localId}: $e');
-        continue;
-      }
-    }
-  }
-
-  Future<void> pullRemoteItems() async {
-    try {
-      final remoteItems = await _remote.getItems();
-
-      final companions = remoteItems
-          .map((item) => LocalShoppingItemsCompanion(
-                localId: Value(item.id),
-                remoteId: Value(item.id),
-                groupId: Value(_groupId),
-                information: Value(item.information),
-                quantity: Value(item.quantity),
-                isChecked: Value(item.isChecked),
-                syncStatus: const Value('synced'),
-                updatedAt: Value(DateTime.now()),
-              ))
-          .toList();
-
-      await _dao.replaceAllSynced(_groupId, companions);
-    } catch (e) {
-      debugPrint('Shopping-Pull fehlgeschlagen: $e');
-    }
   }
 }

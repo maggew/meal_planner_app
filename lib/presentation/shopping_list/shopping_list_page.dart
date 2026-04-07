@@ -7,7 +7,7 @@ import 'package:meal_planner/presentation/common/common_appbar.dart';
 import 'package:meal_planner/presentation/shopping_list/widgets/shopping_list_body.dart';
 import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
 import 'package:meal_planner/services/providers/shopping_list/shopping_list_provider.dart';
-import 'package:meal_planner/services/providers/shopping_list/shopping_list_sync_provider.dart';
+import 'package:meal_planner/services/providers/sync/sync_providers.dart';
 import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
 
 @RoutePage()
@@ -23,13 +23,13 @@ class _ShoppingListPageState extends ConsumerState<ShoppingListPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(shoppingListSyncServiceProvider).startPeriodicSync();
+      ref.read(syncCoordinatorProvider).enableShoppingListPolling();
     });
   }
 
   @override
   void dispose() {
-    ref.read(shoppingListSyncServiceProvider).stopPeriodicSync();
+    ref.read(syncCoordinatorProvider).disableShoppingListPolling();
     super.dispose();
   }
 

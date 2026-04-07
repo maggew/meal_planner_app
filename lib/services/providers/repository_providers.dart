@@ -10,7 +10,6 @@ import 'package:meal_planner/data/repositories/firebase_auth_repository.dart';
 import 'package:meal_planner/data/repositories/firebase_storage_repository.dart';
 import 'package:meal_planner/data/repositories/offline_first_meal_plan_repository.dart';
 import 'package:meal_planner/data/repositories/offline_first_shopping_list_repository.dart';
-import 'package:meal_planner/data/repositories/supabase_shopping_list_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_group_category_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_subscription_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_suggestion_usage_repository.dart';
@@ -136,40 +135,20 @@ final mealPlanDaoProvider = Provider((ref) {
   return ref.watch(appDatabaseProvider).mealPlanDao;
 });
 
-// Internal: concrete offline-first repos (shared between abstract + sync providers)
-final offlineFirstShoppingListProvider =
-    Provider<OfflineFirstShoppingListRepository>((ref) {
-  final groupId = ref.watch(sessionProvider.select((s) => s.groupId)) ?? '';
-  final repo = OfflineFirstShoppingListRepository(
-    dao: ref.watch(shoppingItemDaoProvider),
-    remote: SupabaseShoppingListRepository(
-      supabase: ref.watch(supabaseProvider),
-      groupId: groupId,
-    ),
-    groupId: groupId,
-  );
-  ref.onDispose(() => repo.stopPeriodicSync());
-  return repo;
-});
-
-final offlineFirstMealPlanProvider =
-    Provider<OfflineFirstMealPlanRepository>((ref) {
-  final groupId = ref.watch(sessionProvider.select((s) => s.groupId)) ?? '';
-  final repo = OfflineFirstMealPlanRepository(
-    dao: ref.watch(mealPlanDaoProvider),
-    supabase: ref.watch(supabaseProvider),
-    groupId: groupId,
-  );
-  ref.onDispose(() => repo.stopPeriodicSync());
-  return repo;
-});
-
 final shoppingListRepositoryProvider = Provider<ShoppingListRepository>((ref) {
-  return ref.watch(offlineFirstShoppingListProvider);
+  final groupId = ref.watch(sessionProvider.select((s) => s.groupId)) ?? '';
+  return OfflineFirstShoppingListRepository(
+    dao: ref.watch(shoppingItemDaoProvider),
+    groupId: groupId,
+  );
 });
 
 final mealPlanRepositoryProvider = Provider<MealPlanRepository>((ref) {
-  return ref.watch(offlineFirstMealPlanProvider);
+  final groupId = ref.watch(sessionProvider.select((s) => s.groupId)) ?? '';
+  return OfflineFirstMealPlanRepository(
+    dao: ref.watch(mealPlanDaoProvider),
+    groupId: groupId,
+  );
 });
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
