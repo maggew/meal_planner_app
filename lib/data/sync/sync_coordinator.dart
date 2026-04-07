@@ -2,8 +2,7 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/widgets.dart';
-import 'package:meal_planner/data/sync/meal_plan_sync_adapter.dart';
-import 'package:meal_planner/data/sync/shopping_list_sync_adapter.dart';
+import 'package:meal_planner/data/sync/sync_adapter.dart';
 import 'package:meal_planner/data/sync/sync_engine.dart';
 import 'package:meal_planner/data/sync/sync_types.dart';
 
@@ -24,8 +23,8 @@ import 'package:meal_planner/data/sync/sync_types.dart';
 class SyncCoordinator with WidgetsBindingObserver {
   SyncCoordinator({
     required SyncEngine engine,
-    required MealPlanSyncAdapter mealPlan,
-    required ShoppingListSyncAdapter shopping,
+    required SyncAdapter mealPlan,
+    required SyncAdapter shopping,
     Stream<List<ConnectivityResult>>? connectivityStream,
   })  : _engine = engine,
         _mealPlan = mealPlan,
@@ -34,8 +33,8 @@ class SyncCoordinator with WidgetsBindingObserver {
             connectivityStream ?? Connectivity().onConnectivityChanged;
 
   final SyncEngine _engine;
-  final MealPlanSyncAdapter _mealPlan;
-  final ShoppingListSyncAdapter _shopping;
+  final SyncAdapter _mealPlan;
+  final SyncAdapter _shopping;
   final Stream<List<ConnectivityResult>> _connectivityStream;
 
   static const Duration _shoppingInterval = Duration(seconds: 5);
