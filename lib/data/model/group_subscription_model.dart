@@ -9,6 +9,7 @@ class GroupSubscriptionModel {
   final String? productId;
   final DateTime? expiresAt;
   final DateTime? updatedAt;
+  final bool autoRenew;
 
   const GroupSubscriptionModel({
     required this.groupId,
@@ -17,6 +18,7 @@ class GroupSubscriptionModel {
     this.productId,
     this.expiresAt,
     this.updatedAt,
+    this.autoRenew = true,
   });
 
   factory GroupSubscriptionModel.fromSupabase(Map<String, dynamic> data) {
@@ -36,6 +38,8 @@ class GroupSubscriptionModel {
           ? DateTime.parse(
               data[SupabaseConstants.subscriptionUpdatedAt] as String)
           : null,
+      autoRenew:
+          data[SupabaseConstants.subscriptionAutoRenew] as bool? ?? true,
     );
   }
 
@@ -47,6 +51,7 @@ class GroupSubscriptionModel {
       productId: productId,
       expiresAt: expiresAt,
       updatedAt: updatedAt,
+      autoRenew: autoRenew,
     );
   }
 }

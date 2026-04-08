@@ -7,6 +7,7 @@ class GroupSubscription {
   final String? productId;
   final DateTime? expiresAt;
   final DateTime? updatedAt;
+  final bool autoRenew;
 
   const GroupSubscription({
     required this.groupId,
@@ -15,6 +16,7 @@ class GroupSubscription {
     this.productId,
     this.expiresAt,
     this.updatedAt,
+    this.autoRenew = true,
   });
 
   bool get isPremium => status == SubscriptionStatus.premium;
@@ -26,6 +28,7 @@ class GroupSubscription {
     String? productId,
     DateTime? expiresAt,
     DateTime? updatedAt,
+    bool? autoRenew,
   }) {
     return GroupSubscription(
       groupId: groupId ?? this.groupId,
@@ -34,6 +37,7 @@ class GroupSubscription {
       productId: productId ?? this.productId,
       expiresAt: expiresAt ?? this.expiresAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      autoRenew: autoRenew ?? this.autoRenew,
     );
   }
 }

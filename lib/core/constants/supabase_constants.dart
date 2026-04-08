@@ -99,6 +99,7 @@ class SupabaseConstants {
   static const String subscriptionProductId = 'product_id';
   static const String subscriptionExpiresAt = 'expires_at';
   static const String subscriptionUpdatedAt = 'updated_at';
+  static const String subscriptionAutoRenew = 'auto_renew';
 
   // Columns: Suggestion Usage
   static const String suggestionUsageId = 'id';

@@ -40,6 +40,18 @@ void main() {
       expect(sub.expiresAt, isNull);
       expect(sub.updatedAt, isNull);
     });
+
+    test('autoRenew defaultet auf true', () {
+      final sub = GroupSubscription(groupId: 'g1');
+      expect(sub.autoRenew, true);
+    });
+
+    test('copyWith ändert autoRenew', () {
+      final sub = GroupSubscription(groupId: 'g1');
+      final cancelled = sub.copyWith(autoRenew: false);
+      expect(cancelled.autoRenew, false);
+      expect(sub.autoRenew, true);
+    });
   });
 
   group('SubscriptionStatus enum', () {
