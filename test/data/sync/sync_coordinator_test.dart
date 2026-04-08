@@ -71,6 +71,7 @@ class _CountingAdapter implements SyncAdapter {
 }) _build({
   required _CountingAdapter mealPlan,
   required _CountingAdapter shopping,
+  bool Function()? isOnline,
 }) {
   final connectivity = StreamController<List<ConnectivityResult>>.broadcast();
   final engine = SyncEngine(_InMemoryMeta());
@@ -79,6 +80,7 @@ class _CountingAdapter implements SyncAdapter {
     mealPlan: mealPlan,
     shopping: shopping,
     connectivityStream: connectivity.stream,
+    isOnline: isOnline ?? (() => true),
   );
   return (
     coordinator: coordinator,
@@ -304,6 +306,101 @@ void main() {
           async.elapse(const Duration(seconds: 30));
           expect(shopping.syncs, 1, reason: 'no further syncs after stop');
 
+          wired.connectivity.close();
+          wired.engine.dispose();
+        });
+      });
+    });
+
+    group('connectivity gating', () {
+      test('polling ticks while offline produce zero engine calls', () {
+        fakeAsync((async) {
+          var online = false;
+          final shopping = _CountingAdapter('shopping_list');
+          final mealPlan = _CountingAdapter('meal_plan');
+          final wired = _build(
+            mealPlan: mealPlan,
+            shopping: shopping,
+            isOnline: () => online,
+          );
+
+          wired.coordinator.enableShoppingListPolling();
+          wired.coordinator.enableMealPlanPolling(DateTime(2026, 4, 1));
+          async.elapse(const Duration(seconds: 30));
+
+          expect(shopping.syncs, 0,
+              reason: 'shopping ticks gated while offline');
+          expect(mealPlan.syncs, 0,
+              reason: 'meal plan ticks gated while offline');
+
+          wired.coordinator.disableShoppingListPolling();
+          wired.coordinator.disableMealPlanPolling();
+          wired.coordinator.stop();
+          wired.connectivity.close();
+          wired.engine.dispose();
+        });
+      });
+
+      test(
+          'flipping isOnline to true alone does not trigger sync — '
+          'only the connectivity-restore branch does', () {
+        fakeAsync((async) {
+          var online = false;
+          final shopping = _CountingAdapter('shopping_list');
+          final mealPlan = _CountingAdapter('meal_plan');
+          final wired = _build(
+            mealPlan: mealPlan,
+            shopping: shopping,
+            isOnline: () => online,
+          );
+
+          wired.coordinator.enableShoppingListPolling();
+          async.flushMicrotasks();
+          expect(shopping.syncs, 0, reason: 'immediate fire gated');
+
+          // Gate opens, but no connectivity event has fired — passive flip
+          // alone must not trigger anything.
+          online = true;
+          async.flushMicrotasks();
+          expect(shopping.syncs, 0);
+
+          wired.coordinator.disableShoppingListPolling();
+          wired.coordinator.stop();
+          wired.connectivity.close();
+          wired.engine.dispose();
+        });
+      });
+
+      test(
+          'connectivity-restore branch fires even when isOnline gate '
+          'still reads false (stream lag)', () {
+        fakeAsync((async) {
+          // Gate stays false the entire test — simulates the cold-start
+          // window where isOnlineProvider has not yet emitted.
+          final shopping = _CountingAdapter('shopping_list');
+          final mealPlan = _CountingAdapter('meal_plan');
+          final wired = _build(
+            mealPlan: mealPlan,
+            shopping: shopping,
+            isOnline: () => false,
+          );
+
+          wired.coordinator.start();
+          wired.coordinator.enableShoppingListPolling();
+          async.flushMicrotasks();
+          expect(shopping.syncs, 0, reason: 'immediate fire gated');
+
+          // Offline → online edge through the coordinator's own stream.
+          wired.connectivity.add([ConnectivityResult.none]);
+          async.flushMicrotasks();
+          wired.connectivity.add([ConnectivityResult.wifi]);
+          async.flushMicrotasks();
+
+          expect(shopping.syncs, 1,
+              reason: 'restore branch bypasses the gate');
+
+          wired.coordinator.disableShoppingListPolling();
+          wired.coordinator.stop();
           wired.connectivity.close();
           wired.engine.dispose();
         });

@@ -4,6 +4,7 @@ import 'package:meal_planner/data/sync/meal_plan_sync_adapter.dart';
 import 'package:meal_planner/data/sync/shopping_list_sync_adapter.dart';
 import 'package:meal_planner/data/sync/sync_coordinator.dart';
 import 'package:meal_planner/data/sync/sync_engine.dart';
+import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
 import 'package:meal_planner/services/providers/repository_providers.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
 
@@ -45,6 +46,7 @@ final syncCoordinatorProvider = Provider<SyncCoordinator>((ref) {
     engine: ref.watch(syncEngineProvider),
     mealPlan: ref.watch(mealPlanSyncAdapterProvider),
     shopping: ref.watch(shoppingListSyncAdapterProvider),
+    isOnline: () => ref.read(isOnlineProvider),
   );
   ref.onDispose(coordinator.stop);
   return coordinator;

@@ -26,16 +26,19 @@ class SyncCoordinator with WidgetsBindingObserver {
     required SyncAdapter mealPlan,
     required SyncAdapter shopping,
     Stream<List<ConnectivityResult>>? connectivityStream,
+    bool Function()? isOnline,
   })  : _engine = engine,
         _mealPlan = mealPlan,
         _shopping = shopping,
         _connectivityStream =
-            connectivityStream ?? Connectivity().onConnectivityChanged;
+            connectivityStream ?? Connectivity().onConnectivityChanged,
+        _isOnline = isOnline ?? (() => true);
 
   final SyncEngine _engine;
   final SyncAdapter _mealPlan;
   final SyncAdapter _shopping;
   final Stream<List<ConnectivityResult>> _connectivityStream;
+  final bool Function() _isOnline;
 
   static const Duration _shoppingInterval = Duration(seconds: 5);
   static const Duration _mealPlanInterval = Duration(seconds: 30);
@@ -50,15 +53,29 @@ class SyncCoordinator with WidgetsBindingObserver {
   // ── Manual entry points ────────────────────────────────────────────────────
 
   /// Pushes pending and pulls remote for the calendar month containing [month].
+  ///
+  /// Returns an empty result without touching the engine when offline. The
+  /// connectivity-restore branch flushes pending work as soon as the network
+  /// comes back, so a skipped offline tick is not lost.
   Future<SyncResult> syncMealPlan(DateTime month) {
+    if (!_isOnline()) return Future.value(_emptyResult());
+    return _syncMealPlanUnchecked(month);
+  }
+
+  /// Pushes pending and pulls the full remote shopping list.
+  Future<SyncResult> syncShoppingList() {
+    if (!_isOnline()) return Future.value(_emptyResult());
+    return _syncShoppingListUnchecked();
+  }
+
+  Future<SyncResult> _syncMealPlanUnchecked(DateTime month) {
     return _engine.sync(
       _mealPlan,
       MonthScope(month.year, month.month),
     );
   }
 
-  /// Pushes pending and pulls the full remote shopping list.
-  Future<SyncResult> syncShoppingList() {
+  Future<SyncResult> _syncShoppingListUnchecked() {
     return _engine.sync(_shopping, const FullScope());
   }
 
@@ -152,9 +169,12 @@ class SyncCoordinator with WidgetsBindingObserver {
     final isOnline = !result.contains(ConnectivityResult.none);
     if (isOnline && _wasOffline) {
       // Connectivity restored — flush pending changes for any open feature.
-      if (_shoppingTimer != null) unawaited(syncShoppingList());
+      // Bypass the `_isOnline()` gate: the gate may still report `false` if
+      // the `isOnlineProvider` stream hasn't emitted yet, but this branch
+      // fires *because* we just came online, so the trigger is safe.
+      if (_shoppingTimer != null) unawaited(_syncShoppingListUnchecked());
       final m = _mealPlanMonth;
-      if (m != null) unawaited(syncMealPlan(m));
+      if (m != null) unawaited(_syncMealPlanUnchecked(m));
     }
     _wasOffline = !isOnline;
   }
