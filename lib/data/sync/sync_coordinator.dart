@@ -80,13 +80,18 @@ class SyncCoordinator with WidgetsBindingObserver {
   }
 
   /// Convenience trigger fired on app resume / connectivity restore. Runs both
-  /// features against [currentMonth] and swallows individual failures so a
-  /// broken pull on one feature doesn't block the other.
+  /// features against [currentMonth]. Per-feature failures surface through the
+  /// engine's event stream (and `SyncStatusProvider`) — this method no longer
+  /// swallows them, but `Future.wait` keeps `eagerError: false` so one feature
+  /// failing doesn't cancel the other.
   Future<void> syncAll(DateTime currentMonth) async {
-    await Future.wait([
-      syncMealPlan(currentMonth).catchError((_) => _emptyResult()),
-      syncShoppingList().catchError((_) => _emptyResult()),
-    ]);
+    await Future.wait(
+      [
+        syncMealPlan(currentMonth),
+        syncShoppingList(),
+      ],
+      eagerError: false,
+    );
   }
 
   // ── Page-open polling ──────────────────────────────────────────────────────

@@ -281,6 +281,36 @@ void main() {
         await wired.connectivity.close();
         await wired.engine.dispose();
       });
+
+      test(
+          'syncAll surfaces per-feature failures through the event stream '
+          '(no longer swallowed) while still completing the healthy feature',
+          () async {
+        final mealPlan = _CountingAdapter('meal_plan', throwOnPull: true);
+        final shopping = _CountingAdapter('shopping_list');
+        final wired = _build(mealPlan: mealPlan, shopping: shopping);
+
+        final events = <SyncEvent>[];
+        final sub = wired.engine.events.listen(events.add);
+
+        await wired.coordinator.syncAll(DateTime(2026, 4, 1));
+        await Future<void>.delayed(Duration.zero);
+        await sub.cancel();
+
+        // Healthy feature still ran to completion.
+        expect(shopping.syncs, 1);
+        expect(mealPlan.syncs, 1);
+
+        // Both terminal phases observed — one finished (shopping), one failed
+        // (meal plan, since StateError is permanent post-step-2).
+        final phases = events.map((e) => e.phase).toList();
+        expect(phases, contains(SyncPhase.finished));
+        expect(phases, contains(SyncPhase.failed));
+
+        wired.coordinator.stop();
+        await wired.connectivity.close();
+        await wired.engine.dispose();
+      });
     });
 
     group('start/stop', () {
