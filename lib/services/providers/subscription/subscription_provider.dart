@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,8 +12,12 @@ import 'package:meal_planner/services/providers/shared_preferences_provider.dart
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SubscriptionNotifier extends Notifier<AsyncValue<GroupSubscription>> {
+  Timer? _expiryTimer;
+
   @override
   AsyncValue<GroupSubscription> build() {
+    ref.onDispose(_cancelExpiryTimer);
+
     final groupId = ref.watch(sessionProvider.select((s) => s.groupId));
     if (groupId == null || groupId.isEmpty) {
       return AsyncValue.data(GroupSubscription(
@@ -45,6 +50,7 @@ class SubscriptionNotifier extends Notifier<AsyncValue<GroupSubscription>> {
       return AsyncValue.data(downgraded);
     }
 
+    _scheduleExpiryTimer(cached);
     return AsyncValue.data(cached);
   }
 
@@ -60,6 +66,7 @@ class SubscriptionNotifier extends Notifier<AsyncValue<GroupSubscription>> {
       // Always cache the latest known status (free or premium).
       final prefs = ref.read(sharedPreferencesProvider);
       await _writeCache(prefs, subscription);
+      _scheduleExpiryTimer(subscription);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -67,6 +74,40 @@ class SubscriptionNotifier extends Notifier<AsyncValue<GroupSubscription>> {
 
   /// Call on app resume to refresh subscription status.
   void refresh() => ref.invalidateSelf();
+
+  // --- Expiry timer ---
+
+  void _cancelExpiryTimer() {
+    _expiryTimer?.cancel();
+    _expiryTimer = null;
+  }
+
+  void _scheduleExpiryTimer(GroupSubscription sub) {
+    _cancelExpiryTimer();
+    final expiresAt = sub.expiresAt;
+    if (!sub.isPremium || expiresAt == null) return;
+    final delay = expiresAt.difference(DateTime.now());
+    if (delay.isNegative) return;
+    _expiryTimer = Timer(delay, () => _onExpiry(sub));
+  }
+
+  void _onExpiry(GroupSubscription sub) {
+    if (sub.autoRenew) {
+      // Server is the source of truth — try to refresh.
+      // Online: new status will be loaded.
+      // Offline: no-op; we'll re-check on resume / next build.
+      refresh();
+      return;
+    }
+    // Won't renew → flip locally to free and persist.
+    final prefs = ref.read(sharedPreferencesProvider);
+    final downgraded = sub.copyWith(
+      status: SubscriptionStatus.free,
+      expiresAt: null,
+    );
+    _writeCache(prefs, downgraded);
+    state = AsyncValue.data(downgraded);
+  }
 
   // --- Cache helpers ---
 

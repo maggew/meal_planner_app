@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meal_planner/core/constants/local_keys.dart';
@@ -203,6 +204,91 @@ void main() {
           jsonDecode(prefs.getString(_cacheKey(_groupId))!) as Map<String, dynamic>;
       expect(json['isPremium'], true);
       expect(json['autoRenew'], true);
+    });
+
+    test('Expiry-Timer: autoRenew=false → flippt automatisch auf free',
+        () async {
+      // FakeAsync controls Timer + DateTime.now(); set up the container
+      // INSIDE the zone so the notifier's timer runs on fake time.
+      final repo = _MockSubscriptionRepository();
+
+      fakeAsync((async) {
+        late ProviderContainer container;
+        SharedPreferences.setMockInitialValues({});
+        // SharedPreferences.getInstance is async — pump the zone.
+        SharedPreferences.getInstance().then((prefs) {
+          // Pre-seed: premium, expires in 1h, won't renew.
+          prefs.setString(
+            _cacheKey(_groupId),
+            _cachePayload(
+              isPremium: true,
+              expiresAt: DateTime.now().add(const Duration(hours: 1)),
+              autoRenew: false,
+            ),
+          );
+          container = ProviderContainer(overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            sessionProvider.overrideWithValue(
+              const SessionState(userId: 'u1', groupId: _groupId),
+            ),
+            isOnlineProvider.overrideWithValue(false),
+            subscriptionRepositoryProvider.overrideWithValue(repo),
+          ]);
+
+          // Initial read → premium from cache.
+          expect(
+            container.read(subscriptionProvider).requireValue.isPremium,
+            true,
+          );
+        });
+        async.flushMicrotasks();
+
+        // Advance past expiry.
+        async.elapse(const Duration(hours: 1, minutes: 1));
+
+        expect(
+          container.read(subscriptionProvider).requireValue.isPremium,
+          false,
+        );
+
+        container.dispose();
+      });
+    });
+
+    test('Expiry-Timer: autoRenew=true → ruft refresh auf', () async {
+      final repo = _MockSubscriptionRepository();
+      // After expiry, server says: still premium, fresh expires_at.
+      when(() => repo.getSubscription(_groupId)).thenAnswer(
+        (_) async => GroupSubscription(
+          groupId: _groupId,
+          status: SubscriptionStatus.premium,
+          expiresAt: DateTime.now().add(const Duration(days: 30)),
+          autoRenew: true,
+        ),
+      );
+
+      final container = await _makeContainer(
+        initialPrefs: {
+          _cacheKey(_groupId): _cachePayload(
+            isPremium: true,
+            expiresAt: DateTime.now().add(const Duration(milliseconds: 50)),
+            autoRenew: true,
+          ),
+        },
+        isOnline: true,
+        repo: repo,
+      );
+      addTearDown(container.dispose);
+
+      container.read(subscriptionProvider);
+      // Wait for the timer to fire and the refresh + reload to complete.
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+
+      verify(() => repo.getSubscription(_groupId)).called(greaterThan(0));
+      expect(
+        container.read(subscriptionProvider).requireValue.isPremium,
+        true,
+      );
     });
 
     test('offline: kein Repo-Aufruf, Cache bleibt unverändert', () async {
