@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meal_planner/presentation/common/sync_status_indicator.dart';
 
 class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -16,6 +17,14 @@ class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Sync indicator is global: it auto-injects itself into every page's
+    // AppBar and stays invisible while sync is `idle`/`ok`. Page-level
+    // `actionsButtons` render to its right.
+    final actions = <Widget>[
+      const SyncStatusIndicator(),
+      ...?actionsButtons,
+    ];
+
     return AppBar(
       surfaceTintColor: Colors.transparent,
       toolbarHeight: 80,
@@ -27,7 +36,7 @@ class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
         overflow: TextOverflow.fade,
       ),
       centerTitle: true,
-      actions: actionsButtons,
+      actions: actions,
     );
   }
 
