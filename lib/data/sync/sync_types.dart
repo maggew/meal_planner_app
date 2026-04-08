@@ -77,6 +77,17 @@ class MonthScope extends SyncScope {
       '${year.toString().padLeft(4, '0')}-${month.toString().padLeft(2, '0')}';
 }
 
+/// Classification of a sync failure.
+///
+/// - [transient]: caused by a network/offline condition (e.g.
+///   `SocketException`, `TimeoutException`). The engine leaves the row's
+///   state untouched: no `markFailed`, no retry-count bump. The next sync
+///   trigger (post-restore) will retry naturally.
+/// - [permanent]: caused by something the next retry won't fix on its own
+///   (e.g. RLS denial, 4xx/5xx, schema mismatch). Today's path: row is
+///   marked `failed` and `retryCount` is incremented.
+enum SyncErrorKind { transient, permanent }
+
 /// One per-item failure during a sync run. Carries the originating exception
 /// so callers can log/report without the engine deciding policy.
 class SyncError {
@@ -84,10 +95,12 @@ class SyncError {
     required this.itemId,
     required this.error,
     required this.stackTrace,
+    required this.kind,
   });
   final String itemId;
   final Object error;
   final StackTrace stackTrace;
+  final SyncErrorKind kind;
 }
 
 /// Outcome of a single `SyncEngine.sync` invocation.
@@ -103,16 +116,27 @@ class SyncResult {
     required this.errors,
     required this.fatalError,
     required this.ranAt,
+    this.transientPullError,
   });
 
   final int pushed;
   final int pulled;
   final int failed;
   final List<SyncError> errors;
+
+  /// A *permanent* error that aborted the run (e.g. server 5xx during pull).
+  /// Drives the `failing` health state.
   final Object? fatalError;
+
+  /// A *transient* error during pull (e.g. lost reception mid-request). The
+  /// run still emits `finished`, not `failed` — status providers should treat
+  /// this as a soft hint, not a hard failure.
+  final Object? transientPullError;
+
   final DateTime ranAt;
 
-  bool get ok => fatalError == null && failed == 0;
+  bool get ok =>
+      fatalError == null && transientPullError == null && failed == 0;
 }
 
 enum SyncPhase { started, finished, failed }

@@ -1,7 +1,22 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:meal_planner/data/sync/sync_adapter.dart';
 import 'package:meal_planner/data/sync/sync_types.dart';
+
+/// Classifies a thrown error as transient (offline/network) or permanent.
+///
+/// Transient: anything that the next sync trigger has a real chance of
+/// resolving without the user or developer doing anything — typically a
+/// dropped connection. Caught here so transient failures don't pollute
+/// `retryCount` or flip rows to `failed` (which would also block future
+/// retries from the regular `pending` filter once backoff lands).
+SyncErrorKind classifySyncError(Object error) {
+  if (error is SocketException) return SyncErrorKind.transient;
+  if (error is TimeoutException) return SyncErrorKind.transient;
+  if (error is HttpException) return SyncErrorKind.transient;
+  return SyncErrorKind.permanent;
+}
 
 /// Narrow persistence interface the engine needs from `SyncMetaDao`.
 ///
@@ -66,25 +81,38 @@ class SyncEngine {
     var failed = 0;
     final errors = <SyncError>[];
 
-    try {
-      // ---- Push phase ----
-      final pending = await adapter.readPending();
-      for (final change in pending) {
-        try {
-          await adapter.pushOne(change);
-          await adapter.markSynced(change.id);
-          pushed++;
-        } catch (e, st) {
+    // ---- Push phase ----
+    // Push errors are caught per-item; the loop never throws to the outer
+    // catch. The outer catch is reserved for the pull phase.
+    final pending = await adapter.readPending();
+    for (final change in pending) {
+      try {
+        await adapter.pushOne(change);
+        await adapter.markSynced(change.id);
+        pushed++;
+      } catch (e, st) {
+        final kind = classifySyncError(e);
+        errors.add(SyncError(
+          itemId: change.id,
+          error: e,
+          stackTrace: st,
+          kind: kind,
+        ));
+        if (kind == SyncErrorKind.permanent) {
           failed++;
-          errors.add(SyncError(itemId: change.id, error: e, stackTrace: st));
           try {
             await adapter.markFailed(change.id, e);
           } catch (_) {
             // Swallow: failure to record the failure shouldn't abort the run.
           }
         }
+        // Transient: leave the row exactly as it was. The next trigger (or
+        // the connectivity-restore branch in the coordinator) will retry it
+        // through the normal pending path.
       }
+    }
 
+    try {
       // ---- Pull phase ----
       // Capture the cutoff before issuing the query so concurrent remote
       // writes that land mid-pull are still picked up by the next run.
@@ -124,18 +152,25 @@ class SyncEngine {
       ));
       return result;
     } catch (e) {
+      final kind = classifySyncError(e);
       final result = SyncResult(
         pushed: pushed,
         pulled: 0,
         failed: failed,
         errors: errors,
-        fatalError: e,
+        fatalError: kind == SyncErrorKind.permanent ? e : null,
+        transientPullError: kind == SyncErrorKind.transient ? e : null,
         ranAt: startedAt,
       );
+      // Transient pull failures still emit `finished` (with the soft flag set)
+      // so the status provider doesn't escalate to `failing` over a dropped
+      // connection mid-request. Permanent pull failures emit `failed`.
       _events.add(SyncEvent(
         featureKey: adapter.featureKey,
         scope: scope,
-        phase: SyncPhase.failed,
+        phase: kind == SyncErrorKind.permanent
+            ? SyncPhase.failed
+            : SyncPhase.finished,
         result: result,
         at: DateTime.now(),
       ));

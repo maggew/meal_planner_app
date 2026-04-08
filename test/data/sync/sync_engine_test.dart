@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meal_planner/data/sync/sync_adapter.dart';
 import 'package:meal_planner/data/sync/sync_engine.dart';
@@ -20,7 +23,9 @@ class _FakeAdapter implements SyncAdapter {
     Set<String> localPending = const {},
     List<RemoteRow> remote = const [],
     this.failPushIds = const {},
+    this.pushErrors = const {},
     this.throwOnPull = false,
+    this.pullError,
   })  : _pending = List.of(pending),
         _localPending = Set.of(localPending),
         _remote = List.of(remote);
@@ -32,7 +37,9 @@ class _FakeAdapter implements SyncAdapter {
   final Set<String> _localPending;
   final List<RemoteRow> _remote;
   final Set<String> failPushIds;
+  final Map<String, Object> pushErrors;
   final bool throwOnPull;
+  final Object? pullError;
 
   final List<String> pushed = [];
   final List<String> markedSynced = [];
@@ -58,6 +65,8 @@ class _FakeAdapter implements SyncAdapter {
 
   @override
   Future<void> pushOne(PendingChange change) async {
+    final custom = pushErrors[change.id];
+    if (custom != null) throw custom;
     if (failPushIds.contains(change.id)) {
       throw StateError('boom: ${change.id}');
     }
@@ -67,6 +76,7 @@ class _FakeAdapter implements SyncAdapter {
   @override
   Future<List<RemoteRow>> pullSince(DateTime? since, SyncScope scope) async {
     pullCalls.add(since);
+    if (pullError != null) throw pullError!;
     if (throwOnPull) throw StateError('pull failed');
     return List.of(_remote);
   }
@@ -125,8 +135,66 @@ void main() {
       expect(res.pushed, 2);
       expect(res.failed, 1);
       expect(res.errors.single.itemId, 'b');
+      expect(res.errors.single.kind, SyncErrorKind.permanent);
       expect(res.ok, isFalse);
       expect(res.fatalError, isNull);
+    });
+
+    test(
+        'transient push error leaves row pending — no markFailed, '
+        'no failed count, kind=transient', () async {
+      final adapter = _FakeAdapter(
+        pending: [_pc('a'), _pc('b'), _pc('c')],
+        pushErrors: {'b': const SocketException('offline')},
+      );
+
+      final res = await engine.sync(adapter, const FullScope());
+
+      expect(adapter.pushed, ['a', 'c'], reason: 'a and c still synced');
+      expect(adapter.markedSynced, ['a', 'c']);
+      expect(adapter.markedFailed, isEmpty,
+          reason: 'transient must NOT mark failed');
+      expect(res.failed, 0,
+          reason: 'transient must NOT contribute to failed count');
+      expect(res.pushed, 2);
+      expect(res.errors.single.itemId, 'b');
+      expect(res.errors.single.kind, SyncErrorKind.transient);
+      // Run completes (pull still runs) — no fatal error.
+      expect(res.fatalError, isNull);
+      expect(res.transientPullError, isNull);
+    });
+
+    test('TimeoutException on push is transient', () async {
+      final adapter = _FakeAdapter(
+        pending: [_pc('a')],
+        pushErrors: {'a': TimeoutException('slow')},
+      );
+      final res = await engine.sync(adapter, const FullScope());
+      expect(adapter.markedFailed, isEmpty);
+      expect(res.failed, 0);
+      expect(res.errors.single.kind, SyncErrorKind.transient);
+    });
+
+    test(
+        'transient pull error sets transientPullError, NOT fatalError, '
+        'and emits finished (not failed)', () async {
+      final adapter = _FakeAdapter(
+        pullError: const SocketException('offline'),
+      );
+      final events = <SyncEvent>[];
+      final sub = engine.events.listen(events.add);
+
+      final res = await engine.sync(adapter, const FullScope());
+      await Future<void>.delayed(Duration.zero);
+      await sub.cancel();
+
+      expect(res.fatalError, isNull);
+      expect(res.transientPullError, isNotNull);
+      expect(res.ok, isFalse,
+          reason: 'still not "ok" — status provider can degrade');
+      expect(events.map((e) => e.phase),
+          containsAllInOrder([SyncPhase.started, SyncPhase.finished]));
+      expect(events.map((e) => e.phase), isNot(contains(SyncPhase.failed)));
     });
 
     test('local-pending-wins: filters remote rows whose id is locally pending',
