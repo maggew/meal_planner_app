@@ -45,13 +45,8 @@ _Visual? _visualFor(SyncHealth health, ColorScheme cs) {
   switch (health) {
     case SyncHealth.idle:
     case SyncHealth.ok:
-      return null;
     case SyncHealth.syncing:
-      return _Visual(
-        icon: Icons.cloud_upload_outlined,
-        color: cs.onSurface.withValues(alpha: 0.4),
-        tooltip: 'Synchronisiere...',
-      );
+      return null;
     case SyncHealth.degraded:
       return _Visual(
         icon: Icons.cloud_queue,

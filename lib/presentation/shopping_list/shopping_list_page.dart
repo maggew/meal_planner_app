@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/enums/shopping_list_view_mode.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
 import 'package:meal_planner/presentation/common/common_appbar.dart';
+import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/presentation/shopping_list/widgets/shopping_list_body.dart';
 import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
 import 'package:meal_planner/services/providers/shopping_list/shopping_list_provider.dart';
@@ -19,17 +20,40 @@ class ShoppingListPage extends ConsumerStatefulWidget {
 }
 
 class _ShoppingListPageState extends ConsumerState<ShoppingListPage> {
+  TabsRouter? _tabsRouter;
+  bool _polling = false;
+
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final router = AutoTabsRouter.of(context);
+    if (_tabsRouter != router) {
+      _tabsRouter?.removeListener(_onTabChange);
+      _tabsRouter = router;
+      _tabsRouter!.addListener(_onTabChange);
+      _onTabChange();
+    }
+  }
+
+  void _onTabChange() {
+    final router = _tabsRouter;
+    if (router == null) return;
+    final isActive = router.current.name == ShoppingListRoute.name;
+    if (isActive && !_polling) {
+      _polling = true;
       ref.read(syncCoordinatorProvider).enableShoppingListPolling();
-    });
+    } else if (!isActive && _polling) {
+      _polling = false;
+      ref.read(syncCoordinatorProvider).disableShoppingListPolling();
+    }
   }
 
   @override
   void dispose() {
-    ref.read(syncCoordinatorProvider).disableShoppingListPolling();
+    _tabsRouter?.removeListener(_onTabChange);
+    if (_polling) {
+      ref.read(syncCoordinatorProvider).disableShoppingListPolling();
+    }
     super.dispose();
   }
 
