@@ -132,12 +132,19 @@ class MealPlanSyncAdapter implements SyncAdapter {
     final yearMonth = scope.key; // 'yyyy-MM'
     _pendingMonthKey = yearMonth;
 
+    final parts = yearMonth.split('-');
+    final year = int.parse(parts[0]);
+    final month = int.parse(parts[1]);
+    final nextMonth = DateTime(year, month + 1, 1);
+    final nextMonthKey =
+        '${nextMonth.year.toString().padLeft(4, '0')}-${nextMonth.month.toString().padLeft(2, '0')}';
+
     final response = await _supabase
         .from(SupabaseConstants.mealPlanEntriesTable)
         .select()
         .eq(SupabaseConstants.mealPlanEntryGroupId, _groupId)
         .gte(SupabaseConstants.mealPlanEntryDate, '$yearMonth-01')
-        .lte(SupabaseConstants.mealPlanEntryDate, '$yearMonth-31');
+        .lt(SupabaseConstants.mealPlanEntryDate, '$nextMonthKey-01');
 
     return (response as List).cast<Map<String, dynamic>>().map((data) {
       final id = data[SupabaseConstants.mealPlanEntryId] as String;
