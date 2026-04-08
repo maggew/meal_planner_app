@@ -53,7 +53,10 @@ class _NativeAdWidgetState extends ConsumerState<NativeAdWidget>
       parent: _slideController,
       curve: Curves.easeOut,
     ));
-    if (!ref.read(isPremiumProvider)) {
+    // Only kick off ad loading if we definitely know the user is on free.
+    final sub = ref.read(subscriptionProvider);
+    final knownFree = sub.asData != null && !sub.asData!.value.isPremium;
+    if (knownFree) {
       _loadAd();
     }
   }
@@ -93,8 +96,21 @@ class _NativeAdWidgetState extends ConsumerState<NativeAdWidget>
 
   @override
   Widget build(BuildContext context) {
-    final isPremium = ref.watch(isPremiumProvider);
-    if (isPremium) return const SizedBox.shrink();
+    // Lazy-start ad load when status flips from loading → known free.
+    ref.listen(subscriptionProvider, (prev, next) {
+      final wasKnown = prev?.asData != null;
+      final nowKnownFree =
+          next.asData != null && !next.asData!.value.isPremium;
+      if (!wasKnown && nowKnownFree && _nativeAd == null && !_adFailed) {
+        _loadAd();
+      }
+    });
+
+    final sub = ref.watch(subscriptionProvider);
+    // Status unknown (cache miss) → show nothing, neither ad nor promo.
+    if (sub.asData == null) return const SizedBox.shrink();
+    if (sub.asData!.value.isPremium) return const SizedBox.shrink();
+
     final isOnline = ref.watch(isOnlineProvider);
     if (_adFailed || !isOnline) return PromoCardWidget(height: widget.height);
 
