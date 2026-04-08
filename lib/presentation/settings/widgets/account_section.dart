@@ -184,8 +184,8 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
-      passwordController.dispose();
     }
+    Future.delayed(const Duration(milliseconds: 500), passwordController.dispose);
   }
 
   Future<void> _pickImage({required bool pickFromCamera}) async {
