@@ -275,6 +275,7 @@ void main() {
         () async {
       adapter.debugSetHasPendingPull(true);
 
+      when(() => dao.getSyncedItemsByGroup('g1')).thenAnswer((_) async => []);
       final captured = <List<LocalShoppingItemsCompanion>>[];
       when(() => dao.replaceAllSynced(any(), any()))
           .thenAnswer((inv) async {
@@ -317,11 +318,62 @@ void main() {
       expect(captured.single[0].syncStatus, const Value('synced'));
     });
 
+    test('applyRemote bewahrt localId bei bekannter remoteId', () async {
+      adapter.debugSetHasPendingPull(true);
+
+      when(() => dao.getSyncedItemsByGroup('g1')).thenAnswer((_) async => [
+            _row(localId: 'local-abc', remoteId: 'remote-1', syncStatus: 'synced'),
+          ]);
+      final captured = <List<LocalShoppingItemsCompanion>>[];
+      when(() => dao.replaceAllSynced(any(), any())).thenAnswer((inv) async {
+        captured.add(inv.positionalArguments[1] as List<LocalShoppingItemsCompanion>);
+      });
+
+      await adapter.applyRemote([
+        RemoteRow(
+          id: 'remote-1',
+          updatedAt: DateTime(2026, 4, 1),
+          deleted: false,
+          data: const {'information': 'Milch', 'quantity': '1L', 'is_checked': false},
+        ),
+      ]);
+
+      // localId muss die ursprüngliche bleiben, nicht zur remoteId werden
+      expect(captured.single[0].localId, const Value('local-abc'));
+      expect(captured.single[0].remoteId, const Value('remote-1'));
+    });
+
+    test('applyRemote nutzt remoteId als localId für neue Items (anderes Gerät)',
+        () async {
+      adapter.debugSetHasPendingPull(true);
+
+      when(() => dao.getSyncedItemsByGroup('g1')).thenAnswer((_) async => []);
+      final captured = <List<LocalShoppingItemsCompanion>>[];
+      when(() => dao.replaceAllSynced(any(), any())).thenAnswer((inv) async {
+        captured.add(inv.positionalArguments[1] as List<LocalShoppingItemsCompanion>);
+      });
+
+      await adapter.applyRemote([
+        RemoteRow(
+          id: 'remote-new',
+          updatedAt: DateTime(2026, 4, 1),
+          deleted: false,
+          data: const {'information': 'Brot', 'quantity': null, 'is_checked': false},
+        ),
+      ]);
+
+      // Neues Item vom Server: localId = remoteId
+      expect(captured.single[0].localId, const Value('remote-new'));
+      expect(captured.single[0].remoteId, const Value('remote-new'));
+    });
+
     test('flag is cleared after applying', () async {
       adapter.debugSetHasPendingPull(true);
+      when(() => dao.getSyncedItemsByGroup('g1')).thenAnswer((_) async => []);
       when(() => dao.replaceAllSynced(any(), any()))
           .thenAnswer((_) async {});
       await adapter.applyRemote(const []);
+      verify(() => dao.getSyncedItemsByGroup('g1')).called(1);
       verify(() => dao.replaceAllSynced(any(), any())).called(1);
 
       await adapter.applyRemote(const []);

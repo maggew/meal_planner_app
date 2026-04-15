@@ -24,7 +24,7 @@ class OfflineFirstShoppingListRepository implements ShoppingListRepository {
   Stream<List<ShoppingListItem>> watchItems() {
     return _dao.watchItemsByGroup(_groupId).map((items) => items
         .map((item) => ShoppingListItem(
-              id: item.remoteId ?? item.localId,
+              id: item.localId,
               groupId: item.groupId,
               information: item.information,
               quantity: item.quantity,
@@ -38,7 +38,7 @@ class OfflineFirstShoppingListRepository implements ShoppingListRepository {
     final items = await _dao.watchItemsByGroup(_groupId).first;
     return items
         .map((item) => ShoppingListItem(
-              id: item.remoteId ?? item.localId,
+              id: item.localId,
               groupId: item.groupId,
               information: item.information,
               quantity: item.quantity,

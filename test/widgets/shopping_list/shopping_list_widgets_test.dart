@@ -5,8 +5,10 @@ import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/services/ingredient_merge_service.dart';
 import 'package:meal_planner/domain/entities/shopping_list_item.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
+import 'package:meal_planner/domain/enums/shopping_list_view_mode.dart';
 import 'package:meal_planner/domain/enums/unit.dart';
 import 'package:meal_planner/presentation/shopping_list/widgets/shopping_list_body.dart';
+import 'package:meal_planner/presentation/shopping_list/widgets/shopping_list_item_row.dart';
 import 'package:meal_planner/presentation/shopping_list/widgets/shopping_list_item_tile.dart';
 import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
 import 'package:meal_planner/services/providers/shopping_list/shopping_list_provider.dart';
@@ -51,6 +53,12 @@ class FakeUserSettingsNotifier extends UserSettingsNotifier {
   UserSettings build() => UserSettings.defaultSettings;
 }
 
+class FakeListViewSettingsNotifier extends UserSettingsNotifier {
+  @override
+  UserSettings build() =>
+      UserSettings.defaultSettings.copyWith(shoppingListViewMode: ShoppingListViewMode.list);
+}
+
 // --- Helpers ---
 
 ShoppingListItem _item({
@@ -83,6 +91,19 @@ Widget _buildTile(ShoppingListItem item, {FakeShoppingListActions? notifier}) {
         ),
       ),
     ),
+  );
+}
+
+Widget _buildBodyListView(List<ShoppingListItem> items) {
+  return ProviderScope(
+    overrides: [
+      shoppingListStreamProvider.overrideWith((ref) => Stream.value(items)),
+      shoppingListActionsProvider.overrideWith(() => FakeShoppingListActions()),
+      userSettingsProvider.overrideWith(() => FakeListViewSettingsNotifier()),
+      isPremiumProvider.overrideWithValue(true),
+      isOnlineProvider.overrideWithValue(true),
+    ],
+    child: const MaterialApp(home: Scaffold(body: ShoppingListBody())),
   );
 }
 
@@ -243,6 +264,58 @@ void main() {
   });
 
   // ---------------------------------------------------------------------------
+
+  group('ShoppingListBody – alphabetische Sortierung', () {
+    testWidgets('unchecked items werden alphabetisch sortiert', (tester) async {
+      final items = [
+        _item(id: '1', information: 'Zucker'),
+        _item(id: '2', information: 'Apfel'),
+        _item(id: '3', information: 'Mehl'),
+      ];
+      await tester.pumpWidget(_buildBodyListView(items));
+      await tester.pump();
+
+      final rows = tester
+          .widgetList<ShoppingListItemRow>(find.byType(ShoppingListItemRow))
+          .toList();
+      expect(rows[0].item.information, 'Apfel');
+      expect(rows[1].item.information, 'Mehl');
+      expect(rows[2].item.information, 'Zucker');
+    });
+
+    testWidgets('Ä wird wie A einsortiert – Äpfel vor Banane', (tester) async {
+      final items = [
+        _item(id: '1', information: 'Banane'),
+        _item(id: '2', information: 'Äpfel'),
+        _item(id: '3', information: 'Zitrone'),
+      ];
+      await tester.pumpWidget(_buildBodyListView(items));
+      await tester.pump();
+
+      final rows = tester
+          .widgetList<ShoppingListItemRow>(find.byType(ShoppingListItemRow))
+          .toList();
+      expect(rows[0].item.information, 'Äpfel');
+      expect(rows[1].item.information, 'Banane');
+      expect(rows[2].item.information, 'Zitrone');
+    });
+
+    testWidgets('abgehakte items werden ebenfalls alphabetisch sortiert',
+        (tester) async {
+      final items = [
+        _item(id: '1', information: 'Zucker', isChecked: true),
+        _item(id: '2', information: 'Apfel', isChecked: true),
+      ];
+      await tester.pumpWidget(_buildBodyListView(items));
+      await tester.pump();
+
+      final rows = tester
+          .widgetList<ShoppingListItemRow>(find.byType(ShoppingListItemRow))
+          .toList();
+      expect(rows[0].item.information, 'Apfel');
+      expect(rows[1].item.information, 'Zucker');
+    });
+  });
 
   group('addItemsFromIngredients – Ingredient zu ShoppingListItem Mapping', () {
     test('Zutat mit leerem Namen → information ist leer (Root Cause)', () {

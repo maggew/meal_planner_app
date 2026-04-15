@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:meal_planner/core/utils/german_text_normalizer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/enums/shopping_list_view_mode.dart';
 import 'package:meal_planner/presentation/common/native_ad_widget.dart';
@@ -28,8 +29,10 @@ class ShoppingListBody extends ConsumerWidget {
           );
         }
 
-        final unchecked = items.where((i) => !i.isChecked).toList();
-        final checked = items.where((i) => i.isChecked).toList();
+        final unchecked = items.where((i) => !i.isChecked).toList()
+          ..sort((a, b) => GermanTextNormalizer.normalizeSimple(a.information).compareTo(GermanTextNormalizer.normalizeSimple(b.information)));
+        final checked = items.where((i) => i.isChecked).toList()
+          ..sort((a, b) => GermanTextNormalizer.normalizeSimple(a.information).compareTo(GermanTextNormalizer.normalizeSimple(b.information)));
 
         return CustomScrollView(
           slivers: [

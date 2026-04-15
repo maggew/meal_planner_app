@@ -127,9 +127,15 @@ class ShoppingListSyncAdapter implements SyncAdapter {
     if (!_hasPendingPull) return;
     _hasPendingPull = false;
 
+    final existing = await _dao.getSyncedItemsByGroup(_groupId);
+    final remoteIdToLocalId = {
+      for (final item in existing)
+        if (item.remoteId != null) item.remoteId!: item.localId,
+    };
+
     final companions = rows
         .map((r) => LocalShoppingItemsCompanion(
-              localId: Value(r.id),
+              localId: Value(remoteIdToLocalId[r.id] ?? r.id),
               remoteId: Value(r.id),
               groupId: Value(_groupId),
               information: Value(r.data['information'] as String),

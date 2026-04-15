@@ -86,6 +86,13 @@ class ShoppingItemDao extends DatabaseAccessor<AppDatabase>
         .go();
   }
 
+  Future<List<LocalShoppingItem>> getSyncedItemsByGroup(String groupId) {
+    return (select(localShoppingItems)
+          ..where((t) => t.groupId.equals(groupId))
+          ..where((t) => t.syncStatus.equals('synced')))
+        .get();
+  }
+
   // Wird beim initialen Pull genutzt – ersetzt alle synced Items
   // Pending Items werden bewusst nicht angefasst
   Future<void> replaceAllSynced(
