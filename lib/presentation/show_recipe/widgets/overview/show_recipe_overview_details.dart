@@ -101,7 +101,7 @@ class ShowRecipeOverviewDetails extends StatelessWidget {
                       children: [
                         DisplayIngredient(ingredient: ingredient),
                         if (index != section.ingredients.length - 1)
-                          const Divider(thickness: 2),
+                          const Divider(),
                       ],
                     );
                   },
@@ -186,7 +186,7 @@ class _LinkedSectionWidget extends ConsumerWidget {
                   children: [
                     DisplayIngredient(ingredient: ingredients[index]),
                     if (index != ingredients.length - 1)
-                      const Divider(thickness: 2),
+                      const Divider(),
                   ],
                 );
               },

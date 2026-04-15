@@ -80,10 +80,10 @@ class _ShoppingListInputState extends ConsumerState<ShoppingListInput>
         top: Radius.circular(AppDimensions.borderRadius * 2),
       ),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainer.withValues(alpha: 0.85),
+            color: colorScheme.surfaceContainerHigh.withValues(alpha: 0.85),
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(AppDimensions.borderRadius * 2),
             ),

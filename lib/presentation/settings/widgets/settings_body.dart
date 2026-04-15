@@ -49,13 +49,14 @@ class SettingsBody extends StatelessWidget {
           const GlassCard(
             child: LegalSection(),
           ),
-          OutlinedButton(
+          FilledButton.icon(
             onPressed: onLogout,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.red,
-              side: const BorderSide(color: Colors.red),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
             ),
-            child: const Text('Ausloggen'),
+            icon: const Icon(Icons.logout, size: 18),
+            label: const Text('Ausloggen'),
           ),
         ],
       ),

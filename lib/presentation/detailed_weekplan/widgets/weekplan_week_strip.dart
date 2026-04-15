@@ -60,8 +60,15 @@ class WeekplanWeekStrip extends StatelessWidget {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: colorScheme.surfaceContainer,
+                color: colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(50),
+                boxShadow: [
+                  BoxShadow(
+                    color: colorScheme.shadow.withValues(alpha: 0.18),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
               padding: const EdgeInsets.fromLTRB(8, 10, 8, 12),
               child: Column(
