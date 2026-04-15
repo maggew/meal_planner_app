@@ -1,6 +1,14 @@
 import 'package:meal_planner/domain/enums/unit.dart';
 
 class ShoppingListInputParser {
+  static const _typeKeywords = ['typ', 'type', 'nr', 'no', 'sorte'];
+
+  static bool _endsWithTypeKeyword(String text) {
+    if (text.isEmpty) return false;
+    final lastWord = text.split(' ').last.toLowerCase().replaceAll('.', '');
+    return _typeKeywords.contains(lastWord);
+  }
+
   static ({String? quantity, String information}) parse(String input) {
     final trimmed = input.trim();
     if (trimmed.isEmpty) return (quantity: null, information: '');
@@ -51,6 +59,9 @@ class ShoppingListInputParser {
       }
 
       if (number != null) {
+        if (_endsWithTypeKeyword(info)) {
+          return (quantity: null, information: trimmed);
+        }
         return (quantity: number, information: info);
       }
     }

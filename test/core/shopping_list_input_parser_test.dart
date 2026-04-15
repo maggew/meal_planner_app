@@ -39,6 +39,56 @@ void main() {
       });
     });
 
+    group('Typ-Keywords: Zahl nach Typ-Keyword ist keine Menge', () {
+      test('"Weizenmehl Typ 550" → quantity null, voller String als information', () {
+        final result = ShoppingListInputParser.parse('Weizenmehl Typ 550');
+        expect(result.quantity, isNull);
+        expect(result.information, 'Weizenmehl Typ 550');
+      });
+
+      test('"Weizenmehl type 550" → lowercase "type" wird erkannt', () {
+        final result = ShoppingListInputParser.parse('Weizenmehl type 550');
+        expect(result.quantity, isNull);
+        expect(result.information, 'Weizenmehl type 550');
+      });
+
+      test('"Mehl Nr. 3" → "Nr." mit Punkt wird erkannt', () {
+        final result = ShoppingListInputParser.parse('Mehl Nr. 3');
+        expect(result.quantity, isNull);
+        expect(result.information, 'Mehl Nr. 3');
+      });
+
+      test('"Mehl Nr 3" → "Nr" ohne Punkt wird erkannt', () {
+        final result = ShoppingListInputParser.parse('Mehl Nr 3');
+        expect(result.quantity, isNull);
+        expect(result.information, 'Mehl Nr 3');
+      });
+
+      test('"Olivenöl No. 5" → "No." wird erkannt', () {
+        final result = ShoppingListInputParser.parse('Olivenöl No. 5');
+        expect(result.quantity, isNull);
+        expect(result.information, 'Olivenöl No. 5');
+      });
+
+      test('"Käse Sorte 3" → "Sorte" wird erkannt', () {
+        final result = ShoppingListInputParser.parse('Käse Sorte 3');
+        expect(result.quantity, isNull);
+        expect(result.information, 'Käse Sorte 3');
+      });
+
+      test('"Butter 3" → keine Keywords, Zahl bleibt Menge', () {
+        final result = ShoppingListInputParser.parse('Butter 3');
+        expect(result.quantity, '3');
+        expect(result.information, 'Butter');
+      });
+
+      test('"2 Weizenmehl Typ 550" → führende Menge wird extrahiert, Rest ist Name', () {
+        final result = ShoppingListInputParser.parse('2 Weizenmehl Typ 550');
+        expect(result.quantity, '2');
+        expect(result.information, 'Weizenmehl Typ 550');
+      });
+    });
+
     group('Zahl ohne Namen → keine quantity', () {
       test('"500" → quantity null, information "500" (kein Doppel-Anzeigebug)', () {
         final result = ShoppingListInputParser.parse('500');
