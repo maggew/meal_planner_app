@@ -278,6 +278,26 @@ class CachedRecipeRepository implements RecipeRepository {
     }
   }
 
+  // ==================== TIMES COOKED ====================
+
+  @override
+  Future<void> incrementTimesCooked(String recipeId) async {
+    await _remote.incrementTimesCooked(recipeId);
+
+    // Update local cache
+    try {
+      final cached = await _dao.getRecipeById(recipeId);
+      if (cached != null) {
+        final recipe = RecipeCacheConverter.toRecipe(cached);
+        final updated = recipe.copyWith(timesCooked: recipe.timesCooked + 1);
+        final timers = RecipeCacheConverter.toTimers(cached);
+        await _cacheRecipe(updated, timers);
+      }
+    } catch (e) {
+      log('Failed to update cached timesCooked', error: e);
+    }
+  }
+
   // ==================== SEARCH ====================
 
   @override

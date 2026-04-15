@@ -15,6 +15,7 @@ class RecipeModel extends Recipe {
     super.imageUrl,
     super.createdAt,
     super.carbTags,
+    super.timesCooked,
   });
 
   Map<String, dynamic> toSupabase({
@@ -103,6 +104,7 @@ class RecipeModel extends Recipe {
       categories: categories,
       ingredientSections: ingredientSections,
       carbTags: carbTags,
+      timesCooked: data['times_cooked'] as int? ?? 0,
     );
   }
 
@@ -117,6 +119,7 @@ class RecipeModel extends Recipe {
       imageUrl: recipe.imageUrl,
       createdAt: recipe.createdAt,
       carbTags: recipe.carbTags,
+      timesCooked: recipe.timesCooked,
     );
   }
 
@@ -131,6 +134,7 @@ class RecipeModel extends Recipe {
       imageUrl: imageUrl,
       createdAt: createdAt,
       carbTags: carbTags,
+      timesCooked: timesCooked,
     );
   }
 }

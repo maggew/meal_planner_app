@@ -81,6 +81,10 @@ abstract class RecipeRemoteDatasource {
     required String groupId,
   });
 
+  Future<void> incrementTimesCooked({
+    required String recipeId,
+  });
+
   // Timer
   Future<List<Map<String, dynamic>>> getTimersForRecipe(String recipeId);
   Future<Map<String, dynamic>> upsertTimer(Map<String, dynamic> data);

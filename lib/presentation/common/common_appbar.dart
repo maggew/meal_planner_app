@@ -3,6 +3,7 @@ import 'package:meal_planner/presentation/common/sync_status_indicator.dart';
 
 class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
+  final Widget? titleWidget;
   final Widget? leading;
   final List<Widget>? actionsButtons;
   final bool automaticallyImplyLeading;
@@ -10,6 +11,7 @@ class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
   const CommonAppbar({
     super.key,
     required this.title,
+    this.titleWidget,
     this.leading,
     this.actionsButtons,
     this.automaticallyImplyLeading = true,
@@ -31,10 +33,11 @@ class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
       leading: leading,
       automaticallyImplyLeading: automaticallyImplyLeading,
       elevation: 0,
-      title: Text(
-        title,
-        overflow: TextOverflow.fade,
-      ),
+      title: titleWidget ??
+          Text(
+            title,
+            overflow: TextOverflow.fade,
+          ),
       centerTitle: true,
       actions: actions,
     );

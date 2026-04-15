@@ -10,12 +10,14 @@ class UserSettings {
   final ThemeOption themeOption;
   final RecipeSortOption recipeSortOption;
   final ShoppingListViewMode shoppingListViewMode;
+  final bool autoNavigateOnTimerExpiry;
 
   const UserSettings({
     this.tabPosition = TabPosition.right,
     this.themeOption = ThemeOption.system,
     this.recipeSortOption = RecipeSortOption.alphabetical,
     this.shoppingListViewMode = ShoppingListViewMode.grid,
+    this.autoNavigateOnTimerExpiry = true,
   });
 
   static const defaultSettings = UserSettings();
@@ -34,6 +36,8 @@ class UserSettings {
       shoppingListViewMode: ShoppingListViewMode.values.byName(
         json['shopping_list_view_mode'] as String? ?? 'grid',
       ),
+      autoNavigateOnTimerExpiry:
+          json['auto_navigate_on_timer_expiry'] as bool? ?? true,
     );
   }
 
@@ -42,6 +46,7 @@ class UserSettings {
         'theme_option': themeOption.name,
         'recipe_sort_option': recipeSortOption.name,
         'shopping_list_view_mode': shoppingListViewMode.name,
+        'auto_navigate_on_timer_expiry': autoNavigateOnTimerExpiry,
       };
 
   UserSettings copyWith({
@@ -49,6 +54,7 @@ class UserSettings {
     ThemeOption? themeOption,
     RecipeSortOption? recipeSortOption,
     ShoppingListViewMode? shoppingListViewMode,
+    bool? autoNavigateOnTimerExpiry,
   }) {
     return UserSettings(
       tabPosition: tabPosition ?? this.tabPosition,
@@ -56,6 +62,8 @@ class UserSettings {
       recipeSortOption: recipeSortOption ?? this.recipeSortOption,
       shoppingListViewMode:
           shoppingListViewMode ?? this.shoppingListViewMode,
+      autoNavigateOnTimerExpiry:
+          autoNavigateOnTimerExpiry ?? this.autoNavigateOnTimerExpiry,
     );
   }
 }

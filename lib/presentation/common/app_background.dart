@@ -66,7 +66,7 @@ class AppBackground extends StatelessWidget {
           floatingActionButtonLocation: scaffoldFloatingActionButtonLocation,
           extendBodyBehindAppBar: false,
           bottomNavigationBar: scaffoldBottomNavigationBar,
-        )
+        ),
       ],
     );
   }

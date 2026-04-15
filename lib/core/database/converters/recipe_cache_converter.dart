@@ -27,6 +27,7 @@ class RecipeCacheConverter {
       ingredientSectionsJson: Value(_encodeIngredientSections(recipe.ingredientSections)),
       timersJson: Value(_encodeTimers(timers)),
       carbTagsJson: Value(jsonEncode(recipe.carbTags)),
+      timesCooked: Value(recipe.timesCooked),
       updatedAt: Value(updatedAt),
       isDeleted: const Value(false),
       cachedAt: Value(DateTime.now()),
@@ -52,6 +53,7 @@ class RecipeCacheConverter {
       imageUrl: row.imageUrl,
       createdAt: row.createdAt,
       carbTags: carbTags,
+      timesCooked: row.timesCooked,
     );
   }
 

@@ -255,6 +255,11 @@ class SupabaseRecipeRepository implements RecipeRepository {
     }
   }
 
+  @override
+  Future<void> incrementTimesCooked(String recipeId) async {
+    await _remote.incrementTimesCooked(recipeId: recipeId);
+  }
+
   // ==================== HELPERS ====================
 
   /// Builds IngredientModels from recipe sections.

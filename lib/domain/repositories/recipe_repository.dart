@@ -28,6 +28,9 @@ abstract class RecipeRepository {
   /// Searches all recipes by name (case-insensitive) from the local cache.
   Future<List<Recipe>> searchRecipes(String query);
 
+  /// Increments the `times_cooked` counter for the given recipe by 1.
+  Future<void> incrementTimesCooked(String recipeId);
+
   // Timer logic
   Future<List<RecipeTimer>> getTimersForRecipe(String recipeId);
   Future<RecipeTimer> upsertTimer(RecipeTimer timer);

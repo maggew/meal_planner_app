@@ -3,9 +3,11 @@ import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooki
 
 class CookingModePageButtons extends StatefulWidget {
   final TabController tabController;
+  final VoidCallback? onFinished;
   const CookingModePageButtons({
     super.key,
     required this.tabController,
+    this.onFinished,
   });
 
   @override
@@ -54,7 +56,9 @@ class _CookingModePageButtonsState extends State<CookingModePageButtons> {
             label: isLastPage ? "Fertig" : "Weiter",
             icon: isLastPage ? Icons.check : Icons.arrow_forward_outlined,
             onPressed: () {
-              if (widget.tabController.index <
+              if (isLastPage) {
+                widget.onFinished?.call();
+              } else if (widget.tabController.index <
                   widget.tabController.length - 1) {
                 setState(() => widget.tabController.index++);
               }

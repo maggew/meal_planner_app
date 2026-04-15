@@ -389,6 +389,11 @@ class SupabaseRecipeRemoteDatasource implements RecipeRemoteDatasource {
     return (response as List).cast<Map<String, dynamic>>();
   }
 
+  @override
+  Future<void> incrementTimesCooked({required String recipeId}) async {
+    await supabase.rpc('increment_times_cooked', params: {'recipe_id_param': recipeId});
+  }
+
   // Timer
   @override
   Future<List<Map<String, dynamic>>> getTimersForRecipe(String recipeId) async {

@@ -27,17 +27,23 @@ class UserSettingsSection extends ConsumerWidget {
         const SizedBox(height: 12),
         SettingsRowWidget(
           label: 'Tab Position',
-          controlWidget: SwitchListTile(
-            title: const Text('Tabs rechts anzeigen'),
-            value: settings.tabPosition == TabPosition.right,
-            onChanged: (value) {
-              ref.read(userSettingsProvider.notifier).update(
-                    settings.copyWith(
-                      tabPosition:
-                          value ? TabPosition.right : TabPosition.left,
-                    ),
-                  );
-            },
+          controlWidget: Row(
+            children: [
+              Expanded(
+                child: Text('Tabs rechts anzeigen'),
+              ),
+              Switch(
+                value: settings.tabPosition == TabPosition.right,
+                onChanged: (value) {
+                  ref.read(userSettingsProvider.notifier).update(
+                        settings.copyWith(
+                          tabPosition:
+                              value ? TabPosition.right : TabPosition.left,
+                        ),
+                      );
+                },
+              ),
+            ],
           ),
         ),
         SettingsRowWidget(
@@ -46,6 +52,24 @@ class UserSettingsSection extends ConsumerWidget {
             newSettings: settings,
             onSettingsChanged: (updated) =>
                 ref.read(userSettingsProvider.notifier).update(updated),
+          ),
+        ),
+        SettingsRowWidget(
+          label: 'Kochmodus',
+          controlWidget: Row(
+            children: [
+              Expanded(
+                child: Text('Bei Timer-Ablauf zum Schritt springen'),
+              ),
+              Switch(
+                value: settings.autoNavigateOnTimerExpiry,
+                onChanged: (value) {
+                  ref.read(userSettingsProvider.notifier).update(
+                        settings.copyWith(autoNavigateOnTimerExpiry: value),
+                      );
+                },
+              ),
+            ],
           ),
         ),
       ],

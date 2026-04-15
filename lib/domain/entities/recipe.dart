@@ -10,6 +10,7 @@ class Recipe {
   final String? imageUrl;
   final DateTime createdAt;
   final List<String> carbTags;
+  final int timesCooked;
 
   Recipe({
     this.id,
@@ -21,6 +22,7 @@ class Recipe {
     this.imageUrl,
     DateTime? createdAt,
     this.carbTags = const [],
+    this.timesCooked = 0,
   }) : createdAt = createdAt ?? DateTime.now();
 
   Recipe copyWith({
@@ -33,6 +35,7 @@ class Recipe {
     String? imageUrl,
     DateTime? createdAt,
     List<String>? carbTags,
+    int? timesCooked,
   }) {
     return Recipe(
       id: id ?? this.id,
@@ -44,6 +47,7 @@ class Recipe {
       imageUrl: imageUrl ?? this.imageUrl,
       createdAt: createdAt ?? this.createdAt,
       carbTags: carbTags ?? this.carbTags,
+      timesCooked: timesCooked ?? this.timesCooked,
     );
   }
 }

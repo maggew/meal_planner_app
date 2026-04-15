@@ -1,3 +1,4 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/active_timer.dart';
@@ -7,7 +8,10 @@ import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooki
 import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooking_mode_page_buttons.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooking_mode_step_indicator.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooking_mode_step_widget.dart';
+import 'package:meal_planner/services/providers/cooking/active_cooking_session_provider.dart';
 import 'package:meal_planner/services/providers/recipe/timer/active_timer_provider.dart';
+import 'package:meal_planner/services/providers/repository_providers.dart';
+import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class ShowRecipeCookingMode extends ConsumerStatefulWidget {
@@ -57,6 +61,59 @@ class _ShowRecipeCookingModeState extends ConsumerState<ShowRecipeCookingMode>
     );
   }
 
+  Future<void> _onFinished() async {
+    final recipeId = widget.recipe.id;
+    if (recipeId == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Rezept fertig'),
+        content: Text(
+            '"${widget.recipe.name}" als gekocht markieren?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Abbrechen'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Fertig'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    // Increment times_cooked
+    try {
+      await ref.read(recipeRepositoryProvider).incrementTimesCooked(recipeId);
+    } catch (_) {}
+
+    // Cancel all timers for this recipe
+    final timers = ref.read(activeTimerProvider);
+    for (final entry in timers.entries) {
+      if (entry.value.recipeId == recipeId) {
+        ref.read(activeTimerProvider.notifier).cancelTimer(entry.key);
+      }
+    }
+
+    final session = ref.read(activeCookingSessionProvider);
+    final isMulti = session.recipes.length >= 2;
+
+    // Remove from session
+    ref
+        .read(activeCookingSessionProvider.notifier)
+        .removeRecipe(recipeId);
+
+    if (!isMulti && mounted) {
+      // Single mode: go back
+      context.router.pop();
+    }
+    // Multi mode: tab bar handles switching automatically
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -64,6 +121,10 @@ class _ShowRecipeCookingModeState extends ConsumerState<ShowRecipeCookingMode>
     ref.listen(activeTimerProvider, (prev, next) {
       final recipeId = widget.recipe.id;
       if (recipeId == null) return;
+
+      final autoNav =
+          ref.read(userSettingsProvider).autoNavigateOnTimerExpiry;
+      if (!autoNav) return;
 
       for (final entry in next.entries) {
         final timer = entry.value;
@@ -126,8 +187,10 @@ class _ShowRecipeCookingModeState extends ConsumerState<ShowRecipeCookingMode>
             bottom: 16,
             child: AnimatedBuilder(
               animation: _tabController,
-              builder: (context, _) =>
-                  CookingModePageButtons(tabController: _tabController),
+              builder: (context, _) => CookingModePageButtons(
+                tabController: _tabController,
+                onFinished: _onFinished,
+              ),
             ),
           ),
         ],
