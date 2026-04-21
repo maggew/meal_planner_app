@@ -11,53 +11,69 @@ import 'package:meal_planner/services/providers/repository_providers.dart';
 
 class ShowRecipeAppBarActions extends ConsumerWidget {
   final Recipe recipe;
+  final VoidCallback? onAddRecipe;
 
-  const ShowRecipeAppBarActions({super.key, required this.recipe});
+  const ShowRecipeAppBarActions({
+    super.key,
+    required this.recipe,
+    this.onAddRecipe,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.calendar_month_outlined),
-          tooltip: 'Zum Wochenplan',
-          onPressed: () => showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            builder: (_) => PlanRecipeSheet(
-              recipeId: recipe.id!,
-              recipeName: recipe.name,
+    return PopupMenuButton<String>(
+      onSelected: (value) {
+        switch (value) {
+          case 'add':
+            onAddRecipe?.call();
+          case 'plan':
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              builder: (_) => PlanRecipeSheet(
+                recipeId: recipe.id!,
+                recipeName: recipe.name,
+              ),
+            );
+          case 'edit':
+            _showEditDialog(context);
+          case 'delete':
+            _showDeleteDialog(context, ref);
+        }
+      },
+      itemBuilder: (context) => [
+        if (onAddRecipe != null)
+          const PopupMenuItem(
+            value: 'add',
+            child: ListTile(
+              leading: Icon(Icons.add),
+              title: Text('Rezept hinzufügen'),
+              contentPadding: EdgeInsets.zero,
             ),
           ),
+        const PopupMenuItem(
+          value: 'plan',
+          child: ListTile(
+            leading: Icon(Icons.calendar_month_outlined),
+            title: Text('Zum Wochenplan'),
+            contentPadding: EdgeInsets.zero,
+          ),
         ),
-        PopupMenuButton<String>(
-          onSelected: (value) {
-            switch (value) {
-              case 'edit':
-                _showEditDialog(context);
-              case 'delete':
-                _showDeleteDialog(context, ref);
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'edit',
-              child: ListTile(
-                leading: Icon(Icons.edit_outlined),
-                title: Text('Bearbeiten'),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-            PopupMenuItem(
-              value: 'delete',
-              child: ListTile(
-                leading: Icon(AppIcons.trash_bin),
-                title: const Text('Löschen'),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-          ],
+        const PopupMenuItem(
+          value: 'edit',
+          child: ListTile(
+            leading: Icon(Icons.edit_outlined),
+            title: Text('Bearbeiten'),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+        PopupMenuItem(
+          value: 'delete',
+          child: ListTile(
+            leading: Icon(AppIcons.trash_bin),
+            title: const Text('Löschen'),
+            contentPadding: EdgeInsets.zero,
+          ),
         ),
       ],
     );

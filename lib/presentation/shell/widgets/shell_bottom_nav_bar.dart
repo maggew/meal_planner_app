@@ -99,7 +99,7 @@ class _NavItemState extends State<_NavItem>
       end: colors.surface,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     final iconAnim = ColorTween(
-      begin: colors.onSurface.withValues(alpha: 0.6),
+      begin: colors.onSurface,
       end: colors.secondary,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
@@ -109,12 +109,10 @@ class _NavItemState extends State<_NavItem>
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, _) => Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           decoration: BoxDecoration(
             color: bgAnim.value,
-            borderRadius:
-                BorderRadius.circular(AppDimensions.borderRadius),
+            borderRadius: BorderRadius.circular(AppDimensions.borderRadius),
           ),
           child: Icon(widget.icon, color: iconAnim.value),
         ),
