@@ -2,12 +2,14 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/entities/meal_plan_entry.dart';
+import 'package:meal_planner/domain/entities/slot_drag_payload.dart';
 import 'package:meal_planner/presentation/common/glass_card.dart';
 import 'package:meal_planner/domain/enums/meal_type.dart';
 import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_recipe_picker.dart';
 import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_clipboard_provider.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_provider.dart';
+import 'package:meal_planner/services/providers/meal_plan/slot_drag_provider.dart';
 import 'package:meal_planner/services/providers/user/group_settings_provider.dart';
 
 class WeekplanDayCard extends ConsumerWidget {
@@ -25,6 +27,87 @@ class WeekplanDayCard extends ConsumerWidget {
     MealType.lunch: Icons.lunch_dining,
     MealType.dinner: Icons.nights_stay_outlined,
   };
+
+  Future<void> _handleDrop(
+    BuildContext context,
+    WidgetRef ref,
+    SlotDragPayload payload,
+    MealType targetMealType,
+    List<MealPlanEntry> targetEntries,
+  ) async {
+    // No-op when the user drops the slot back onto itself.
+    if (payload.date == date && payload.mealType == targetMealType) return;
+
+    if (targetEntries.isEmpty) {
+      final actions = ref.read(mealPlanActionsProvider);
+      var allMoved = true;
+      for (final entry in payload.entries) {
+        final ok = await actions.moveEntry(entry.id,
+            date: date, mealType: targetMealType);
+        if (!ok) allMoved = false;
+      }
+      if (!allMoved && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Eintrag wurde inzwischen geändert. Bitte erneut versuchen.'),
+          ),
+        );
+      }
+      return;
+    }
+
+    _showOccupiedTargetDialog(
+        context, ref, payload, targetMealType, targetEntries);
+  }
+
+  Future<void> _showOccupiedTargetDialog(
+    BuildContext context,
+    WidgetRef ref,
+    SlotDragPayload payload,
+    MealType targetMealType,
+    List<MealPlanEntry> targetEntries,
+  ) async {
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        content: const Text(
+            'Hier liegt bereits ein Eintrag. Was möchtest du tun?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop('cancel'),
+            child: const Text('Abbrechen'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop('append'),
+            child: const Text('Hinzufügen'),
+          ),
+          TextButton(
+            autofocus: true,
+            onPressed: () => Navigator.of(ctx).pop('swap'),
+            child: const Text('Tauschen'),
+          ),
+        ],
+      ),
+    );
+
+    if (choice == null || choice == 'cancel') return;
+
+    final actions = ref.read(mealPlanActionsProvider);
+    if (choice == 'append') {
+      for (final entry in payload.entries) {
+        actions.moveEntry(entry.id, date: date, mealType: targetMealType);
+      }
+    } else if (choice == 'swap') {
+      for (final entry in payload.entries) {
+        actions.moveEntry(entry.id, date: date, mealType: targetMealType);
+      }
+      for (final entry in targetEntries) {
+        actions.moveEntry(entry.id,
+            date: payload.date, mealType: payload.mealType);
+      }
+    }
+  }
 
   void _pasteEntry(WidgetRef ref, MealType targetType) {
     final clipboard = ref.read(mealPlanClipboardProvider);
@@ -77,6 +160,11 @@ class WeekplanDayCard extends ConsumerWidget {
     final mealSlots = ref.watch(groupSettingsProvider).defaultMealSlots;
     final hasAnyEntry = entries.any((e) => mealSlots.contains(e.mealType));
     final clipboard = ref.watch(mealPlanClipboardProvider);
+    final isDragging = ref.watch(isDraggingSlotProvider);
+    // Empty days stay compact even during drag — the compact "+" icons
+    // themselves act as drop targets, so the card doesn't resize on drag
+    // start.
+    final expandEmptyDay = hasAnyEntry;
 
     final dayLabel = _weekdayShort[date.weekday - 1];
 
@@ -100,16 +188,23 @@ class WeekplanDayCard extends ConsumerWidget {
                       ),
                     ),
                     const Spacer(),
-                    if (!hasAnyEntry)
+                    if (!expandEmptyDay)
                       ...mealSlots.map(
-                        (type) => _CompactAddButton(
-                          icon: _mealIcons[type]!,
-                          onTap: () => _openAddPicker(context, ref, type),
+                        (type) => DragTarget<SlotDragPayload>(
+                          onAcceptWithDetails: (details) => _handleDrop(
+                              context, ref, details.data, type, const []),
+                          builder: (ctx, candidate, rejected) =>
+                              _CompactAddButton(
+                            key: ValueKey('compact-add-${type.name}'),
+                            icon: _mealIcons[type]!,
+                            onTap: () => _openAddPicker(context, ref, type),
+                            isHovering: candidate.isNotEmpty,
+                          ),
                         ),
                       ),
                   ],
                 ),
-                if (hasAnyEntry) ...[
+                if (expandEmptyDay) ...[
                   const SizedBox(height: 14),
                   ...mealSlots.expand((type) {
                     final slotEntries =
@@ -117,27 +212,69 @@ class WeekplanDayCard extends ConsumerWidget {
 
                     if (slotEntries.isEmpty) {
                       return [
-                        _EmptySlotRow(
-                          icon: _mealIcons[type]!,
-                          onTap: () => _openAddPicker(context, ref, type),
-                          onPaste: clipboard != null
-                              ? () => _pasteEntry(ref, type)
-                              : null,
+                        DragTarget<SlotDragPayload>(
+                          onAcceptWithDetails: (details) => _handleDrop(
+                              context, ref, details.data, type, slotEntries),
+                          builder: (ctx, candidate, rejected) =>
+                              _SlotDropZone(
+                            isDragging: isDragging,
+                            isHovering: candidate.isNotEmpty,
+                            child: _EmptySlotRow(
+                              key: ValueKey('empty-slot-${type.name}'),
+                              icon: _mealIcons[type]!,
+                              onTap: () => _openAddPicker(context, ref, type),
+                              onPaste: clipboard != null
+                                  ? () => _pasteEntry(ref, type)
+                                  : null,
+                            ),
+                          ),
                         ),
                       ];
                     }
 
-                    return [
-                      _MealRow(
-                          entry: slotEntries.first,
-                          icon: _mealIcons[type]!,
-                          date: date),
-                      for (int i = 1; i < slotEntries.length; i++)
+                    final slotColumn = Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         _MealRow(
-                            entry: slotEntries[i],
+                            entry: slotEntries.first,
                             icon: _mealIcons[type]!,
-                            date: date,
-                            showIcon: false),
+                            date: date),
+                        for (int i = 1; i < slotEntries.length; i++)
+                          _MealRow(
+                              entry: slotEntries[i],
+                              icon: _mealIcons[type]!,
+                              date: date,
+                              showIcon: false),
+                      ],
+                    );
+                    final payload = SlotDragPayload(
+                      date: date,
+                      mealType: type,
+                      entries: slotEntries,
+                    );
+                    return [
+                      DragTarget<SlotDragPayload>(
+                        onAcceptWithDetails: (details) => _handleDrop(
+                            context, ref, details.data, type, slotEntries),
+                        builder: (ctx, candidate, rejected) => _SlotDropZone(
+                          isDragging: isDragging,
+                          isHovering: candidate.isNotEmpty,
+                          child: LongPressDraggable<SlotDragPayload>(
+                            data: payload,
+                            onDragStarted: () => ref
+                                .read(isDraggingSlotProvider.notifier)
+                                .value = true,
+                            onDragEnd: (_) => ref
+                                .read(isDraggingSlotProvider.notifier)
+                                .value = false,
+                            feedback: _SlotDragFeedback(child: slotColumn),
+                            childWhenDragging:
+                                Opacity(opacity: 0.35, child: slotColumn),
+                            child: slotColumn,
+                          ),
+                        ),
+                      ),
                       _AddMoreRow(
                         onTap: () => _openAddPicker(context, ref, type),
                         onPaste: clipboard != null
@@ -190,18 +327,45 @@ void _showPasteOrNewModal(
 class _CompactAddButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
+  final bool isHovering;
 
-  const _CompactAddButton({required this.icon, required this.onTap});
+  const _CompactAddButton({
+    super.key,
+    required this.icon,
+    required this.onTap,
+    this.isHovering = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return IconButton(
-      icon: Icon(icon, size: 22),
-      color: colorScheme.onSurface.withValues(alpha: 0.35),
-      onPressed: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      constraints: const BoxConstraints(),
+    final iconColor = isHovering
+        ? colorScheme.primary
+        : colorScheme.onSurface.withValues(alpha: 0.35);
+    final bgColor = isHovering
+        ? colorScheme.primary.withValues(alpha: 0.12)
+        : Colors.transparent;
+    final borderColor = isHovering
+        ? colorScheme.primary.withValues(alpha: 0.9)
+        : colorScheme.primary.withValues(alpha: 0.25);
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 120),
+      margin: const EdgeInsets.symmetric(horizontal: 2),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          width: isHovering ? 2 : 1,
+          color: borderColor,
+        ),
+      ),
+      child: IconButton(
+        icon: Icon(icon, size: 22),
+        color: iconColor,
+        onPressed: onTap,
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        constraints: const BoxConstraints(),
+      ),
     );
   }
 }
@@ -211,7 +375,8 @@ class _EmptySlotRow extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback? onPaste;
 
-  const _EmptySlotRow({required this.icon, required this.onTap, this.onPaste});
+  const _EmptySlotRow(
+      {super.key, required this.icon, required this.onTap, this.onPaste});
 
   @override
   Widget build(BuildContext context) {
@@ -256,6 +421,92 @@ class _MealRow extends ConsumerWidget {
     required this.date,
     this.showIcon = true,
   });
+
+  Future<void> _showContextMenu(
+    BuildContext context,
+    WidgetRef ref,
+    Offset globalPosition,
+    String? displayName,
+  ) async {
+    final size = MediaQuery.sizeOf(context);
+    final dx = globalPosition.dx;
+    final dy = globalPosition.dy;
+    final isRecipe = entry.recipeId != null;
+    final editLabel = isRecipe ? 'Rezept bearbeiten' : 'Bearbeiten';
+
+    final result = await showMenu<String>(
+      context: context,
+      position:
+          RelativeRect.fromLTRB(dx, dy, size.width - dx, size.height - dy),
+      items: [
+        PopupMenuItem(
+          value: 'edit',
+          child: _PopupRow(icon: Icons.edit_outlined, label: editLabel),
+        ),
+        if (isRecipe)
+          const PopupMenuItem(
+            value: 'navigate',
+            child: _PopupRow(
+              icon: Icons.menu_book_outlined,
+              label: 'Zum Rezept',
+            ),
+          ),
+        const PopupMenuDivider(),
+        const PopupMenuItem(
+          value: 'cut',
+          child: _PopupRow(icon: Icons.content_cut, label: 'Ausschneiden'),
+        ),
+        const PopupMenuItem(
+          value: 'copy',
+          child: _PopupRow(icon: Icons.content_copy, label: 'Kopieren'),
+        ),
+      ],
+    );
+    if (!context.mounted) return;
+    switch (result) {
+      case 'edit':
+        _openEditPicker(context, ref, displayName);
+      case 'navigate':
+        context.router.root
+            .push(ShowRecipeRoute(recipeId: entry.recipeId!));
+      case 'copy':
+        ref
+            .read(mealPlanClipboardProvider.notifier)
+            .copy(entry, displayName: displayName);
+      case 'cut':
+        ref
+            .read(mealPlanClipboardProvider.notifier)
+            .cut(entry, displayName: displayName);
+    }
+  }
+
+  void _openEditPicker(
+    BuildContext context,
+    WidgetRef ref,
+    String? displayName,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => WeekplanRecipePicker(
+        date: date,
+        mealType: entry.mealType,
+        initialLabel: displayName,
+        initialRecipeId: entry.recipeId,
+        initialCustomName: entry.customName,
+        initialCookIds: entry.cookIds,
+        onSelected: (recipeId, customName, cookIds) {
+          ref.read(mealPlanActionsProvider).updateEntry(
+                entry.id,
+                recipeId: recipeId,
+                customName: customName,
+                cookIds: cookIds,
+              );
+        },
+      ),
+    );
+  }
 
   Future<void> _showDeleteDialog(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
@@ -302,78 +553,11 @@ class _MealRow extends ConsumerWidget {
       opacity: isCut ? 0.4 : 1.0,
       child: GestureDetector(
         onTap: () {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            useSafeArea: true,
-            builder: (_) => WeekplanRecipePicker(
-              date: date,
-              mealType: entry.mealType,
-              initialLabel: displayName,
-              initialRecipeId: entry.recipeId,
-              initialCustomName: entry.customName,
-              initialCookIds: entry.cookIds,
-              onSelected: (recipeId, customName, cookIds) {
-                ref.read(mealPlanActionsProvider).updateEntry(
-                      entry.id,
-                      recipeId: recipeId,
-                      customName: customName,
-                      cookIds: cookIds,
-                    );
-              },
-            ),
-          );
-        },
-        onLongPressStart: (details) async {
-          final size = MediaQuery.sizeOf(context);
-          final dx = details.globalPosition.dx;
-          final dy = details.globalPosition.dy;
-          final result = await showMenu<String>(
-            context: context,
-            position: RelativeRect.fromLTRB(
-                dx, dy, size.width - dx, size.height - dy),
-            items: [
-              if (entry.recipeId != null)
-                PopupMenuItem(
-                  value: 'navigate',
-                  child: Row(children: [
-                    const Icon(Icons.menu_book_outlined, size: 16),
-                    const SizedBox(width: 8),
-                    const Text('Zum Rezept'),
-                  ]),
-                ),
-              PopupMenuItem(
-                value: 'copy',
-                child: Row(children: [
-                  const Icon(Icons.content_copy, size: 16),
-                  const SizedBox(width: 8),
-                  const Text('Kopieren'),
-                ]),
-              ),
-              PopupMenuItem(
-                value: 'cut',
-                child: Row(children: [
-                  const Icon(Icons.content_cut, size: 16),
-                  const SizedBox(width: 8),
-                  const Text('Ausschneiden'),
-                ]),
-              ),
-            ],
-          );
-          if (!context.mounted) return;
-          switch (result) {
-            case 'navigate':
-              context.router.root
-                  .push(ShowRecipeRoute(recipeId: entry.recipeId!));
-            case 'copy':
-              ref
-                  .read(mealPlanClipboardProvider.notifier)
-                  .copy(entry, displayName: displayName);
-            case 'cut':
-              ref
-                  .read(mealPlanClipboardProvider.notifier)
-                  .cut(entry, displayName: displayName);
-          }
+          final box = context.findRenderObject() as RenderBox?;
+          final position = box != null
+              ? box.localToGlobal(box.size.center(Offset.zero))
+              : Offset.zero;
+          _showContextMenu(context, ref, position, displayName);
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
@@ -459,6 +643,96 @@ class _AddMoreRow extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _SlotDropZone extends StatelessWidget {
+  final bool isDragging;
+  final bool isHovering;
+  final Widget child;
+
+  const _SlotDropZone({
+    required this.isDragging,
+    required this.isHovering,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final borderColor = !isDragging
+        ? Colors.transparent
+        : isHovering
+            ? colorScheme.primary.withValues(alpha: 0.9)
+            : colorScheme.primary.withValues(alpha: 0.25);
+    final bgColor = isHovering
+        ? colorScheme.primary.withValues(alpha: 0.08)
+        : Colors.transparent;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 120),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          width: isHovering ? 2 : 1,
+          color: borderColor,
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _SlotDragFeedback extends StatelessWidget {
+  final Widget child;
+  const _SlotDragFeedback({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Material(
+      color: Colors.transparent,
+      child: Transform.scale(
+        scale: 1.03,
+        child: Opacity(
+          opacity: 0.92,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 360),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x33000000),
+                  blurRadius: 16,
+                  offset: Offset(0, 6),
+                ),
+              ],
+            ),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PopupRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _PopupRow({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16),
+        const SizedBox(width: 8),
+        Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
+      ],
     );
   }
 }

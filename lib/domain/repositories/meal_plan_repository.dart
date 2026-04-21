@@ -22,4 +22,13 @@ abstract class MealPlanRepository {
   Future<void> removeEntry(String localId);
 
   Future<void> setCookIds(String localId, List<String> cookIds);
+
+  /// Relocates an entry to a new (date, mealType) slot. Returns `true` when
+  /// the entry was moved, `false` when no entry with [localId] exists —
+  /// callers can surface a conflict hint in that case.
+  Future<bool> moveEntry(
+    String localId, {
+    required DateTime date,
+    required MealType mealType,
+  });
 }

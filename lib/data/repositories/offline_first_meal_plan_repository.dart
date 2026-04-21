@@ -86,6 +86,24 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
     await _dao.markAsDeleted(localId);
   }
 
+  @override
+  Future<bool> moveEntry(
+    String localId, {
+    required DateTime date,
+    required MealType mealType,
+  }) async {
+    final existing = await _dao.getEntryByLocalId(localId);
+    if (existing == null) return false;
+
+    await _dao.moveEntry(
+      localId,
+      date: _dateToString(date),
+      mealType: mealType.value,
+      keepPendingCreate: existing.remoteId == null,
+    );
+    return true;
+  }
+
   // ── Helpers ──────────────────────────────────────────────────────────────
 
   MealPlanEntry _toEntity(LocalMealPlanEntry row) {

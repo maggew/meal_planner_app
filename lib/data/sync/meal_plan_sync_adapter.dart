@@ -102,15 +102,7 @@ class MealPlanSyncAdapter implements SyncAdapter {
         if (row.remoteId == null) return;
         await _supabase
             .from(SupabaseConstants.mealPlanEntriesTable)
-            .update({
-              SupabaseConstants.mealPlanEntryRecipeId:
-                  row.recipeId.isEmpty ? null : row.recipeId,
-              SupabaseConstants.mealPlanEntryCustomName: row.customName,
-              SupabaseConstants.mealPlanEntryCookIds:
-                  _decodeCookIds(row.cookIdsJson),
-              SupabaseConstants.mealPlanEntryUpdatedAt:
-                  row.updatedAt.toIso8601String(),
-            })
+            .update(buildUpdatePayload(row))
             .eq(SupabaseConstants.mealPlanEntryId, row.remoteId!);
 
       case 'pendingDelete':
@@ -192,6 +184,23 @@ class MealPlanSyncAdapter implements SyncAdapter {
     }).toList();
 
     await _dao.replaceAllSynced(_groupId, yearMonth, companions);
+  }
+
+  /// Builds the Supabase update body for a pending-update row. Extracted so
+  /// the exact shape can be unit-tested without mocking Supabase's fluent
+  /// query API.
+  @visibleForTesting
+  static Map<String, dynamic> buildUpdatePayload(LocalMealPlanEntry row) {
+    return {
+      SupabaseConstants.mealPlanEntryRecipeId:
+          row.recipeId.isEmpty ? null : row.recipeId,
+      SupabaseConstants.mealPlanEntryCustomName: row.customName,
+      SupabaseConstants.mealPlanEntryDate: row.date,
+      SupabaseConstants.mealPlanEntryMealType: row.mealType,
+      SupabaseConstants.mealPlanEntryCookIds: _decodeCookIds(row.cookIdsJson),
+      SupabaseConstants.mealPlanEntryUpdatedAt:
+          row.updatedAt.toIso8601String(),
+    };
   }
 
   static List<String> _decodeCookIds(String? json) {

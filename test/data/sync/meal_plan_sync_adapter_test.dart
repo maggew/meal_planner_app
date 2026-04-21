@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/core/database/app_database.dart';
 import 'package:meal_planner/core/database/daos/meal_plan_dao.dart';
 import 'package:meal_planner/data/sync/meal_plan_sync_adapter.dart';
@@ -134,6 +135,65 @@ void main() {
       () => adapter.pullSince(null, const FullScope()),
       throwsArgumentError,
     );
+  });
+
+  group('buildUpdatePayload', () {
+    test('includes date and meal_type so drag-moves propagate to Supabase',
+        () {
+      // Regression: when the user drags a meal slot to a new date or meal
+      // type, the DAO flags the row pendingUpdate with the new date/mealType,
+      // but the Supabase UPDATE body used to omit both fields. The move was
+      // then invisible to other devices and got reverted on the next
+      // month-pull. The payload must carry date + meal_type.
+      final row = _row(
+        localId: 'x',
+        remoteId: 'remote-x',
+        date: '2026-04-20',
+        mealType: 'dinner',
+        syncStatus: 'pendingUpdate',
+      );
+
+      final payload = MealPlanSyncAdapter.buildUpdatePayload(row);
+
+      expect(payload[SupabaseConstants.mealPlanEntryDate], '2026-04-20');
+      expect(payload[SupabaseConstants.mealPlanEntryMealType], 'dinner');
+    });
+
+    test('carries recipe/customName/cookIds/updatedAt as before', () {
+      final row = _row(
+        localId: 'x',
+        remoteId: 'remote-x',
+        recipeId: 'r42',
+        customName: null,
+        cookIdsJson: '["u1","u2"]',
+        syncStatus: 'pendingUpdate',
+      );
+
+      final payload = MealPlanSyncAdapter.buildUpdatePayload(row);
+
+      expect(payload[SupabaseConstants.mealPlanEntryRecipeId], 'r42');
+      expect(payload[SupabaseConstants.mealPlanEntryCustomName], isNull);
+      expect(payload[SupabaseConstants.mealPlanEntryCookIds], ['u1', 'u2']);
+      expect(
+        payload[SupabaseConstants.mealPlanEntryUpdatedAt],
+        row.updatedAt.toIso8601String(),
+      );
+    });
+
+    test('maps empty recipeId to null (free-text entry)', () {
+      final row = _row(
+        localId: 'x',
+        remoteId: 'remote-x',
+        recipeId: '',
+        customName: 'Pizza',
+        syncStatus: 'pendingUpdate',
+      );
+
+      final payload = MealPlanSyncAdapter.buildUpdatePayload(row);
+
+      expect(payload[SupabaseConstants.mealPlanEntryRecipeId], isNull);
+      expect(payload[SupabaseConstants.mealPlanEntryCustomName], 'Pizza');
+    });
   });
 
   group('applyRemote (without prior pullSince)', () {

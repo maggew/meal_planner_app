@@ -1,4 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/domain/entities/slot_drag_payload.dart';
+import 'package:meal_planner/services/providers/meal_plan/slot_drag_provider.dart';
 
 class WeekplanWeekStrip extends StatelessWidget {
   final DateTime weekStart; // always a Monday
@@ -53,8 +58,8 @@ class WeekplanWeekStrip extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.chevron_left),
+          _DwellChevron(
+            icon: Icons.chevron_left,
             onPressed: onPreviousWeek,
           ),
           Expanded(
@@ -153,11 +158,87 @@ class WeekplanWeekStrip extends StatelessWidget {
               ),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.chevron_right),
+          _DwellChevron(
+            icon: Icons.chevron_right,
             onPressed: onNextWeek,
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Chevron that fires [onPressed] on a normal tap and also repeatedly while
+/// a meal-slot drag hovers over it: the first fire lands after
+/// [dwellDuration], subsequent fires follow every [dwellDuration] for as
+/// long as the pointer stays. Leaving the chevron cancels the cycle;
+/// re-entering starts a fresh countdown.
+class _DwellChevron extends ConsumerStatefulWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+  final Duration dwellDuration;
+
+  const _DwellChevron({
+    required this.icon,
+    required this.onPressed,
+    this.dwellDuration = const Duration(seconds: 1),
+  });
+
+  @override
+  ConsumerState<_DwellChevron> createState() => _DwellChevronState();
+}
+
+class _DwellChevronState extends ConsumerState<_DwellChevron> {
+  Timer? _dwellTimer;
+  bool _isHovering = false;
+
+  @override
+  void dispose() {
+    _dwellTimer?.cancel();
+    super.dispose();
+  }
+
+  void _onEnter() {
+    if (_dwellTimer != null) return;
+    setState(() => _isHovering = true);
+    ref.read(isHoveringChevronProvider.notifier).value = true;
+    _dwellTimer = Timer.periodic(widget.dwellDuration, (_) {
+      widget.onPressed();
+    });
+  }
+
+  void _onLeave() {
+    _dwellTimer?.cancel();
+    _dwellTimer = null;
+    if (_isHovering) {
+      setState(() => _isHovering = false);
+    }
+    ref.read(isHoveringChevronProvider.notifier).value = false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return DragTarget<SlotDragPayload>(
+      onWillAcceptWithDetails: (_) => false,
+      onMove: (_) => _onEnter(),
+      onLeave: (_) => _onLeave(),
+      builder: (_, __, ___) => AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: _isHovering
+              ? colorScheme.primary.withValues(alpha: 0.18)
+              : Colors.transparent,
+          border: _isHovering
+              ? Border.all(color: colorScheme.primary, width: 2)
+              : null,
+        ),
+        child: IconButton(
+          icon: Icon(widget.icon),
+          color: _isHovering ? colorScheme.primary : null,
+          onPressed: widget.onPressed,
+        ),
       ),
     );
   }

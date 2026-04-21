@@ -59,6 +59,18 @@ class MealPlanActionsNotifier {
   Future<void> setCookIds(String localId, List<String> cookIds) async {
     await _ref.read(mealPlanRepositoryProvider).setCookIds(localId, cookIds);
   }
+
+  Future<bool> moveEntry(
+    String localId, {
+    required DateTime date,
+    required MealType mealType,
+  }) {
+    return _ref.read(mealPlanRepositoryProvider).moveEntry(
+          localId,
+          date: date,
+          mealType: mealType,
+        );
+  }
 }
 
 // Recipe name lookup via repository (cache-first, remote fallback).

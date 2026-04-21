@@ -3,10 +3,12 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/domain/enums/week_start_day.dart';
+import 'package:meal_planner/presentation/detailed_weekplan/drag/auto_scroll_while_dragging.dart';
 import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_day_card.dart';
 import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_week_list.dart';
 import 'package:meal_planner/presentation/detailed_weekplan/widgets/weekplan_week_strip.dart';
 import 'package:meal_planner/services/providers/meal_plan/meal_plan_provider.dart';
+import 'package:meal_planner/services/providers/meal_plan/slot_drag_provider.dart';
 import 'package:meal_planner/services/providers/sync/sync_providers.dart';
 import 'package:meal_planner/domain/entities/group_settings.dart';
 import 'package:meal_planner/services/providers/user/group_settings_provider.dart';
@@ -21,11 +23,32 @@ class WeekplanBody extends ConsumerStatefulWidget {
 class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
   late DateTime _weekStart;
   final _scrollController = ScrollController();
-  final _dayKeys = List.generate(7, (_) => GlobalKey());
+  // Per-week day keys: during an AnimatedSwitcher week transition both the
+  // outgoing and incoming WeekplanWeekList are briefly mounted, so sharing
+  // one GlobalKey list between them triggers "Duplicate GlobalKeys" on the
+  // frame the new week is pushed.
+  final Map<DateTime, List<GlobalKey>> _dayKeysByWeek = {};
   final _contentKey = GlobalKey();
+
+  List<GlobalKey> _keysForWeek(DateTime weekStart) {
+    return _dayKeysByWeek.putIfAbsent(
+      weekStart,
+      () => List.generate(7, (_) => GlobalKey()),
+    );
+  }
   bool _hasScrolledToToday = false;
   bool _isProgrammaticScroll = false;
   DateTime? _selectedDay = DateTime.now();
+  // true if the most recent week change moved forward (next week). Drives
+  // the slide-transition direction: next → new content enters from the
+  // right, prev → from the left.
+  bool _isForwardSlide = true;
+  // When a dwell-driven week change happens mid-drag, AnimatedSwitcher
+  // would destroy the LongPressDraggable source inside WeekplanWeekList
+  // and leak drag state (the pointer-up callback never fires because the
+  // draggable is gone). Freezing the switcher's key for the drag duration
+  // keeps the widget tree alive so onDragEnd still runs on release.
+  DateTime? _frozenWeekKey;
 
   @override
   void initState() {
@@ -57,7 +80,7 @@ class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
 
   void _scrollToDayIndex(int index) {
     if (!_scrollController.hasClients) return;
-    final dayCtx = _dayKeys[index].currentContext;
+    final dayCtx = _keysForWeek(_weekStart)[index].currentContext;
     if (dayCtx == null) return;
     final contentCtx = _contentKey.currentContext;
     if (contentCtx == null) return;
@@ -91,8 +114,9 @@ class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
     final scrollOffset = _scrollController.offset;
     final days = List.generate(7, (i) => _weekStart.add(Duration(days: i)));
     DateTime? topDay;
-    for (int i = 0; i < _dayKeys.length; i++) {
-      final dayCtx = _dayKeys[i].currentContext;
+    final weekKeys = _keysForWeek(_weekStart);
+    for (int i = 0; i < weekKeys.length; i++) {
+      final dayCtx = weekKeys[i].currentContext;
       if (dayCtx == null) continue;
       final dayBox = dayCtx.findRenderObject() as RenderBox?;
       if (dayBox == null) continue;
@@ -146,6 +170,41 @@ class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
     super.dispose();
   }
 
+  Widget _buildWeekSlideTransition(Widget child, Animation<double> animation) {
+    final key = child.key;
+    final incomingDate = key is ValueKey<DateTime> ? key.value : null;
+    final isIncoming = incomingDate == _weekStart;
+    final sign = _isForwardSlide ? 1.0 : -1.0;
+    // Incoming slides from +sign*1 → 0; outgoing slides from 0 → -sign*1
+    // (i.e., the opposite side). Both tweens resolve to Offset.zero at
+    // animation.value == 1, which matches AnimatedSwitcher's start state
+    // for the outgoing child.
+    final tween = isIncoming
+        ? Tween<Offset>(begin: Offset(sign, 0), end: Offset.zero)
+        : Tween<Offset>(begin: Offset(-sign, 0), end: Offset.zero);
+    return ClipRect(
+      child: SlideTransition(
+        position: tween.animate(animation),
+        child: child,
+      ),
+    );
+  }
+
+  static Widget _stackedLayoutBuilder(
+    Widget? currentChild,
+    List<Widget> previousChildren,
+  ) {
+    // Top-align stacked weeks so the transition doesn't vertically recentre
+    // when old and new content have slightly different heights.
+    return Stack(
+      alignment: Alignment.topCenter,
+      children: [
+        ...previousChildren,
+        if (currentChild != null) currentChild,
+      ],
+    );
+  }
+
   static DateTime _weekStartOf(DateTime date, WeekStartDay weekStartDay) {
     return switch (weekStartDay) {
       WeekStartDay.monday => date.subtract(Duration(days: date.weekday - 1)),
@@ -155,14 +214,20 @@ class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
 
   void _onPreviousWeek() {
     final newWeekStart = _weekStart.subtract(const Duration(days: 7));
-    setState(() => _weekStart = newWeekStart);
+    setState(() {
+      _isForwardSlide = false;
+      _weekStart = newWeekStart;
+    });
     _syncForWeek(newWeekStart);
     _afterWeekChanged(newWeekStart);
   }
 
   void _onNextWeek() {
     final newWeekStart = _weekStart.add(const Duration(days: 7));
-    setState(() => _weekStart = newWeekStart);
+    setState(() {
+      _isForwardSlide = true;
+      _weekStart = newWeekStart;
+    });
     _syncForWeek(newWeekStart);
     _afterWeekChanged(newWeekStart);
   }
@@ -192,6 +257,14 @@ class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
       }
     });
 
+    // Freeze the AnimatedSwitcher key for the duration of a drag so dwell
+    // navigation doesn't unmount the LongPressDraggable source.
+    ref.listen<bool>(isDraggingSlotProvider, (_, isDragging) {
+      setState(() {
+        _frozenWeekKey = isDragging ? _weekStart : null;
+      });
+    });
+
     // Scroll to today once all day-streams have emitted their first value.
     final days = List.generate(7, (i) => _weekStart.add(Duration(days: i)));
     for (final day in days) {
@@ -206,7 +279,11 @@ class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
       });
     }
 
-    return Column(
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerUp: _safetyClearDragState,
+      onPointerCancel: _safetyClearDragState,
+      child: Column(
       children: [
         ClipRect(
           child: BackdropFilter(
@@ -225,27 +302,51 @@ class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
             ),
           ),
         ),
-        Expanded(
+          Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              return SingleChildScrollView(
+              return AutoScrollWhileDragging(
                 controller: _scrollController,
-                child: Column(
-                  key: _contentKey,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    WeekplanWeekList(
-                      weekStart: _weekStart,
-                      dayKeys: _dayKeys,
-                    ),
-                    SizedBox(height: constraints.maxHeight - WeekplanDayCard.minHeight),
-                  ],
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  child: Column(
+                    key: _contentKey,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 280),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeInCubic,
+                        transitionBuilder: _buildWeekSlideTransition,
+                        layoutBuilder: _stackedLayoutBuilder,
+                        child: KeyedSubtree(
+                          key: ValueKey(_frozenWeekKey ?? _weekStart),
+                          child: WeekplanWeekList(
+                            weekStart: _weekStart,
+                            dayKeys: _keysForWeek(_weekStart),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: constraints.maxHeight - WeekplanDayCard.minHeight),
+                    ],
+                  ),
                 ),
               );
             },
           ),
         ),
       ],
+      ),
     );
+  }
+
+  void _safetyClearDragState(PointerEvent _) {
+    if (!ref.read(isDraggingSlotProvider)) return;
+    // A pointer came up while the drag flag is still true: the
+    // LongPressDraggable's onDragEnd callback missed this release (usually
+    // because its source was unmounted mid-drag). Force-clean both flags so
+    // the UI doesn't stay pinned in drag mode with orange hover borders.
+    ref.read(isDraggingSlotProvider.notifier).value = false;
+    ref.read(isHoveringChevronProvider.notifier).value = false;
   }
 }

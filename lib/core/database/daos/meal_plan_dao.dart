@@ -112,6 +112,26 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
     ));
   }
 
+  /// Relocates an entry to a new slot (date + mealType). Leaves recipeId,
+  /// customName and cookIdsJson untouched so callers can drag entire slots
+  /// without having to round-trip the payload fields.
+  Future<void> moveEntry(
+    String localId, {
+    required String date,
+    required String mealType,
+    bool keepPendingCreate = false,
+  }) {
+    return (update(localMealPlanEntries)
+          ..where((t) => t.localId.equals(localId)))
+        .write(LocalMealPlanEntriesCompanion(
+      date: Value(date),
+      mealType: Value(mealType),
+      syncStatus:
+          Value(keepPendingCreate ? 'pendingCreate' : 'pendingUpdate'),
+      updatedAt: Value(DateTime.now()),
+    ));
+  }
+
   /// Converts all meal plan entries that reference [recipeId] to free-text
   /// entries, preserving [recipeName] as [customName].
   /// Keeps syncStatus 'pendingCreate' for unsynced entries; sets
