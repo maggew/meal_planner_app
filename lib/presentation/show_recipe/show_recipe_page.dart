@@ -6,6 +6,7 @@ import 'package:meal_planner/domain/entities/active_timer.dart';
 import 'package:meal_planner/domain/entities/cooking_recipe_entry.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
+import 'package:meal_planner/presentation/common/adaptive_appbar_title.dart';
 import 'package:meal_planner/presentation/common/app_background.dart';
 import 'package:meal_planner/presentation/common/common_appbar.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode_recipe_tab_bar.dart';
@@ -304,27 +305,23 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
         titleWidget: isMultiMode
             ? AnimatedSwitcher(
                 duration: const Duration(milliseconds: 250),
-                child: Text(
-                  session.recipes
+                child: AdaptiveAppBarTitle(
+                  key: ValueKey(session.currentRecipeId),
+                  text: session.recipes
                           .where(
                               (e) => e.recipeId == session.currentRecipeId)
                           .firstOrNull
                           ?.recipeName ??
                       _recipe!.name,
-                  key: ValueKey(session.currentRecipeId),
-                  overflow: TextOverflow.fade,
                 ),
               )
-            : null,
+            : AdaptiveAppBarTitle(text: _recipe!.name),
         actionsButtons: [
-          if (!isMultiMode) ...[
-            IconButton(
-              icon: const Icon(Icons.add),
-              tooltip: 'Rezept hinzufügen',
-              onPressed: _onAddRecipe,
+          if (!isMultiMode)
+            ShowRecipeAppBarActions(
+              recipe: _recipe!,
+              onAddRecipe: _onAddRecipe,
             ),
-            ShowRecipeAppBarActions(recipe: _recipe!),
-          ],
         ],
       ),
       scaffoldBottomNavigationBar: isMultiMode

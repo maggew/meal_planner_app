@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:meal_planner/presentation/common/sync_status_indicator.dart';
 
 class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
+  static const double _toolbarHeight = 60;
+
   final String title;
   final Widget? titleWidget;
   final Widget? leading;
@@ -29,7 +31,7 @@ class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
 
     return AppBar(
       surfaceTintColor: Colors.transparent,
-      toolbarHeight: 80,
+      toolbarHeight: _toolbarHeight,
       leading: leading,
       automaticallyImplyLeading: automaticallyImplyLeading,
       elevation: 0,
@@ -44,5 +46,5 @@ class CommonAppbar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(_toolbarHeight);
 }
