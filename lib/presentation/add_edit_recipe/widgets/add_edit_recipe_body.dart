@@ -18,6 +18,7 @@ import 'package:meal_planner/services/providers/groups/group_category_provider.d
 import 'package:meal_planner/services/providers/image_manager_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_edit_recipe_ingredients_provider.dart';
 import 'package:meal_planner/services/providers/recipe/add_recipe_provider.dart';
+import 'package:meal_planner/presentation/add_edit_recipe/widgets/ingredients/ingredient_reorder_auto_scroll.dart';
 import 'package:meal_planner/services/providers/recipe/carb_tag_selection_provider.dart';
 import 'package:meal_planner/services/providers/session_provider.dart';
 
@@ -34,6 +35,8 @@ class AddEditRecipeBody extends ConsumerStatefulWidget {
 }
 
 class AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
+  late final ScrollController _scrollController;
+  final _ingredientsKey = GlobalKey();
   late final TextEditingController _recipeNameController;
   late final TextEditingController _recipeInstructionsController;
   late final AddEditRecipeIngredientsProvider ingredientsProvider;
@@ -47,6 +50,7 @@ class AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
     _imageManagerNotifier = ref.read(imageManagerProvider.notifier);
     _categoriesNotifier = ref.read(selectedCategoriesProvider.notifier);
     _portionsNotifier = ref.read(selectedPortionsProvider.notifier);
@@ -95,7 +99,11 @@ class AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
       sessionProvider.select((s) => s.group?.settings.showCarbTags ?? true),
     );
 
-    return SingleChildScrollView(
+    return IngredientReorderAutoScroll(
+      scrollController: _scrollController,
+      scrollLimitKey: _ingredientsKey,
+      builder: (isDragging) => SingleChildScrollView(
+      controller: _scrollController,
       padding: EdgeInsets.fromLTRB(0, 20, 0, 100),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,10 +121,12 @@ class AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
             child: AddEditRecipePortionSelection(),
           ),
           GlassCard(
+            key: _ingredientsKey,
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: AddEditRecipeIngredientsWidget(
               ingredientsProvider: ingredientsProvider,
               currentRecipeId: widget.existingRecipe?.id,
+              isDragging: isDragging,
             ),
           ),
           GlassCard(
@@ -143,6 +153,7 @@ class AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
           ),
         ],
       ),
+    ),
     );
   }
 
@@ -232,6 +243,7 @@ class AddEditRecipeBodyState extends ConsumerState<AddEditRecipeBody> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _recipeNameController.dispose();
     _recipeInstructionsController.dispose();
     // Beim Abbrechen: hochgeladenes Foto aus Firebase Storage löschen.

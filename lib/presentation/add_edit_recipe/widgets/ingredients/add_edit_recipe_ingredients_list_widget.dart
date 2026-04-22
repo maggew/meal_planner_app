@@ -16,8 +16,9 @@ import 'package:meal_planner/services/providers/repository_providers.dart';
 class AddEditRecipeIngredientsListWidget extends ConsumerWidget {
   final AddEditRecipeIngredientsProvider ingredientsProvider;
   final String? currentRecipeId;
+  final ValueNotifier<bool>? isDragging;
   const AddEditRecipeIngredientsListWidget(
-      {super.key, required this.ingredientsProvider, this.currentRecipeId});
+      {super.key, required this.ingredientsProvider, this.currentRecipeId, this.isDragging});
 
   Future<void> _showRecipeLinkDialog(BuildContext context, WidgetRef ref) async {
     final state = ref.read(ingredientsProvider);
@@ -79,6 +80,8 @@ class AddEditRecipeIngredientsListWidget extends ConsumerWidget {
             primary: false,
             itemCount: listLength,
             buildDefaultDragHandles: false,
+            onReorderStart: (_) => isDragging?.value = true,
+            onReorderEnd: (_) => isDragging?.value = false,
             proxyDecorator: (child, index, animation) {
               return AnimatedBuilder(
                 animation: animation,

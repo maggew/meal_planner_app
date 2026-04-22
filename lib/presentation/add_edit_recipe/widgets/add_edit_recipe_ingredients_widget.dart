@@ -8,10 +8,12 @@ import 'package:meal_planner/services/providers/recipe/recipe_analysis_provider.
 class AddEditRecipeIngredientsWidget extends ConsumerWidget {
   final AddEditRecipeIngredientsProvider ingredientsProvider;
   final String? currentRecipeId;
+  final ValueNotifier<bool>? isDragging;
   const AddEditRecipeIngredientsWidget({
     super.key,
     required this.ingredientsProvider,
     this.currentRecipeId,
+    this.isDragging,
   });
 
   @override
@@ -113,6 +115,7 @@ class AddEditRecipeIngredientsWidget extends ConsumerWidget {
         AddEditRecipeIngredientsListWidget(
           ingredientsProvider: ingredientsProvider,
           currentRecipeId: currentRecipeId,
+          isDragging: isDragging,
         ),
       ],
     );
