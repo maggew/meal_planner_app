@@ -19,7 +19,7 @@ class AutoScrollWhileDragging extends ConsumerStatefulWidget {
     required this.controller,
     required this.child,
     this.edgeSize = 80,
-    this.maxSpeed = 8,
+    this.maxSpeed = 14,
   });
 
   final ScrollController controller;
