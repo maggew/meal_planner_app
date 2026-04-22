@@ -78,7 +78,7 @@ class _AddEditRecipeSectionHeaderItemState
     return AnimatedContainer(
       duration: AppDimensions.animationDuration,
       decoration: BoxDecoration(
-        color: colorScheme.secondaryContainer,
+        color: colorScheme.primary,
         borderRadius: borderRadius,
       ),
       child: Row(
@@ -98,7 +98,7 @@ class _AddEditRecipeSectionHeaderItemState
                       widget.titleController.text,
                       textAlign: TextAlign.center,
                       style: textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSecondaryContainer,
+                        color: colorScheme.onPrimary,
                       ),
                     ),
                   ),
@@ -107,23 +107,23 @@ class _AddEditRecipeSectionHeaderItemState
             IconButton(
                 key: const ValueKey("confirm"),
                 onPressed: widget.onConfirmPressed,
-                icon: Icon(Icons.check, color: colorScheme.onSecondaryContainer)),
+                icon: Icon(Icons.check, color: colorScheme.onPrimary)),
           ] else ...[
             if (!widget.isFirstSection) ...[
               IconButton(
                   key: const ValueKey("delete"),
                   onPressed: widget.onDeletePressed,
-                  icon: Icon(Icons.delete, color: colorScheme.onSecondaryContainer)),
+                  icon: Icon(Icons.delete, color: colorScheme.onPrimary)),
             ],
             IconButton(
                 key: const ValueKey("edit"),
                 onPressed: widget.onEditPressed,
-                icon: Icon(Icons.edit, color: colorScheme.onSecondaryContainer)),
+                icon: Icon(Icons.edit, color: colorScheme.onPrimary)),
             if (widget.onMoveUpPressed != null ||
                 widget.onMoveDownPressed != null)
               PopupMenuButton<String>(
                 icon: Icon(Icons.swap_vert,
-                    color: colorScheme.onSecondaryContainer),
+                    color: colorScheme.onPrimary),
                 padding: EdgeInsets.zero,
                 onSelected: (value) {
                   if (value == 'up') widget.onMoveUpPressed?.call();
