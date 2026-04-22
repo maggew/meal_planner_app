@@ -18,8 +18,9 @@ class LegalSection extends StatelessWidget {
       children: [
         Text(
           'Rechtliches',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 color: colorScheme.onSurface,
+                fontWeight: FontWeight.w700,
               ),
         ),
         const SizedBox(height: 8),

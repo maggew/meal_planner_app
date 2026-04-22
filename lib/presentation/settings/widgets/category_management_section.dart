@@ -31,9 +31,10 @@ class CategoryManagementSection extends StatefulWidget {
 class _CategoryManagementSectionState
     extends State<CategoryManagementSection> {
   Future<void> _showAddDialog() async {
-    final result = await showDialog<({String name, String? iconName})>(
+    final result = await showModalBottomSheet<({String name, String? iconName})>(
       context: context,
-      builder: (context) => const _CategoryFormDialog(
+      isScrollControlled: true,
+      builder: (ctx) => const _CategoryFormSheet(
         title: 'Kategorie hinzufügen',
         confirmLabel: 'Hinzufügen',
       ),
@@ -62,7 +63,10 @@ class _CategoryManagementSectionState
       children: [
         Text(
           'Kategorien',
-          style: Theme.of(context).textTheme.titleMedium,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.w700,
+              ),
         ),
         const SizedBox(height: 8),
         ReorderableListView.builder(
@@ -70,6 +74,12 @@ class _CategoryManagementSectionState
           physics: const NeverScrollableScrollPhysics(),
           itemCount: widget.categories.length,
           onReorder: widget.isEditing ? _onReorder : (_, __) {},
+          proxyDecorator: (child, index, animation) => Material(
+            elevation: 4,
+            borderRadius: BorderRadius.circular(12),
+            clipBehavior: Clip.antiAlias,
+            child: child,
+          ),
           itemBuilder: (context, index) => _CategoryTile(
             key: ValueKey(widget.categories[index].id),
             category: widget.categories[index],
@@ -92,16 +102,16 @@ class _CategoryManagementSectionState
 }
 
 // ---------------------------------------------------------------------------
-// Icon-Picker Dialog
+// Icon-Picker Bottom Sheet
 // ---------------------------------------------------------------------------
 
-class _CategoryFormDialog extends StatefulWidget {
+class _CategoryFormSheet extends StatefulWidget {
   final String title;
   final String confirmLabel;
   final String initialName;
   final String? initialIconName;
 
-  const _CategoryFormDialog({
+  const _CategoryFormSheet({
     required this.title,
     required this.confirmLabel,
     this.initialName = '',
@@ -109,10 +119,10 @@ class _CategoryFormDialog extends StatefulWidget {
   });
 
   @override
-  State<_CategoryFormDialog> createState() => _CategoryFormDialogState();
+  State<_CategoryFormSheet> createState() => _CategoryFormSheetState();
 }
 
-class _CategoryFormDialogState extends State<_CategoryFormDialog> {
+class _CategoryFormSheetState extends State<_CategoryFormSheet> {
   late final TextEditingController _controller;
   String? _selectedIconName;
 
@@ -132,28 +142,36 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
-    return AlertDialog(
-      title: Text(widget.title),
-      content: Column(
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+          24, 24, 24, 16 + MediaQuery.viewInsetsOf(context).bottom),
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(widget.title, style: textTheme.titleLarge),
+          const SizedBox(height: 20),
           TextField(
             controller: _controller,
             autofocus: widget.initialName.isEmpty,
-            decoration: const InputDecoration(hintText: 'Kategoriename'),
+            decoration: const InputDecoration(
+              labelText: 'Name',
+              border: OutlineInputBorder(),
+            ),
             textCapitalization: TextCapitalization.sentences,
             inputFormatters: [LengthLimitingTextInputFormatter(50)],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Text(
             'Icon',
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
+            style: textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -167,40 +185,51 @@ class _CategoryFormDialogState extends State<_CategoryFormDialog> {
                   height: 44,
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? colorScheme.primaryContainer
+                        ? colorScheme.primary
                         : colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(10),
                     border: isSelected
-                        ? Border.all(color: colorScheme.primary, width: 2)
-                        : null,
+                        ? null
+                        : Border.all(
+                            color: colorScheme.outline.withValues(alpha: 0.3),
+                          ),
                   ),
                   child: Icon(
                     entry.value,
                     size: 24,
                     color: isSelected
-                        ? colorScheme.onPrimaryContainer
+                        ? colorScheme.onPrimary
                         : colorScheme.onSurface,
                   ),
                 ),
               );
             }).toList(),
           ),
+          const SizedBox(height: 24),
+          Row(
+            spacing: 12,
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Abbrechen'),
+                ),
+              ),
+              Expanded(
+                child: FilledButton(
+                  onPressed: () {
+                    final name = _controller.text.trim();
+                    if (name.isEmpty) return;
+                    Navigator.pop(
+                        context, (name: name, iconName: _selectedIconName));
+                  },
+                  child: Text(widget.confirmLabel),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Abbrechen'),
-        ),
-        TextButton(
-          onPressed: () {
-            final name = _controller.text.trim();
-            if (name.isEmpty) return;
-            Navigator.pop(context, (name: name, iconName: _selectedIconName));
-          },
-          child: Text(widget.confirmLabel),
-        ),
-      ],
     );
   }
 }
@@ -227,15 +256,10 @@ class _CategoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: isEditing
-          ? ReorderableDragStartListener(
-              index: index,
-              child: const Icon(Icons.drag_handle_outlined),
-            )
-          : const Icon(Icons.drag_handle_outlined,
-              color: Colors.transparent),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 5),
       title: Row(
         children: [
           Icon(
@@ -249,16 +273,25 @@ class _CategoryTile extends StatelessWidget {
       trailing: isEditing
           ? Row(
               mainAxisSize: MainAxisSize.min,
+              spacing: 4,
               children: [
                 IconButton(
                   icon: const Icon(Icons.edit_outlined),
                   tooltip: 'Bearbeiten',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                   onPressed: () => _showEditDialog(context),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
                   tooltip: 'Löschen',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                   onPressed: () => _showDeleteDialog(context),
+                ),
+                ReorderableDragStartListener(
+                  index: index,
+                  child: const Icon(Icons.drag_handle_outlined),
                 ),
               ],
             )
@@ -267,9 +300,10 @@ class _CategoryTile extends StatelessWidget {
   }
 
   Future<void> _showEditDialog(BuildContext context) async {
-    final result = await showDialog<({String name, String? iconName})>(
+    final result = await showModalBottomSheet<({String name, String? iconName})>(
       context: context,
-      builder: (context) => _CategoryFormDialog(
+      isScrollControlled: true,
+      builder: (ctx) => _CategoryFormSheet(
         title: 'Kategorie bearbeiten',
         confirmLabel: 'Speichern',
         initialName: category.name,

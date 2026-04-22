@@ -172,28 +172,35 @@ class _GroupSettingsSectionState extends ConsumerState<GroupSettingsSection> {
               ),
               const Spacer(),
               if (_isEditing) ...[
-                IconButton(
+                InkWell(
                   key: const ValueKey('cancel'),
-                  icon: const Icon(Icons.close, size: 18),
-                  visualDensity: VisualDensity.compact,
-                  tooltip: 'Abbrechen',
-                  onPressed: _isSaving ? null : _cancelEditing,
+                  onTap: _isSaving ? null : _cancelEditing,
+                  borderRadius: BorderRadius.circular(4),
+                  child: Tooltip(
+                    message: 'Abbrechen',
+                    child: Icon(Icons.close, size: 18, color: colorScheme.onSurface),
+                  ),
                 ),
-                IconButton(
+                const SizedBox(width: 12),
+                InkWell(
                   key: const ValueKey('save'),
-                  icon: const Icon(Icons.save_outlined, size: 18),
-                  visualDensity: VisualDensity.compact,
-                  tooltip: 'Speichern',
-                  onPressed: _isSaving ? null : _save,
+                  onTap: _isSaving ? null : _save,
+                  borderRadius: BorderRadius.circular(4),
+                  child: Tooltip(
+                    message: 'Speichern',
+                    child: Icon(Icons.save_outlined, size: 18, color: colorScheme.onSurface),
+                  ),
                 ),
               ] else
                 isOnline
-                    ? IconButton(
+                    ? InkWell(
                         key: const ValueKey('edit'),
-                        icon: const Icon(Icons.edit_outlined, size: 18),
-                        visualDensity: VisualDensity.compact,
-                        tooltip: 'Bearbeiten',
-                        onPressed: _startEditing,
+                        onTap: _startEditing,
+                        borderRadius: BorderRadius.circular(4),
+                        child: Tooltip(
+                          message: 'Bearbeiten',
+                          child: Icon(Icons.edit_outlined, size: 18, color: colorScheme.onSurface),
+                        ),
                       )
                     : Icon(
                         Icons.cloud_off_outlined,
@@ -212,6 +219,7 @@ class _GroupSettingsSectionState extends ConsumerState<GroupSettingsSection> {
             ),
           ],
           const SizedBox(height: 12),
+          const Divider(thickness: 1),
           IgnorePointer(
             ignoring: !_isEditing,
             child: Opacity(
@@ -234,6 +242,19 @@ class _GroupSettingsSectionState extends ConsumerState<GroupSettingsSection> {
                       onGroupSettingsChanged: _isEditing
                           ? _onSettingsChanged
                           : (_) {},
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8, bottom: 4),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Rezept-Vorschläge',
+                        style: textTheme.titleSmall?.copyWith(
+                          color: colorScheme.onSurface,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                   ),
                   _WeightSettingRow(

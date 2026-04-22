@@ -28,13 +28,10 @@ class SettingsBody extends StatelessWidget {
         spacing: 20,
         children: [
           GlassCard(
-            child: Column(
-              children: [
-                AccountSection(onEditingChanged: onAccountEditingChanged),
-                const Divider(height: 32),
-                const UserSettingsSection(),
-              ],
-            ),
+            child: AccountSection(onEditingChanged: onAccountEditingChanged),
+          ),
+          const GlassCard(
+            child: UserSettingsSection(),
           ),
           const GlassCard(
             child: SubscriptionSection(),

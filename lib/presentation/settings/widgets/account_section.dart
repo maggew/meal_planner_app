@@ -222,13 +222,18 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
 
         return LoadingOverlay(
           isLoading: _isLoading,
+          child: SizedBox(
+          width: double.infinity,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             spacing: 12,
             children: [
               Text(
                 'Account',
-                style: Theme.of(context).textTheme.titleMedium,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.w700,
+                    ),
               ),
               ProfilePicture(
                 imageUrl: userProfile.imageUrl,
@@ -282,6 +287,7 @@ class _AccountSectionState extends ConsumerState<AccountSection> {
                   ],
                 ),
             ],
+          ),
           ),
         );
       },

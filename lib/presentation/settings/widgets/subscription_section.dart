@@ -32,7 +32,10 @@ class SubscriptionSection extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Text(
                   'Abo',
-                  style: textTheme.titleSmall,
+                  style: textTheme.titleSmall?.copyWith(
+                    color: colors.onSurface,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const Spacer(),
                 Container(

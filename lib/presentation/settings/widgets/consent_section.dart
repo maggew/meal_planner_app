@@ -15,8 +15,9 @@ class ConsentSection extends ConsumerWidget {
       children: [
         Text(
           'Datenschutz',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 color: colorScheme.onSurface,
+                fontWeight: FontWeight.w700,
               ),
         ),
         const SizedBox(height: 8),

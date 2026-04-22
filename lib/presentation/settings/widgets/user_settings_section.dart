@@ -25,6 +25,7 @@ class UserSettingsSection extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 12),
+        const Divider(thickness: 1),
         SettingsRowWidget(
           label: 'Tab Position',
           controlWidget: Row(

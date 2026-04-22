@@ -20,7 +20,7 @@ class SettingsRowWidget extends StatelessWidget {
                   child: Text(label),
                 ),
               ),
-              VerticalDivider(thickness: 1.5),
+              VerticalDivider(thickness: 1),
               Expanded(
                 flex: 5,
                 child: Padding(
@@ -31,7 +31,7 @@ class SettingsRowWidget extends StatelessWidget {
             ],
           ),
         ),
-        Divider(thickness: 1.5),
+        Divider(thickness: 1),
       ],
     );
   }
