@@ -49,6 +49,7 @@ class IconPreviewPage extends StatelessWidget {
     ];
 
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(title: const Text('Icon Preview')),
       body: GridView.count(
         crossAxisCount: 4,
