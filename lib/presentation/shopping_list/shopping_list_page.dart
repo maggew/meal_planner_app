@@ -70,26 +70,6 @@ class _ShoppingListPageState extends ConsumerState<ShoppingListPage> {
               child: Icon(Icons.cloud_off),
             ),
           ],
-          IconButton(
-            icon: Icon(
-              ref.watch(userSettingsProvider
-                      .select((s) => s.shoppingListViewMode)) ==
-                  ShoppingListViewMode.grid
-                  ? Icons.view_list
-                  : Icons.grid_view,
-            ),
-            onPressed: () {
-              final current = ref.read(userSettingsProvider)
-                  .shoppingListViewMode;
-              ref
-                  .read(userSettingsProvider.notifier)
-                  .updateShoppingListViewMode(
-                    current == ShoppingListViewMode.grid
-                        ? ShoppingListViewMode.list
-                        : ShoppingListViewMode.grid,
-                  );
-            },
-          ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             onSelected: (value) {
@@ -97,14 +77,39 @@ class _ShoppingListPageState extends ConsumerState<ShoppingListPage> {
                 ref
                     .read(shoppingListActionsProvider.notifier)
                     .removeCheckedItems();
+              } else if (value == 'toggle_view') {
+                final current =
+                    ref.read(userSettingsProvider).shoppingListViewMode;
+                ref
+                    .read(userSettingsProvider.notifier)
+                    .updateShoppingListViewMode(
+                      current == ShoppingListViewMode.grid
+                          ? ShoppingListViewMode.list
+                          : ShoppingListViewMode.grid,
+                    );
               }
             },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'remove_checked',
-                child: Text('Abgehakte entfernen'),
-              ),
-            ],
+            itemBuilder: (context) {
+              final isGrid = ref.read(userSettingsProvider
+                      .select((s) => s.shoppingListViewMode)) ==
+                  ShoppingListViewMode.grid;
+              return [
+                PopupMenuItem(
+                  value: 'toggle_view',
+                  child: Row(
+                    children: [
+                      Icon(isGrid ? Icons.view_list : Icons.grid_view),
+                      const SizedBox(width: 12),
+                      Text(isGrid ? 'Listenansicht' : 'Rasteransicht'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'remove_checked',
+                  child: Text('Abgehakte entfernen'),
+                ),
+              ];
+            },
           ),
         ],
       ),

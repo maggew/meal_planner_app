@@ -42,15 +42,13 @@ class RecipeSuggestionPage extends ConsumerWidget {
             _ScoreRow(
               label: 'Zutaten',
               weight: pct(iw),
-              description:
-                  'Wie viele eingegebene Zutaten im Rezept vorkommen',
+              description: 'Wie viele eingegebene Zutaten im Rezept vorkommen',
             ),
             const SizedBox(height: 12),
             _ScoreRow(
               label: 'Rotation',
               weight: pct(rw),
-              description:
-                  'Wie lange das Rezept nicht gekocht wurde – '
+              description: 'Wie lange das Rezept nicht gekocht wurde – '
                   'berücksichtigt auch bereits eingeplante Mahlzeiten (±14 Tage)',
             ),
             if (carbVarietyWeight > 0) ...[
@@ -58,8 +56,7 @@ class RecipeSuggestionPage extends ConsumerWidget {
               _ScoreRow(
                 label: 'KH-Abwechslung',
                 weight: pct(cw),
-                description:
-                    'Wie wenig die Kohlenhydrate mit den Mahlzeiten '
+                description: 'Wie wenig die Kohlenhydrate mit den Mahlzeiten '
                     'der letzten und nächsten 3 Tage überlappen',
               ),
             ],
@@ -85,6 +82,10 @@ class RecipeSuggestionPage extends ConsumerWidget {
 
     return AppBackground(
       scaffoldAppBar: CommonAppbar(
+        leading: IconButton(
+          icon: Icon(Icons.chevron_left),
+          onPressed: () => context.router.maybePop(),
+        ),
         title: 'Vorschläge',
         actionsButtons: [
           IconButton(
