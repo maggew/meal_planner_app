@@ -33,13 +33,15 @@ class AddEditRecipeIngredientsWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // ---------- Header ----------
-        Row(
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: Row(
           children: [
             Text(
               'Zutaten',
-              style: textTheme.titleLarge,
+              style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
-            const SizedBox(width: 12),
+            const Spacer(),
             IconButton(
               icon: const Icon(Icons.camera_alt_outlined),
               onPressed: () {
@@ -108,6 +110,7 @@ class AddEditRecipeIngredientsWidget extends ConsumerWidget {
               ),
             ),
           ],
+        ),
         ),
 
         const SizedBox(height: 12),

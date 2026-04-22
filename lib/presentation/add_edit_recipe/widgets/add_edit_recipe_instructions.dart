@@ -87,12 +87,12 @@ class _AddRecipeInstructions extends ConsumerState<AddEditRecipeInstructions> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          spacing: 10,
           children: [
             Text(
               "Anleitung",
-              style: Theme.of(context).textTheme.titleLarge,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
+            const Spacer(),
             IconButton(
               onPressed: () {
                 ref.read(imageManagerProvider.notifier).pickImageFromCamera(
