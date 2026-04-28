@@ -1,5 +1,7 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/core/utils/uuid_generator.dart';
 import 'package:meal_planner/data/repositories/supabase_group_category_repository.dart';
 import 'package:meal_planner/domain/entities/group_category.dart';
@@ -8,6 +10,7 @@ import 'package:meal_planner/presentation/common/loading_overlay.dart';
 import 'package:meal_planner/presentation/settings/widgets/category_management_section.dart';
 import 'package:meal_planner/presentation/settings/widgets/control_widgets/meal_slots_segmented_button.dart';
 import 'package:meal_planner/presentation/settings/widgets/control_widgets/week_start_day_segmented_button.dart';
+import 'package:meal_planner/presentation/router/router.gr.dart';
 import 'package:meal_planner/presentation/settings/widgets/settings_row_widget.dart';
 import 'package:meal_planner/services/providers/groups/group_category_provider.dart';
 import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
@@ -149,6 +152,7 @@ class _GroupSettingsSectionState extends ConsumerState<GroupSettingsSection> {
     final groupSettings = ref.watch(groupSettingsProvider);
     final categoriesAsync = ref.watch(groupCategoriesProvider);
     final isOnline = ref.watch(isOnlineProvider);
+    final isAdmin = ref.watch(sessionProvider).isAdmin;
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -293,6 +297,48 @@ class _GroupSettingsSectionState extends ConsumerState<GroupSettingsSection> {
             onDelete: _onDeleteCategory,
             onReorder: _onReorderCategories,
           ),
+          if (isAdmin) ...[
+            const SizedBox(height: 16),
+            const Divider(thickness: 1),
+            InkWell(
+              onTap: isOnline
+                  ? () => context.router.push(const TrashRoute())
+                  : null,
+              borderRadius:
+                  BorderRadius.circular(AppDimensions.borderRadius),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.delete_outline_rounded,
+                      size: 20,
+                      color: isOnline
+                          ? colorScheme.onSurface
+                          : colorScheme.onSurface.withValues(alpha: 0.4),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Papierkorb',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: isOnline
+                              ? null
+                              : colorScheme.onSurface.withValues(alpha: 0.4),
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      size: 20,
+                      color: colorScheme.onSurface
+                          .withValues(alpha: isOnline ? 0.5 : 0.25),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
           if (_isEditing) ...[
             const SizedBox(height: 16),
             Row(
