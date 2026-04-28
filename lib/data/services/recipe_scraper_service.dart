@@ -97,6 +97,23 @@ class RecipeScraperService {
     }
 
     if (recipeJson == null) {
+      // No JSON-LD — try Schema.org Microdata (itemProp attributes, used by
+      // React/Next.js sites such as zuckerjagdwurst.com).
+      final microdata = _tryExtractMicrodataRecipe(html);
+      if (microdata != null) {
+        String? localImagePath;
+        if (microdata.imageUrl != null) {
+          localImagePath = await _downloadImage(microdata.imageUrl!);
+        }
+        return ScrapedRecipeData(
+          name: microdata.name,
+          rawIngredients: microdata.ingredients,
+          instructions: microdata.instructions,
+          servings: microdata.servings,
+          localImagePath: localImagePath,
+        );
+      }
+
       // No JSON-LD Recipe — try the heuristic prose parser as a last resort.
       final heuristic = _tryExtractHeuristicRecipe(html);
       if (heuristic != null) {
@@ -153,6 +170,122 @@ class RecipeScraperService {
       }
     }
     return result;
+  }
+
+  /// Extracts recipe data from Schema.org Microdata (itemProp attributes).
+  /// Used for React/Next.js/Nuxt.js recipe sites that embed Microdata in
+  /// server-rendered HTML without JSON-LD, such as zuckerjagdwurst.com.
+  @visibleForTesting
+  HeuristicRecipeData? tryExtractMicrodataRecipe(String html) =>
+      _tryExtractMicrodataRecipe(html);
+
+  HeuristicRecipeData? _tryExtractMicrodataRecipe(String html) {
+    final document = html_parser.parse(html);
+
+    // Dart's html parser lowercases attribute names per HTML5 spec,
+    // so itemProp="recipeIngredient" is queried as itemprop=.
+    final allIngredientEls =
+        document.querySelectorAll('[itemprop="recipeIngredient"]');
+    if (allIngredientEls.isEmpty) return null;
+
+    // Build the ingredient list, preserving h3/h4 sub-section headers.
+    final List<String> ingredients = [];
+    final ingContainer = _findIngredientContainer(allIngredientEls.first);
+    if (ingContainer != null) {
+      _extractIngredientSections(ingContainer, ingredients);
+    }
+    if (ingredients.isEmpty) {
+      for (final el in allIngredientEls) {
+        final text = el.text.trim();
+        if (text.isNotEmpty) ingredients.add(text);
+      }
+    }
+    if (ingredients.length < 2) return null;
+
+    // Instructions from the container marked with itemProp=recipeInstructions.
+    String? instructions;
+    final instrEl = document.querySelector('[itemprop="recipeInstructions"]');
+    if (instrEl != null) {
+      final steps = instrEl
+          .querySelectorAll('li')
+          .map((li) => li.text.trim())
+          .where((t) => t.isNotEmpty)
+          .toList();
+      if (steps.isNotEmpty) {
+        final alreadyNumbered =
+            RegExp(r'^\s*1\s*[:\.\)\-]').hasMatch(steps.first);
+        final numbered = alreadyNumbered
+            ? steps
+            : steps
+                .asMap()
+                .entries
+                .map((e) => '${e.key + 1}. ${e.value}')
+                .toList();
+        instructions = RecipeExtractor.assembleNumberedSteps(numbered);
+      }
+    }
+
+    // Servings from itemProp=recipeYield.
+    final yieldEl = document.querySelector('[itemprop="recipeYield"]');
+    final servings = yieldEl != null ? _extractServings(yieldEl.text) : null;
+
+    // Title from og:title (same strategy as heuristic parser).
+    final ogTitle = document
+        .querySelector('meta[property="og:title"]')
+        ?.attributes['content'];
+    if (ogTitle == null || ogTitle.trim().isEmpty) return null;
+    final siteName = document
+        .querySelector('meta[property="og:site_name"]')
+        ?.attributes['content'];
+    final name = _stripSiteSuffix(ogTitle, siteName);
+
+    // Image: prefer og:image, fall back to itemProp=image src/content.
+    final imageUrl =
+        document.querySelector('meta[property="og:image"]')?.attributes['content'] ??
+        document.querySelector('[itemprop="image"]')?.attributes['src'] ??
+        document.querySelector('[itemprop="image"]')?.attributes['content'];
+
+    return HeuristicRecipeData(
+      name: name,
+      ingredients: ingredients,
+      instructions: instructions,
+      servings: servings,
+      imageUrl: imageUrl,
+    );
+  }
+
+  /// Walks up from [el] to find the nearest ancestor that contains both
+  /// h3/h4 and ul/ol descendants — the ingredient section wrapper.
+  Element? _findIngredientContainer(Element el) {
+    var parent = el.parent;
+    while (parent != null && parent.localName != 'body') {
+      if (parent.querySelectorAll('h3, h4').isNotEmpty &&
+          parent.querySelectorAll('ul, ol').isNotEmpty) {
+        return parent;
+      }
+      parent = parent.parent;
+    }
+    return null;
+  }
+
+  /// Walks [container]'s direct children, collecting h3/h4/h5 as section
+  /// headers (with ':' appended) and ul/ol children as ingredient lines.
+  /// Recurses into div wrappers.
+  void _extractIngredientSections(Element container, List<String> out) {
+    for (final child in container.children) {
+      final tag = child.localName;
+      if (tag == 'h3' || tag == 'h4' || tag == 'h5') {
+        final text = child.text.trim();
+        if (text.isNotEmpty) out.add(text.endsWith(':') ? text : '$text:');
+      } else if (tag == 'ul' || tag == 'ol') {
+        for (final li in child.querySelectorAll('li')) {
+          final text = li.text.trim();
+          if (text.isNotEmpty) out.add(text);
+        }
+      } else if (tag == 'div') {
+        _extractIngredientSections(child, out);
+      }
+    }
   }
 
   /// Heuristic recipe parser for unstructured WordPress prose pages
@@ -627,6 +760,16 @@ class RecipeScraperService {
   Future<String?> _downloadImage(String url) async {
     try {
       if (!url.startsWith('https://')) return null;
+      // Some sites (e.g. zuckerjagdwurst.com) emit og:image URLs with a
+      // duplicate query-string appended (e.g. …?w=1200&…&g=ce?w=1200).
+      // The CDN interprets the second '?' as part of the last param value,
+      // returns a redirect, and the re-encoded URL yields a 400. Strip
+      // everything from the second '?' onwards to recover the valid URL.
+      final firstQ = url.indexOf('?');
+      if (firstQ >= 0) {
+        final secondQ = url.indexOf('?', firstQ + 1);
+        if (secondQ >= 0) url = url.substring(0, secondQ);
+      }
       final tempDir = Directory.systemTemp;
       final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       final filePath = '${tempDir.path}/$fileName';
