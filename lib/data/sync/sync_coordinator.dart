@@ -13,7 +13,7 @@ import 'package:meal_planner/data/sync/sync_types.dart';
 /// per-feature methods so callers don't deal with adapters or scopes.
 ///
 /// Polling cadence:
-///   - Shopping list: 5s while a shopping page is open.
+///   - Shopping list: 10s while a shopping page is open.
 ///   - Meal plan: 30s while a meal plan page is open, scoped to the
 ///     currently-visible month.
 ///
@@ -40,7 +40,7 @@ class SyncCoordinator with WidgetsBindingObserver {
   final Stream<List<ConnectivityResult>> _connectivityStream;
   final bool Function() _isOnline;
 
-  static const Duration _shoppingInterval = Duration(seconds: 5);
+  static const Duration _shoppingInterval = Duration(seconds: 10);
   static const Duration _mealPlanInterval = Duration(seconds: 30);
 
   Timer? _shoppingTimer;

@@ -95,7 +95,7 @@ void main() {
 
   group('SyncCoordinator', () {
     group('shopping list polling', () {
-      test('fires immediately on enable, then every 5s, until disabled', () {
+      test('fires immediately on enable, then every 10s, until disabled', () {
         fakeAsync((async) {
           final shopping = _CountingAdapter('shopping_list');
           final mealPlan = _CountingAdapter('meal_plan');
@@ -105,15 +105,15 @@ void main() {
           async.flushMicrotasks();
           expect(shopping.syncs, 1, reason: 'should fire immediately');
 
-          async.elapse(const Duration(seconds: 5));
-          expect(shopping.syncs, 2);
+          async.elapse(const Duration(seconds: 10));
+          expect(shopping.syncs, 2, reason: 'one tick at 10s');
 
           async.elapse(const Duration(seconds: 10));
-          expect(shopping.syncs, 4);
+          expect(shopping.syncs, 3, reason: 'another tick at 20s');
 
           wired.coordinator.disableShoppingListPolling();
           async.elapse(const Duration(seconds: 30));
-          expect(shopping.syncs, 4, reason: 'no syncs after disable');
+          expect(shopping.syncs, 3, reason: 'no syncs after disable');
 
           // Meal plan was never enabled — coordinator must not have touched it.
           expect(mealPlan.syncs, 0);
@@ -139,7 +139,7 @@ void main() {
           // active.
           expect(shopping.syncs, 1);
 
-          async.elapse(const Duration(seconds: 5));
+          async.elapse(const Duration(seconds: 10));
           expect(shopping.syncs, 2,
               reason: 'one tick = one sync, not three');
 
