@@ -112,8 +112,11 @@ void main() {
           expect(shopping.syncs, 3, reason: 'another tick at 20s');
 
           wired.coordinator.disableShoppingListPolling();
+          async.flushMicrotasks();
+          expect(shopping.syncs, 4, reason: 'flush fired on disable');
+
           async.elapse(const Duration(seconds: 30));
-          expect(shopping.syncs, 3, reason: 'no syncs after disable');
+          expect(shopping.syncs, 4, reason: 'no further syncs after disable');
 
           // Meal plan was never enabled — coordinator must not have touched it.
           expect(mealPlan.syncs, 0);
@@ -144,6 +147,9 @@ void main() {
               reason: 'one tick = one sync, not three');
 
           wired.coordinator.disableShoppingListPolling();
+          async.flushMicrotasks();
+          expect(shopping.syncs, 3, reason: 'flush fired on disable');
+
           wired.coordinator.stop();
           wired.connectivity.close();
           wired.engine.dispose();
@@ -168,8 +174,11 @@ void main() {
           expect(mealPlan.scopeKeys.last, '2026-04');
 
           wired.coordinator.disableMealPlanPolling();
+          async.flushMicrotasks();
+          expect(mealPlan.syncs, 3, reason: 'flush fired on disable');
+
           async.elapse(const Duration(minutes: 5));
-          expect(mealPlan.syncs, 2);
+          expect(mealPlan.syncs, 3, reason: 'no further syncs after disable');
 
           wired.coordinator.stop();
           wired.connectivity.close();
@@ -437,8 +446,8 @@ void main() {
       });
     });
 
-    group('lifecycle resume', () {
-      testWidgets('resumed lifecycle event syncs only open features',
+    group('lifecycle', () {
+      testWidgets('paused and resumed both sync open features',
           (tester) async {
         final mealPlan = _CountingAdapter('meal_plan');
         final shopping = _CountingAdapter('shopping_list');
@@ -459,12 +468,13 @@ void main() {
         await tester.pump();
 
         expect(shopping.syncs, greaterThan(baseline),
-            reason: 'open shopping page synced on resume');
+            reason: 'open shopping page synced on paused/resumed');
         expect(mealPlan.syncs, 0,
-            reason: 'closed meal plan page not touched on resume');
+            reason: 'closed meal plan page not touched');
 
-        wired.coordinator.disableShoppingListPolling();
+        // stop() cancels timers directly — no extra flush triggered here.
         wired.coordinator.stop();
+        await tester.pump(); // drain any in-flight sync futures before dispose
         await wired.connectivity.close();
         await wired.engine.dispose();
       });

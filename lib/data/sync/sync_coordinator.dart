@@ -107,6 +107,7 @@ class SyncCoordinator with WidgetsBindingObserver {
   }
 
   void disableShoppingListPolling() {
+    if (_shoppingTimer != null) unawaited(syncShoppingList());
     _shoppingTimer?.cancel();
     _shoppingTimer = null;
   }
@@ -132,6 +133,8 @@ class SyncCoordinator with WidgetsBindingObserver {
   }
 
   void disableMealPlanPolling() {
+    final m = _mealPlanMonth;
+    if (m != null) unawaited(syncMealPlan(m));
     _mealPlanTimer?.cancel();
     _mealPlanTimer = null;
     _mealPlanMonth = null;
@@ -155,16 +158,18 @@ class SyncCoordinator with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _connSub?.cancel();
     _connSub = null;
-    disableShoppingListPolling();
-    disableMealPlanPolling();
+    _shoppingTimer?.cancel();
+    _shoppingTimer = null;
+    _mealPlanTimer?.cancel();
+    _mealPlanTimer = null;
+    _mealPlanMonth = null;
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state != AppLifecycleState.resumed) return;
-    // Only sync features whose pages are currently open. If a page is open it
-    // already has a timer, but firing immediately on resume avoids waiting up
-    // to a full interval.
+    if (state != AppLifecycleState.resumed && state != AppLifecycleState.paused) return;
+    // On resume: avoid waiting up to a full poll interval after coming back.
+    // On paused: flush before the OS may suspend the process.
     if (_shoppingTimer != null) unawaited(syncShoppingList());
     final m = _mealPlanMonth;
     if (m != null) unawaited(syncMealPlan(m));
