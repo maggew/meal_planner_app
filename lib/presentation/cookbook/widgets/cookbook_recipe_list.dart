@@ -6,6 +6,7 @@ import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/common/native_ad_widget.dart';
 import 'package:meal_planner/presentation/cookbook/widgets/cookbook_recipe_list_item.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_search_provider.dart';
+import 'package:meal_planner/services/providers/subscription/subscription_provider.dart';
 
 class CookbookRecipeList extends ConsumerStatefulWidget {
   final String categoryId;
@@ -82,6 +83,7 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList>
                 recipes: recipes,
                 isSearching: isSearching,
                 availableHeight: constraints.maxHeight,
+                isPremium: ref.watch(isPremiumProvider),
               ),
             ),
           );
@@ -94,6 +96,7 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList>
     required List<Recipe> recipes,
     required bool isSearching,
     required double availableHeight,
+    required bool isPremium,
   }) {
     if (recipes.isEmpty) {
       final message = isSearching
@@ -103,10 +106,11 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList>
           ? Icons.search_off_rounded
           : Icons.restaurant_menu_rounded;
       return _alwaysScrollableListView(children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          child: NativeAdWidget(height: 100),
-        ),
+        if (!isPremium)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            child: NativeAdWidget(height: 100),
+          ),
         SizedBox(height: MediaQuery.of(context).size.height * 0.1),
         Icon(
           icon,
@@ -127,6 +131,15 @@ class _CookbookRecipeListState extends ConsumerState<CookbookRecipeList>
           ),
         ),
       ]);
+    }
+
+    if (isPremium) {
+      return ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: recipes.length,
+        itemBuilder: (context, index) =>
+            CookbookRecipeListItem(recipe: recipes[index]),
+      );
     }
 
     // Ad frequency: every 3 recipes on small lists, every 4 on larger

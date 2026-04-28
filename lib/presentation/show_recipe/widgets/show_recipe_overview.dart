@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/app_dimensions.dart';
 import 'package:meal_planner/domain/entities/ingredient.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/presentation/common/native_ad_widget.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/overview/show_recipe_overview_details.dart';
 import 'package:meal_planner/presentation/show_recipe/widgets/overview/show_recipe_overview_instructions.dart';
+import 'package:meal_planner/services/providers/subscription/subscription_provider.dart';
 
 class ShowRecipeOverview extends StatefulWidget {
   final Recipe recipe;
@@ -48,9 +50,18 @@ class _ShowRecipeOverviewState extends State<ShowRecipeOverview>
               ),
             ),
           ),
-          const SizedBox(height: 8),
-          const NativeAdWidget(),
-          const SizedBox(height: 8),
+          Consumer(
+            builder: (context, ref, _) {
+              if (ref.watch(isPremiumProvider)) return const SizedBox.shrink();
+              return const Column(
+                children: [
+                  SizedBox(height: 8),
+                  NativeAdWidget(),
+                  SizedBox(height: 8),
+                ],
+              );
+            },
+          ),
           ShowRecipeOverviewDetails(
             recipe: widget.recipe,
             scaledSections: widget.scaledSections,
