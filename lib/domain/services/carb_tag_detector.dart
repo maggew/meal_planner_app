@@ -11,6 +11,17 @@ class CarbTagDetector {
     CarbTag.couscousBulgur: ['couscous', 'bulgur', 'quinoa', 'hirse', 'freekeh', 'griess'],
   };
 
+  // Compound words that contain a carb keyword but are NOT carbohydrate sources
+  // (condiments, oils, vinegars). Checked before keyword matching.
+  static const _falsePositives = <CarbTag, List<String>>{
+    CarbTag.reis: ['reisweinessig', 'reisessig', 'reisoel'],
+  };
+
+  static bool _isFalsePositive(CarbTag tag, String normalizedName) {
+    return (_falsePositives[tag] ?? const [])
+        .any((fp) => normalizedName.contains(fp));
+  }
+
   static List<CarbTag> detect(List<IngredientSection> sections) {
     final allIngredientNames = sections
         .expand((s) => s.ingredients)
@@ -22,7 +33,9 @@ class CarbTagDetector {
     for (final entry in _keywords.entries) {
       for (final keyword in entry.value) {
         for (final name in allIngredientNames) {
-          if (GermanTextNormalizer.normalizeSimple(name).contains(keyword)) {
+          final normalized = GermanTextNormalizer.normalizeSimple(name);
+          if (_isFalsePositive(entry.key, normalized)) continue;
+          if (normalized.contains(keyword)) {
             found.add(entry.key);
             break;
           }
@@ -41,7 +54,9 @@ class CarbTagDetector {
     for (final entry in _keywords.entries) {
       for (final keyword in entry.value) {
         for (final name in names) {
-          if (GermanTextNormalizer.normalizeSimple(name).contains(keyword)) {
+          final normalized = GermanTextNormalizer.normalizeSimple(name);
+          if (_isFalsePositive(entry.key, normalized)) continue;
+          if (normalized.contains(keyword)) {
             found.add(entry.key);
             break;
           }

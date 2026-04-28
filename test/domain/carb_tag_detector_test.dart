@@ -22,6 +22,21 @@ void main() {
       expect(CarbTagDetector.detect([section(['Reismehl', 'Wasser'])]),
           contains(CarbTag.reis));
     });
+
+    test('Reisweinessig → kein reis (Kondiment, kein KH)', () {
+      final tags = CarbTagDetector.detect([section(['Reisweinessig', 'Sesamöl', 'Tofu'])]);
+      expect(tags, isNot(contains(CarbTag.reis)));
+    });
+
+    test('Reisessig → kein reis (Kondiment, kein KH)', () {
+      final tags = CarbTagDetector.detect([section(['Reisessig', 'Ingwer'])]);
+      expect(tags, isNot(contains(CarbTag.reis)));
+    });
+
+    test('Reisweinessig neben echtem Reis → reis wird trotzdem erkannt', () {
+      final tags = CarbTagDetector.detect([section(['Reisweinessig', '200 g Reis'])]);
+      expect(tags, contains(CarbTag.reis));
+    });
   });
 
   group('CarbTagDetector.detect — Pasta-Varianten', () {
