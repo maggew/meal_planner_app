@@ -14,7 +14,11 @@ import 'package:meal_planner/domain/entities/group_settings.dart';
 import 'package:meal_planner/services/providers/user/group_settings_provider.dart';
 
 class WeekplanBody extends ConsumerStatefulWidget {
-  const WeekplanBody({super.key});
+  const WeekplanBody({super.key, required this.visibleMonth});
+
+  /// Owned by [DetailedWeekplanPage]. The body writes to it on week navigation
+  /// so the [SyncPollingMixin] can forward month changes to the coordinator.
+  final ValueNotifier<DateTime> visibleMonth;
 
   @override
   ConsumerState<WeekplanBody> createState() => _WeekplanBodyState();
@@ -55,6 +59,9 @@ class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
     super.initState();
     final weekStartDay = ref.read(groupSettingsProvider).weekStartDay;
     _weekStart = _weekStartOf(DateTime.now(), weekStartDay);
+    // Align the notifier with the actual week start (may differ from DateTime.now()
+    // near month boundaries) so the coordinator syncs the right month.
+    widget.visibleMonth.value = _weekStart;
     _scrollController.addListener(_onScroll);
     // Fallback: if all streams are already cached, scroll after layout
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -233,13 +240,14 @@ class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
   }
 
   void _syncForWeek(DateTime weekStart) {
-    final coordinator = ref.read(syncCoordinatorProvider);
-    coordinator.updateMealPlanMonth(weekStart);
+    // Updating the notifier lets SyncPollingMixin forward the new month to the
+    // coordinator via updateMealPlanMonth, avoiding a direct coordinator call here.
+    widget.visibleMonth.value = weekStart;
     final weekEnd = weekStart.add(const Duration(days: 6));
     if (weekEnd.month != weekStart.month) {
       // Week straddles a month boundary — also sync the next month so the
       // calendar dots for the visible week reflect remote state.
-      coordinator.syncMealPlan(weekEnd);
+      ref.read(syncCoordinatorProvider).syncMealPlan(weekEnd);
     }
   }
 
@@ -251,9 +259,9 @@ class _WeekplanBodyState extends ConsumerState<WeekplanBody> {
     // React to weekStartDay changes mid-session
     ref.listen<GroupSettings>(groupSettingsProvider, (previous, next) {
       if (previous?.weekStartDay != next.weekStartDay) {
-        setState(() {
-          _weekStart = _weekStartOf(DateTime.now(), next.weekStartDay);
-        });
+        final newWeekStart = _weekStartOf(DateTime.now(), next.weekStartDay);
+        setState(() => _weekStart = newWeekStart);
+        widget.visibleMonth.value = newWeekStart;
       }
     });
 
