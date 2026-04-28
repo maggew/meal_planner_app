@@ -69,7 +69,7 @@ final class CookbookInitialCategoryProvider extends $NotifierProvider<
 }
 
 String _$cookbookInitialCategoryHash() =>
-    r'0384ec0c7e55eaa908aaeb403a79431a7897c49f';
+    r'f24a6260206a5b08249b617eb14f7717239b769e';
 
 /// Hält die Kategorie-ID + eine Generation, zu der das Kochbuch beim nächsten
 /// Build springen soll. Die Generation wird bei jedem Upload hochgezählt und

@@ -18,5 +18,12 @@ class CookbookInitialCategory extends _$CookbookInitialCategory {
         generation: state.generation + 1,
       );
 
+  /// Only jumps if no explicit navigation has happened this session (generation == 0).
+  void setIfFirstTime(String categoryId) {
+    if (state.generation == 0) {
+      state = (categoryId: categoryId, generation: 1);
+    }
+  }
+
   void clear() => state = (categoryId: null, generation: state.generation);
 }

@@ -8,6 +8,7 @@ import 'package:meal_planner/presentation/cookbook/widgets/cookbook_category_tab
 import 'package:meal_planner/presentation/cookbook/widgets/cookbook_recipe_list.dart';
 import 'package:meal_planner/services/providers/groups/group_category_provider.dart';
 import 'package:meal_planner/services/providers/recipe/cookbook_initial_category_provider.dart';
+import 'package:meal_planner/services/providers/recipe/first_non_empty_category_provider.dart';
 import 'package:meal_planner/services/providers/user/user_settings_provider.dart';
 
 class CookbookTabbar extends ConsumerWidget {
@@ -24,6 +25,7 @@ class CookbookTabbar extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Fehler: $e')),
       data: (categories) {
+        final firstNonEmptyAsync = ref.watch(firstNonEmptyCategoryIdProvider);
         final (:categoryId, :generation) =
             ref.watch(cookbookInitialCategoryProvider);
         int initialIndex = 0;
@@ -32,6 +34,16 @@ class CookbookTabbar extends ConsumerWidget {
           if (idx != -1) initialIndex = idx;
           WidgetsBinding.instance.addPostFrameCallback(
               (_) => ref.read(cookbookInitialCategoryProvider.notifier).clear());
+        } else if (generation == 0) {
+          firstNonEmptyAsync.whenData((firstCategoryId) {
+            if (firstCategoryId != null) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ref
+                    .read(cookbookInitialCategoryProvider.notifier)
+                    .setIfFirstTime(firstCategoryId);
+              });
+            }
+          });
         }
 
         return VerticalTabs(
