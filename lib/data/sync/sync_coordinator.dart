@@ -178,11 +178,13 @@ class SyncCoordinator with WidgetsBindingObserver {
   void _onConnectivityChanged(List<ConnectivityResult> result) {
     final isOnline = !result.contains(ConnectivityResult.none);
     if (isOnline && _wasOffline) {
-      // Connectivity restored — flush pending changes for any open feature.
+      // Connectivity restored — flush pending changes unconditionally.
+      // Shopping list is always flushed (page may be closed; pending items
+      // would otherwise sit until the user reopens the page).
       // Bypass the `_isOnline()` gate: the gate may still report `false` if
       // the `isOnlineProvider` stream hasn't emitted yet, but this branch
       // fires *because* we just came online, so the trigger is safe.
-      if (_shoppingTimer != null) unawaited(_syncShoppingListUnchecked());
+      unawaited(_syncShoppingListUnchecked());
       final m = _mealPlanMonth;
       if (m != null) unawaited(_syncMealPlanUnchecked(m));
     }

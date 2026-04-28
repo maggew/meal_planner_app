@@ -218,7 +218,8 @@ void main() {
     });
 
     group('connectivity restore', () {
-      test('flushes only features whose pages are open', () {
+      test('flushes shopping list unconditionally; meal plan only when open',
+          () {
         fakeAsync((async) {
           final mealPlan = _CountingAdapter('meal_plan');
           final shopping = _CountingAdapter('shopping_list');
@@ -237,11 +238,36 @@ void main() {
           async.flushMicrotasks();
 
           expect(shopping.syncs, shoppingBaseline + 1,
-              reason: 'shopping page open → flushed on restore');
+              reason: 'shopping flushed on restore');
           expect(mealPlan.syncs, 0,
               reason: 'meal plan page closed → not touched');
 
           wired.coordinator.disableShoppingListPolling();
+          wired.coordinator.stop();
+          wired.connectivity.close();
+          wired.engine.dispose();
+        });
+      });
+
+      test('shopping list flushed on restore even when page is closed', () {
+        fakeAsync((async) {
+          final mealPlan = _CountingAdapter('meal_plan');
+          final shopping = _CountingAdapter('shopping_list');
+          final wired = _build(mealPlan: mealPlan, shopping: shopping);
+
+          wired.coordinator.start();
+          // Shopping page is NOT open — no polling enabled.
+
+          wired.connectivity.add([ConnectivityResult.none]);
+          async.flushMicrotasks();
+          wired.connectivity.add([ConnectivityResult.wifi]);
+          async.flushMicrotasks();
+
+          expect(shopping.syncs, 1,
+              reason: 'pending items flushed even with page closed');
+          expect(mealPlan.syncs, 0,
+              reason: 'meal plan not open → not touched');
+
           wired.coordinator.stop();
           wired.connectivity.close();
           wired.engine.dispose();
