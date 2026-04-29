@@ -62,9 +62,10 @@ class ActiveCookingSession extends _$ActiveCookingSession {
     if (newCurrent == recipeId) {
       newCurrent = newRecipes.isNotEmpty ? newRecipes.first.recipeId : null;
     }
-    state = ActiveCookingSessionState(
+    state = state.copyWith(
       recipes: newRecipes,
       currentRecipeId: newCurrent,
+      clearCurrentRecipe: newRecipes.isEmpty,
     );
   }
 

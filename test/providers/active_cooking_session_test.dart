@@ -114,5 +114,14 @@ void main() {
       notifier().removeRecipe('r1');
       expect(state().currentRecipeId, 'r2');
     });
+
+    test('removeRecipe from 2 to 1 preserves wasInCookingMode', () {
+      notifier().addRecipe(_entry(recipeId: 'r1'));
+      notifier().addRecipe(_entry(recipeId: 'r2', name: 'Pizza'));
+      notifier().setWasInCookingMode(true);
+      notifier().removeRecipe('r2');
+      expect(state().recipes, hasLength(1));
+      expect(state().wasInCookingMode, isTrue);
+    });
   });
 }
