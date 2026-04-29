@@ -1,11 +1,7 @@
-import 'dart:convert';
-
-import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:meal_planner/core/constants/supabase_constants.dart';
-import 'package:meal_planner/core/database/app_database.dart';
-import 'package:meal_planner/core/database/daos/meal_plan_dao.dart';
 import 'package:meal_planner/data/sync/local_sync_status.dart';
+import 'package:meal_planner/data/sync/meal_plan_local_store.dart';
 import 'package:meal_planner/data/sync/sync_adapter.dart';
 import 'package:meal_planner/data/sync/sync_types.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -22,14 +18,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// the engine contract uniform with adapters that *do* use deltas.
 class MealPlanSyncAdapter implements SyncAdapter {
   MealPlanSyncAdapter({
-    required MealPlanDao dao,
+    required MealPlanLocalStore dao,
     required SupabaseClient supabase,
     required String groupId,
   })  : _dao = dao,
         _supabase = supabase,
         _groupId = groupId;
 
-  final MealPlanDao _dao;
+  final MealPlanLocalStore _dao;
   final SupabaseClient _supabase;
   final String _groupId;
 
@@ -59,7 +55,7 @@ class MealPlanSyncAdapter implements SyncAdapter {
   Future<void> markSynced(String id) async {
     final row = await _dao.getEntryByLocalId(id);
     if (row == null) return;
-    if (LocalSyncStatus.fromDb(row.syncStatus) == LocalSyncStatus.pendingDelete) {
+    if (row.syncStatus == LocalSyncStatus.pendingDelete) {
       await _dao.hardDeleteEntry(id);
     } else {
       await _dao.updateSyncStatus(id, LocalSyncStatus.synced);
@@ -75,7 +71,7 @@ class MealPlanSyncAdapter implements SyncAdapter {
     final row = await _dao.getEntryByLocalId(change.id);
     if (row == null) return; // Concurrently deleted; treat as no-op success.
 
-    switch (LocalSyncStatus.fromDb(row.syncStatus)) {
+    switch (row.syncStatus) {
       case LocalSyncStatus.pendingCreate:
         final response = await _supabase
             .from(SupabaseConstants.mealPlanEntriesTable)
@@ -86,8 +82,7 @@ class MealPlanSyncAdapter implements SyncAdapter {
               SupabaseConstants.mealPlanEntryCustomName: row.customName,
               SupabaseConstants.mealPlanEntryDate: row.date,
               SupabaseConstants.mealPlanEntryMealType: row.mealType,
-              SupabaseConstants.mealPlanEntryCookIds:
-                  _decodeCookIds(row.cookIdsJson),
+              SupabaseConstants.mealPlanEntryCookIds: row.cookIds,
               SupabaseConstants.mealPlanEntryUpdatedAt:
                   row.updatedAt.toIso8601String(),
             })
@@ -166,62 +161,46 @@ class MealPlanSyncAdapter implements SyncAdapter {
     _pendingMonthKey = null;
     if (yearMonth == null) return;
 
-    final companions = rows.map((r) {
+    final syncedRows = rows.map((r) {
       final data = r.data;
       final rawCookIds = data[SupabaseConstants.mealPlanEntryCookIds];
       final cookIds = rawCookIds is List
           ? rawCookIds.cast<String>()
           : const <String>[];
-      return LocalMealPlanEntriesCompanion(
-        localId: Value(r.id),
-        remoteId: Value(r.id),
-        groupId: Value(_groupId),
-        recipeId: Value(
-            (data[SupabaseConstants.mealPlanEntryRecipeId] as String?) ?? ''),
+      return MealPlanSyncedRow(
+        localId: r.id,
+        remoteId: r.id,
+        recipeId:
+            (data[SupabaseConstants.mealPlanEntryRecipeId] as String?) ?? '',
         customName:
-            Value(data[SupabaseConstants.mealPlanEntryCustomName] as String?),
-        date: Value(data[SupabaseConstants.mealPlanEntryDate] as String),
-        mealType:
-            Value(data[SupabaseConstants.mealPlanEntryMealType] as String),
-        cookIdsJson:
-            Value(cookIds.isEmpty ? null : jsonEncode(cookIds)),
-        syncStatus: Value(LocalSyncStatus.synced.dbValue),
-        updatedAt: Value(DateTime.now()),
+            data[SupabaseConstants.mealPlanEntryCustomName] as String?,
+        date: data[SupabaseConstants.mealPlanEntryDate] as String,
+        mealType: data[SupabaseConstants.mealPlanEntryMealType] as String,
+        cookIds: cookIds,
       );
     }).toList();
 
-    await _dao.replaceAllSynced(_groupId, yearMonth, companions);
+    await _dao.replaceAllSynced(_groupId, yearMonth, syncedRows);
   }
 
   /// Builds the Supabase update body for a pending-update row. Extracted so
   /// the exact shape can be unit-tested without mocking Supabase's fluent
   /// query API.
   @visibleForTesting
-  static Map<String, dynamic> buildUpdatePayload(LocalMealPlanEntry row) {
+  static Map<String, dynamic> buildUpdatePayload(MealPlanRow row) {
     return {
       SupabaseConstants.mealPlanEntryRecipeId:
           row.recipeId.isEmpty ? null : row.recipeId,
       SupabaseConstants.mealPlanEntryCustomName: row.customName,
       SupabaseConstants.mealPlanEntryDate: row.date,
       SupabaseConstants.mealPlanEntryMealType: row.mealType,
-      SupabaseConstants.mealPlanEntryCookIds: _decodeCookIds(row.cookIdsJson),
-      SupabaseConstants.mealPlanEntryUpdatedAt:
-          row.updatedAt.toIso8601String(),
+      SupabaseConstants.mealPlanEntryCookIds: row.cookIds,
+      SupabaseConstants.mealPlanEntryUpdatedAt: row.updatedAt.toIso8601String(),
     };
   }
 
-  static List<String> _decodeCookIds(String? json) {
-    if (json == null) return const [];
-    try {
-      return (jsonDecode(json) as List<dynamic>).cast<String>();
-    } catch (_) {
-      return const [];
-    }
-  }
-
-  PendingChange _rowToPendingChange(LocalMealPlanEntry row) {
-    final isDelete =
-        LocalSyncStatus.fromDb(row.syncStatus) == LocalSyncStatus.pendingDelete;
+  PendingChange _rowToPendingChange(MealPlanRow row) {
+    final isDelete = row.syncStatus == LocalSyncStatus.pendingDelete;
     return PendingChange(
       id: row.localId,
       status: isDelete ? SyncItemStatus.pendingDelete : SyncItemStatus.pending,

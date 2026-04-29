@@ -1,46 +1,42 @@
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meal_planner/core/constants/supabase_constants.dart';
-import 'package:meal_planner/core/database/app_database.dart';
-import 'package:meal_planner/core/database/daos/meal_plan_dao.dart';
 import 'package:meal_planner/data/sync/local_sync_status.dart';
+import 'package:meal_planner/data/sync/meal_plan_local_store.dart';
 import 'package:meal_planner/data/sync/meal_plan_sync_adapter.dart';
 import 'package:meal_planner/data/sync/sync_types.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 
-class _MockDao extends Mock implements MealPlanDao {}
+class _MockDao extends Mock implements MealPlanLocalStore {}
 
 class _MockSupabase extends Mock implements SupabaseClient {}
 
-LocalMealPlanEntry _row({
+MealPlanRow _row({
   required String localId,
   String? remoteId,
-  String groupId = 'g1',
   String recipeId = 'r1',
   String? customName,
   String date = '2026-04-15',
   String mealType = 'lunch',
-  String? cookIdsJson,
-  String syncStatus = 'pendingCreate',
+  List<String> cookIds = const [],
+  LocalSyncStatus syncStatus = LocalSyncStatus.pendingCreate,
 }) =>
-    LocalMealPlanEntry(
+    MealPlanRow(
       localId: localId,
       remoteId: remoteId,
-      groupId: groupId,
       recipeId: recipeId,
       customName: customName,
       date: date,
       mealType: mealType,
-      cookIdsJson: cookIdsJson,
+      cookIds: cookIds,
       syncStatus: syncStatus,
       updatedAt: DateTime(2026, 4, 1, 12),
     );
 
 void main() {
   setUpAll(() {
-    registerFallbackValue(<LocalMealPlanEntriesCompanion>[]);
+    registerFallbackValue(<MealPlanSyncedRow>[]);
     registerFallbackValue(LocalSyncStatus.synced);
   });
 
@@ -61,9 +57,9 @@ void main() {
   group('readPending', () {
     test('maps non-delete rows to status pending', () async {
       when(() => dao.getPendingEntries('g1')).thenAnswer((_) async => [
-            _row(localId: 'a', syncStatus: 'pendingCreate'),
-            _row(localId: 'b', syncStatus: 'pendingUpdate'),
-            _row(localId: 'c', syncStatus: 'failed'),
+            _row(localId: 'a', syncStatus: LocalSyncStatus.pendingCreate),
+            _row(localId: 'b', syncStatus: LocalSyncStatus.pendingUpdate),
+            _row(localId: 'c', syncStatus: LocalSyncStatus.failed),
           ]);
 
       final res = await adapter.readPending();
@@ -76,7 +72,7 @@ void main() {
 
     test('maps pendingDelete rows to status pendingDelete', () async {
       when(() => dao.getPendingEntries('g1')).thenAnswer((_) async => [
-            _row(localId: 'd', syncStatus: 'pendingDelete', remoteId: 'rd'),
+            _row(localId: 'd', syncStatus: LocalSyncStatus.pendingDelete, remoteId: 'rd'),
           ]);
 
       final res = await adapter.readPending();
@@ -94,7 +90,7 @@ void main() {
   group('markSynced', () {
     test('hard-deletes when row is pendingDelete', () async {
       when(() => dao.getEntryByLocalId('x')).thenAnswer((_) async =>
-          _row(localId: 'x', syncStatus: 'pendingDelete', remoteId: 'rx'));
+          _row(localId: 'x', syncStatus: LocalSyncStatus.pendingDelete, remoteId: 'rx'));
       when(() => dao.hardDeleteEntry('x')).thenAnswer((_) async {});
 
       await adapter.markSynced('x');
@@ -105,7 +101,7 @@ void main() {
 
     test('updates status to synced for non-delete rows', () async {
       when(() => dao.getEntryByLocalId('x')).thenAnswer(
-          (_) async => _row(localId: 'x', syncStatus: 'pendingUpdate'));
+          (_) async => _row(localId: 'x', syncStatus: LocalSyncStatus.pendingUpdate));
       when(() => dao.updateSyncStatus(any(), any())).thenAnswer((_) async {});
 
       await adapter.markSynced('x');
@@ -152,7 +148,7 @@ void main() {
         remoteId: 'remote-x',
         date: '2026-04-20',
         mealType: 'dinner',
-        syncStatus: 'pendingUpdate',
+        syncStatus: LocalSyncStatus.pendingUpdate,
       );
 
       final payload = MealPlanSyncAdapter.buildUpdatePayload(row);
@@ -167,8 +163,8 @@ void main() {
         remoteId: 'remote-x',
         recipeId: 'r42',
         customName: null,
-        cookIdsJson: '["u1","u2"]',
-        syncStatus: 'pendingUpdate',
+        cookIds: ['u1', 'u2'],
+        syncStatus: LocalSyncStatus.pendingUpdate,
       );
 
       final payload = MealPlanSyncAdapter.buildUpdatePayload(row);
@@ -188,7 +184,7 @@ void main() {
         remoteId: 'remote-x',
         recipeId: '',
         customName: 'Pizza',
-        syncStatus: 'pendingUpdate',
+        syncStatus: LocalSyncStatus.pendingUpdate,
       );
 
       final payload = MealPlanSyncAdapter.buildUpdatePayload(row);
@@ -214,15 +210,14 @@ void main() {
   });
 
   group('applyRemote (after pullSince stashes month)', () {
-    test('builds synced companions and calls replaceAllSynced for the month',
+    test('builds synced rows and calls replaceAllSynced for the month',
         () async {
       adapter.debugSetPendingMonthKey('2026-04');
 
-      final captured = <List<LocalMealPlanEntriesCompanion>>[];
+      final captured = <List<MealPlanSyncedRow>>[];
       when(() => dao.replaceAllSynced(any(), any(), any()))
           .thenAnswer((inv) async {
-        captured.add(inv.positionalArguments[2]
-            as List<LocalMealPlanEntriesCompanion>);
+        captured.add(inv.positionalArguments[2] as List<MealPlanSyncedRow>);
       });
 
       await adapter.applyRemote([
@@ -262,18 +257,17 @@ void main() {
       expect(captured.single.length, 2);
 
       final c1 = captured.single[0];
-      expect(c1.localId, const Value('remote-1'));
-      expect(c1.remoteId, const Value('remote-1'));
-      expect(c1.recipeId, const Value('r1'));
-      expect(c1.customName, const Value<String?>(null));
-      expect(c1.cookIdsJson.value, '["u1","u2"]');
-      expect(c1.syncStatus, const Value('synced'));
+      expect(c1.localId, 'remote-1');
+      expect(c1.remoteId, 'remote-1');
+      expect(c1.recipeId, 'r1');
+      expect(c1.customName, isNull);
+      expect(c1.cookIds, ['u1', 'u2']);
 
       final c2 = captured.single[1];
-      expect(c2.recipeId, const Value('')); // null → '' for free-text
-      expect(c2.customName, const Value<String?>('Pizza'));
-      expect(c2.cookIdsJson.value, isNull); // null cook_ids stays null
-      expect(c2.mealType, const Value('dinner'));
+      expect(c2.recipeId, ''); // null → '' for free-text
+      expect(c2.customName, 'Pizza');
+      expect(c2.cookIds, isEmpty); // null cook_ids → empty list
+      expect(c2.mealType, 'dinner');
     });
 
     test('clears the stashed month key after applying', () async {

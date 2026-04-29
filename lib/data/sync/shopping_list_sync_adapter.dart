@@ -1,9 +1,7 @@
-import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
-import 'package:meal_planner/core/database/app_database.dart';
-import 'package:meal_planner/core/database/daos/shopping_item_dao.dart';
 import 'package:meal_planner/data/repositories/supabase_shopping_list_repository.dart';
 import 'package:meal_planner/data/sync/local_sync_status.dart';
+import 'package:meal_planner/data/sync/shopping_list_local_store.dart';
 import 'package:meal_planner/data/sync/sync_adapter.dart';
 import 'package:meal_planner/data/sync/sync_types.dart';
 
@@ -15,14 +13,14 @@ import 'package:meal_planner/data/sync/sync_types.dart';
 /// `since` argument from the engine is intentionally ignored.
 class ShoppingListSyncAdapter implements SyncAdapter {
   ShoppingListSyncAdapter({
-    required ShoppingItemDao dao,
+    required ShoppingListLocalStore dao,
     required SupabaseShoppingListRepository remote,
     required String groupId,
   })  : _dao = dao,
         _remote = remote,
         _groupId = groupId;
 
-  final ShoppingItemDao _dao;
+  final ShoppingListLocalStore _dao;
   final SupabaseShoppingListRepository _remote;
   final String _groupId;
 
@@ -50,7 +48,7 @@ class ShoppingListSyncAdapter implements SyncAdapter {
   Future<void> markSynced(String id) async {
     final row = await _dao.getItemByLocalId(id);
     if (row == null) return;
-    if (LocalSyncStatus.fromDb(row.syncStatus) == LocalSyncStatus.pendingDelete) {
+    if (row.syncStatus == LocalSyncStatus.pendingDelete) {
       await _dao.hardDeleteItem(id);
     } else {
       await _dao.updateSyncStatus(id, LocalSyncStatus.synced);
@@ -66,7 +64,7 @@ class ShoppingListSyncAdapter implements SyncAdapter {
     final row = await _dao.getItemByLocalId(change.id);
     if (row == null) return;
 
-    switch (LocalSyncStatus.fromDb(row.syncStatus)) {
+    switch (row.syncStatus) {
       case LocalSyncStatus.pendingCreate:
         final created = await _remote.addItem(row.information, row.quantity);
         // Toggle state if the local row was already checked before its first
@@ -137,25 +135,21 @@ class ShoppingListSyncAdapter implements SyncAdapter {
         if (item.remoteId != null) item.remoteId!: item.localId,
     };
 
-    final companions = rows
-        .map((r) => LocalShoppingItemsCompanion(
-              localId: Value(remoteIdToLocalId[r.id] ?? r.id),
-              remoteId: Value(r.id),
-              groupId: Value(_groupId),
-              information: Value(r.data['information'] as String),
-              quantity: Value(r.data['quantity'] as String?),
-              isChecked: Value(r.data['is_checked'] as bool? ?? false),
-              syncStatus: Value(LocalSyncStatus.synced.dbValue),
-              updatedAt: Value(DateTime.now()),
+    final syncedRows = rows
+        .map((r) => ShoppingListSyncedRow(
+              localId: remoteIdToLocalId[r.id] ?? r.id,
+              remoteId: r.id,
+              information: r.data['information'] as String,
+              quantity: r.data['quantity'] as String?,
+              isChecked: r.data['is_checked'] as bool? ?? false,
             ))
         .toList();
 
-    await _dao.replaceAllSynced(_groupId, companions);
+    await _dao.replaceAllSynced(_groupId, syncedRows);
   }
 
-  PendingChange _rowToPendingChange(LocalShoppingItem row) {
-    final isDelete =
-        LocalSyncStatus.fromDb(row.syncStatus) == LocalSyncStatus.pendingDelete;
+  PendingChange _rowToPendingChange(ShoppingListRow row) {
+    final isDelete = row.syncStatus == LocalSyncStatus.pendingDelete;
     return PendingChange(
       id: row.localId,
       status: isDelete ? SyncItemStatus.pendingDelete : SyncItemStatus.pending,

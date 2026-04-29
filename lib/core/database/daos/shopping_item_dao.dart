@@ -2,13 +2,24 @@ import 'package:drift/drift.dart';
 import 'package:meal_planner/core/database/app_database.dart';
 import 'package:meal_planner/core/database/tables/local_shopping_items_table.dart';
 import 'package:meal_planner/data/sync/local_sync_status.dart';
+import 'package:meal_planner/data/sync/shopping_list_local_store.dart';
 
 part 'shopping_item_dao.g.dart';
 
 @DriftAccessor(tables: [LocalShoppingItems])
 class ShoppingItemDao extends DatabaseAccessor<AppDatabase>
-    with _$ShoppingItemDaoMixin {
+    with _$ShoppingItemDaoMixin
+    implements ShoppingListLocalStore {
   ShoppingItemDao(super.db);
+
+  ShoppingListRow _toRow(LocalShoppingItem r) => ShoppingListRow(
+        localId: r.localId,
+        syncStatus: LocalSyncStatus.fromDb(r.syncStatus),
+        remoteId: r.remoteId,
+        information: r.information,
+        quantity: r.quantity,
+        isChecked: r.isChecked,
+      );
 
   // UI nutzt diesen Stream – reagiert automatisch auf Änderungen
   Stream<List<LocalShoppingItem>> watchItemsByGroup(String groupId) {
@@ -19,13 +30,15 @@ class ShoppingItemDao extends DatabaseAccessor<AppDatabase>
         .watch();
   }
 
-  // Für den Sync-Service
-  Future<List<LocalShoppingItem>> getPendingItems(String groupId) {
-    return (select(localShoppingItems)
+  // Für den Sync-Service – via ShoppingListLocalStore
+  @override
+  Future<List<ShoppingListRow>> getPendingItems(String groupId) async {
+    final rows = await (select(localShoppingItems)
           ..where((t) => t.groupId.equals(groupId))
           ..where(
               (t) => t.syncStatus.equals(LocalSyncStatus.synced.dbValue).not()))
         .get();
+    return rows.map(_toRow).toList();
   }
 
   /// Returns the remote ids of all locally-pending items (any non-`synced`
@@ -41,10 +54,12 @@ class ShoppingItemDao extends DatabaseAccessor<AppDatabase>
     return rows.map((r) => r.remoteId!).toSet();
   }
 
-  Future<LocalShoppingItem?> getItemByLocalId(String localId) {
-    return (select(localShoppingItems)
+  @override
+  Future<ShoppingListRow?> getItemByLocalId(String localId) async {
+    final row = await (select(localShoppingItems)
           ..where((t) => t.localId.equals(localId)))
         .getSingleOrNull();
+    return row == null ? null : _toRow(row);
   }
 
   Future<void> upsertItem(LocalShoppingItemsCompanion item) {
@@ -90,19 +105,35 @@ class ShoppingItemDao extends DatabaseAccessor<AppDatabase>
         .go();
   }
 
-  Future<List<LocalShoppingItem>> getSyncedItemsByGroup(String groupId) {
-    return (select(localShoppingItems)
+  @override
+  Future<List<ShoppingListRow>> getSyncedItemsByGroup(String groupId) async {
+    final rows = await (select(localShoppingItems)
           ..where((t) => t.groupId.equals(groupId))
           ..where((t) => t.syncStatus.equals(LocalSyncStatus.synced.dbValue)))
         .get();
+    return rows.map(_toRow).toList();
   }
 
-  // Wird beim initialen Pull genutzt – ersetzt alle synced Items
+  // Wird beim initialen Pull genutzt – ersetzt alle synced Items via ShoppingListLocalStore
   // Pending Items werden bewusst nicht angefasst
+  @override
   Future<void> replaceAllSynced(
     String groupId,
-    List<LocalShoppingItemsCompanion> items,
+    List<ShoppingListSyncedRow> rows,
   ) async {
+    final companions = rows
+        .map((r) => LocalShoppingItemsCompanion(
+              localId: Value(r.localId),
+              remoteId: Value(r.remoteId),
+              groupId: Value(groupId),
+              information: Value(r.information),
+              quantity: Value(r.quantity),
+              isChecked: Value(r.isChecked),
+              syncStatus: Value(LocalSyncStatus.synced.dbValue),
+              updatedAt: Value(DateTime.now()),
+            ))
+        .toList();
+
     await transaction(() async {
       await (delete(localShoppingItems)
             ..where((t) => t.groupId.equals(groupId))
@@ -111,7 +142,7 @@ class ShoppingItemDao extends DatabaseAccessor<AppDatabase>
           .go();
 
       await batch((b) {
-        b.insertAll(localShoppingItems, items);
+        b.insertAll(localShoppingItems, companions);
       });
     });
   }

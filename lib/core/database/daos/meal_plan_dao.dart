@@ -1,14 +1,39 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:meal_planner/core/database/app_database.dart';
 import 'package:meal_planner/core/database/tables/local_meal_plan_entries_table.dart';
 import 'package:meal_planner/data/sync/local_sync_status.dart';
+import 'package:meal_planner/data/sync/meal_plan_local_store.dart';
 
 part 'meal_plan_dao.g.dart';
 
 @DriftAccessor(tables: [LocalMealPlanEntries])
 class MealPlanDao extends DatabaseAccessor<AppDatabase>
-    with _$MealPlanDaoMixin {
+    with _$MealPlanDaoMixin
+    implements MealPlanLocalStore {
   MealPlanDao(super.db);
+
+  MealPlanRow _toRow(LocalMealPlanEntry r) => MealPlanRow(
+        localId: r.localId,
+        syncStatus: LocalSyncStatus.fromDb(r.syncStatus),
+        remoteId: r.remoteId,
+        recipeId: r.recipeId,
+        customName: r.customName,
+        date: r.date,
+        mealType: r.mealType,
+        cookIds: _decodeCookIds(r.cookIdsJson),
+        updatedAt: r.updatedAt,
+      );
+
+  static List<String> _decodeCookIds(String? json) {
+    if (json == null) return const [];
+    try {
+      return (jsonDecode(json) as List<dynamic>).cast<String>();
+    } catch (_) {
+      return const [];
+    }
+  }
 
   // Watch all entries for a specific date (UI stream)
   Stream<List<LocalMealPlanEntry>> watchEntriesForDate(
@@ -36,13 +61,15 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
         .watch();
   }
 
-  // All entries not yet synced – used by SyncService
-  Future<List<LocalMealPlanEntry>> getPendingEntries(String groupId) {
-    return (select(localMealPlanEntries)
+  // All entries not yet synced – used by SyncAdapter via MealPlanLocalStore
+  @override
+  Future<List<MealPlanRow>> getPendingEntries(String groupId) async {
+    final rows = await (select(localMealPlanEntries)
           ..where((t) => t.groupId.equals(groupId))
           ..where(
               (t) => t.syncStatus.equals(LocalSyncStatus.synced.dbValue).not()))
         .get();
+    return rows.map(_toRow).toList();
   }
 
   /// Returns the remote ids of all locally-pending entries (any non-`synced`
@@ -58,10 +85,12 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
     return rows.map((r) => r.remoteId!).toSet();
   }
 
-  Future<LocalMealPlanEntry?> getEntryByLocalId(String localId) {
-    return (select(localMealPlanEntries)
+  @override
+  Future<MealPlanRow?> getEntryByLocalId(String localId) async {
+    final row = await (select(localMealPlanEntries)
           ..where((t) => t.localId.equals(localId)))
         .getSingleOrNull();
+    return row == null ? null : _toRow(row);
   }
 
   Future<void> upsertEntry(LocalMealPlanEntriesCompanion entry) {
@@ -199,12 +228,29 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
         .go();
   }
 
-  // Replaces all synced entries for a month – used by initial pull
+  // Replaces all synced entries for a month – used by MealPlanSyncAdapter
+  @override
   Future<void> replaceAllSynced(
     String groupId,
     String yearMonth,
-    List<LocalMealPlanEntriesCompanion> entries,
+    List<MealPlanSyncedRow> rows,
   ) async {
+    final companions = rows
+        .map((r) => LocalMealPlanEntriesCompanion(
+              localId: Value(r.localId),
+              remoteId: Value(r.remoteId),
+              groupId: Value(groupId),
+              recipeId: Value(r.recipeId),
+              customName: Value(r.customName),
+              date: Value(r.date),
+              mealType: Value(r.mealType),
+              cookIdsJson: Value(
+                  r.cookIds.isEmpty ? null : jsonEncode(r.cookIds)),
+              syncStatus: Value(LocalSyncStatus.synced.dbValue),
+              updatedAt: Value(DateTime.now()),
+            ))
+        .toList();
+
     await transaction(() async {
       await (delete(localMealPlanEntries)
             ..where((t) => t.groupId.equals(groupId))
@@ -213,8 +259,8 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
                 (t) => t.syncStatus.equals(LocalSyncStatus.synced.dbValue)))
           .go();
 
-      if (entries.isNotEmpty) {
-        await batch((b) => b.insertAll(localMealPlanEntries, entries));
+      if (companions.isNotEmpty) {
+        await batch((b) => b.insertAll(localMealPlanEntries, companions));
       }
     });
   }

@@ -1,39 +1,34 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meal_planner/core/database/app_database.dart';
 import 'package:meal_planner/core/database/daos/meal_plan_dao.dart';
 import 'package:meal_planner/data/repositories/offline_first_meal_plan_repository.dart';
+import 'package:meal_planner/data/sync/local_sync_status.dart';
+import 'package:meal_planner/data/sync/meal_plan_local_store.dart';
 import 'package:meal_planner/domain/enums/meal_type.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockDao extends Mock implements MealPlanDao {}
 
-LocalMealPlanEntry _row({
+MealPlanRow _row({
   required String localId,
-  String groupId = 'g1',
   String recipeId = 'r1',
   String date = '2026-04-15',
   String mealType = 'lunch',
-  String syncStatus = 'synced',
+  LocalSyncStatus syncStatus = LocalSyncStatus.synced,
   String? remoteId = 'rem1',
 }) =>
-    LocalMealPlanEntry(
+    MealPlanRow(
       localId: localId,
       remoteId: remoteId,
-      groupId: groupId,
       recipeId: recipeId,
       customName: null,
       date: date,
       mealType: mealType,
-      cookIdsJson: null,
+      cookIds: const [],
       syncStatus: syncStatus,
       updatedAt: DateTime(2026, 4, 1, 12),
     );
 
 void main() {
-  setUpAll(() {
-    registerFallbackValue(const LocalMealPlanEntriesCompanion());
-  });
-
   late _MockDao dao;
   late OfflineFirstMealPlanRepository repo;
 
