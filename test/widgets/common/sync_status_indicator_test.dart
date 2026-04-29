@@ -50,9 +50,9 @@ void main() {
       expect(find.byType(IconButton), findsNothing);
     });
 
-    testWidgets('syncing → faint cloud_upload icon', (tester) async {
+    testWidgets('syncing → renders nothing (silent poll)', (tester) async {
       await tester.pumpWidget(_wrap(_status(SyncHealth.syncing)));
-      expect(find.byIcon(Icons.cloud_upload_outlined), findsOneWidget);
+      expect(find.byType(IconButton), findsNothing);
     });
 
     testWidgets('degraded → tertiary cloud_queue icon', (tester) async {

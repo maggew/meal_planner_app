@@ -70,6 +70,7 @@ void _stubNotificationDefaults(
   when(() => mockPlugin.cancel(id: any(named: 'id')))
       .thenAnswer((_) async {});
 
+  when(() => mockAudioPlayer.setAudioContext(any())).thenAnswer((_) async {});
   when(() => mockAudioPlayer.setReleaseMode(any())).thenAnswer((_) async {});
   when(() => mockAudioPlayer.setSourceAsset(any())).thenAnswer((_) async {});
   when(() => mockAudioPlayer.resume()).thenAnswer((_) async {});
@@ -90,6 +91,7 @@ void main() {
     registerFallbackValue(const InitializationSettings());
     registerFallbackValue(AndroidScheduleMode.exactAllowWhileIdle);
     registerFallbackValue(ReleaseMode.loop);
+    registerFallbackValue(AudioContext());
     registerFallbackValue((NotificationResponse _) {});
     registerFallbackValue(
       RecipeTimer(recipeId: '', stepIndex: 0, timerName: '', durationSeconds: 0),
