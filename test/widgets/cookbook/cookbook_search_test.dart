@@ -100,6 +100,9 @@ class FakeRecipeRepository implements RecipeRepository {
   @override
   Future<void> deleteTimer(String recipeId, int stepIndex) =>
       throw UnimplementedError();
+  @override
+  Future<void> incrementTimesCooked(String recipeId) =>
+      throw UnimplementedError();
 }
 
 // --- Helpers ---
