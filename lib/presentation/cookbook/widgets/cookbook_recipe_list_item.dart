@@ -44,11 +44,10 @@ class CookbookRecipeListItem extends StatelessWidget {
         height: 100,
         margin: EdgeInsets.fromLTRB(10, 5, 10, 5),
         child: GlassCard(
-          padding: EdgeInsets.zero,
+          padding: EdgeInsets.symmetric(horizontal: 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              SizedBox(width: 10),
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: SizedBox(
