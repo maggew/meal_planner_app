@@ -93,10 +93,31 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
   void _onSingleModeTabChanged() {
     if (_singleModeTabController.indexIsChanging) return;
     final session = ref.read(activeCookingSessionProvider);
-    if (!session.isActive) return;
-    ref
-        .read(activeCookingSessionProvider.notifier)
-        .setWasInCookingMode(_singleModeTabController.index == 1);
+    final notifier = ref.read(activeCookingSessionProvider.notifier);
+
+    if (_singleModeTabController.index == 1) {
+      if (!session.isActive && _recipe?.id != null) {
+        notifier.addRecipe(CookingRecipeEntry(
+          recipeId: _recipe!.id!,
+          recipeName: _recipe!.name,
+          imageUrl: _recipe!.imageUrl,
+        ));
+      } else if (session.isActive) {
+        notifier.setWasInCookingMode(true);
+      }
+    } else {
+      if (session.isActive && session.recipes.length == 1) {
+        final timers = ref.read(activeTimerProvider);
+        final recipeIds = session.recipes.map((e) => e.recipeId).toSet();
+        final hasActiveTimers = timers.values.any(
+          (t) =>
+              recipeIds.contains(t.recipeId) &&
+              (t.status == TimerStatus.running ||
+                  t.status == TimerStatus.paused),
+        );
+        if (!hasActiveTimers) notifier.clearSession();
+      }
+    }
   }
 
   void _restoreTabFromSession() {
@@ -223,20 +244,17 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
   ) {
     if (session == null || !session.isActive) return;
     if (timers == null || notifier == null) return;
-
-    // Multi-recipe sessions are kept explicitly by the user and must
-    // persist across navigation even without running timers.
     if (session.recipes.length > 1) return;
 
-    final sessionRecipeIds =
-        session.recipes.map((e) => e.recipeId).toSet();
+    // User left from cooking tab → keep session so mini-bar stays visible.
+    if (session.wasInCookingMode) return;
+
+    final sessionRecipeIds = session.recipes.map((e) => e.recipeId).toSet();
     final hasActiveTimers = timers.values.any((t) =>
         sessionRecipeIds.contains(t.recipeId) &&
         (t.status == TimerStatus.running || t.status == TimerStatus.paused));
 
-    if (!hasActiveTimers) {
-      notifier.clearSession();
-    }
+    if (!hasActiveTimers) notifier.clearSession();
   }
 
   @override
@@ -328,7 +346,6 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
           ? CookingModeRecipeTabBar(
               onAddRecipe: _onAddRecipe,
               onRemoveRecipe: () {
-              // If back to 1 recipe, ensure single mode state is correct
               final updated = ref.read(activeCookingSessionProvider);
               if (updated.recipes.length <= 1 && updated.recipes.isNotEmpty) {
                 final remaining = updated.recipes.first;
@@ -340,6 +357,8 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
                             _recipe!.portions;
                     _image = _buildImage(_recipe!);
                   });
+                  // Jump to cooking tab — user was already cooking in multi-mode
+                  _singleModeTabController.animateTo(1);
                 }
               }
             })
