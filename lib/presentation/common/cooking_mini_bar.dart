@@ -49,12 +49,14 @@ class _CookingMiniBarState extends ConsumerState<CookingMiniBar>
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(activeCookingSessionProvider);
+    final shouldShow = session.isActive && session.wasInCookingMode;
 
-    if (session.isActive) {
+    Map<String, ActiveTimer> timers = const {};
+    if (shouldShow) {
       _controller.forward();
 
       ref.watch(timerTickProvider);
-      final timers = ref.watch(activeTimerProvider);
+      timers = ref.watch(activeTimerProvider);
 
       final recipeCount = session.recipes.length;
       _cachedDisplayName = recipeCount == 1
@@ -71,6 +73,17 @@ class _CookingMiniBarState extends ConsumerState<CookingMiniBar>
 
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    final sessionRecipeIds = session.recipes.map((e) => e.recipeId).toSet();
+    final hasRunningTimer = timers.values.any(
+      (t) =>
+          sessionRecipeIds.contains(t.recipeId) &&
+          (t.status == TimerStatus.running ||
+              t.status == TimerStatus.paused ||
+              t.status == TimerStatus.finished),
+    );
+    final showCloseButton =
+        session.recipes.length == 1 && !hasRunningTimer;
 
     return SizeTransition(
       sizeFactor: _animation,
@@ -112,11 +125,23 @@ class _CookingMiniBarState extends ConsumerState<CookingMiniBar>
                       ),
                     ),
                   const SizedBox(width: 4),
-                  Icon(
-                    Icons.chevron_right,
-                    size: 20,
-                    color: colorScheme.onSurface.withValues(alpha: 0.5),
-                  ),
+                  if (showCloseButton)
+                    GestureDetector(
+                      onTap: () => ref
+                          .read(activeCookingSessionProvider.notifier)
+                          .clearSession(),
+                      child: Icon(
+                        Icons.close,
+                        size: 20,
+                        color: colorScheme.onSurface.withValues(alpha: 0.5),
+                      ),
+                    )
+                  else
+                    Icon(
+                      Icons.chevron_right,
+                      size: 20,
+                      color: colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
                 ],
               ),
             ),
