@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/core/database/app_database.dart';
 import 'package:meal_planner/core/database/daos/meal_plan_dao.dart';
+import 'package:meal_planner/data/sync/local_sync_status.dart';
 import 'package:meal_planner/data/sync/meal_plan_sync_adapter.dart';
 import 'package:meal_planner/data/sync/sync_types.dart';
 import 'package:mocktail/mocktail.dart';
@@ -40,6 +41,7 @@ LocalMealPlanEntry _row({
 void main() {
   setUpAll(() {
     registerFallbackValue(<LocalMealPlanEntriesCompanion>[]);
+    registerFallbackValue(LocalSyncStatus.synced);
   });
 
   late _MockDao dao;
@@ -108,7 +110,7 @@ void main() {
 
       await adapter.markSynced('x');
 
-      verify(() => dao.updateSyncStatus('x', 'synced')).called(1);
+      verify(() => dao.updateSyncStatus('x', LocalSyncStatus.synced)).called(1);
       verifyNever(() => dao.hardDeleteEntry(any()));
     });
 
@@ -123,7 +125,7 @@ void main() {
   test('markFailed sets status to failed', () async {
     when(() => dao.updateSyncStatus(any(), any())).thenAnswer((_) async {});
     await adapter.markFailed('x', StateError('boom'));
-    verify(() => dao.updateSyncStatus('x', 'failed')).called(1);
+    verify(() => dao.updateSyncStatus('x', LocalSyncStatus.failed)).called(1);
   });
 
   test('featureKey is meal_plan', () {

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:meal_planner/core/database/app_database.dart';
 import 'package:meal_planner/core/database/daos/shopping_item_dao.dart';
 import 'package:meal_planner/data/repositories/supabase_shopping_list_repository.dart';
+import 'package:meal_planner/data/sync/local_sync_status.dart';
 import 'package:meal_planner/data/sync/shopping_list_sync_adapter.dart';
 import 'package:meal_planner/data/sync/sync_types.dart';
 import 'package:meal_planner/domain/entities/shopping_list_item.dart';
@@ -35,6 +36,7 @@ LocalShoppingItem _row({
 void main() {
   setUpAll(() {
     registerFallbackValue(<LocalShoppingItemsCompanion>[]);
+    registerFallbackValue(LocalSyncStatus.synced);
   });
 
   late _MockDao dao;
@@ -98,7 +100,7 @@ void main() {
           (_) async => _row(localId: 'x', syncStatus: 'pendingUpdate'));
       when(() => dao.updateSyncStatus(any(), any())).thenAnswer((_) async {});
       await adapter.markSynced('x');
-      verify(() => dao.updateSyncStatus('x', 'synced')).called(1);
+      verify(() => dao.updateSyncStatus('x', LocalSyncStatus.synced)).called(1);
     });
 
     test('no-op when row missing', () async {
@@ -112,7 +114,7 @@ void main() {
   test('markFailed sets failed status', () async {
     when(() => dao.updateSyncStatus(any(), any())).thenAnswer((_) async {});
     await adapter.markFailed('x', StateError('boom'));
-    verify(() => dao.updateSyncStatus('x', 'failed')).called(1);
+    verify(() => dao.updateSyncStatus('x', LocalSyncStatus.failed)).called(1);
   });
 
   group('pushOne', () {
@@ -138,7 +140,8 @@ void main() {
 
       verify(() => remote.addItem('Milch', '1L')).called(1);
       verifyNever(() => remote.toggleItem(any(), any()));
-      verify(() => dao.updateSyncStatus('a', 'synced', remoteId: 'remote-a'))
+      verify(() => dao.updateSyncStatus('a', LocalSyncStatus.synced,
+              remoteId: 'remote-a'))
           .called(1);
     });
 
@@ -206,7 +209,8 @@ void main() {
           payload: {}));
 
       verify(() => remote.addItem('Milch', '1L')).called(1);
-      verify(() => dao.updateSyncStatus('b', 'synced', remoteId: 'remote-b'))
+      verify(() => dao.updateSyncStatus('b', LocalSyncStatus.synced,
+              remoteId: 'remote-b'))
           .called(1);
     });
 

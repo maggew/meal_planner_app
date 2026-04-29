@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:meal_planner/core/database/app_database.dart';
 import 'package:meal_planner/core/database/tables/local_meal_plan_entries_table.dart';
+import 'package:meal_planner/data/sync/local_sync_status.dart';
 
 part 'meal_plan_dao.g.dart';
 
@@ -17,7 +18,8 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
     return (select(localMealPlanEntries)
           ..where((t) => t.groupId.equals(groupId))
           ..where((t) => t.date.equals(date))
-          ..where((t) => t.syncStatus.equals('pendingDelete').not()))
+          ..where((t) =>
+              t.syncStatus.equals(LocalSyncStatus.pendingDelete.dbValue).not()))
         .watch();
   }
 
@@ -29,7 +31,8 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
     return (select(localMealPlanEntries)
           ..where((t) => t.groupId.equals(groupId))
           ..where((t) => t.date.like('$yearMonth-%'))
-          ..where((t) => t.syncStatus.equals('pendingDelete').not()))
+          ..where((t) =>
+              t.syncStatus.equals(LocalSyncStatus.pendingDelete.dbValue).not()))
         .watch();
   }
 
@@ -37,7 +40,8 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
   Future<List<LocalMealPlanEntry>> getPendingEntries(String groupId) {
     return (select(localMealPlanEntries)
           ..where((t) => t.groupId.equals(groupId))
-          ..where((t) => t.syncStatus.equals('synced').not()))
+          ..where(
+              (t) => t.syncStatus.equals(LocalSyncStatus.synced.dbValue).not()))
         .get();
   }
 
@@ -47,7 +51,8 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
   Future<Set<String>> getPendingRemoteIds(String groupId) async {
     final rows = await (select(localMealPlanEntries)
           ..where((t) => t.groupId.equals(groupId))
-          ..where((t) => t.syncStatus.equals('synced').not())
+          ..where(
+              (t) => t.syncStatus.equals(LocalSyncStatus.synced.dbValue).not())
           ..where((t) => t.remoteId.isNotNull()))
         .get();
     return rows.map((r) => r.remoteId!).toSet();
@@ -65,13 +70,13 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
 
   Future<void> updateSyncStatus(
     String localId,
-    String status, {
+    LocalSyncStatus status, {
     String? remoteId,
   }) {
     return (update(localMealPlanEntries)
           ..where((t) => t.localId.equals(localId)))
         .write(LocalMealPlanEntriesCompanion(
-      syncStatus: Value(status),
+      syncStatus: Value(status.dbValue),
       remoteId: remoteId != null ? Value(remoteId) : const Value.absent(),
     ));
   }
@@ -79,8 +84,8 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
   Future<void> markAsDeleted(String localId) {
     return (update(localMealPlanEntries)
           ..where((t) => t.localId.equals(localId)))
-        .write(const LocalMealPlanEntriesCompanion(
-      syncStatus: Value('pendingDelete'),
+        .write(LocalMealPlanEntriesCompanion(
+      syncStatus: Value(LocalSyncStatus.pendingDelete.dbValue),
     ));
   }
 
@@ -89,7 +94,7 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
           ..where((t) => t.localId.equals(localId)))
         .write(LocalMealPlanEntriesCompanion(
       cookIdsJson: Value(cookIdsJson),
-      syncStatus: const Value('pendingUpdate'),
+      syncStatus: Value(LocalSyncStatus.pendingUpdate.dbValue),
     ));
   }
 
@@ -100,14 +105,16 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
     String? cookIdsJson,
     bool keepPendingCreate = false,
   }) {
+    final status = keepPendingCreate
+        ? LocalSyncStatus.pendingCreate
+        : LocalSyncStatus.pendingUpdate;
     return (update(localMealPlanEntries)
           ..where((t) => t.localId.equals(localId)))
         .write(LocalMealPlanEntriesCompanion(
       recipeId: Value(recipeId),
       customName: Value(customName),
       cookIdsJson: Value(cookIdsJson),
-      syncStatus:
-          Value(keepPendingCreate ? 'pendingCreate' : 'pendingUpdate'),
+      syncStatus: Value(status.dbValue),
       updatedAt: Value(DateTime.now()),
     ));
   }
@@ -121,36 +128,41 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
     required String mealType,
     bool keepPendingCreate = false,
   }) {
+    final status = keepPendingCreate
+        ? LocalSyncStatus.pendingCreate
+        : LocalSyncStatus.pendingUpdate;
     return (update(localMealPlanEntries)
           ..where((t) => t.localId.equals(localId)))
         .write(LocalMealPlanEntriesCompanion(
       date: Value(date),
       mealType: Value(mealType),
-      syncStatus:
-          Value(keepPendingCreate ? 'pendingCreate' : 'pendingUpdate'),
+      syncStatus: Value(status.dbValue),
       updatedAt: Value(DateTime.now()),
     ));
   }
 
   /// Converts all meal plan entries that reference [recipeId] to free-text
   /// entries, preserving [recipeName] as [customName].
-  /// Keeps syncStatus 'pendingCreate' for unsynced entries; sets
-  /// 'pendingUpdate' for everything else so the sync pushes the change.
+  /// Keeps syncStatus pendingCreate for unsynced entries; sets
+  /// pendingUpdate for everything else so the sync pushes the change.
   Future<void> detachRecipeEntries(String recipeId, String recipeName) {
     return transaction(() async {
       await (update(localMealPlanEntries)
             ..where((t) => t.recipeId.equals(recipeId))
-            ..where((t) => t.syncStatus.equals('pendingCreate').not()))
+            ..where((t) => t.syncStatus
+                .equals(LocalSyncStatus.pendingCreate.dbValue)
+                .not()))
           .write(LocalMealPlanEntriesCompanion(
         recipeId: const Value(''),
         customName: Value(recipeName),
-        syncStatus: const Value('pendingUpdate'),
+        syncStatus: Value(LocalSyncStatus.pendingUpdate.dbValue),
         updatedAt: Value(DateTime.now()),
       ));
 
       await (update(localMealPlanEntries)
             ..where((t) => t.recipeId.equals(recipeId))
-            ..where((t) => t.syncStatus.equals('pendingCreate')))
+            ..where((t) =>
+                t.syncStatus.equals(LocalSyncStatus.pendingCreate.dbValue)))
           .write(LocalMealPlanEntriesCompanion(
         recipeId: const Value(''),
         customName: Value(recipeName),
@@ -176,7 +188,8 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
           ..where((t) => t.groupId.equals(groupId))
           ..where((t) => t.date.isBiggerOrEqualValue(fromDate))
           ..where((t) => t.date.isSmallerOrEqualValue(toDate))
-          ..where((t) => t.syncStatus.equals('pendingDelete').not()))
+          ..where((t) =>
+              t.syncStatus.equals(LocalSyncStatus.pendingDelete.dbValue).not()))
         .get();
   }
 
@@ -196,7 +209,8 @@ class MealPlanDao extends DatabaseAccessor<AppDatabase>
       await (delete(localMealPlanEntries)
             ..where((t) => t.groupId.equals(groupId))
             ..where((t) => t.date.like('$yearMonth-%'))
-            ..where((t) => t.syncStatus.equals('synced')))
+            ..where(
+                (t) => t.syncStatus.equals(LocalSyncStatus.synced.dbValue)))
           .go();
 
       if (entries.isNotEmpty) {

@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:meal_planner/core/database/app_database.dart';
 import 'package:meal_planner/core/database/daos/shopping_item_dao.dart';
+import 'package:meal_planner/data/sync/local_sync_status.dart';
 import 'package:meal_planner/domain/entities/shopping_list_item.dart';
 import 'package:meal_planner/domain/repositories/shopping_list_repository.dart';
 import 'package:uuid/uuid.dart';
@@ -58,7 +59,7 @@ class OfflineFirstShoppingListRepository implements ShoppingListRepository {
       information: Value(information),
       quantity: Value(quantity),
       isChecked: const Value(false),
-      syncStatus: const Value('pendingCreate'),
+      syncStatus: Value(LocalSyncStatus.pendingCreate.dbValue),
       updatedAt: Value(now),
     ));
 
@@ -106,7 +107,10 @@ class OfflineFirstShoppingListRepository implements ShoppingListRepository {
     );
     // pendingCreate beibehalten: Item noch nie synced, wird beim nächsten Sync mit den
     // aktuellen Daten erstellt – kein Überschreiben auf pendingUpdate nötig
-    final newStatus = item.syncStatus == 'pendingCreate' ? 'pendingCreate' : 'pendingUpdate';
+    final current = LocalSyncStatus.fromDb(item.syncStatus);
+    final newStatus = current == LocalSyncStatus.pendingCreate
+        ? LocalSyncStatus.pendingCreate
+        : LocalSyncStatus.pendingUpdate;
     await _dao.updateItemFields(
       item.localId,
       information: information,
@@ -123,14 +127,17 @@ class OfflineFirstShoppingListRepository implements ShoppingListRepository {
     );
     // pendingCreate beibehalten: Item noch nie synced, wird beim nächsten Sync mit den
     // aktuellen Daten erstellt – kein Überschreiben auf pendingUpdate nötig
-    final newStatus = item.syncStatus == 'pendingCreate' ? 'pendingCreate' : 'pendingUpdate';
+    final currentStatus = LocalSyncStatus.fromDb(item.syncStatus);
+    final newStatus = currentStatus == LocalSyncStatus.pendingCreate
+        ? LocalSyncStatus.pendingCreate
+        : LocalSyncStatus.pendingUpdate;
     await _dao.upsertItem(LocalShoppingItemsCompanion(
       localId: Value(item.localId),
       groupId: Value(item.groupId),
       information: Value(item.information),
       quantity: Value(item.quantity),
       isChecked: Value(isChecked),
-      syncStatus: Value(newStatus),
+      syncStatus: Value(newStatus.dbValue),
       updatedAt: Value(DateTime.now()),
     ));
   }

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/core/database/app_database.dart';
 import 'package:meal_planner/core/database/daos/meal_plan_dao.dart';
+import 'package:meal_planner/data/sync/local_sync_status.dart';
 import 'package:meal_planner/data/sync/sync_adapter.dart';
 import 'package:meal_planner/data/sync/sync_types.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -58,24 +59,24 @@ class MealPlanSyncAdapter implements SyncAdapter {
   Future<void> markSynced(String id) async {
     final row = await _dao.getEntryByLocalId(id);
     if (row == null) return;
-    if (row.syncStatus == 'pendingDelete') {
+    if (LocalSyncStatus.fromDb(row.syncStatus) == LocalSyncStatus.pendingDelete) {
       await _dao.hardDeleteEntry(id);
     } else {
-      await _dao.updateSyncStatus(id, 'synced');
+      await _dao.updateSyncStatus(id, LocalSyncStatus.synced);
     }
   }
 
   @override
   Future<void> markFailed(String id, Object error) =>
-      _dao.updateSyncStatus(id, 'failed');
+      _dao.updateSyncStatus(id, LocalSyncStatus.failed);
 
   @override
   Future<void> pushOne(PendingChange change) async {
     final row = await _dao.getEntryByLocalId(change.id);
     if (row == null) return; // Concurrently deleted; treat as no-op success.
 
-    switch (row.syncStatus) {
-      case 'pendingCreate':
+    switch (LocalSyncStatus.fromDb(row.syncStatus)) {
+      case LocalSyncStatus.pendingCreate:
         final response = await _supabase
             .from(SupabaseConstants.mealPlanEntriesTable)
             .insert({
@@ -85,7 +86,8 @@ class MealPlanSyncAdapter implements SyncAdapter {
               SupabaseConstants.mealPlanEntryCustomName: row.customName,
               SupabaseConstants.mealPlanEntryDate: row.date,
               SupabaseConstants.mealPlanEntryMealType: row.mealType,
-              SupabaseConstants.mealPlanEntryCookIds: _decodeCookIds(row.cookIdsJson),
+              SupabaseConstants.mealPlanEntryCookIds:
+                  _decodeCookIds(row.cookIdsJson),
               SupabaseConstants.mealPlanEntryUpdatedAt:
                   row.updatedAt.toIso8601String(),
             })
@@ -94,24 +96,29 @@ class MealPlanSyncAdapter implements SyncAdapter {
         final remoteId =
             response[SupabaseConstants.mealPlanEntryId] as String;
         // Persist the new remoteId now; engine's subsequent markSynced is
-        // an idempotent no-op (status -> 'synced' again).
-        await _dao.updateSyncStatus(change.id, 'synced', remoteId: remoteId);
+        // an idempotent no-op (status -> synced again).
+        await _dao.updateSyncStatus(change.id, LocalSyncStatus.synced,
+            remoteId: remoteId);
 
-      case 'pendingUpdate':
-      case 'failed':
+      case LocalSyncStatus.pendingUpdate:
+      case LocalSyncStatus.failed:
         if (row.remoteId == null) return;
         await _supabase
             .from(SupabaseConstants.mealPlanEntriesTable)
             .update(buildUpdatePayload(row))
             .eq(SupabaseConstants.mealPlanEntryId, row.remoteId!);
 
-      case 'pendingDelete':
+      case LocalSyncStatus.pendingDelete:
         if (row.remoteId != null) {
           await _supabase
               .from(SupabaseConstants.mealPlanEntriesTable)
               .delete()
               .eq(SupabaseConstants.mealPlanEntryId, row.remoteId!);
         }
+
+      case LocalSyncStatus.synced:
+        // Already synced — no push needed.
+        break;
     }
   }
 
@@ -178,7 +185,7 @@ class MealPlanSyncAdapter implements SyncAdapter {
             Value(data[SupabaseConstants.mealPlanEntryMealType] as String),
         cookIdsJson:
             Value(cookIds.isEmpty ? null : jsonEncode(cookIds)),
-        syncStatus: const Value('synced'),
+        syncStatus: Value(LocalSyncStatus.synced.dbValue),
         updatedAt: Value(DateTime.now()),
       );
     }).toList();
@@ -213,7 +220,8 @@ class MealPlanSyncAdapter implements SyncAdapter {
   }
 
   PendingChange _rowToPendingChange(LocalMealPlanEntry row) {
-    final isDelete = row.syncStatus == 'pendingDelete';
+    final isDelete =
+        LocalSyncStatus.fromDb(row.syncStatus) == LocalSyncStatus.pendingDelete;
     return PendingChange(
       id: row.localId,
       status: isDelete ? SyncItemStatus.pendingDelete : SyncItemStatus.pending,

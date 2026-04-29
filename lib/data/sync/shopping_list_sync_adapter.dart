@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:meal_planner/core/database/app_database.dart';
 import 'package:meal_planner/core/database/daos/shopping_item_dao.dart';
 import 'package:meal_planner/data/repositories/supabase_shopping_list_repository.dart';
+import 'package:meal_planner/data/sync/local_sync_status.dart';
 import 'package:meal_planner/data/sync/sync_adapter.dart';
 import 'package:meal_planner/data/sync/sync_types.dart';
 
@@ -49,53 +50,56 @@ class ShoppingListSyncAdapter implements SyncAdapter {
   Future<void> markSynced(String id) async {
     final row = await _dao.getItemByLocalId(id);
     if (row == null) return;
-    if (row.syncStatus == 'pendingDelete') {
+    if (LocalSyncStatus.fromDb(row.syncStatus) == LocalSyncStatus.pendingDelete) {
       await _dao.hardDeleteItem(id);
     } else {
-      await _dao.updateSyncStatus(id, 'synced');
+      await _dao.updateSyncStatus(id, LocalSyncStatus.synced);
     }
   }
 
   @override
   Future<void> markFailed(String id, Object error) =>
-      _dao.updateSyncStatus(id, 'failed');
+      _dao.updateSyncStatus(id, LocalSyncStatus.failed);
 
   @override
   Future<void> pushOne(PendingChange change) async {
     final row = await _dao.getItemByLocalId(change.id);
     if (row == null) return;
 
-    switch (row.syncStatus) {
-      case 'pendingCreate':
+    switch (LocalSyncStatus.fromDb(row.syncStatus)) {
+      case LocalSyncStatus.pendingCreate:
         final created = await _remote.addItem(row.information, row.quantity);
         // Toggle state if the local row was already checked before its first
         // sync (otherwise the freshly-inserted row would lose the check).
         if (row.isChecked) {
           await _remote.toggleItem(created.id, true);
         }
-        await _dao.updateSyncStatus(change.id, 'synced',
+        await _dao.updateSyncStatus(change.id, LocalSyncStatus.synced,
             remoteId: created.id);
 
-      case 'pendingUpdate':
-      case 'failed':
+      case LocalSyncStatus.pendingUpdate:
+      case LocalSyncStatus.failed:
         if (row.remoteId == null) {
           // Edge case: pendingUpdate without a remoteId — fall back to insert.
-          final created =
-              await _remote.addItem(row.information, row.quantity);
+          final created = await _remote.addItem(row.information, row.quantity);
           if (row.isChecked) {
             await _remote.toggleItem(created.id, true);
           }
-          await _dao.updateSyncStatus(change.id, 'synced',
+          await _dao.updateSyncStatus(change.id, LocalSyncStatus.synced,
               remoteId: created.id);
           return;
         }
         await _remote.updateItem(row.remoteId!, row.information, row.quantity);
         await _remote.toggleItem(row.remoteId!, row.isChecked);
 
-      case 'pendingDelete':
+      case LocalSyncStatus.pendingDelete:
         if (row.remoteId != null) {
           await _remote.removeItem(row.remoteId!);
         }
+
+      case LocalSyncStatus.synced:
+        // Already synced — no push needed.
+        break;
     }
   }
 
@@ -141,7 +145,7 @@ class ShoppingListSyncAdapter implements SyncAdapter {
               information: Value(r.data['information'] as String),
               quantity: Value(r.data['quantity'] as String?),
               isChecked: Value(r.data['is_checked'] as bool? ?? false),
-              syncStatus: const Value('synced'),
+              syncStatus: Value(LocalSyncStatus.synced.dbValue),
               updatedAt: Value(DateTime.now()),
             ))
         .toList();
@@ -150,7 +154,8 @@ class ShoppingListSyncAdapter implements SyncAdapter {
   }
 
   PendingChange _rowToPendingChange(LocalShoppingItem row) {
-    final isDelete = row.syncStatus == 'pendingDelete';
+    final isDelete =
+        LocalSyncStatus.fromDb(row.syncStatus) == LocalSyncStatus.pendingDelete;
     return PendingChange(
       id: row.localId,
       status: isDelete ? SyncItemStatus.pendingDelete : SyncItemStatus.pending,

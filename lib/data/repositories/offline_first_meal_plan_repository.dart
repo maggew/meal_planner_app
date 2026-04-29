@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:meal_planner/core/database/app_database.dart';
 import 'package:meal_planner/core/database/daos/meal_plan_dao.dart';
+import 'package:meal_planner/data/sync/local_sync_status.dart';
 import 'package:meal_planner/domain/entities/meal_plan_entry.dart';
 import 'package:meal_planner/domain/enums/meal_type.dart';
 import 'package:meal_planner/domain/repositories/meal_plan_repository.dart';
@@ -49,7 +50,7 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
       date: Value(dateStr),
       mealType: Value(mealType.value),
       cookIdsJson: Value(_encodeCookIds(cookIds)),
-      syncStatus: const Value('pendingCreate'),
+      syncStatus: Value(LocalSyncStatus.pendingCreate.dbValue),
       updatedAt: Value(now),
     ));
   }

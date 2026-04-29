@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:meal_planner/core/database/app_database.dart';
 import 'package:meal_planner/core/database/tables/local_shopping_items_table.dart';
+import 'package:meal_planner/data/sync/local_sync_status.dart';
 
 part 'shopping_item_dao.g.dart';
 
@@ -13,7 +14,8 @@ class ShoppingItemDao extends DatabaseAccessor<AppDatabase>
   Stream<List<LocalShoppingItem>> watchItemsByGroup(String groupId) {
     return (select(localShoppingItems)
           ..where((t) => t.groupId.equals(groupId))
-          ..where((t) => t.syncStatus.equals('pendingDelete').not()))
+          ..where((t) =>
+              t.syncStatus.equals(LocalSyncStatus.pendingDelete.dbValue).not()))
         .watch();
   }
 
@@ -21,7 +23,8 @@ class ShoppingItemDao extends DatabaseAccessor<AppDatabase>
   Future<List<LocalShoppingItem>> getPendingItems(String groupId) {
     return (select(localShoppingItems)
           ..where((t) => t.groupId.equals(groupId))
-          ..where((t) => t.syncStatus.equals('synced').not()))
+          ..where(
+              (t) => t.syncStatus.equals(LocalSyncStatus.synced.dbValue).not()))
         .get();
   }
 
@@ -31,7 +34,8 @@ class ShoppingItemDao extends DatabaseAccessor<AppDatabase>
   Future<Set<String>> getPendingRemoteIds(String groupId) async {
     final rows = await (select(localShoppingItems)
           ..where((t) => t.groupId.equals(groupId))
-          ..where((t) => t.syncStatus.equals('synced').not())
+          ..where(
+              (t) => t.syncStatus.equals(LocalSyncStatus.synced.dbValue).not())
           ..where((t) => t.remoteId.isNotNull()))
         .get();
     return rows.map((r) => r.remoteId!).toSet();
@@ -51,33 +55,33 @@ class ShoppingItemDao extends DatabaseAccessor<AppDatabase>
     String localId, {
     required String information,
     required String? quantity,
-    required String syncStatus,
+    required LocalSyncStatus syncStatus,
   }) {
     return (update(localShoppingItems)..where((t) => t.localId.equals(localId)))
         .write(LocalShoppingItemsCompanion(
       information: Value(information),
       quantity: Value(quantity),
-      syncStatus: Value(syncStatus),
+      syncStatus: Value(syncStatus.dbValue),
       updatedAt: Value(DateTime.now()),
     ));
   }
 
   Future<void> updateSyncStatus(
     String localId,
-    String status, {
+    LocalSyncStatus status, {
     String? remoteId,
   }) {
     return (update(localShoppingItems)..where((t) => t.localId.equals(localId)))
         .write(LocalShoppingItemsCompanion(
-      syncStatus: Value(status),
+      syncStatus: Value(status.dbValue),
       remoteId: remoteId != null ? Value(remoteId) : const Value.absent(),
     ));
   }
 
   Future<void> markAsDeleted(String localId) {
     return (update(localShoppingItems)..where((t) => t.localId.equals(localId)))
-        .write(const LocalShoppingItemsCompanion(
-      syncStatus: Value('pendingDelete'),
+        .write(LocalShoppingItemsCompanion(
+      syncStatus: Value(LocalSyncStatus.pendingDelete.dbValue),
     ));
   }
 
@@ -89,7 +93,7 @@ class ShoppingItemDao extends DatabaseAccessor<AppDatabase>
   Future<List<LocalShoppingItem>> getSyncedItemsByGroup(String groupId) {
     return (select(localShoppingItems)
           ..where((t) => t.groupId.equals(groupId))
-          ..where((t) => t.syncStatus.equals('synced')))
+          ..where((t) => t.syncStatus.equals(LocalSyncStatus.synced.dbValue)))
         .get();
   }
 
@@ -102,7 +106,8 @@ class ShoppingItemDao extends DatabaseAccessor<AppDatabase>
     await transaction(() async {
       await (delete(localShoppingItems)
             ..where((t) => t.groupId.equals(groupId))
-            ..where((t) => t.syncStatus.equals('synced')))
+            ..where(
+                (t) => t.syncStatus.equals(LocalSyncStatus.synced.dbValue)))
           .go();
 
       await batch((b) {
