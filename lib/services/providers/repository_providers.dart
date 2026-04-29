@@ -17,11 +17,15 @@ import 'package:meal_planner/data/repositories/supabase_group_invitation_reposit
 import 'package:meal_planner/data/repositories/supabase_group_repository.dart';
 import 'package:meal_planner/data/repositories/cached_recipe_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_recipe_repository.dart';
+import 'package:meal_planner/domain/services/recipe_deletion_service.dart';
 import 'package:meal_planner/data/repositories/supabase_trash_repository.dart';
 import 'package:meal_planner/data/repositories/supabase_user_repository.dart';
 import 'package:meal_planner/domain/repositories/auth_repository.dart';
 import 'package:meal_planner/domain/repositories/delete_account_repository.dart';
 import 'package:meal_planner/domain/repositories/group_category_repository.dart';
+import 'package:meal_planner/services/providers/groups/group_category_provider.dart';
+import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
+import 'package:meal_planner/services/providers/shared_preferences_provider.dart';
 import 'package:meal_planner/domain/repositories/group_invitation_repository.dart';
 import 'package:meal_planner/domain/repositories/subscription_repository.dart';
 import 'package:meal_planner/domain/repositories/suggestion_usage_repository.dart';
@@ -99,7 +103,22 @@ final recipeRepositoryProvider = Provider<RecipeRepository>((ref) {
     remote: supabaseRepo,
     dao: ref.watch(recipeCacheDaoProvider),
     groupId: groupId,
-    ref: ref,
+    isOnline: () => ref.read(isOnlineProvider),
+    prefs: ref.read(sharedPreferencesProvider),
+    resolveCategoryName: (categoryId) async {
+      final cats = await ref.read(groupCategoriesProvider.future);
+      return cats
+          .where((c) => c.id == categoryId)
+          .map((c) => c.name)
+          .firstOrNull;
+    },
+  );
+});
+
+final recipeDeletionServiceProvider = Provider<RecipeDeletionService>((ref) {
+  return RecipeDeletionService(
+    recipeRepository: ref.watch(recipeRepositoryProvider),
+    mealPlanRepository: ref.watch(mealPlanRepositoryProvider),
   );
 });
 

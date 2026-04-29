@@ -87,6 +87,11 @@ class OfflineFirstMealPlanRepository implements MealPlanRepository {
   }
 
   @override
+  Future<void> detachEntriesByRecipe(String recipeId, String recipeName) {
+    return _dao.detachRecipeEntries(recipeId, recipeName);
+  }
+
+  @override
   Future<bool> moveEntry(
     String localId, {
     required DateTime date,

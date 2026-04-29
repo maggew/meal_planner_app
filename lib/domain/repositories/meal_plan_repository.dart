@@ -31,4 +31,8 @@ abstract class MealPlanRepository {
     required DateTime date,
     required MealType mealType,
   });
+
+  /// Converts all local entries referencing [recipeId] into free-text entries,
+  /// preserving [recipeName] as [customName]. Called as part of recipe deletion.
+  Future<void> detachEntriesByRecipe(String recipeId, String recipeName);
 }

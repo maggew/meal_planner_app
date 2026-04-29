@@ -131,7 +131,7 @@ class ShowRecipeAppBarActions extends ConsumerWidget {
 
   Future<void> _deleteRecipe(BuildContext context, WidgetRef ref) async {
     try {
-      await ref.read(recipeRepositoryProvider).deleteRecipe(recipe.id!);
+      await ref.read(recipeDeletionServiceProvider).deleteRecipe(recipe.id!);
 
       final allCategories = await ref.read(groupCategoriesProvider.future);
       for (final category in allCategories) {

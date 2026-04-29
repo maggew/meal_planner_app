@@ -1,20 +1,16 @@
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/core/constants/local_keys.dart';
 import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/core/database/converters/recipe_cache_converter.dart';
 import 'package:meal_planner/core/database/daos/recipe_cache_dao.dart';
-import 'package:meal_planner/services/providers/repository_providers.dart';
-import 'package:meal_planner/services/providers/shared_preferences_provider.dart';
 import 'package:meal_planner/data/repositories/supabase_recipe_repository.dart';
 import 'package:meal_planner/domain/entities/recipe.dart';
 import 'package:meal_planner/domain/entities/recipe_timer.dart';
 import 'package:meal_planner/domain/entities/user_settings.dart';
 import 'package:meal_planner/domain/repositories/recipe_repository.dart';
-import 'package:meal_planner/services/providers/groups/group_category_provider.dart';
-import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const Duration _staleDuration = Duration(minutes: 5);
 const Duration _syncCooldown = Duration(seconds: 30);
@@ -23,19 +19,29 @@ class CachedRecipeRepository implements RecipeRepository {
   final SupabaseRecipeRepository _remote;
   final RecipeCacheDao _dao;
   final String _groupId;
-  final Ref _ref;
+  final bool Function() _isOnlineFn;
+  final SharedPreferences _prefs;
+
+  /// Resolves a category UUID to its display name. Used by the offline cache
+  /// filter path. Returns null when the category cannot be resolved — in that
+  /// case the filter is skipped and all cached recipes are returned.
+  final Future<String?> Function(String categoryId) _resolveCategoryName;
 
   CachedRecipeRepository({
     required SupabaseRecipeRepository remote,
     required RecipeCacheDao dao,
     required String groupId,
-    required Ref ref,
+    required bool Function() isOnline,
+    required SharedPreferences prefs,
+    required Future<String?> Function(String categoryId) resolveCategoryName,
   })  : _remote = remote,
         _dao = dao,
         _groupId = groupId,
-        _ref = ref;
+        _isOnlineFn = isOnline,
+        _prefs = prefs,
+        _resolveCategoryName = resolveCategoryName;
 
-  bool get _isOnline => _ref.read(isOnlineProvider);
+  bool get _isOnline => _isOnlineFn();
 
   // ==================== READ ====================
 
@@ -213,11 +219,6 @@ class CachedRecipeRepository implements RecipeRepository {
 
   @override
   Future<void> deleteRecipe(String recipeId) async {
-    final cached = await _dao.getRecipeById(recipeId);
-    if (cached != null) {
-      final mealPlanDao = _ref.read(mealPlanDaoProvider);
-      await mealPlanDao.detachRecipeEntries(recipeId, cached.name);
-    }
     await _remote.deleteRecipe(recipeId);
     await _dao.deleteRecipe(recipeId);
   }
@@ -314,9 +315,8 @@ class CachedRecipeRepository implements RecipeRepository {
     if (!_isOnline) return;
 
     // Staleness check
-    final prefs = _ref.read(sharedPreferencesProvider);
     final syncKey = '${LocalKeys.recipeSyncPrefix}$_groupId';
-    final lastSyncMs = prefs.getInt(syncKey) ?? 0;
+    final lastSyncMs = _prefs.getInt(syncKey) ?? 0;
     final lastSync = DateTime.fromMillisecondsSinceEpoch(lastSyncMs);
     if (DateTime.now().difference(lastSync) < _syncCooldown) return;
 
@@ -361,7 +361,7 @@ class CachedRecipeRepository implements RecipeRepository {
       }
 
       // 6. Update sync timestamp
-      await prefs.setInt(syncKey, DateTime.now().millisecondsSinceEpoch);
+      await _prefs.setInt(syncKey, DateTime.now().millisecondsSinceEpoch);
     } catch (e) {
       log('Delta sync failed for group $_groupId', error: e);
     }
@@ -398,14 +398,9 @@ class CachedRecipeRepository implements RecipeRepository {
 
     var recipes = cached.map(RecipeCacheConverter.toRecipe).toList();
 
-    // Filter by category — resolve UUID → name via groupCategoriesProvider.
+    // Filter by category — resolve UUID → name via the injected callback.
     if (category.isNotEmpty) {
-      final categoryName = _ref
-          .read(groupCategoriesProvider)
-          .asData?.value
-          .where((c) => c.id == category)
-          .map((c) => c.name)
-          .firstOrNull;
+      final categoryName = await _resolveCategoryName(category);
 
       if (categoryName != null) {
         recipes = recipes
