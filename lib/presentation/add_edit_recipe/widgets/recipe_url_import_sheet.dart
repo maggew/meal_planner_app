@@ -26,6 +26,7 @@ class RecipeUrlImportSheet extends ConsumerStatefulWidget {
 
 class _RecipeUrlImportSheetState extends ConsumerState<RecipeUrlImportSheet> {
   late final TextEditingController _urlController;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -42,8 +43,8 @@ class _RecipeUrlImportSheetState extends ConsumerState<RecipeUrlImportSheet> {
   Future<void> _onImportPressed() async {
     final url = _urlController.text.trim();
     if (url.isEmpty) return;
-    final data =
-        await ref.read(recipeScraperProvider.notifier).scrape(url);
+    setState(() => _errorMessage = null);
+    final data = await ref.read(recipeScraperProvider.notifier).scrape(url);
     if (!mounted) return;
     if (data != null) {
       Navigator.pop(context);
@@ -58,10 +59,10 @@ class _RecipeUrlImportSheetState extends ConsumerState<RecipeUrlImportSheet> {
     ref.listen(recipeScraperProvider, (prev, next) {
       if (next is AsyncError && next != prev) {
         final error = next.error;
-        final message = error is Exception ? error.toString() : 'Import fehlgeschlagen';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
+        setState(() {
+          _errorMessage =
+              error is Exception ? error.toString() : 'Import fehlgeschlagen';
+        });
       }
     });
 
@@ -95,6 +96,13 @@ class _RecipeUrlImportSheetState extends ConsumerState<RecipeUrlImportSheet> {
             ),
             onSubmitted: (_) => _onImportPressed(),
           ),
+          if (_errorMessage != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              _errorMessage!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ],
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: isLoading ? null : _onImportPressed,
