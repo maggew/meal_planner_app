@@ -352,17 +352,17 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
               onAddRecipe: _onAddRecipe,
               onRemoveRecipe: () {
               final updated = ref.read(activeCookingSessionProvider);
-              if (updated.recipes.length <= 1 && updated.recipes.isNotEmpty) {
-                final remaining = updated.recipes.first;
-                if (_loadedRecipes.containsKey(remaining.recipeId)) {
-                  setState(() {
-                    _recipe = _loadedRecipes[remaining.recipeId];
-                    _currentPortions =
-                        _multiPortions[remaining.recipeId] ??
-                            _recipe!.portions;
-                    _image = _buildImage(_recipe!);
-                  });
-                  // Jump to cooking tab — user was already cooking in multi-mode
+              final newCurrentId = updated.currentRecipeId;
+              if (updated.recipes.isNotEmpty &&
+                  newCurrentId != null &&
+                  _loadedRecipes.containsKey(newCurrentId)) {
+                setState(() {
+                  _recipe = _loadedRecipes[newCurrentId];
+                  _currentPortions =
+                      _multiPortions[newCurrentId] ?? _recipe!.portions;
+                  _image = _buildImage(_recipe!);
+                });
+                if (updated.recipes.length == 1) {
                   _singleModeTabController.animateTo(1);
                 }
               }

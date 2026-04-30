@@ -14,6 +14,89 @@ import 'package:meal_planner/services/providers/recipe/timer/timer_tick_provider
 // exercising the exact code path that changes session state.
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Mirrors the onRemoveRecipe callback + _recipe/_currentPortions update logic
+// from ShowRecipePage, used to verify that _recipe stays in sync with the
+// session after a recipe is removed.
+// ---------------------------------------------------------------------------
+
+class _RemoveBehaviorHarness extends ConsumerStatefulWidget {
+  final Recipe initialRecipe;
+  final Map<String, Recipe> loadedRecipes;
+
+  const _RemoveBehaviorHarness({
+    required this.initialRecipe,
+    required this.loadedRecipes,
+  });
+
+  @override
+  ConsumerState<_RemoveBehaviorHarness> createState() =>
+      _RemoveBehaviorHarnessState();
+}
+
+class _RemoveBehaviorHarnessState extends ConsumerState<_RemoveBehaviorHarness>
+    with SingleTickerProviderStateMixin {
+  late Recipe _currentRecipe;
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentRecipe = widget.initialRecipe;
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  // Mirror of ShowRecipePage.onRemoveRecipe — always syncs _currentRecipe to
+  // the new session currentRecipeId so isMultiMode stays correct after removal.
+  void _onRemoveRecipe() {
+    final updated = ref.read(activeCookingSessionProvider);
+    final newCurrentId = updated.currentRecipeId;
+    if (updated.recipes.isNotEmpty &&
+        newCurrentId != null &&
+        widget.loadedRecipes.containsKey(newCurrentId)) {
+      setState(() => _currentRecipe = widget.loadedRecipes[newCurrentId]!);
+      if (updated.recipes.length == 1) {
+        _tabController.animateTo(1);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final session = ref.watch(activeCookingSessionProvider);
+    final isMultiMode = session.recipes.length >= 2 &&
+        session.isRecipeActive(_currentRecipe.id ?? '');
+
+    return Column(children: [
+      Text('currentRecipe:${_currentRecipe.id}',
+          key: const Key('current_recipe')),
+      Text('isMultiMode:$isMultiMode', key: const Key('is_multi_mode')),
+      if (!isMultiMode)
+        TextButton(
+          key: const Key('cooking_tab'),
+          onPressed: () => _tabController.index = 1,
+          child: const Text('Kochen'),
+        ),
+      TextButton(
+        key: const Key('trigger_remove'),
+        onPressed: () {
+          ref
+              .read(activeCookingSessionProvider.notifier)
+              .removeRecipe(_currentRecipe.id!);
+          _onRemoveRecipe();
+        },
+        child: const Text('Entfernen'),
+      ),
+    ]);
+  }
+}
+
 class _TabBehaviorHarness extends ConsumerStatefulWidget {
   final Recipe recipe;
   const _TabBehaviorHarness({required this.recipe});
@@ -288,6 +371,64 @@ void main() {
           reason: 'Rezept C muss der Session hinzugefügt worden sein');
       expect(session.currentRecipeId, 'r3',
           reason: 'Rezept C muss das aktuelle Rezept der Session sein');
+    });
+
+    testWidgets(
+        'removing current recipe from 3-recipe session keeps multi-mode active for remaining 2',
+        (tester) async {
+      final container = _makeContainer();
+      addTearDown(container.dispose);
+
+      // Pre-seed: 3 recipes, r3 is current (the recipe being viewed)
+      container.read(activeCookingSessionProvider.notifier).addRecipe(
+            const CookingRecipeEntry(recipeId: 'r1', recipeName: 'Pasta'),
+          );
+      container.read(activeCookingSessionProvider.notifier).addRecipe(
+            const CookingRecipeEntry(recipeId: 'r2', recipeName: 'Pizza'),
+          );
+      container.read(activeCookingSessionProvider.notifier).addRecipe(
+            const CookingRecipeEntry(recipeId: 'r3', recipeName: 'Risotto'),
+          );
+      container
+          .read(activeCookingSessionProvider.notifier)
+          .setCurrentRecipe('r3');
+
+      final loadedRecipes = {
+        'r1': _testRecipe,
+        'r2': _recipeB,
+        'r3': _recipeC,
+      };
+
+      await tester.pumpWidget(UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          home: Scaffold(
+            body: _RemoveBehaviorHarness(
+              initialRecipe: _recipeC,
+              loadedRecipes: loadedRecipes,
+            ),
+          ),
+        ),
+      ));
+      await tester.pump();
+
+      // Confirm multi-mode before removal
+      expect(find.text('isMultiMode:true'), findsOneWidget);
+
+      // Remove r3 (the currently viewed recipe)
+      await tester.tap(find.byKey(const Key('trigger_remove')));
+      await tester.pump();
+
+      // Session still has r1 + r2 → multi-mode must stay active
+      expect(
+        container.read(activeCookingSessionProvider).recipes.length,
+        2,
+      );
+      expect(find.text('isMultiMode:true'), findsOneWidget,
+          reason: 'Multi-mode muss mit 2 verbleibenden Rezepten aktiv bleiben');
+      // _currentRecipe should have switched to the new current (r1)
+      expect(find.text('currentRecipe:r1'), findsOneWidget,
+          reason: '_currentRecipe muss auf das neue aktuelle Rezept wechseln');
     });
 
     testWidgets(
