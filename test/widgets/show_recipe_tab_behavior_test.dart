@@ -41,14 +41,17 @@ class _TabBehaviorHarnessState extends ConsumerState<_TabBehaviorHarness>
     final notifier = ref.read(activeCookingSessionProvider.notifier);
 
     if (_controller.index == 1) {
-      if (!session.isActive && widget.recipe.id != null) {
+      if (widget.recipe.id != null) {
+        final wasActive = session.isActive;
         notifier.addRecipe(CookingRecipeEntry(
           recipeId: widget.recipe.id!,
           recipeName: widget.recipe.name,
           imageUrl: widget.recipe.imageUrl,
         ));
-      } else if (session.isActive) {
-        notifier.setWasInCookingMode(true);
+        if (wasActive) {
+          notifier.setCurrentRecipe(widget.recipe.id!);
+          notifier.setWasInCookingMode(true);
+        }
       }
     } else {
       if (session.isActive && session.recipes.length == 1) {
@@ -104,6 +107,15 @@ final _testRecipe = Recipe(
   instructions: '',
 );
 
+final _recipeB = Recipe(
+  id: 'r2',
+  name: 'Pizza',
+  categories: [],
+  portions: 2,
+  ingredientSections: [],
+  instructions: '',
+);
+
 ProviderContainer _makeContainer() => ProviderContainer(overrides: [
       activeTimerProvider.overrideWithValue({}),
       timerTickProvider.overrideWithValue(0),
@@ -114,6 +126,16 @@ Widget _wrap(ProviderContainer container) => UncontrolledProviderScope(
       child: MaterialApp(
         home: Scaffold(
           body: _TabBehaviorHarness(recipe: _testRecipe),
+        ),
+      ),
+    );
+
+Widget _wrapRecipe(ProviderContainer container, Recipe recipe) =>
+    UncontrolledProviderScope(
+      container: container,
+      child: MaterialApp(
+        home: Scaffold(
+          body: _TabBehaviorHarness(recipe: recipe),
         ),
       ),
     );
@@ -164,6 +186,66 @@ void main() {
         container.read(activeCookingSessionProvider).isActive,
         isFalse,
       );
+    });
+
+    testWidgets(
+        'active session: switching to cooking tab on new recipe adds it and makes it current',
+        (tester) async {
+      final container = _makeContainer();
+      addTearDown(container.dispose);
+
+      // Pre-seed: recipe r1 is already in the session
+      container.read(activeCookingSessionProvider.notifier).addRecipe(
+            const CookingRecipeEntry(recipeId: 'r1', recipeName: 'Pasta'),
+          );
+      expect(container.read(activeCookingSessionProvider).isActive, isTrue);
+
+      // User opens recipe B (not yet in session)
+      await tester.pumpWidget(_wrapRecipe(container, _recipeB));
+
+      await tester.tap(find.byKey(const Key('cooking_tab')));
+      await tester.pump();
+
+      final session = container.read(activeCookingSessionProvider);
+      expect(session.isRecipeActive('r2'), isTrue,
+          reason: 'Rezept B muss der Session hinzugefügt worden sein');
+      expect(session.currentRecipeId, 'r2',
+          reason: 'Rezept B muss das aktuelle Rezept der Session sein');
+    });
+
+    testWidgets(
+        'active session: switching to cooking tab on recipe already in session sets it as current without duplicating',
+        (tester) async {
+      final container = _makeContainer();
+      addTearDown(container.dispose);
+
+      // Pre-seed: r1 and r2 both in session, r2 is current
+      container.read(activeCookingSessionProvider.notifier).addRecipe(
+            const CookingRecipeEntry(recipeId: 'r1', recipeName: 'Pasta'),
+          );
+      container.read(activeCookingSessionProvider.notifier).addRecipe(
+            const CookingRecipeEntry(recipeId: 'r2', recipeName: 'Pizza'),
+          );
+      container
+          .read(activeCookingSessionProvider.notifier)
+          .setCurrentRecipe('r2');
+      expect(
+          container.read(activeCookingSessionProvider).currentRecipeId, 'r2');
+
+      // User opens r1 (already in session) and taps cooking tab
+      await tester.pumpWidget(_wrap(container));
+
+      await tester.tap(find.byKey(const Key('cooking_tab')));
+      await tester.pump();
+
+      final session = container.read(activeCookingSessionProvider);
+      expect(
+        session.recipes.where((e) => e.recipeId == 'r1').length,
+        1,
+        reason: 'Kein Duplikat für r1',
+      );
+      expect(session.currentRecipeId, 'r1',
+          reason: 'r1 muss das aktuelle Rezept werden');
     });
 
     testWidgets(

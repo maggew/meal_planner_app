@@ -96,14 +96,17 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
     final notifier = ref.read(activeCookingSessionProvider.notifier);
 
     if (_singleModeTabController.index == 1) {
-      if (!session.isActive && _recipe?.id != null) {
+      if (_recipe?.id != null) {
+        final wasActive = session.isActive;
         notifier.addRecipe(CookingRecipeEntry(
           recipeId: _recipe!.id!,
           recipeName: _recipe!.name,
           imageUrl: _recipe!.imageUrl,
         ));
-      } else if (session.isActive) {
-        notifier.setWasInCookingMode(true);
+        if (wasActive) {
+          notifier.setCurrentRecipe(_recipe!.id!);
+          notifier.setWasInCookingMode(true);
+        }
       }
     } else {
       if (session.isActive && session.recipes.length == 1) {
