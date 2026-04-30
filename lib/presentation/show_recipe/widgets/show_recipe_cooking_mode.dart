@@ -59,6 +59,14 @@ class _ShowRecipeCookingModeState extends ConsumerState<ShowRecipeCookingMode>
       vsync: this,
       initialIndex: widget.initialStep?.clamp(0, instructions.length - 1) ?? 0,
     );
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) return;
+      final recipeId = widget.recipe.id;
+      if (recipeId == null) return;
+      ref
+          .read(activeCookingSessionProvider.notifier)
+          .setCurrentStep(recipeId, _tabController.index);
+    });
   }
 
   Future<void> _onFinished() async {

@@ -373,6 +373,14 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
     );
   }
 
+  int? _getSessionStep(String? recipeId) {
+    if (recipeId == null) return null;
+    final session = ref.read(activeCookingSessionProvider);
+    final entry =
+        session.recipes.where((e) => e.recipeId == recipeId).firstOrNull;
+    return entry != null && entry.currentStep > 0 ? entry.currentStep : null;
+  }
+
   Widget _buildSingleModeBody() {
     return TabBarView(
       controller: _singleModeTabController,
@@ -387,7 +395,7 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
         ),
         ShowRecipeCookingMode(
           recipe: _recipe!,
-          initialStep: widget.initialStep,
+          initialStep: widget.initialStep ?? _getSessionStep(_recipe!.id),
           scaledSections: _scaledSections(_recipe!, _currentPortions),
           currentPortions: _currentPortions,
         ),
