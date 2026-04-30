@@ -285,7 +285,9 @@ class _ShowRecipePageState extends ConsumerState<ShowRecipePage>
     }
 
     final session = ref.watch(activeCookingSessionProvider);
-    final isMultiMode = session.recipes.length >= 2;
+    final isMultiMode = session.recipes.length >= 2 &&
+        _recipe?.id != null &&
+        session.isRecipeActive(_recipe!.id!);
 
     // Cache for safe access in dispose()
     _cachedSession = session;
