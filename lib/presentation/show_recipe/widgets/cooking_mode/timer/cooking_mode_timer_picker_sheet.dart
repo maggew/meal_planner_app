@@ -11,6 +11,7 @@ import 'package:meal_planner/services/providers/repository_providers.dart';
 void showCookingModeTimerPicker(
   BuildContext context, {
   required String recipeId,
+  required String recipeTitle,
   required int stepIndex,
   RecipeTimer? saved,
 }) {
@@ -20,6 +21,7 @@ void showCookingModeTimerPicker(
     useSafeArea: true,
     builder: (_) => CookingModeTimerPickerSheet(
       recipeId: recipeId,
+      recipeTitle: recipeTitle,
       stepIndex: stepIndex,
       saved: saved,
     ),
@@ -28,12 +30,14 @@ void showCookingModeTimerPicker(
 
 class CookingModeTimerPickerSheet extends ConsumerStatefulWidget {
   final String recipeId;
+  final String recipeTitle;
   final int stepIndex;
   final RecipeTimer? saved;
 
   const CookingModeTimerPickerSheet({
     super.key,
     required this.recipeId,
+    required this.recipeTitle,
     required this.stepIndex,
     this.saved,
   });
@@ -83,6 +87,7 @@ class _CookingModeTimerPickerSheetState
     ref.read(activeTimerProvider.notifier).startTimer(
           recipeId: widget.recipeId,
           stepIndex: widget.stepIndex,
+          recipeTitle: widget.recipeTitle,
           label: input.name ?? 'Schritt ${widget.stepIndex + 1}',
           durationSeconds: input.totalSeconds,
         );

@@ -10,11 +10,13 @@ import 'package:meal_planner/services/providers/recipe/timer/timer_tick_provider
 
 class CookingModeTimerWidget extends ConsumerStatefulWidget {
   final String recipeId;
+  final String recipeTitle;
   final int stepIndex;
 
   const CookingModeTimerWidget({
     super.key,
     required this.recipeId,
+    required this.recipeTitle,
     required this.stepIndex,
   });
 
@@ -113,6 +115,7 @@ class _CookingModeTimerWidgetState extends ConsumerState<CookingModeTimerWidget>
                 key: const ValueKey('idle'),
                 stepIndex: widget.stepIndex,
                 recipeId: widget.recipeId,
+                recipeTitle: widget.recipeTitle,
                 saved: savedTimers.value?[widget.stepIndex],
               ),
       ),

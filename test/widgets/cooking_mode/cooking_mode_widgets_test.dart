@@ -25,6 +25,7 @@ const _recipeId = 'recipe1';
 ActiveTimer _makeTimer(TimerStatus status) => ActiveTimer(
       recipeId: _recipeId,
       stepIndex: 0,
+      recipeTitle: 'Test Rezept',
       label: 'Nudeln kochen',
       totalSeconds: 300,
       savedDurationSeconds: 300,
@@ -32,7 +33,6 @@ ActiveTimer _makeTimer(TimerStatus status) => ActiveTimer(
           ? DateTime.now().add(const Duration(seconds: 120))
           : null,
       pausedRemainingSeconds: status == TimerStatus.paused ? 120 : null,
-      notificationId: 0,
       status: status,
     );
 
@@ -461,6 +461,7 @@ void main() {
               onExpandToggle: onExpandToggle ?? () {},
               ingredientSections: [_testSection],
               recipeId: _recipeId,
+              recipeTitle: 'Test Rezept',
               stepNumber: 0,
               currentPortions: 4,
             ),
@@ -490,6 +491,7 @@ void main() {
                 onExpandToggle: () => toggled = true,
                 ingredientSections: [_testSection],
                 recipeId: _recipeId,
+                recipeTitle: 'Test Rezept',
                 stepNumber: 0,
                 currentPortions: 4,
               ),
@@ -535,6 +537,7 @@ void main() {
                 onExpandToggle: () {},
                 ingredientSections: [_testSection],
                 recipeId: _recipeId,
+                recipeTitle: 'Test Rezept',
                 stepNumber: 0,
                 currentPortions: 4,
               ),
@@ -705,13 +708,13 @@ void main() {
       final timer = ActiveTimer(
         recipeId: _recipeId,
         stepIndex: 0,
+        recipeTitle: 'Test Rezept',
         label:
             'Sehr langer Timer-Name der potenziell überläuft wenn er nicht korrekt behandelt wird',
         totalSeconds: 300,
         savedDurationSeconds: 300,
         endTime: DateTime.now().add(const Duration(seconds: 120)),
-        notificationId: 0,
-        status: TimerStatus.running,
+          status: TimerStatus.running,
       );
 
       await tester.pumpWidget(
@@ -742,6 +745,7 @@ void main() {
             home: Scaffold(
               body: CookingModeIdleTimer(
                 recipeId: _recipeId,
+                recipeTitle: 'Test Rezept',
                 stepIndex: 0,
                 saved: null,
               ),
@@ -767,6 +771,7 @@ void main() {
             home: Scaffold(
               body: CookingModeIdleTimer(
                 recipeId: _recipeId,
+                recipeTitle: 'Test Rezept',
                 stepIndex: 0,
                 saved: _savedTimer,
               ),
@@ -792,6 +797,7 @@ void main() {
             home: Scaffold(
               body: CookingModeIdleTimer(
                 recipeId: _recipeId,
+                recipeTitle: 'Test Rezept',
                 stepIndex: 0,
                 saved: _savedTimer, // name: 'Nudeln kochen', duration: 300s
               ),
@@ -817,6 +823,7 @@ void main() {
             home: Scaffold(
               body: CookingModeIdleTimer(
                 recipeId: _recipeId,
+                recipeTitle: 'Test Rezept',
                 stepIndex: 0,
                 saved: _savedTimer,
               ),

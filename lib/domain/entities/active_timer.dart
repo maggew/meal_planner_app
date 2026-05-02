@@ -7,23 +7,23 @@ enum TimerStatus { running, paused, finished }
 class ActiveTimer {
   final String recipeId;
   final int stepIndex;
+  final String recipeTitle;
   final String label;
   final int totalSeconds;
   final int savedDurationSeconds;
   final DateTime? endTime;
   final int? pausedRemainingSeconds;
-  final int notificationId;
   final TimerStatus status;
 
   ActiveTimer({
     required this.recipeId,
     required this.stepIndex,
+    required this.recipeTitle,
     required this.label,
     required this.totalSeconds,
     required this.savedDurationSeconds,
     this.endTime,
     this.pausedRemainingSeconds,
-    required this.notificationId,
     required this.status,
   });
 
@@ -55,17 +55,18 @@ class ActiveTimer {
   ActiveTimer copyWith({
     String? recipeId,
     int? stepIndex,
+    String? recipeTitle,
     String? label,
     int? totalSeconds,
     int? savedDurationSeconds,
     Object? endTime = const _Sentinel(),
     Object? pausedRemainingSeconds = const _Sentinel(),
-    int? notificationId,
     TimerStatus? status,
   }) {
     return ActiveTimer(
       recipeId: recipeId ?? this.recipeId,
       stepIndex: stepIndex ?? this.stepIndex,
+      recipeTitle: recipeTitle ?? this.recipeTitle,
       label: label ?? this.label,
       totalSeconds: totalSeconds ?? this.totalSeconds,
       savedDurationSeconds: savedDurationSeconds ?? this.savedDurationSeconds,
@@ -73,7 +74,6 @@ class ActiveTimer {
       pausedRemainingSeconds: pausedRemainingSeconds is _Sentinel
           ? this.pausedRemainingSeconds
           : pausedRemainingSeconds as int?,
-      notificationId: notificationId ?? this.notificationId,
       status: status ?? this.status,
     );
   }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meal_planner/domain/entities/active_timer.dart';
@@ -440,11 +440,10 @@ void main() {
           'r1:0': ActiveTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'Test',
+            recipeTitle: 'Test Rezept',label: 'Test',
             totalSeconds: 300,
             savedDurationSeconds: 300,
             endTime: DateTime.now().add(const Duration(seconds: 120)),
-            notificationId: 0,
             status: TimerStatus.running,
           ),
         }),

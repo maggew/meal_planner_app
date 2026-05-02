@@ -15,6 +15,7 @@ class CookingModeIngredientsList extends ConsumerStatefulWidget {
   final VoidCallback onExpandToggle;
   final bool isExpanded;
   final String recipeId;
+  final String recipeTitle;
   final int stepNumber;
   final int currentPortions;
 
@@ -24,6 +25,7 @@ class CookingModeIngredientsList extends ConsumerStatefulWidget {
     required this.isExpanded,
     required this.onExpandToggle,
     required this.recipeId,
+    required this.recipeTitle,
     required this.stepNumber,
     required this.currentPortions,
   });
@@ -108,6 +110,7 @@ class _CookingModeIngredientsListState
                         onPressed: () => showCookingModeTimerPicker(
                           context,
                           recipeId: widget.recipeId,
+                          recipeTitle: widget.recipeTitle,
                           stepIndex: widget.stepNumber,
                         ),
                         icon: const Icon(Icons.add_alarm, size: 22),

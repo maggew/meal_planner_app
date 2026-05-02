@@ -4,6 +4,7 @@ import 'package:meal_planner/presentation/show_recipe/widgets/cooking_mode/cooki
 
 class CookingModeStepWidget extends StatefulWidget {
   final String recipeId;
+  final String recipeTitle;
   final String instructionStep;
   final int stepNumber;
   final int totalSteps;
@@ -11,6 +12,7 @@ class CookingModeStepWidget extends StatefulWidget {
   const CookingModeStepWidget({
     super.key,
     required this.recipeId,
+    required this.recipeTitle,
     required this.instructionStep,
     required this.stepNumber,
     required this.totalSteps,
@@ -63,6 +65,7 @@ class _CookingModeStepWidgetState extends State<CookingModeStepWidget> {
       children: [
         CookingModeTimerWidget(
           recipeId: widget.recipeId,
+          recipeTitle: widget.recipeTitle,
           stepIndex: widget.stepNumber,
         ),
         Expanded(

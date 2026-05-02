@@ -168,6 +168,7 @@ class _ShowRecipeCookingModeState extends ConsumerState<ShowRecipeCookingMode>
                       }),
                       ingredientSections: widget.scaledSections,
                       recipeId: widget.recipe.id!,
+                      recipeTitle: widget.recipe.name,
                       stepNumber: _tabController.index,
                       currentPortions: widget.currentPortions,
                     ),
@@ -182,6 +183,7 @@ class _ShowRecipeCookingModeState extends ConsumerState<ShowRecipeCookingMode>
                         instructions.length,
                         (index) => CookingModeStepWidget(
                               recipeId: widget.recipe.id!,
+                              recipeTitle: widget.recipe.name,
                               instructionStep: instructions[index],
                               stepNumber: index,
                               totalSteps: _tabController.length,

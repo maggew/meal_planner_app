@@ -256,6 +256,7 @@ void main() {
                         setState(() => isExpanded = !isExpanded),
                     ingredientSections: [_testSection],
                     recipeId: _recipeId,
+                    recipeTitle: 'Test Rezept',
                     stepNumber: 0,
                     currentPortions: 4,
                   ),

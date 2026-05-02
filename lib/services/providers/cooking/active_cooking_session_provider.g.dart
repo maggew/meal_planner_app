@@ -42,7 +42,7 @@ final class ActiveCookingSessionProvider
 }
 
 String _$activeCookingSessionHash() =>
-    r'617f8836af803ea33171a5b07e12aae6c30f8673';
+    r'610f1d4d7a9fe03d054923b32c4c8e62e14ff69c';
 
 abstract class _$ActiveCookingSession
     extends $Notifier<ActiveCookingSessionState> {

@@ -10,12 +10,14 @@ import 'package:meal_planner/services/providers/repository_providers.dart';
 
 class CookingModeIdleTimer extends ConsumerStatefulWidget {
   final String recipeId;
+  final String recipeTitle;
   final int stepIndex;
   final RecipeTimer? saved;
 
   const CookingModeIdleTimer({
     super.key,
     required this.recipeId,
+    required this.recipeTitle,
     required this.stepIndex,
     this.saved,
   });
@@ -67,6 +69,7 @@ class _CookingModeIdleTimerState extends ConsumerState<CookingModeIdleTimer> {
           onPressed: () => ref.read(activeTimerProvider.notifier).startTimer(
                 recipeId: widget.recipeId,
                 stepIndex: widget.stepIndex,
+                recipeTitle: widget.recipeTitle,
                 label: widget.saved?.timerName ??
                     'Schritt ${widget.stepIndex + 1}',
                 durationSeconds: 60,
@@ -92,6 +95,7 @@ class _CookingModeIdleTimerState extends ConsumerState<CookingModeIdleTimer> {
           onPressed: () => showCookingModeTimerPicker(
             context,
             recipeId: widget.recipeId,
+            recipeTitle: widget.recipeTitle,
             stepIndex: widget.stepIndex,
             saved: widget.saved,
           ),
@@ -113,6 +117,7 @@ class _CookingModeIdleTimerState extends ConsumerState<CookingModeIdleTimer> {
     ref.read(activeTimerProvider.notifier).startTimer(
           recipeId: widget.recipeId,
           stepIndex: widget.stepIndex,
+          recipeTitle: widget.recipeTitle,
           label: label ?? 'Schritt ${widget.stepIndex + 1}',
           durationSeconds: durationSeconds,
         );
