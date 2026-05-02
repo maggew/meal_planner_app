@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:meal_planner/core/env/env.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +19,7 @@ import 'package:meal_planner/services/notification_service.dart';
 import 'package:meal_planner/services/providers/auth_providers.dart';
 import 'package:meal_planner/services/providers/network/connectivity_provider.dart';
 import 'package:meal_planner/services/providers/recipe/timer/active_timer_provider.dart';
+import 'package:meal_planner/services/providers/recipe/timer/timer_notification_controller.dart';
 import 'package:meal_planner/services/providers/router_provider.dart';
 import 'package:meal_planner/services/providers/sync/sync_providers.dart';
 import 'package:meal_planner/services/subscription/subscription_refresh_observer.dart';
@@ -32,6 +35,42 @@ import 'package:meal_planner/core/security/pinned_http_client.dart';
 import 'package:meal_planner/presentation/common/analytics_consent_sheet.dart';
 import 'package:meal_planner/services/providers/consent_provider.dart';
 import 'package:meal_planner/services/providers/shared_preferences_provider.dart';
+
+// Port name used by the background isolate to send timer actions directly to
+// the main isolate when the app is alive (foreground or inactive).
+const _timerActionsPortName = 'timer_actions_port';
+
+// Must be a top-level function — background notification responses run in a
+// separate isolate with no Riverpod access.
+// If the main isolate is alive, we send directly via IsolateNameServer so the
+// action is processed immediately (even while the notification shade is open).
+// If the app is fully backgrounded (port not registered), we fall back to
+// SharedPreferences so TimerLifecycleObserver can apply it on next resume.
+@pragma('vm:entry-point')
+void onDidReceiveBackgroundNotificationResponse(
+    NotificationResponse details) async {
+  final actionId = details.actionId;
+  if (actionId == null) return;
+
+  // Action IDs have format 'type:recipeId:stepIndex' (e.g. 'pause:r1:0')
+  final parts = actionId.split(':');
+  if (parts.length < 3) return;
+  if (!{'pause', 'resume', 'cancel'}.contains(parts[0])) return;
+  if (int.tryParse(parts[2]) == null) return;
+
+  // Fast path: main isolate is alive — send directly, no round-trip needed.
+  final sendPort = IsolateNameServer.lookupPortByName(_timerActionsPortName);
+  if (sendPort != null) {
+    sendPort.send(actionId);
+    return;
+  }
+
+  // Fallback: app is fully backgrounded — store for processing on next resume.
+  final prefs = await SharedPreferences.getInstance();
+  final pending = prefs.getStringList('pending_timer_actions') ?? [];
+  pending.add(actionId);
+  await prefs.setStringList('pending_timer_actions', pending);
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -72,7 +111,9 @@ void main() async {
   // TODO(security): Replace test AdMob IDs with production IDs before store release.
   //  Affected: AndroidManifest.xml, ios/Runner/Info.plist, native_ad_widget.dart.
 
-  await NotificationService.instance.initialize();
+  await NotificationService.instance.initialize(
+    onBackgroundResponse: onDidReceiveBackgroundNotificationResponse,
+  );
   await NotificationService.instance.requestPermissions();
   runApp(
     ProviderScope(
@@ -111,6 +152,7 @@ class _MyAppState extends ConsumerState<MyApp> {
   late final TimerLifecycleObserver _lifecycleObserver;
   late final SubscriptionRefreshObserver _subscriptionRefreshObserver;
   late final AppRouter _appRouter;
+  ReceivePort? _timerActionsPort;
 
   @override
   void initState() {
@@ -119,6 +161,8 @@ class _MyAppState extends ConsumerState<MyApp> {
 
     _lifecycleObserver = TimerLifecycleObserver(ref);
     WidgetsBinding.instance.addObserver(_lifecycleObserver);
+
+    ref.read(timerNotificationControllerProvider);
 
     // SyncCoordinator owns lifecycle + connectivity sync triggers for both
     // meal plan and shopping list. Pages opt into polling via
@@ -129,6 +173,21 @@ class _MyAppState extends ConsumerState<MyApp> {
     WidgetsBinding.instance.addObserver(_subscriptionRefreshObserver);
 
     NotificationService.instance.onNotificationTapped = _onTimerTapped;
+    NotificationService.instance.onNotificationActionReceived = _onTimerAction;
+
+    // Register a port so the background notification isolate can send timer
+    // actions directly without waiting for the next app resume.
+    // Pre-clear first to handle hot-reload / re-init without stale entries.
+    IsolateNameServer.removePortNameMapping(_timerActionsPortName);
+    _timerActionsPort = ReceivePort();
+    IsolateNameServer.registerPortWithName(
+      _timerActionsPort!.sendPort,
+      _timerActionsPortName,
+    );
+    _timerActionsPort!.listen((message) {
+      if (!mounted) return;
+      if (message is String) _onTimerAction(message);
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _runConsentFlow());
   }
@@ -169,6 +228,9 @@ class _MyAppState extends ConsumerState<MyApp> {
 
   @override
   void dispose() {
+    IsolateNameServer.removePortNameMapping(_timerActionsPortName);
+    _timerActionsPort?.close();
+    _timerActionsPort = null;
     WidgetsBinding.instance.removeObserver(_lifecycleObserver);
     WidgetsBinding.instance.removeObserver(_subscriptionRefreshObserver);
     super.dispose();
@@ -181,7 +243,8 @@ class _MyAppState extends ConsumerState<MyApp> {
     final stepIndex = int.tryParse(parts[1]);
     if (stepIndex == null) return;
 
-    ref.read(activeTimerProvider.notifier).dismissFinished(payload);
+    // Stop alarm sound; timer stays visible as "finished" in the cooking mode UI.
+    NotificationService.instance.stopAlarmSound();
 
     // Prüfen ob wir schon auf dem richtigen Rezept sind
     final stack = _appRouter.stack;
@@ -200,6 +263,27 @@ class _MyAppState extends ConsumerState<MyApp> {
       recipeId: recipeId,
       initialStep: stepIndex,
     ));
+  }
+
+  void _onTimerAction(String actionId) {
+    final parts = actionId.split(':');
+    if (parts.length < 3) return;
+    if (!{'pause', 'resume', 'cancel'}.contains(parts[0])) return;
+    final stepIndex = int.tryParse(parts[2]);
+    if (stepIndex == null) return;
+
+    final type = parts[0];
+    final recipeId = parts[1];
+    final key = '$recipeId:$stepIndex';
+    final notifier = ref.read(activeTimerProvider.notifier);
+    switch (type) {
+      case 'pause':
+        notifier.pauseTimer(key);
+      case 'resume':
+        notifier.resumeTimer(key);
+      case 'cancel':
+        notifier.cancelTimer(key);
+    }
   }
 
   @override

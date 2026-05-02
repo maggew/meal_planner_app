@@ -1,7 +1,12 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:meal_planner/core/utils/time_formatter.dart';
 import 'package:timezone/timezone.dart' as tz;
+
+const _groupKey = 'timer_group';
+const _timerGroupChannelId = 'timer_group_channel';
+const _timerGroupChannelName = 'Laufende Koch-Timer';
 
 class NotificationService {
   static NotificationService _instance = NotificationService._();
@@ -9,6 +14,12 @@ class NotificationService {
 
   @visibleForTesting
   static set instance(NotificationService value) => _instance = value;
+
+  static const int summaryNotificationId = 99999;
+
+  static int notificationIdForKey(String key) => key.hashCode.abs() % 90000;
+  static int alarmNotificationIdForKey(String key) =>
+      90001 + (key.hashCode.abs() % 90000);
 
   NotificationService._()
       : _plugin = FlutterLocalNotificationsPlugin(),
@@ -29,8 +40,6 @@ class NotificationService {
   })  : _plugin = plugin,
         _audioPlayer = audioPlayer;
 
-  static const int _ongoingNotificationId = 99999;
-
   final FlutterLocalNotificationsPlugin _plugin;
 
   bool _initialized = false;
@@ -38,8 +47,11 @@ class NotificationService {
   final AudioPlayer _audioPlayer;
 
   void Function(String payload)? onNotificationTapped;
+  void Function(String actionId)? onNotificationActionReceived;
 
-  Future<void> initialize() async {
+  Future<void> initialize({
+    void Function(NotificationResponse)? onBackgroundResponse,
+  }) async {
     if (_initialized) return;
 
     const androidSettings =
@@ -59,14 +71,20 @@ class NotificationService {
     await _plugin.initialize(
       settings: settings,
       onDidReceiveNotificationResponse: _onNotificationResponse,
+      onDidReceiveBackgroundNotificationResponse: onBackgroundResponse,
     );
     _initialized = true;
   }
 
   void _onNotificationResponse(NotificationResponse response) {
+    final actionId = response.actionId;
+    if (actionId != null) {
+      onNotificationActionReceived?.call(actionId);
+      return;
+    }
+
     final payload = response.payload;
     if (payload == null) return;
-
     onNotificationTapped?.call(payload);
   }
 
@@ -150,20 +168,20 @@ class NotificationService {
     await _audioPlayer.stop();
   }
 
-  Future<void> showOngoingTimerNotification(
-    List<String> timerLines, {
+  Future<void> showSummaryNotification({
+    required int timerCount,
     DateTime? nearestEndTime,
   }) async {
     final hasChronometer = nearestEndTime != null;
 
     await _plugin.show(
-      id: _ongoingNotificationId,
-      title: 'Timer läuft (${timerLines.length})',
-      body: timerLines.first,
+      id: summaryNotificationId,
+      title: '$timerCount Timer aktiv',
+      body: hasChronometer ? 'Nächster läuft ab...' : '$timerCount Timer aktiv',
       notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
-          'timer_ongoing_channel',
-          'Laufende Timer',
+          _timerGroupChannelId,
+          _timerGroupChannelName,
           channelDescription: 'Zeigt laufende Koch-Timer an',
           importance: Importance.low,
           priority: Priority.low,
@@ -174,30 +192,94 @@ class NotificationService {
           usesChronometer: hasChronometer,
           chronometerCountDown: hasChronometer,
           when: nearestEndTime?.millisecondsSinceEpoch,
-          styleInformation: InboxStyleInformation(
-            timerLines,
-            contentTitle: 'Timer läuft (${timerLines.length})',
-            summaryText: '${timerLines.length} aktive Timer',
-          ),
+          groupKey: _groupKey,
+          setAsGroupSummary: true,
         ),
       ),
     );
   }
 
-  Future<void> cancelOngoingTimerNotification() async {
-    await _plugin.cancel(id: _ongoingNotificationId);
+  Future<void> showTimerChildNotification({
+    required String key,
+    required String recipeTitle,
+    required String label,
+    required bool isPaused,
+    DateTime? endTime,
+    int? pausedRemainingSeconds,
+  }) async {
+    final id = notificationIdForKey(key);
+    final hasChronometer = !isPaused && endTime != null;
+    final body = isPaused ? '$label: ${formatSeconds(pausedRemainingSeconds ?? 0)} ⏸' : label;
+
+    final pauseAction = AndroidNotificationAction(
+      'pause:$key',
+      'Pausieren',
+      showsUserInterface: false,
+      cancelNotification: false,
+    );
+    final resumeAction = AndroidNotificationAction(
+      'resume:$key',
+      'Fortsetzen',
+      showsUserInterface: false,
+      cancelNotification: false,
+    );
+    final cancelAction = AndroidNotificationAction(
+      'cancel:$key',
+      'Beenden',
+      showsUserInterface: false,
+      cancelNotification: true,
+    );
+
+    await _plugin.show(
+      id: id,
+      title: recipeTitle,
+      body: body,
+      payload: key,
+      notificationDetails: NotificationDetails(
+        android: AndroidNotificationDetails(
+          _timerGroupChannelId,
+          _timerGroupChannelName,
+          channelDescription: 'Zeigt laufende Koch-Timer an',
+          importance: Importance.low,
+          priority: Priority.low,
+          ongoing: true,
+          autoCancel: false,
+          onlyAlertOnce: true,
+          showWhen: hasChronometer,
+          usesChronometer: hasChronometer,
+          chronometerCountDown: hasChronometer,
+          when: endTime?.millisecondsSinceEpoch,
+          groupKey: _groupKey,
+          actions: isPaused ? [resumeAction, cancelAction] : [pauseAction, cancelAction],
+        ),
+      ),
+    );
+  }
+
+  Future<void> cancelTimerChildNotification(String key) async {
+    await _plugin.cancel(id: notificationIdForKey(key));
+  }
+
+  Future<void> cancelSummaryNotification() async {
+    await _plugin.cancel(id: summaryNotificationId);
+  }
+
+  Future<Set<int>> getActiveNotificationIds() async {
+    final active = await _plugin.getActiveNotifications();
+    return active.map((n) => n.id).whereType<int>().toSet();
   }
 
   /// Shows a persistent notification for a finished timer.
   /// Uses the timer's notificationId so tapping it triggers the same handler.
   Future<void> showTimerFinishedNotification({
     required int id,
+    required String recipeTitle,
     required String timerName,
     required String payload,
   }) async {
     await _plugin.show(
       id: id,
-      title: 'Timer abgelaufen',
+      title: recipeTitle,
       body: timerName,
       payload: payload,
       notificationDetails: const NotificationDetails(

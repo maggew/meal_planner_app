@@ -11,8 +11,6 @@ part 'active_timer_provider.g.dart';
 
 @Riverpod(keepAlive: true)
 class ActiveTimerNotifier extends _$ActiveTimerNotifier {
-  int _nextNotificationId = 0;
-
   @override
   Map<String, ActiveTimer> build() {
     return {};
@@ -21,14 +19,13 @@ class ActiveTimerNotifier extends _$ActiveTimerNotifier {
   void startTimer({
     required String recipeId,
     required int stepIndex,
+    required String recipeTitle,
     required String label,
     required int durationSeconds,
     int? savedDurationSeconds,
   }) {
     final key = '$recipeId:$stepIndex';
 
-    // savedDurationSeconds: beim ersten Start = durationSeconds,
-    // bei "+X Min" = alter DB-Wert aus bestehendem Timer
     final existing = state[key];
     final dbDuration = savedDurationSeconds ??
         existing?.savedDurationSeconds ??
@@ -37,28 +34,27 @@ class ActiveTimerNotifier extends _$ActiveTimerNotifier {
     final timer = ActiveTimer(
       recipeId: recipeId,
       stepIndex: stepIndex,
+      recipeTitle: recipeTitle,
       label: label,
       totalSeconds: durationSeconds,
       savedDurationSeconds: dbDuration,
       endTime: DateTime.now().add(Duration(seconds: durationSeconds)),
-      notificationId: _nextNotificationId++,
       status: TimerStatus.running,
     );
 
     state = {...state, key: timer};
 
-    // Nur beim ersten Start persistieren
     if (savedDurationSeconds == null && existing == null) {
       _persistTimer(timer);
     }
 
     ref.read(timerTickProvider.notifier).start();
     NotificationService.instance.scheduleNotification(
-      id: timer.notificationId,
-      title: 'Timer abgelaufen',
+      id: NotificationService.alarmNotificationIdForKey(key),
+      title: timer.recipeTitle,
       body: timer.label,
       scheduledTime: timer.endTime!,
-      payload: '${timer.recipeId}:${timer.stepIndex}',
+      payload: key,
     );
   }
 
@@ -75,7 +71,8 @@ class ActiveTimerNotifier extends _$ActiveTimerNotifier {
         endTime: null,
       ),
     };
-    NotificationService.instance.cancelNotification(timer.notificationId);
+    NotificationService.instance
+        .cancelNotification(NotificationService.alarmNotificationIdForKey(key));
   }
 
   void resumeTimer(String key) {
@@ -98,19 +95,17 @@ class ActiveTimerNotifier extends _$ActiveTimerNotifier {
 
     ref.read(timerTickProvider.notifier).start();
     NotificationService.instance.scheduleNotification(
-      id: timer.notificationId,
-      title: 'Timer abgelaufen',
+      id: NotificationService.alarmNotificationIdForKey(key),
+      title: timer.recipeTitle,
       body: timer.label,
       scheduledTime: newEndTime,
-      payload: '${timer.recipeId}:${timer.stepIndex}',
+      payload: key,
     );
   }
 
   void cancelTimer(String key) {
-    final timer = state[key];
-    if (timer != null) {
-      NotificationService.instance.cancelNotification(timer.notificationId);
-    }
+    NotificationService.instance
+        .cancelNotification(NotificationService.alarmNotificationIdForKey(key));
     final newState = Map<String, ActiveTimer>.from(state);
     newState.remove(key);
     state = newState;
@@ -128,19 +123,20 @@ class ActiveTimerNotifier extends _$ActiveTimerNotifier {
         endTime: null,
       ),
     };
-    NotificationService.instance.cancelNotification(timer.notificationId);
+    NotificationService.instance
+        .cancelNotification(NotificationService.alarmNotificationIdForKey(key));
   }
 
   void dismissFinished(String key) {
     final timer = state[key];
+    if (timer == null || timer.status != TimerStatus.finished) return;
+
     final newState = Map<String, ActiveTimer>.from(state);
     newState.remove(key);
     state = newState;
 
-    // Cancel the "Timer abgelaufen" notification for this timer
-    if (timer != null) {
-      NotificationService.instance.cancelNotification(timer.notificationId);
-    }
+    NotificationService.instance
+        .cancelNotification(NotificationService.alarmNotificationIdForKey(key));
 
     final hasFinished = state.values.any(
       (t) => t.status == TimerStatus.finished,
@@ -157,7 +153,6 @@ class ActiveTimerNotifier extends _$ActiveTimerNotifier {
     );
     if (!hasActive) {
       ref.read(timerTickProvider.notifier).stop();
-      ref.read(timerTickProvider.notifier).cancelOngoingNotification();
     }
   }
 
@@ -170,33 +165,41 @@ class ActiveTimerNotifier extends _$ActiveTimerNotifier {
       key: timer.copyWith(label: newLabel),
     };
 
-    // Name in DB persistieren (fire & forget)
     _persistTimer(timer.copyWith(label: newLabel));
   }
 
-  /// Alle laufenden Timer prüfen (wird vom Tick aufgerufen)
-  void checkExpiredTimers() {
+  /// Alle laufenden Timer prüfen (wird vom Tick aufgerufen).
+  /// [dismissedKeys]: Timer-Keys deren Alarm-Notification bereits vom User
+  /// weggewischt wurde — für diese keinen Sound und keine neue Notification.
+  void checkExpiredTimers({Set<String> dismissedKeys = const {}}) {
     final updates = <String, ActiveTimer>{};
+    bool hasUndismissed = false;
     for (final entry in state.entries) {
       if (entry.value.isExpired) {
         final timer = entry.value;
-        updates[entry.key] = timer.copyWith(
+        final key = entry.key;
+        updates[key] = timer.copyWith(
           status: TimerStatus.finished,
           endTime: null,
         );
-        // Cancel the scheduled alarm notification (in-app sound takes over)
-        NotificationService.instance.cancelNotification(timer.notificationId);
-        // Show a static "Timer abgelaufen" notification
-        NotificationService.instance.showTimerFinishedNotification(
-          id: timer.notificationId,
-          timerName: timer.label,
-          payload: '${timer.recipeId}:${timer.stepIndex}',
-        );
+        NotificationService.instance.cancelNotification(
+            NotificationService.alarmNotificationIdForKey(key));
+        if (!dismissedKeys.contains(key)) {
+          NotificationService.instance.showTimerFinishedNotification(
+            id: NotificationService.alarmNotificationIdForKey(key),
+            recipeTitle: timer.recipeTitle,
+            timerName: timer.label,
+            payload: key,
+          );
+          hasUndismissed = true;
+        }
       }
     }
     if (updates.isNotEmpty) {
       state = {...state, ...updates};
-      NotificationService.instance.playAlarmSound();
+      if (hasUndismissed) {
+        NotificationService.instance.playAlarmSound();
+      }
     }
   }
 
@@ -229,13 +232,14 @@ class ActiveTimerNotifier extends _$ActiveTimerNotifier {
             endTime: newEndTime,
           ),
         };
-        NotificationService.instance.cancelNotification(timer.notificationId);
+        NotificationService.instance.cancelNotification(
+            NotificationService.alarmNotificationIdForKey(key));
         NotificationService.instance.scheduleNotification(
-          id: timer.notificationId,
+          id: NotificationService.alarmNotificationIdForKey(key),
           title: 'Timer abgelaufen',
           body: timer.label,
           scheduledTime: newEndTime,
-          payload: '${timer.recipeId}:${timer.stepIndex}',
+          payload: key,
         );
 
       case TimerStatus.paused:
@@ -253,6 +257,7 @@ class ActiveTimerNotifier extends _$ActiveTimerNotifier {
         startTimer(
           recipeId: timer.recipeId,
           stepIndex: timer.stepIndex,
+          recipeTitle: timer.recipeTitle,
           label: timer.label,
           durationSeconds: addSeconds,
           savedDurationSeconds: timer.savedDurationSeconds,
