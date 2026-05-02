@@ -1,4 +1,4 @@
-// Tests für NotificationService — geschrieben gegen das zonedSchedule-Interface.
+﻿// Tests für NotificationService — geschrieben gegen das zonedSchedule-Interface.
 //
 // Tests mit [RED→GREEN] schlagen mit der aktuellen Dart-Timer-Implementierung
 // fehl und werden grün sobald scheduleNotification() auf zonedSchedule() umgestellt ist.
@@ -99,6 +99,101 @@ void main() {
       plugin: MockFlutterLocalNotificationsPlugin(),
       audioPlayer: MockAudioPlayer(),
     );
+  });
+
+  // ==========================================================================
+  // _onNotificationResponse Routing
+  // ==========================================================================
+
+  group('_onNotificationResponse Routing', () {
+    late void Function(NotificationResponse) capturedFgCallback;
+    late NotificationService routingService;
+
+    setUp(() async {
+      final localPlugin = MockFlutterLocalNotificationsPlugin();
+      final localAudio = MockAudioPlayer();
+      _stubDefaults(localPlugin, localAudio);
+
+      void Function(NotificationResponse)? captured;
+      when(
+        () => localPlugin.initialize(
+          settings: any(named: 'settings'),
+          onDidReceiveNotificationResponse:
+              any(named: 'onDidReceiveNotificationResponse'),
+          onDidReceiveBackgroundNotificationResponse:
+              any(named: 'onDidReceiveBackgroundNotificationResponse'),
+        ),
+      ).thenAnswer((invocation) {
+        captured = invocation.namedArguments[
+            const Symbol('onDidReceiveNotificationResponse')];
+        return Future.value(true);
+      });
+
+      routingService = NotificationService.forTesting(
+        plugin: localPlugin,
+        audioPlayer: localAudio,
+      );
+      await routingService.initialize();
+      capturedFgCallback = captured!;
+    });
+
+    test('action-Response → ruft onNotificationActionReceived auf', () {
+      String? receivedId;
+      routingService.onNotificationActionReceived = (id) => receivedId = id;
+
+      capturedFgCallback(const NotificationResponse(
+        notificationResponseType:
+            NotificationResponseType.selectedNotificationAction,
+        id: 1,
+        actionId: 'pause:r1:0',
+        payload: 'r1:0',
+      ));
+
+      expect(receivedId, equals('pause:r1:0'));
+    });
+
+    test('action-Response → ruft onNotificationTapped NICHT auf', () {
+      bool tapped = false;
+      routingService.onNotificationTapped = (_) => tapped = true;
+      routingService.onNotificationActionReceived = (_) {};
+
+      capturedFgCallback(const NotificationResponse(
+        notificationResponseType:
+            NotificationResponseType.selectedNotificationAction,
+        id: 1,
+        actionId: 'pause:r1:0',
+        payload: 'r1:0',
+      ));
+
+      expect(tapped, isFalse);
+    });
+
+    test('Notification-Tap (kein actionId) → ruft onNotificationTapped auf', () {
+      String? tappedPayload;
+      routingService.onNotificationTapped = (p) => tappedPayload = p;
+
+      capturedFgCallback(const NotificationResponse(
+        notificationResponseType: NotificationResponseType.selectedNotification,
+        id: 1,
+        payload: 'r1:0',
+      ));
+
+      expect(tappedPayload, equals('r1:0'));
+    });
+
+    test('Notification-Tap → ruft onNotificationActionReceived NICHT auf', () {
+      bool actionCalled = false;
+      routingService.onNotificationActionReceived = (_) => actionCalled = true;
+      routingService.onNotificationTapped = (_) {};
+
+      capturedFgCallback(const NotificationResponse(
+        notificationResponseType: NotificationResponseType.selectedNotification,
+        id: 1,
+        payload: 'r1:0',
+      ));
+
+      expect(actionCalled, isFalse);
+    });
   });
 
   // ==========================================================================
@@ -503,12 +598,12 @@ void main() {
   });
 
   // ==========================================================================
-  // showOngoingTimerNotification()
+  // showSummaryNotification()
   // ==========================================================================
 
-  group('showOngoingTimerNotification()', () {
-    test('zeigt Notification mit ID 99999 (ongoing channel)', () async {
-      await service.showOngoingTimerNotification(['Nudeln: 5:00']);
+  group('showSummaryNotification()', () {
+    test('zeigt Notification mit ID 99999', () async {
+      await service.showSummaryNotification(timerCount: 2, nearestEndTime: null);
 
       final captured = verify(
         () => mockPlugin.show(
@@ -523,61 +618,360 @@ void main() {
       expect(captured.first, equals(99999));
     });
 
-    test('Titel enthält korrekte Timer-Anzahl', () async {
-      await service.showOngoingTimerNotification(
-        ['A: 1:00', 'B: 2:00', 'C: 3:00'],
+    test('verwendet timer_group_channel', () async {
+      await service.showSummaryNotification(timerCount: 1, nearestEndTime: null);
+
+      final captured = verify(
+        () => mockPlugin.show(
+          id: any(named: 'id'),
+          title: any(named: 'title'),
+          body: any(named: 'body'),
+          notificationDetails: captureAny(named: 'notificationDetails'),
+          payload: any(named: 'payload'),
+        ),
+      ).captured;
+
+      final details = captured.first as NotificationDetails;
+      expect(details.android?.channelId, equals('timer_group_channel'));
+    });
+
+    test('Titel enthält Timer-Anzahl', () async {
+      await service.showSummaryNotification(timerCount: 3, nearestEndTime: null);
+
+      verify(
+        () => mockPlugin.show(
+          id: any(named: 'id'),
+          title: '3 Timer aktiv',
+          body: any(named: 'body'),
+          notificationDetails: any(named: 'notificationDetails'),
+          payload: any(named: 'payload'),
+        ),
+      ).called(1);
+    });
+
+    test('mit nearestEndTime: usesChronometer true', () async {
+      final endTime = DateTime.now().add(const Duration(minutes: 5));
+      await service.showSummaryNotification(timerCount: 1, nearestEndTime: endTime);
+
+      final captured = verify(
+        () => mockPlugin.show(
+          id: any(named: 'id'),
+          title: any(named: 'title'),
+          body: any(named: 'body'),
+          notificationDetails: captureAny(named: 'notificationDetails'),
+          payload: any(named: 'payload'),
+        ),
+      ).captured;
+
+      final details = captured.first as NotificationDetails;
+      expect(details.android?.usesChronometer, isTrue);
+      expect(details.android?.chronometerCountDown, isTrue);
+    });
+
+    test('ohne nearestEndTime: usesChronometer false', () async {
+      await service.showSummaryNotification(timerCount: 1, nearestEndTime: null);
+
+      final captured = verify(
+        () => mockPlugin.show(
+          id: any(named: 'id'),
+          title: any(named: 'title'),
+          body: any(named: 'body'),
+          notificationDetails: captureAny(named: 'notificationDetails'),
+          payload: any(named: 'payload'),
+        ),
+      ).captured;
+
+      final details = captured.first as NotificationDetails;
+      expect(details.android?.usesChronometer, isNot(isTrue));
+    });
+  });
+
+  // ==========================================================================
+  // showTimerChildNotification()
+  // ==========================================================================
+
+  group('showTimerChildNotification()', () {
+    test('running: verwendet key-abgeleitete ID', () async {
+      const key = 'r1:0';
+      await service.showTimerChildNotification(
+        key: key,
+        recipeTitle: 'Test Rezept',label: 'Nudeln',
+        isPaused: false,
+        endTime: DateTime.now().add(const Duration(minutes: 3)),
+      );
+
+      final captured = verify(
+        () => mockPlugin.show(
+          id: captureAny(named: 'id'),
+          title: any(named: 'title'),
+          body: any(named: 'body'),
+          notificationDetails: any(named: 'notificationDetails'),
+          payload: any(named: 'payload'),
+        ),
+      ).captured;
+
+      expect(captured.first, equals(NotificationService.notificationIdForKey(key)));
+    });
+
+    test('running: verwendet timer_group_channel', () async {
+      await service.showTimerChildNotification(
+        key: 'r1:0',
+        recipeTitle: 'Test Rezept',label: 'Nudeln',
+        isPaused: false,
+        endTime: DateTime.now().add(const Duration(minutes: 3)),
+      );
+
+      final captured = verify(
+        () => mockPlugin.show(
+          id: any(named: 'id'),
+          title: any(named: 'title'),
+          body: any(named: 'body'),
+          notificationDetails: captureAny(named: 'notificationDetails'),
+          payload: any(named: 'payload'),
+        ),
+      ).captured;
+
+      final details = captured.first as NotificationDetails;
+      expect(details.android?.channelId, equals('timer_group_channel'));
+    });
+
+    test('running: usesChronometer true', () async {
+      final endTime = DateTime.now().add(const Duration(minutes: 3));
+      await service.showTimerChildNotification(
+        key: 'r1:0',
+        recipeTitle: 'Test Rezept',label: 'Nudeln',
+        isPaused: false,
+        endTime: endTime,
+      );
+
+      final captured = verify(
+        () => mockPlugin.show(
+          id: any(named: 'id'),
+          title: any(named: 'title'),
+          body: any(named: 'body'),
+          notificationDetails: captureAny(named: 'notificationDetails'),
+          payload: any(named: 'payload'),
+        ),
+      ).captured;
+
+      final details = captured.first as NotificationDetails;
+      expect(details.android?.usesChronometer, isTrue);
+      expect(details.android?.chronometerCountDown, isTrue);
+    });
+
+    test('running: hat Pause- und Beenden-Button', () async {
+      await service.showTimerChildNotification(
+        key: 'r1:0',
+        recipeTitle: 'Test Rezept',label: 'Nudeln',
+        isPaused: false,
+        endTime: DateTime.now().add(const Duration(minutes: 3)),
+      );
+
+      final captured = verify(
+        () => mockPlugin.show(
+          id: any(named: 'id'),
+          title: any(named: 'title'),
+          body: any(named: 'body'),
+          notificationDetails: captureAny(named: 'notificationDetails'),
+          payload: any(named: 'payload'),
+        ),
+      ).captured;
+
+      final details = captured.first as NotificationDetails;
+      final actions = details.android?.actions;
+      expect(actions, isNotNull);
+      expect(actions!.length, equals(2));
+      expect(actions.map((a) => a.id), contains('pause:r1:0'));
+      expect(actions.map((a) => a.id), contains('cancel:r1:0'));
+    });
+
+    test('paused: kein Chronometer', () async {
+      await service.showTimerChildNotification(
+        key: 'r1:0',
+        recipeTitle: 'Test Rezept',label: 'Nudeln',
+        isPaused: true,
+        pausedRemainingSeconds: 120,
+      );
+
+      final captured = verify(
+        () => mockPlugin.show(
+          id: any(named: 'id'),
+          title: any(named: 'title'),
+          body: any(named: 'body'),
+          notificationDetails: captureAny(named: 'notificationDetails'),
+          payload: any(named: 'payload'),
+        ),
+      ).captured;
+
+      final details = captured.first as NotificationDetails;
+      expect(details.android?.usesChronometer, isNot(isTrue));
+    });
+
+    test('paused: Body zeigt verbleibende Zeit mit Pause-Symbol', () async {
+      await service.showTimerChildNotification(
+        key: 'r1:0',
+        recipeTitle: 'Test Rezept',label: 'Nudeln',
+        isPaused: true,
+        pausedRemainingSeconds: 90,
       );
 
       verify(
         () => mockPlugin.show(
           id: any(named: 'id'),
-          title: 'Timer läuft (3)',
-          body: any(named: 'body'),
+          title: any(named: 'title'),
+          body: 'Nudeln: 01:30 ⏸',
           notificationDetails: any(named: 'notificationDetails'),
           payload: any(named: 'payload'),
         ),
       ).called(1);
     });
 
-    test('Body ist die erste Timer-Zeile', () async {
-      await service
-          .showOngoingTimerNotification(['Nudeln: 5:00', 'Sauce: 2:30']);
+    test('paused: hat Fortsetzen- und Beenden-Button', () async {
+      await service.showTimerChildNotification(
+        key: 'r1:0',
+        recipeTitle: 'Test Rezept',label: 'Nudeln',
+        isPaused: true,
+        pausedRemainingSeconds: 120,
+      );
+
+      final captured = verify(
+        () => mockPlugin.show(
+          id: any(named: 'id'),
+          title: any(named: 'title'),
+          body: any(named: 'body'),
+          notificationDetails: captureAny(named: 'notificationDetails'),
+          payload: any(named: 'payload'),
+        ),
+      ).captured;
+
+      final actions = (captured.first as NotificationDetails).android?.actions;
+      expect(actions, isNotNull);
+      expect(actions!.length, equals(2));
+      expect(actions.map((a) => a.id), contains('resume:r1:0'));
+      expect(actions.map((a) => a.id), contains('cancel:r1:0'));
+    });
+
+    test('payload ist der Key (für Tap-Navigation)', () async {
+      await service.showTimerChildNotification(
+        key: 'r1:2',
+        recipeTitle: 'Test Rezept',label: 'Sauce',
+        isPaused: false,
+        endTime: DateTime.now().add(const Duration(minutes: 1)),
+      );
 
       verify(
         () => mockPlugin.show(
           id: any(named: 'id'),
           title: any(named: 'title'),
-          body: 'Nudeln: 5:00',
-          notificationDetails: any(named: 'notificationDetails'),
-          payload: any(named: 'payload'),
-        ),
-      ).called(1);
-    });
-
-    test('bei einem Timer: korrekte Anzahl im Titel', () async {
-      await service.showOngoingTimerNotification(['Eier: 10:00']);
-
-      verify(
-        () => mockPlugin.show(
-          id: any(named: 'id'),
-          title: 'Timer läuft (1)',
           body: any(named: 'body'),
           notificationDetails: any(named: 'notificationDetails'),
-          payload: any(named: 'payload'),
+          payload: 'r1:2',
         ),
       ).called(1);
     });
   });
 
   // ==========================================================================
-  // cancelOngoingTimerNotification()
+  // cancelTimerChildNotification() / cancelSummaryNotification()
   // ==========================================================================
 
-  group('cancelOngoingTimerNotification()', () {
+  group('cancelTimerChildNotification()', () {
+    test('cancelt Notification mit key-abgeleiteter ID', () async {
+      const key = 'r1:0';
+      await service.cancelTimerChildNotification(key);
+
+      verify(
+        () => mockPlugin.cancel(id: NotificationService.notificationIdForKey(key)),
+      ).called(1);
+    });
+  });
+
+  group('cancelSummaryNotification()', () {
     test('cancelt Notification mit ID 99999', () async {
-      await service.cancelOngoingTimerNotification();
+      await service.cancelSummaryNotification();
 
       verify(() => mockPlugin.cancel(id: 99999)).called(1);
+    });
+  });
+
+  // ==========================================================================
+  // notificationIdForKey()
+  // ==========================================================================
+
+  group('notificationIdForKey()', () {
+    test('gibt konsistente ID für gleichen Key zurück', () {
+      final id1 = NotificationService.notificationIdForKey('r1:0');
+      final id2 = NotificationService.notificationIdForKey('r1:0');
+      expect(id1, equals(id2));
+    });
+
+    test('ID liegt im Bereich 0–89999', () {
+      final id = NotificationService.notificationIdForKey('recipe-abc:3');
+      expect(id, greaterThanOrEqualTo(0));
+      expect(id, lessThan(90000));
+    });
+  });
+
+  // ==========================================================================
+  // getActiveNotificationIds()
+  // ==========================================================================
+
+  group('getActiveNotificationIds()', () {
+    test('gibt Set der IDs aktiver Notifications zurück', () async {
+      when(() => mockPlugin.getActiveNotifications()).thenAnswer((_) async => [
+            const ActiveNotification(id: 42, channelId: 'ch'),
+            const ActiveNotification(id: 100, channelId: 'ch'),
+          ]);
+
+      final ids = await service.getActiveNotificationIds();
+
+      expect(ids, equals({42, 100}));
+    });
+
+    test('leeres Set wenn keine Notifications aktiv', () async {
+      when(() => mockPlugin.getActiveNotifications())
+          .thenAnswer((_) async => []);
+
+      final ids = await service.getActiveNotificationIds();
+
+      expect(ids, isEmpty);
+    });
+
+    test('Notifications ohne ID werden ignoriert', () async {
+      when(() => mockPlugin.getActiveNotifications()).thenAnswer((_) async => [
+            const ActiveNotification(id: null, channelId: 'ch'),
+            const ActiveNotification(id: 7, channelId: 'ch'),
+          ]);
+
+      final ids = await service.getActiveNotificationIds();
+
+      expect(ids, equals({7}));
+    });
+  });
+
+  // ==========================================================================
+  // alarmNotificationIdForKey()
+  // ==========================================================================
+
+  group('alarmNotificationIdForKey()', () {
+    test('ID liegt im Bereich 90001–180000', () {
+      final id = NotificationService.alarmNotificationIdForKey('recipe-abc:3');
+      expect(id, greaterThanOrEqualTo(90001));
+      expect(id, lessThanOrEqualTo(180000));
+    });
+
+    test('Alarm-ID unterscheidet sich von Child-ID für denselben Key', () {
+      const key = 'r1:0';
+      final childId = NotificationService.notificationIdForKey(key);
+      final alarmId = NotificationService.alarmNotificationIdForKey(key);
+      expect(alarmId, isNot(equals(childId)));
+    });
+
+    test('Bereiche überlappen sich nicht', () {
+      // Child: 0–89999, Alarm: 90001–180000
+      final maxChildId = 89999;
+      final minAlarmId = 90001;
+      expect(minAlarmId, greaterThan(maxChildId));
     });
   });
 }

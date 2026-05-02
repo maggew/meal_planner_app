@@ -1,4 +1,4 @@
-// Tests für ActiveTimerNotifier — geschrieben gegen das zonedSchedule-Interface.
+﻿// Tests für ActiveTimerNotifier — geschrieben gegen das zonedSchedule-Interface.
 //
 // Tests mit [RED→GREEN] schlagen mit der aktuellen Dart-Timer-Implementierung
 // fehl und werden grün sobald NotificationService.scheduleNotification() auf
@@ -138,7 +138,7 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'Nudeln',
+            recipeTitle: 'Test Rezept',label: 'Nudeln',
             durationSeconds: 60,
           );
 
@@ -157,7 +157,7 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'Nudeln',
+            recipeTitle: 'Test Rezept',label: 'Nudeln',
             durationSeconds: 60,
           );
       final after = DateTime.now();
@@ -183,7 +183,7 @@ void main() {
         container.read(activeTimerProvider.notifier).startTimer(
               recipeId: 'r1',
               stepIndex: 0,
-              label: 'Nudeln',
+              recipeTitle: 'Test Rezept',label: 'Nudeln',
               durationSeconds: 60,
             );
         await pumpAsync();
@@ -192,7 +192,7 @@ void main() {
         verify(
           () => mockPlugin.zonedSchedule(
             id: any(named: 'id'),
-            title: 'Timer abgelaufen',
+            title: any(named: 'title'),
             body: 'Nudeln',
             scheduledDate: any(named: 'scheduledDate'),
             notificationDetails: any(named: 'notificationDetails'),
@@ -210,13 +210,13 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'Nudeln',
+            recipeTitle: 'Test Rezept',label: 'Nudeln',
             durationSeconds: 60,
           );
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'Nudeln (neu)',
+            recipeTitle: 'Test Rezept',label: 'Nudeln (neu)',
             durationSeconds: 120,
           );
 
@@ -232,7 +232,7 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'rezept-abc',
             stepIndex: 3,
-            label: 'T',
+            recipeTitle: 'Test Rezept',label: 'T',
             durationSeconds: 30,
           );
 
@@ -255,7 +255,7 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'T',
+            recipeTitle: 'Test Rezept',label: 'T',
             durationSeconds: 60,
           );
       container.read(activeTimerProvider.notifier).pauseTimer('r1:0');
@@ -273,7 +273,7 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'T',
+            recipeTitle: 'Test Rezept',label: 'T',
             durationSeconds: 60,
           );
       container.read(activeTimerProvider.notifier).pauseTimer('r1:0');
@@ -288,12 +288,11 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'T',
+            recipeTitle: 'Test Rezept',label: 'T',
             durationSeconds: 60,
           );
       await pumpAsync();
-      final notifId =
-          container.read(activeTimerProvider)['r1:0']!.notificationId;
+      final notifId = NotificationService.alarmNotificationIdForKey('r1:0');
 
       clearInteractions(mockPlugin);
       container.read(activeTimerProvider.notifier).pauseTimer('r1:0');
@@ -308,7 +307,7 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'T',
+            recipeTitle: 'Test Rezept',label: 'T',
             durationSeconds: 60,
           );
       container.read(activeTimerProvider.notifier).pauseTimer('r1:0');
@@ -339,7 +338,7 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'T',
+            recipeTitle: 'Test Rezept',label: 'T',
             durationSeconds: 60,
           );
       container.read(activeTimerProvider.notifier).pauseTimer('r1:0');
@@ -358,7 +357,7 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'T',
+            recipeTitle: 'Test Rezept',label: 'T',
             durationSeconds: 60,
           );
       container.read(activeTimerProvider.notifier).pauseTimer('r1:0');
@@ -379,7 +378,7 @@ void main() {
         container.read(activeTimerProvider.notifier).startTimer(
               recipeId: 'r1',
               stepIndex: 0,
-              label: 'Nudeln',
+              recipeTitle: 'Test Rezept',label: 'Nudeln',
               durationSeconds: 60,
             );
         await pumpAsync();
@@ -393,7 +392,7 @@ void main() {
         verify(
           () => mockPlugin.zonedSchedule(
             id: any(named: 'id'),
-            title: 'Timer abgelaufen',
+            title: any(named: 'title'),
             body: 'Nudeln',
             scheduledDate: any(named: 'scheduledDate'),
             notificationDetails: any(named: 'notificationDetails'),
@@ -411,7 +410,7 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'T',
+            recipeTitle: 'Test Rezept',label: 'T',
             durationSeconds: 60,
           );
 
@@ -437,7 +436,7 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'T',
+            recipeTitle: 'Test Rezept',label: 'T',
             durationSeconds: 0,
           );
       container.read(activeTimerProvider.notifier).pauseTimer('r1:0');
@@ -464,7 +463,7 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'T',
+            recipeTitle: 'Test Rezept',label: 'T',
             durationSeconds: 60,
           );
       container.read(activeTimerProvider.notifier).cancelTimer('r1:0');
@@ -479,12 +478,11 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'T',
+            recipeTitle: 'Test Rezept',label: 'T',
             durationSeconds: 60,
           );
       await pumpAsync();
-      final notifId =
-          container.read(activeTimerProvider)['r1:0']!.notificationId;
+      final notifId = NotificationService.alarmNotificationIdForKey('r1:0');
 
       clearInteractions(mockPlugin);
       container.read(activeTimerProvider.notifier).cancelTimer('r1:0');
@@ -503,12 +501,11 @@ void main() {
         container.read(activeTimerProvider.notifier).startTimer(
               recipeId: 'r1',
               stepIndex: 0,
-              label: 'T',
+              recipeTitle: 'Test Rezept',label: 'T',
               durationSeconds: 60,
             );
         await pumpAsync();
-        final notifId =
-            container.read(activeTimerProvider)['r1:0']!.notificationId;
+        final notifId = NotificationService.alarmNotificationIdForKey('r1:0');
 
         clearInteractions(mockPlugin);
         container.read(activeTimerProvider.notifier).cancelTimer('r1:0');
@@ -528,13 +525,13 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'A',
+            recipeTitle: 'Test Rezept',label: 'A',
             durationSeconds: 60,
           );
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 1,
-            label: 'B',
+            recipeTitle: 'Test Rezept',label: 'B',
             durationSeconds: 60,
           );
 
@@ -557,7 +554,7 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'T',
+            recipeTitle: 'Test Rezept',label: 'T',
             durationSeconds: 60,
           );
       container.read(activeTimerProvider.notifier).markAsFinished('r1:0');
@@ -574,12 +571,11 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'T',
+            recipeTitle: 'Test Rezept',label: 'T',
             durationSeconds: 60,
           );
       await pumpAsync();
-      final notifId =
-          container.read(activeTimerProvider)['r1:0']!.notificationId;
+      final notifId = NotificationService.alarmNotificationIdForKey('r1:0');
 
       clearInteractions(mockPlugin);
       container.read(activeTimerProvider.notifier).markAsFinished('r1:0');
@@ -600,7 +596,7 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'T',
+            recipeTitle: 'Test Rezept',label: 'T',
             durationSeconds: 60,
           );
       container.read(activeTimerProvider.notifier).markAsFinished('r1:0');
@@ -618,7 +614,7 @@ void main() {
         container.read(activeTimerProvider.notifier).startTimer(
               recipeId: 'r1',
               stepIndex: 0,
-              label: 'T',
+              recipeTitle: 'Test Rezept',label: 'T',
               durationSeconds: 60,
             );
         container.read(activeTimerProvider.notifier).markAsFinished('r1:0');
@@ -639,13 +635,13 @@ void main() {
         container.read(activeTimerProvider.notifier).startTimer(
               recipeId: 'r1',
               stepIndex: 0,
-              label: 'A',
+              recipeTitle: 'Test Rezept',label: 'A',
               durationSeconds: 60,
             );
         container.read(activeTimerProvider.notifier).startTimer(
               recipeId: 'r1',
               stepIndex: 1,
-              label: 'B',
+              recipeTitle: 'Test Rezept',label: 'B',
               durationSeconds: 60,
             );
         container.read(activeTimerProvider.notifier).markAsFinished('r1:0');
@@ -676,7 +672,7 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'T',
+            recipeTitle: 'Test Rezept',label: 'T',
             durationSeconds: 3600, // 1 Stunde
           );
 
@@ -697,7 +693,7 @@ void main() {
         container.read(activeTimerProvider.notifier).startTimer(
               recipeId: 'r1',
               stepIndex: 0,
-              label: 'T',
+              recipeTitle: 'Test Rezept',label: 'T',
               durationSeconds: 0,
             );
 
@@ -720,7 +716,7 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'T',
+            recipeTitle: 'Test Rezept',label: 'T',
             durationSeconds: 0,
           );
 
@@ -738,6 +734,88 @@ void main() {
       verify(() => mockAudioPlayer.setSourceAsset('sounds/timer.mp3')).called(1);
     });
 
+    test('dismissedKeys: Timer wird als finished markiert aber kein Sound, keine finished-Notification',
+        () async {
+      final container = _makeContainer(mockRepo);
+      addTearDown(container.dispose);
+
+      container.read(activeTimerProvider.notifier).startTimer(
+            recipeId: 'r1',
+            stepIndex: 0,
+            recipeTitle: 'Test Rezept',label: 'T',
+            durationSeconds: 0,
+          );
+
+      await Future.delayed(const Duration(milliseconds: 10));
+      await NotificationService.instance.stopAlarmSound();
+      clearInteractions(mockPlugin);
+      clearInteractions(mockAudioPlayer);
+
+      container
+          .read(activeTimerProvider.notifier)
+          .checkExpiredTimers(dismissedKeys: {'r1:0'});
+      await Future.delayed(Duration.zero);
+
+      verifyNever(() => mockAudioPlayer.setSourceAsset(any()));
+      verifyNever(() => mockPlugin.show(
+            id: any(named: 'id'),
+            title: any(named: 'title'),
+            body: any(named: 'body'),
+            notificationDetails: any(named: 'notificationDetails'),
+            payload: any(named: 'payload'),
+          ));
+      expect(
+        container.read(activeTimerProvider)['r1:0']?.status,
+        equals(TimerStatus.finished),
+        reason: 'Timer muss trotzdem als finished markiert werden',
+      );
+    });
+
+    test('dismissedKeys: Sound und Notification nur für nicht-dismisste Timer',
+        () async {
+      final container = _makeContainer(mockRepo);
+      addTearDown(container.dispose);
+
+      container.read(activeTimerProvider.notifier).startTimer(
+            recipeId: 'r1',
+            stepIndex: 0,
+            recipeTitle: 'Test Rezept',label: 'Dismissed',
+            durationSeconds: 0,
+          );
+      container.read(activeTimerProvider.notifier).startTimer(
+            recipeId: 'r1',
+            stepIndex: 1,
+            recipeTitle: 'Test Rezept',label: 'Active',
+            durationSeconds: 0,
+          );
+
+      await Future.delayed(const Duration(milliseconds: 10));
+      await NotificationService.instance.stopAlarmSound();
+      clearInteractions(mockPlugin);
+      clearInteractions(mockAudioPlayer);
+
+      container
+          .read(activeTimerProvider.notifier)
+          .checkExpiredTimers(dismissedKeys: {'r1:0'});
+      await Future.delayed(Duration.zero);
+
+      verify(() => mockAudioPlayer.setSourceAsset('sounds/timer.mp3')).called(1);
+      verify(() => mockPlugin.show(
+            id: NotificationService.alarmNotificationIdForKey('r1:1'),
+            title: any(named: 'title'),
+            body: any(named: 'body'),
+            notificationDetails: any(named: 'notificationDetails'),
+            payload: 'r1:1',
+          )).called(1);
+      verifyNever(() => mockPlugin.show(
+            id: NotificationService.alarmNotificationIdForKey('r1:0'),
+            title: any(named: 'title'),
+            body: any(named: 'body'),
+            notificationDetails: any(named: 'notificationDetails'),
+            payload: 'r1:0',
+          ));
+    });
+
     test(
       '[RED→GREEN] OS-Notification wurde bereits beim Start registriert — überlebt App-Kill',
       () async {
@@ -752,7 +830,7 @@ void main() {
         container.read(activeTimerProvider.notifier).startTimer(
               recipeId: 'r1',
               stepIndex: 0,
-              label: 'Nudeln',
+              recipeTitle: 'Test Rezept',label: 'Nudeln',
               durationSeconds: 5,
             );
         await pumpAsync();
@@ -761,7 +839,7 @@ void main() {
         verify(
           () => mockPlugin.zonedSchedule(
             id: any(named: 'id'),
-            title: 'Timer abgelaufen',
+            title: any(named: 'title'),
             body: 'Nudeln',
             scheduledDate: any(named: 'scheduledDate'),
             notificationDetails: any(named: 'notificationDetails'),
@@ -785,7 +863,7 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'T',
+            recipeTitle: 'Test Rezept',label: 'T',
             durationSeconds: 60,
           );
       final oldEndTime = container.read(activeTimerProvider)['r1:0']!.endTime!;
@@ -809,12 +887,11 @@ void main() {
         container.read(activeTimerProvider.notifier).startTimer(
               recipeId: 'r1',
               stepIndex: 0,
-              label: 'Nudeln',
+              recipeTitle: 'Test Rezept',label: 'Nudeln',
               durationSeconds: 60,
             );
         await pumpAsync();
-        final notifId =
-            container.read(activeTimerProvider)['r1:0']!.notificationId;
+        final notifId = NotificationService.alarmNotificationIdForKey('r1:0');
 
         clearInteractions(mockPlugin);
         container.read(activeTimerProvider.notifier).addMinute('r1:0');
@@ -844,7 +921,7 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'T',
+            recipeTitle: 'Test Rezept',label: 'T',
             durationSeconds: 60,
           );
       container.read(activeTimerProvider.notifier).pauseTimer('r1:0');
@@ -865,7 +942,7 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'T',
+            recipeTitle: 'Test Rezept',label: 'T',
             durationSeconds: 60,
           );
       container.read(activeTimerProvider.notifier).pauseTimer('r1:0');
@@ -890,7 +967,7 @@ void main() {
       container.read(activeTimerProvider.notifier).startTimer(
             recipeId: 'r1',
             stepIndex: 0,
-            label: 'Nudeln',
+            recipeTitle: 'Test Rezept',label: 'Nudeln',
             durationSeconds: 60,
           );
       container.read(activeTimerProvider.notifier).markAsFinished('r1:0');
@@ -915,7 +992,7 @@ void main() {
         container.read(activeTimerProvider.notifier).startTimer(
               recipeId: 'r1',
               stepIndex: 0,
-              label: 'Nudeln',
+              recipeTitle: 'Test Rezept',label: 'Nudeln',
               durationSeconds: 60,
             );
         await pumpAsync();
@@ -929,7 +1006,7 @@ void main() {
         verify(
           () => mockPlugin.zonedSchedule(
             id: any(named: 'id'),
-            title: 'Timer abgelaufen',
+            title: any(named: 'title'),
             body: 'Nudeln',
             scheduledDate: any(named: 'scheduledDate'),
             notificationDetails: any(named: 'notificationDetails'),
