@@ -43,6 +43,7 @@ ios/Runner/GoogleService-Info.plist
 .pub-cache/
 .pub/
 /build/
+docs/refactors/
 
 # Web related
 lib/generated_plugin_registrant.dart
