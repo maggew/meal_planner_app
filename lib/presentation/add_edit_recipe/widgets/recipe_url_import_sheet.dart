@@ -3,15 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meal_planner/data/model/scraped_recipe_data.dart';
 import 'package:meal_planner/services/providers/recipe/recipe_scraper_provider.dart';
 
-void showRecipeUrlImportSheet(
+Future<void> showRecipeUrlImportSheet(
   BuildContext context,
   void Function(ScrapedRecipeData) onImported,
-) {
-  showModalBottomSheet<void>(
+) async {
+  await showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     builder: (_) => RecipeUrlImportSheet(onImported: onImported),
   );
+  FocusManager.instance.primaryFocus?.unfocus();
 }
 
 class RecipeUrlImportSheet extends ConsumerStatefulWidget {

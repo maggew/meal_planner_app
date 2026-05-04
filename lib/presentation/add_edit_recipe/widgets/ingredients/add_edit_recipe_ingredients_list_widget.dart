@@ -383,6 +383,10 @@ Future<void> _handleDeletePressed(
     ),
   );
 
+  // Fokus explizit entfernen, damit Flutter ihn nicht automatisch
+  // auf das erste fokussierbare Widget (Titelfeld) zurückstellt.
+  FocusManager.instance.primaryFocus?.unfocus();
+
   if (confirmed == true) {
     ref.read(ingredientsProvider.notifier).removeSection(sectionIndex);
   }
