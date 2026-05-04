@@ -52,7 +52,7 @@ class _ShowRecipeOverviewState extends State<ShowRecipeOverview>
           ),
           Consumer(
             builder: (context, ref, _) {
-              if (ref.watch(isPremiumProvider)) return const SizedBox.shrink();
+              if (ref.watch(isPremiumProvider)) return const SizedBox(height: 10);
               return const Column(
                 children: [
                   SizedBox(height: 8),
