@@ -100,17 +100,39 @@ void main() {
       expect(GermanTextNormalizer.fuzzyMatch('Nudeln', 'Spaghetti Nudeln'), true);
     });
 
-    // Known limitation: kurze Stems können in unverwandten Wörtern auftauchen
-    test('KNOWN LIMITATION: Tomate matcht Automat (beide zu "tomat" gestrippt)', () {
-      // normalize("Tomate") = "tomat", normalize("Automat") = "automat"
-      // "automat".contains("tomat") = true → false positive
-      expect(GermanTextNormalizer.fuzzyMatch('Tomate', 'Automat'), true);
+    // Bugs behoben durch Token-Präfix-Matching
+    test('Tomate matcht Automat nicht (false positive behoben)', () {
+      expect(GermanTextNormalizer.fuzzyMatch('Tomate', 'Automat'), false);
     });
 
-    test('KNOWN LIMITATION: Ei matcht Reis (Stem "ei" in "reis")', () {
-      // normalize("Ei") = "ei", normalize("Reis") = "rei" (strips s)
-      // "rei".contains("ei") = true → false positive
-      expect(GermanTextNormalizer.fuzzyMatch('Ei', 'Reis'), true);
+    test('Ei matcht Reis nicht (false positive behoben)', () {
+      expect(GermanTextNormalizer.fuzzyMatch('Ei', 'Reis'), false);
+    });
+
+    // Kern-Bug: Lauch darf Knoblauch nicht matchen
+    test('Lauch matcht Knoblauch nicht', () {
+      expect(GermanTextNormalizer.fuzzyMatch('Lauch', 'Knoblauch'), false);
+    });
+
+    // Präfix-Matching auf Tokens
+    test('Lauch matcht Lauchzwiebeln (Präfix auf Token)', () {
+      expect(GermanTextNormalizer.fuzzyMatch('Lauch', 'Lauchzwiebeln'), true);
+    });
+
+    test('Lauch matcht Frischer Lauch (Token nach Leerzeichen)', () {
+      expect(GermanTextNormalizer.fuzzyMatch('Lauch', 'Frischer Lauch'), true);
+    });
+
+    test('Lauch matcht Lauch, gewürfelt (Token vor Komma)', () {
+      expect(GermanTextNormalizer.fuzzyMatch('Lauch', 'Lauch, gewürfelt'), true);
+    });
+
+    test('Lauch matcht Lauch-Rüebli (Token vor Bindestrich)', () {
+      expect(GermanTextNormalizer.fuzzyMatch('Lauch', 'Lauch-Rüebli'), true);
+    });
+
+    test('Petersilie matcht Petersilie/Koriander (Token vor Slash)', () {
+      expect(GermanTextNormalizer.fuzzyMatch('Petersilie', 'Petersilie/Koriander'), true);
     });
   });
 }

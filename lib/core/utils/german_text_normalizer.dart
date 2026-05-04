@@ -41,7 +41,7 @@ class GermanTextNormalizer {
 
   static bool fuzzyMatch(String needle, String haystack) {
     final normalizedNeedle = normalize(needle);
-    final normalizedHaystack = normalize(haystack);
-    return normalizedHaystack.contains(normalizedNeedle);
+    final tokens = haystack.split(RegExp(r'[\s,\-/()\[\];]+'));
+    return tokens.any((token) => normalize(token).startsWith(normalizedNeedle));
   }
 }
