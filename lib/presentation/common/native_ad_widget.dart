@@ -28,12 +28,12 @@ class _NativeAdWidgetState extends ConsumerState<NativeAdWidget>
   static String get _adUnitId {
     if (Platform.isAndroid) {
       return kDebugMode
-          ? 'ca-app-pub-3940256099942544/2247696110'
+          ? 'ca-app-pub-1315450803416467/6131055429'
           : const String.fromEnvironment('ADMOB_NATIVE_AD_UNIT_ANDROID',
               defaultValue: 'ca-app-pub-3940256099942544/2247696110');
     } else {
       return kDebugMode
-          ? 'ca-app-pub-3940256099942544/3986624511'
+          ? 'ca-app-pub-1315450803416467/7069477433'
           : const String.fromEnvironment('ADMOB_NATIVE_AD_UNIT_IOS',
               defaultValue: 'ca-app-pub-3940256099942544/3986624511');
     }
@@ -99,8 +99,7 @@ class _NativeAdWidgetState extends ConsumerState<NativeAdWidget>
     // Lazy-start ad load when status flips from loading → known free.
     ref.listen(subscriptionProvider, (prev, next) {
       final wasKnown = prev?.asData != null;
-      final nowKnownFree =
-          next.asData != null && !next.asData!.value.isPremium;
+      final nowKnownFree = next.asData != null && !next.asData!.value.isPremium;
       if (!wasKnown && nowKnownFree && _nativeAd == null && !_adFailed) {
         _loadAd();
       }

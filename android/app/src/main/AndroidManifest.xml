@@ -15,6 +15,11 @@
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"
         android:networkSecurityConfig="@xml/network_security_config">
+
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-1315450803416467~1469755688" />
+
 		<activity
 
     android:name="com.yalantis.ucrop.UCropActivity"
@@ -69,11 +74,6 @@
         <meta-data
             android:name="firebase_analytics_collection_deactivated"
             android:value="true" />
-
-        <!-- AdMob App ID (replace with real ID for production) -->
-        <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713"/>
 
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
