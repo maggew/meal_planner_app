@@ -6,6 +6,7 @@ import 'package:meal_planner/domain/enums/group_role.dart';
 import 'package:meal_planner/core/constants/supabase_constants.dart';
 import 'package:meal_planner/data/model/group_model.dart';
 import 'package:meal_planner/domain/entities/group.dart';
+import 'package:meal_planner/domain/enums/subscription_status.dart';
 import 'package:meal_planner/domain/exceptions/group_exceptions.dart';
 import 'package:meal_planner/domain/repositories/group_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
@@ -33,8 +34,7 @@ class SupabaseGroupRepository implements GroupRepository {
 
       await _supabase.from(SupabaseConstants.subscriptionsTable).insert({
         SupabaseConstants.subscriptionGroupId: groupId,
-        // TODO: change to 'free' when ads go live
-        SupabaseConstants.subscriptionStatus: 'premium',
+        SupabaseConstants.subscriptionStatus: SubscriptionStatus.free,
       });
     } on PostgrestException catch (e) {
       throw GroupCreationException("Datenbankfehler: $e");
@@ -305,7 +305,8 @@ class SupabaseGroupRepository implements GroupRepository {
           .maybeSingle();
 
       if (result == null) return null;
-      return GroupRole.fromString(result[SupabaseConstants.memberRole] as String);
+      return GroupRole.fromString(
+          result[SupabaseConstants.memberRole] as String);
     } catch (_) {
       return null;
     }
