@@ -1,0 +1,41 @@
+workflows:
+  ios-testflight:
+    name: iOS → TestFlight
+    max_build_duration: 60
+    integrations:
+      app_store_connect: Codemagic Admin
+    environment:
+      groups:
+        - meal_planner_secrets
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.maggew.mealPlanner
+      flutter: stable
+    scripts:
+      - name: Create .env
+        script: |
+          echo "SUPABASE_URL=$SUPABASE_URL" > .env
+          echo "SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" >> .env
+          echo "GOOGLE_LOGIN_SERVER_CLIENT_ID=$GOOGLE_LOGIN_SERVER_CLIENT_ID" >> .env
+          echo "BOOTSTRAP_USER_URL=$BOOTSTRAP_USER_URL" >> .env
+      - name: Restore GoogleService-Info.plist
+        script: |
+          echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > ios/Runner/GoogleService-Info.plist
+      - name: Flutter pub get
+        script: flutter pub get
+      - name: Run build_runner
+        script: dart run build_runner build --delete-conflicting-outputs
+      - name: Set up code signing on Xcode project
+        script: xcode-project use-profiles
+      - name: Build iOS
+        script: |
+          flutter build ipa \
+            --release \
+            --build-number=$PROJECT_BUILD_NUMBER \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true

@@ -61,5 +61,11 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Wir benötigen Zugriff auf deine Fotos, damit du Bilder in der App auswählen kannst.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Wir benötigen Zugriff auf die Kamera, damit du Fotos aufnehmen kannst.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>Diese App verwendet Tracking, um personalisierte Werbung anzuzeigen.</string>
 </dict>
 </plist>
