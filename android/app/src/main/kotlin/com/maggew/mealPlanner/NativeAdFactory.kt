@@ -1,4 +1,4 @@
-package com.example.meal_planner
+package com.maggew.mealPlanner
 
 import android.content.Context
 import android.view.LayoutInflater

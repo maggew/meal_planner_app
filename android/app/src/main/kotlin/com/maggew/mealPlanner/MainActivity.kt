@@ -1,4 +1,4 @@
-package com.example.meal_planner
+package com.maggew.mealPlanner
 
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
